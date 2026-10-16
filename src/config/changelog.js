@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 398,
+    date: '2026-10-16',
+    title: 'Restoring a backup on a new browser no longer undoes DRIP labels',
+    summary: 'A backup now records that the one-time lot-label correction from September has run, so restoring it on a new browser keeps the DRIP labels you set by hand the first time.',
+    items: [
+      "**What was wrong.** On September 30 the App corrected, once per browser, the DRIP labels an old import had guessed. That \u201conce\u201d was remembered by the browser, not by your data, so restoring a backup on a browser that had never run the correction ran it again -- on holdings that had already been corrected, and on any lot you had since labeled DRIP Reinvestment yourself. Restoring the same file a second time put them back, which is how it was noticed.",
+      "**What changed.** A backup made from today on records that the correction has run, and a restore honors that. One restore is enough.",
+      "**A backup made between September 30 and today** does not carry the record. If you restore one of those onto a new browser, check any lots you had labeled DRIP Reinvestment by hand; restoring the same file a second time, as before, also puts them right. Making a fresh backup now avoids this.",
+    ],
+  },
+  {
     id: 397,
     date: '2026-10-16',
     title: 'A Premium key now says whose it is',

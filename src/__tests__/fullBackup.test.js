@@ -14,6 +14,7 @@ import {
   FULL_BACKUP_VERSION,
 } from '../utils/fullBackup';
 import { savePricingSource } from '../utils/pricingSource';
+import { loadHoldings } from '../context/usePortfolioHoldings';
 import { DEFAULT_INPUTS, INPUTS_SCHEMA_VERSION } from '../calculator';
 
 // Covers the "one button that saves everything necessary to get back to a
@@ -189,6 +190,38 @@ describe('fullBackup', () => {
     // "is this browser premium right now, before this restore" -- passed
     // in by the caller (Sidebar.jsx / LedgerTab.jsx), not read from
     // context, since this module has no React dependency by design.
+    // Changelog 398. The one-time lot-source retraction (changelog 347) is
+    // a fact about the holdings, not the browser: a backup records that it
+    // has run, and a restore onto a browser that never ran it must not run
+    // it again on holdings the user has since labeled by hand.
+    describe('the lot-source retraction flag travels with the holdings', () => {
+      const dripLot = { id: 'lot1', date: '2026-01-05', shares: 3, pricePerShare: 100, source: 'drip' };
+      const holdings = [{ id: 'h1', symbol: 'VTI', lots: [dripLot] }];
+
+      it('a backup from a browser that has run the retraction says so', () => {
+        localStorage.setItem('cfe_lot_source_retraction_v1', 'done');
+        expect(buildFullBackupPayload().lotSourceRetraction).toBe('done');
+        localStorage.clear();
+        expect(buildFullBackupPayload().lotSourceRetraction).toBeNull();
+      });
+
+      it('restoring such a backup onto a fresh browser keeps a DRIP label the user set -- in one restore', () => {
+        // The old failure: no flag on this browser, so the first load after
+        // the restore retracted the label; only a second restore (with the
+        // flag now set) kept it.
+        applyFullBackupToStorage({ portfolioHoldings: holdings, lotSourceRetraction: 'done' }, { isPremium: true });
+        expect(localStorage.getItem('cfe_lot_source_retraction_v1')).toBe('done');
+        expect(loadHoldings()[0].lots[0].source).toBe('drip');
+      });
+
+      it('a backup written before the flag existed still gets the one-time correction', () => {
+        applyFullBackupToStorage({ portfolioHoldings: holdings }, { isPremium: true });
+        expect(localStorage.getItem('cfe_lot_source_retraction_v1')).toBeNull();
+        expect(loadHoldings()[0].lots[0].source).toBe('unspecified');
+        expect(localStorage.getItem('cfe_lot_source_retraction_v1')).toBe('done');
+      });
+    });
+
     describe('premium-gated portfolioHoldings/liquidations restore', () => {
       it('skips restoring portfolioHoldings/liquidations when not premium and the file grants no premium', () => {
         applyFullBackupToStorage({
