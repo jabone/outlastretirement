@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# /app is the application itself, not a page worth indexing: it renders
+# nothing until a visitor fills it in, and every real route inside it is a
+# hash fragment a crawler never sees. It is deliberately NOT disallowed
+# here -- app/index.html carries <meta name="robots" content="noindex,follow">,
+# and a crawler has to be allowed to fetch the page to read that tag.
+
+Sitemap: https://www.outlastretirement.com/sitemap.xml

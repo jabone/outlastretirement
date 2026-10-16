@@ -1,0 +1,1117 @@
+{
+  "AL": {
+    "approximations": [
+      "BIG OMISSION: Alabama allows a deduction for federal income tax paid/accrued (Code of Ala. 40-18-15). The schema cannot express it; it materially lowers AL tax for anyone owing federal tax. Engine will OVERSTATE Alabama tax unless it models this separately.",
+      "Alabama computes its own AGI (gross income approach), not federal AGI; SS, government pensions and defined-benefit pensions are excluded from it.",
+      "Standard deduction is AGI-based sliding scale: single $3,000 below $25,500 AGI falling $25 per $500 to a $2,500 floor; MFJ $8,500 below $25,500 falling $175 per $500 to a $5,000 floor (reached at ~$35,500). Record uses the floors, which apply to most retirees with meaningful taxable income; low-AGI households get more.",
+      "retirementExclusion models the full exemption of defined-benefit pension income (private and public) at any age. Defined-contribution plans (401(k), 403(b), IRA) are NOT exempt.",
+      "Age 65+ retirement-income exclusion: up to $6,000 per person of taxable retirement income (IRA/401(k)/annuity distributions not otherwise exempt, Schedule RS). Modeled as extraDeduction65 = 6000, which assumes each 65+ person has at least $6,000 of such income; it cannot offset wages or investment income in reality.",
+      "Personal exemption is $1,500 single / $3,000 MFJ (= $1,500 per person). Dependent exemptions ($300-$1,000 by AGI) ignored.",
+      "Capital gains, interest and dividends fully taxed. 2026 overtime deduction ignored.",
+      "No local income tax modeled; a few cities/counties (e.g. Birmingham, Bessemer occupational tax) tax wages only, which does not affect retirees."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Code of Alabama 40-18-15 (standard deduction, federal income tax deduction)",
+        "url": "https://law.justia.com/codes/alabama/title-40/chapter-18/article-1/section-40-18-15/"
+      },
+      {
+        "label": "Alabama DOR Form 40NR 2025 (Schedule RS $6,000 age-65 exclusion, federal tax deduction)",
+        "url": "https://www.revenue.alabama.gov/wp-content/uploads/2026/05/25f40nrabr.pdf"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      }
+    ]
+  },
+  "AR": {
+    "approximations": [
+      "Top rate cut 3.9% -> 3.7% retroactive to 1/1/2026 (Act 1 / Act 2 of the 2026 First Extraordinary Session, HB1001/SB1).",
+      "Arkansas does NOT double brackets for married couples: the same table applies to joint net income. Couples can file separately on the same return (status 4) and usually save; record uses the joint table, overstating MFJ tax slightly.",
+      "High-income table: at net taxable income above ~$94,700 a separate schedule applies (2% on first $4,700, 3.7% above) with a bracket-adjustment phase-in. Record uses the standard table throughout, which understates tax above ~$95k by roughly $300.",
+      "Retirement exclusion: $6,000 per person combined for employer pensions (incl. government) and IRA/401(k) distributions; IRA distributions qualify only at age 59 1/2+ (record uses minAge 0 since retirees normally qualify).",
+      "Military retirement pay fully exempt (Act 141 of 2017).",
+      "Personal tax credit $29 per person; an additional $29 credit per person 65+ (not elected for the special pension credit) is not modeled.",
+      "Standard deduction 2026 = $2,470 single per DFA 2026 withholding formula; MFJ assumed double ($4,940, per Tax Foundation).",
+      "Verified 2026-10-03 (confirmed) — 2026 bracket schedule (top 3.7%): TY2026, net income <= $94,700: 0% $0-5,599; 2% $5,600-11,199; 3% $11,200-15,999; 3.4% $16,000-26,399; 3.7% $26,400-94,700. Net income > $94,700: 2% on $0-4,700, 3.7% on $4,701 and above, minus a bracket adjustment of $290 at $94,701-94,800, falling $10 per $100 of income to $10 at $97,501-97,600 and $0 from $97,601. Note: Act 1 of the 2026 FIRST Extraordinary Session (HB 1001, companion SB 1), approved 5/6/26, effective for tax years beginning on or after 1/1/2026. The prompt's '2nd extraordinary/fiscal session' label is wrong. The thresholds in the Act are already the DFA-indexed 2026 figures: DFA's 1/1/2026 withholding formula (dfa.arkansas.gov/wp-content/uploads/whformula_2026.pdf) uses the same 5,599/11,199/15,999/26,399/94,700 breaks at the old 3.9% top rate. Only the top rate changed, 3.9% to 3.7%. The Act keeps annual indexing ('tables ... shall be adjusted annually'), so the next adjustment is 2027. One schedule applies to every filing status (MFJ uses the same table on combined net income). Standard deduction per withholding formula is $2,470. Source: https://www.arkleg.state.ar.us/Home/FTPDocument?path=%2FACTS%2F2026S1%2FPublic%2FACT1.pdf"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Arkansas DFA — HB1001 (2026 1st Extraordinary Session) fiscal impact, 2026 brackets",
+        "url": "https://www.arkleg.state.ar.us/Home/FTPDocument?path=%2FAssembly%2F2025%2F2026S1%2FFiscal+Impacts%2FHB1001-DFA1.pdf"
+      },
+      {
+        "label": "Arkansas DFA — 2026 Withholding Tax Formula (standard deduction $2,470, $29 credit)",
+        "url": "https://www.dfa.arkansas.gov/wp-content/uploads/whformula_2026.pdf"
+      },
+      {
+        "label": "Arkansas House — Tax cuts passed in special session (Acts 1 & 2 of 2026)",
+        "url": "https://www.arkansashouse.org/news/post/35262/tax-cuts-passed-in-special-session/"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      },
+      {
+        "label": "2026 bracket schedule (top 3.7%) (checked 2026-10-03)",
+        "url": "https://www.arkleg.state.ar.us/Home/FTPDocument?path=%2FACTS%2F2026S1%2FPublic%2FACT1.pdf"
+      }
+    ]
+  },
+  "AZ": {
+    "approximations": [
+      "Flat 2.5% rate.",
+      "Public pension subtraction: up to $2,500 per person of federal civil-service, Arizona state/local pensions (not other states' pensions). Not modeled (worth at most $62.50/person); private pensions and IRA/401(k) fully taxed.",
+      "Military retirement pay is 100% subtracted.",
+      "Dependent credit ($100/$25, rising to $125 under 17) and family income tax credit ignored.",
+      "The federal standard deduction used here already includes the federal 65+ add-on and the 2025–2028 $6,000 senior deduction. Arizona's own $2,100 age-65 exemption is added on top.",
+      "Verified 2026-10-03 (confirmed) — standard deduction 2026: $16,100 single/MFS, $24,150 HOH, $32,200 MFJ for 2026: the statute's base ($15,750 / $23,625 / $31,500) indexed 'in the same manner' as the federal basic standard deduction. This is the federal BASIC amount only; AZ has no 65+/blind add-on. Note: Amended by HB 4168 / SB 1861 (Laws 2026, Ch. 140, signed 6/13/26, retroactive to TY2025). A.R.S. 43-1041 has no IRC 63(f) aged/blind additional amount, so 'federal' is right only if it means the federal BASIC standard deduction. New for TY2026 (43-1041(I)): standard-deduction filers may add charitable gifts, capped at $1,000 single/MFS and $2,000 MFJ. Secondary source pointer: azleg Senate fact sheet S.1861-4168ATT_ASENACTED. Source: https://www.azleg.gov/ars/43/01041.htm",
+      "Verified 2026-10-03 (corrected) — senior deduction / 65+ treatment 2026: AZ allows the $6,000 federal senior deduction (IRC 151(d)(5)(C)) as a SUBTRACTION from Arizona gross income for TY2025 onward. It does NOT allow the federal 65+ additional standard deduction. The $2,100 personal exemption per taxpayer/spouse age 65+ (A.R.S. 43-1023) still applies. Note: Engine fix: AZ deduction = federal BASIC standard deduction ($16,100 / $32,200) + $6,000 senior subtraction per qualifying 65+ person (subject to the federal MAGI phase-out, since it is 'the amount deducted' federally) + $2,100 exemption per 65+ taxpayer/spouse (43-1023). Remove the federal 65+ add-on ($2,050 single / $1,650 per spouse for 2026), which AZ does not allow (43-1041 has no aged/blind amount). The senior subtraction tracks the federal provision, which sunsets after TY2028. The engine total is too high by the 65+ add-on. Source: https://www.azleg.gov/ars/43/01022.htm"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Arizona DOR — 2025 Form 140 instructions (age-65 exemption, $2,500 public pension subtraction, military retirement, SS)",
+        "url": "https://azdor.gov/sites/default/files/document/FORMS_INDIVIDUAL_2025_140i.pdf"
+      },
+      {
+        "label": "Forvis Mazars — Arizona updates IRC conformity date to Jan 1, 2026 (H.B. 4168)",
+        "url": "https://www.forvismazars.us/forsights/2026/07/arizona-updates-irc-conformity-date-to-january-1-2026"
+      },
+      {
+        "label": "Prescott Pulse — What the 2026 tax package means (standard deduction, $6,000 senior deduction)",
+        "url": "https://prescottpulse.substack.com/p/what-the-2026-tax-package-means-for"
+      },
+      {
+        "label": "standard deduction 2026 (checked 2026-10-03)",
+        "url": "https://www.azleg.gov/ars/43/01041.htm"
+      },
+      {
+        "label": "senior deduction / 65+ treatment 2026 (checked 2026-10-03)",
+        "url": "https://www.azleg.gov/ars/43/01022.htm"
+      }
+    ]
+  },
+  "CT": {
+    "approximations": [
+      "Social Security: fully exempt when federal AGI < $75,000 single / $100,000 MFJ. Above that, CT still exempts at least 75% of benefits (at most 25% taxable, capped at the federally taxable amount). The schema's 'taxed as federal' above the threshold OVERSTATES CT tax on SS (federal can tax up to 85%).",
+      "Connecticut Teachers' Retirement System pensions: 50% deductible regardless of AGI (or the general deduction if larger) — not modeled.",
+      "Personal exemption ($15,000 single / $24,000 MFJ) phases out fully by AGI $45,000 single / $71,000 MFJ; the 1%-75% personal tax credit phases out by ~$64,500 single / ~$100,500 MFJ. Both set to 0 here; low-AGI households will be overtaxed.",
+      "Not modeled: phase-out of the 2% bracket benefit and the 'tax benefit recapture' add-back for higher incomes (begins ~AGI $56,500 single / $100,500 MFJ), which pushes the effective marginal rate above the bracket rate for upper-middle incomes.",
+      "Military retirement pay fully exempt.",
+      "Verified 2026-10-03 (corrected) — pension/annuity + IRA subtraction phase-out; Social Security: Single/MFS/HOH AGI: <75,000 100%; 75,000-77,499 85%; 77,500-79,999 70%; 80,000-82,499 55%; 82,500-84,999 40%; 85,000-87,499 25%; 87,500-89,999 10%; 90,000-94,999 5%; 95,000-99,999 2.5%; >=100,000 0%. MFJ: <100,000 100%; 100,000-104,999 85%; 105,000-109,999 70%; 110,000-114,999 55%; 115,000-119,999 40%; 120,000-124,999 25%; 125,000-129,999 10%; 130,000-139,999 5%; 140,000-149,999 2.5%; >=150,000 0%. IRA distributions (non-Roth): 100% for 2026 and later, run through the same phase-out. SS: fully exempt below $75k (single/MFS) or $100k (MFJ/QSS/HOH) AGI. Above that, CT taxes at most 25%: the CT subtraction = federal taxable SS minus 25% x lesser of (benefits, Pub 505 Wks 2-2 line 10 amount), floored at 0. Note: The bands are 2.5k single / 5k MFJ (MFJ bands widen to 10k at $130k and $140k), with 9 steps including 5% and 2.5%, not 5 steps. The engine's 85/70/50/25/10 shape is wrong. IRA percentage source: DRS-162 seniors flyer (portal.ct.gov/-/media/drs/publications/drs/drs-162-seniors-flyer_0425.pdf): 25% 2023, 50% 2024, 75% 2025, 100% 2026+. Conflict: the 2026 withholding guide IP 2026-7 still says 'Enter 75% of the amount of IRA', which looks like a stale worksheet. Statute text could not be fetched (cga.ct.gov blocked). Social Security: the current 'fully taxable above threshold' is WRONG. Above the threshold CT taxable SS = min(federal taxable SS, 25% x min(total benefits, provisional-income excess per Pub 505 Wks 2-2 line 10)). HOH uses the $100k threshold for SS. Source: https://portal.ct.gov/-/media/drs/publications/pubsip/2026/ip-2026-7.pdf?rev=beb6c5218aa2444ea6e213edcd465f0f&hash=3DBADA0CC8447FD1EF469E88518F8FC2"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Connecticut DRS — Individual income tax (rates, CT-1040 instructions)",
+        "url": "https://portal.ct.gov/DRS/Individuals/Individual-Tax-Page/Whats-New"
+      },
+      {
+        "label": "CGA OLR report 2025-R-0152 — retirement income deductions",
+        "url": "https://www.cga.ct.gov/2025/rpt/pdf/2025-R-0152.pdf"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      },
+      {
+        "label": "CT Mirror — CT pension/IRA/SS exemption thresholds",
+        "url": "https://ctmirror.org/2023/08/14/ct-pension-tax-social-security-2023-retirement/"
+      },
+      {
+        "label": "pension/annuity + IRA subtraction phase-out; Social Security (checked 2026-10-03)",
+        "url": "https://portal.ct.gov/-/media/drs/publications/pubsip/2026/ip-2026-7.pdf?rev=beb6c5218aa2444ea6e213edcd465f0f&hash=3DBADA0CC8447FD1EF469E88518F8FC2"
+      }
+    ]
+  },
+  "DC": {
+    "approximations": [
+      "Same bracket schedule for all filing statuses (not doubled for MFJ).",
+      "Standard deduction equals the federal basic standard deduction ($16,100 / $32,200 for 2026) and DC allows the federal additional amount for 65+/blind: $1,650 per married person, $2,050 for a single filer (record uses $1,650).",
+      "No retirement-income exclusion: the old $3,000 DC/federal government pension exclusion was repealed after 2014. Pensions, IRA/401(k) and military retirement are fully taxable.",
+      "Social Security fully excluded.",
+      "The federal standard deduction used here already includes the federal 65+ add-on and the 2025–2028 $6,000 senior deduction.",
+      "STILL UNCONFIRMED (checked 2026-10-03) — federal $6,000 senior deduction and standard deduction 2026: Senior deduction: YES for TY2026 (and 2027-2028). Standard deduction: DC Code defines it as the IRC 63(c) amount for tax years after 2017, so federal ($16,100 / $32,200, which includes the 63(f) aged add-on). OTR said it will follow OBBBA for 2026+. The July 2026 FY2027 BSA text on the $750 OBBBA increase was not verified. Note: History: in Nov 2025 the DC Council decoupled from the senior deduction, tips, overtime and the $750 standard-deduction increase (D.C. Act 26-217, temporary act). Congress disapproved it with H.J.Res.142 (P.L. 119-78, signed 2/18/2026), and DC's AG disputes the timing. OCFO says TY2025 liabilities under the emergency law survive, so the senior deduction is NOT allowed for 2025, while 2026+ follows OBBBA. Then the FY2027 Budget Support Act (July 2026; subtitle 'Tax Code Conformity and Clarification Amendment Act of 2026') passed a narrower decoupling. Per NTU (secondary), it allows tips, overtime, car-loan interest and the enhanced senior deduction for TY2026-2028 and decouples business provisions and the non-itemizer charitable deduction. Whether it again decouples the $750 standard-deduction increase for 2026 could not be confirmed: LIMS is blocked to fetch and the OCFO FIS was truncated. Best evidence: standard deduction = federal for 2026, and senior deduction allowed. The URL is a DC OCFO letter hosted on thedcline.org. Code link: https://code.dccouncil.gov/us/dc/council/code/sections/47-1801.04 Source: https://thedcline.org/wp-content/uploads/2026/03/CFO-Ltr_Revenues-from-Decoupling-Legislation_03-04-2026.pdf"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "DC OTR — 2024 D-40 booklet (rates, standard deduction, 65+ additional amount)",
+        "url": "https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2024_D40_Booklet_011525.pdf"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      },
+      {
+        "label": "AFS — DC tax decoupling dispute and congressional disapproval",
+        "url": "https://www.afslaw.com/perspectives/alerts/district-columbias-tax-decoupling-dispute-congressional-disapproval-and-ongoing"
+      },
+      {
+        "label": "Kiplinger — Congress ends DC emergency tax bill (senior deduction)",
+        "url": "https://www.kiplinger.com/taxes/congress-to-end-dc-emergency-tax-bill"
+      }
+    ]
+  },
+  "DE": {
+    "approximations": [
+      "Delaware does not double brackets for joint filers; couples may file separately on the same return (status 3) to use the brackets twice, and usually do. Record uses the joint schedule, overstating MFJ tax when both spouses have income.",
+      "Pension exclusion: under 60, $2,000 and only for pension income; 60+, $12,500 per person of pension plus 'eligible retirement income' (IRA/401(k), interest, dividends, capital gains, net rental income). The 'covers' flags reflect the 60+ tier.",
+      "Military pensions: under 60, up to $12,500 excluded (since 2022); 60+ falls within the general $12,500 exclusion. Not fully exempt.",
+      "Additional standard deduction $2,500 per person 65+ (or blind) applies only if not itemizing.",
+      "Personal credit $110 per person; an additional $110 credit per person aged 60+ is not modeled (schema has no age-specific credit) — engine overstates tax by $110/person 60+.",
+      "HB 108 (raise exclusion to $25,000) died in committee 6/30/2026; amounts unchanged for 2026.",
+      "Wilmington city wage tax (1.25%) applies to earned income of city residents only; not modeled. Lump-sum distribution tax ignored."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Delaware Division of Revenue — 2026 Estimated Tax instructions (std deduction, $2,500 65+, $110 credit, pension exclusion)",
+        "url": "https://revenuefiles.delaware.gov/2025/PITForms_Instructions/Instructions/PIT-EST_Instructions_2026-01.pdf"
+      },
+      {
+        "label": "Delaware Division of Revenue — Personal Income Tax FAQs (pension exclusion, eligible retirement income, SS)",
+        "url": "https://revenue.delaware.gov/frequently-asked-questions/personal-income-tax-faqs/"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      },
+      {
+        "label": "BillTrack50 — DE HB108 status",
+        "url": "https://www.billtrack50.com/billdetail/1883428"
+      }
+    ]
+  },
+  "GA": {
+    "approximations": [
+      "HB 463 (signed 5/11/2026): rate 5.19% -> 4.99% for 2026, standard deduction $12,000/$24,000 -> $15,000/$30,000, dependent deduction $4,000 -> $5,000. Future rate cuts toward 3.99% and deduction step-ups are revenue-triggered.",
+      "Retirement exclusion is per person; covers pensions, IRA/401(k), interest, dividends, capital gains, rental income, plus up to ~$4,000-$5,000 of earned income. Increases to $70,000 for 65+ starting 2027 under HB 463.",
+      "Additional $1,300 deduction per person 65+ (and per blind person).",
+      "Military retirement: under 62, up to $17,500 excluded (plus another $17,500 with sufficient Georgia earned income); at 62+ it falls under the general retirement exclusion. Not fully exempt.",
+      "Temporary tips/overtime exclusions (2026-2028) and one-time rebates ignored."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Paylocity — Georgia reduces individual income tax rates for 2026 (HB 463)",
+        "url": "https://www.paylocity.com/resources/tax-compliance/alerts/georgia-reduces-individual-income-tax-rates-for-2026/"
+      },
+      {
+        "label": "Georgia Dept. of Audits — Retirement Income Exclusion tax incentive evaluation",
+        "url": "https://www.audits2.ga.gov/wp-content/uploads/2023/09/Retirement-Income-Exclusion-Summary.pdf"
+      },
+      {
+        "label": "CBS Atlanta — Georgia legislature approves income tax cut, raising deductions",
+        "url": "https://www.cbsnews.com/atlanta/news/georgia-legislature-state-income-tax-cut-deductions-credits/"
+      },
+      {
+        "label": "Georgia DOR — Individual income tax",
+        "url": "https://dor.georgia.gov/taxes/individual-taxes"
+      }
+    ]
+  },
+  "HI": {
+    "approximations": [
+      "2026 brackets are the Act 46 (SLH 2024) 2025-2026 schedule. Standard deduction rises to $8,000/$16,000 for 2026-2027 (Act 46), then $9,000 (2028-29), $10,000 (2030), $12,000 (2031+) single. Act 24 (SLH 2026) changes brackets from 2027 (incl. a new 13% top bracket) but not 2026.",
+      "Pensions: employer-funded pension benefits (private and government, incl. military) are exempt; the portion attributable to the employee's own contributions is taxable — record treats all pension income as exempt.",
+      "IRA distributions and the employee-deferral portion of 401(k)/403(b) distributions are taxable; distributions attributable to EMPLOYER 401(k) contributions are exempt but are not modeled (ira = false).",
+      "Personal exemption $1,144 per person, plus an additional $1,144 per person 65+ (modeled as extraDeduction65).",
+      "Interest, dividends, capital gains taxed (capital gains capped at 7.25% in Hawaii — not modeled).",
+      "Hawaii does not adopt the federal $6,000 senior deduction or federal standard deduction; it uses its own amounts."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Hawaii DOTAX — Tax Review Commission legislative update May 2026 (Act 24 SLH 2026)",
+        "url": "https://files.hawaii.gov/tax/stats/trc/docs2025/2026-05-Karacaovali_Presentation_TRC_Legislative_Update.pdf"
+      },
+      {
+        "label": "Hawaii DOTAX — 2025 Form N-11 instructions (exemption $1,144, filing thresholds)",
+        "url": "https://files.hawaii.gov/tax/forms/2025/n11ins.pdf"
+      },
+      {
+        "label": "Tax Cut Hawaii — Act 46 standard deduction schedule",
+        "url": "https://taxcuthawaii.org/new-hawaii-tax-brackets/"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      }
+    ]
+  },
+  "IA": {
+    "approximations": [
+      "Flat 3.8% for 2025 and later.",
+      "Exemption credits: $40 per person (personalCredit). The extra $20 credit per person aged 65+ is shown as extraDeduction65 = $526 ($20 / 3.8%) because the schema has no 65+ credit field.",
+      "Retirement income exclusion: unlimited, for age 55+ (also for the disabled and surviving spouses). It covers pensions (incl. IPERS and federal), IRA/SEP/SIMPLE/Keogh, 401(k)/403(b)/457(b), and Roth conversion income. It does not cover non-qualified deferred compensation or most non-qualified annuities. Under age 55, government pensions are taxable.",
+      "Military retirement pay is excluded.",
+      "Verified 2026-10-03 (confirmed) — Conformity to federal $6,000 senior deduction (2026): Yes - Iowa conforms; the federal age-65+ deduction of up to $6,000 flows through federal taxable income Note: Page is Iowa DOR's 2026-withholding guidance on OBBBA. Since Iowa starts from federal taxable income, the deduction (with its federal MAGI phase-out of 6% over $75k/$150k) carries through automatically; no separate Iowa add-back. Source: https://revenue.iowa.gov/taxes/tax-guidance/withholding-tax/impact-one-big-beautiful-bill-act-employee-withholding",
+      "Verified 2026-10-03 (confirmed) — 2026 flat rate: 3.8% Note: Iowa Individual Income Tax Withholding Formula Effective January 1, 2026. Retirement income remains fully excluded for 55+ (unchanged). Source: https://revenue.iowa.gov/media/53/download?inline=",
+      "Verified 2026-10-03 (confirmed) — School district surtax: Surtax is a % of Iowa income tax liability (after nonrefundable credits); 2025 district rates range 0-20%, district-count mean about 6%, large urban districts lower (Des Moines 0%, Davenport 0%, Cedar Rapids 5%, Iowa City 4%, Ames 3%). ~5% of liability x 3.8% = ~0.19% of taxable income, so 0.2% of taxable income is a reasonable typical proxy. Note: Base definition from Iowa DOR 2023 School District Report (https://revenue.iowa.gov/media/4157/download), Iowa Code 257.21. More exact modeling: surtax = rate x Iowa tax liability, with a default rate ~5% (equivalent to 0.19% of taxable income at 3.8%). Because retirement income is excluded from Iowa taxable income for 55+, the surtax is often near zero for retirees. Six counties also add a 1% EMS surtax. No statewide average rate is published; ~5-6% is derived from the 2025 rate list (histogram over ~312 districts, unweighted). Source: https://revenue.iowa.gov/media/4382/download?inline="
+    ],
+    "localTaxNote": "School-district income surtax: a percentage of the STATE tax (capped at 20%, usually single digits) levied by most districts. 0.2% of the base is roughly a 5% surtax times 3.8%. UNCONFIRMED: no current statewide average was found. Appanoose County adds a 1% EMS surtax.",
+    "sources": [
+      {
+        "label": "Iowa DOR — IA 1040 Schedule 1 expanded instructions (retirement income exclusion)",
+        "url": "https://revenue.iowa.gov/taxes/tax-guidance/individual-income-tax/1040-expanded-instructions/ia-1040-schedule-1"
+      },
+      {
+        "label": "Iowa DOR — Exemption credits (expanded instructions)",
+        "url": "https://revenue.iowa.gov/taxes/tax-guidance/individual-income-tax/1040-expanded-instructions/exemption-credits"
+      },
+      {
+        "label": "Iowa DOR — Tax/Fee descriptions (school district and EMS surtaxes)",
+        "url": "https://revenue.iowa.gov/taxes/tax-guidance/general/iowa-taxfee-descriptions-and-rates"
+      },
+      {
+        "label": "Kiplinger — Iowa state tax guide (3.8% for 2026, located primary sources)",
+        "url": "https://www.kiplinger.com/state-by-state-guide-taxes/iowa"
+      },
+      {
+        "label": "Conformity to federal $6,000 senior deduction (2026) (checked 2026-10-03)",
+        "url": "https://revenue.iowa.gov/taxes/tax-guidance/withholding-tax/impact-one-big-beautiful-bill-act-employee-withholding"
+      },
+      {
+        "label": "2026 flat rate (checked 2026-10-03)",
+        "url": "https://revenue.iowa.gov/media/53/download?inline="
+      },
+      {
+        "label": "School district surtax (checked 2026-10-03)",
+        "url": "https://revenue.iowa.gov/media/4382/download?inline="
+      }
+    ]
+  },
+  "ID": {
+    "approximations": [
+      "Idaho conformed to OBBBA (HB 559, signed 2/10/2026): federal standard deduction, the federal 65+ additional amount, and the $6,000 senior deduction. extraDeduction65 = $1,650 (federal additional, per married person; $2,050 for single) + $6,000 senior deduction. The senior deduction phases out at 6% of MAGI above $75,000 single / $150,000 MFJ — not modeled.",
+      "Refundable grocery credit ($155 per person) ignored — it offsets sales tax on food.",
+      "The federal standard deduction used here already includes the federal 65+ add-on and the 2025–2028 $6,000 senior deduction.",
+      "STILL UNCONFIRMED (checked 2026-10-03) — 2026 zero-rate bracket and rate: Rate 5.3% confirmed for 2026. The 2026 zero-bracket amount is not yet published. By statute it is $2,500 single / $5,000 MFJ x CPI(2025)/CPI(1998), roughly $4,940 single / $9,880 MFJ (estimate). Note: The rate is confirmed by statute (I.C. 63-3024) and by the 2026 withholding tables (EPB00744, rev. 07-23-2026: '5.3% of the amount over $16,100' single / '$32,200' married). Those withholding thresholds equal the federal standard deduction only and have no zero bracket, so they do not reveal it. Check: 2,500 x 313.689 (2024 CPI-U avg) / 163.0 = 4,811, matching 2025. For 2026, use the 2025 CPI-U annual average (about 322) to get about $4,940 single and double for MFJ. Pull the exact figure from the 2026 Form 40 instructions or tax table when published (late 2026). The Feb 2026 OBBBA conformity bill did not change the rate. Source: https://legislature.idaho.gov/statutesrules/idstat/title63/t63ch30/sect63-3024/"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Idaho State Tax Commission — What's new for 2025 returns (rate, military, OBBBA conformity)",
+        "url": "https://tax.idaho.gov/pressrelease/whats-new-for-2025-income-tax-returns/"
+      },
+      {
+        "label": "Idaho State Tax Commission — Idaho Retirement Benefits Deduction",
+        "url": "https://tax.idaho.gov/taxes/income-tax/individual-income/popular-credits-and-deductions/idaho-retirement-benefits-deduction/"
+      },
+      {
+        "label": "Idaho Legislature — House Bill 40 (2025)",
+        "url": "https://legislature.idaho.gov/wp-content/uploads/sessioninfo/2025/legislation/H0040.pdf"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      }
+    ]
+  },
+  "IN": {
+    "approximations": [
+      "Flat 2.95% for 2026 (down from 3.0% in 2025; scheduled 2.90% for 2027).",
+      "Exemptions: $1,000 per person plus $1,000 per person aged 65+. An extra $500 per person aged 65+ applies only when federal AGI is under $40,000; this is not modeled.",
+      "No general retirement-income exclusion: private pensions, IRA/401(k) distributions and Roth conversions are fully taxable.",
+      "Federal civil service annuity deduction (age 62+): first $16,000 of a federal civil-service annuity, reduced dollar-for-dollar by Social Security/railroad retirement received. This is not modeled because it applies to federal annuities only and is usually wiped out by Social Security. State/local government pensions get no special treatment.",
+      "Military retirement and survivor benefits are fully deductible.",
+      "Unified Tax Credit for the Elderly (age 65+, very low income) is ignored.",
+      "Senate Enrolled Act 1 (2025) restructures local income taxes beginning 2027-2028; future county rates may change."
+    ],
+    "localTaxNote": "County income tax applies to every resident on the same Indiana AGI base. 2026 county rates (DOR Departmental Notice #1) range 0.5% (Porter) to 3.0% (Randolph); simple average of all 92 counties is 1.93%. 1.75% is an approximate population-weighted figure (Marion 2.02%, Lake 1.5%, Allen 1.59%, Hamilton 1.1%). Engine should let the user pick a county.",
+    "sources": [
+      {
+        "label": "Indiana DOR — Departmental Notice #1 (2026 state and county rates)",
+        "url": "https://www.in.gov/dor/files/dn01.pdf"
+      },
+      {
+        "label": "Indiana DOR — Rates, Fees & Penalties (2.95% for 2026, 2.90% for 2027)",
+        "url": "https://www.in.gov/dor/resources/tax-rates-and-reports/rates-fees-and-penalties/"
+      },
+      {
+        "label": "Indiana DOR — Filing information for seniors (exemptions, deductions)",
+        "url": "https://in.gov/dor/i-am-a/individual/seniors"
+      },
+      {
+        "label": "Indiana DOR — Information Bulletin #26 (civil service annuity / military deductions)",
+        "url": "https://www.in.gov/dor/files/ib26.pdf"
+      }
+    ]
+  },
+  "KS": {
+    "approximations": [
+      "2026 rates are unchanged from 2024-2025 (5.2% / 5.58%). The SB 269 rate-cut trigger was NOT met for 2026 (KDOR Notice 25-06, Oct 2025). It is reviewed every August 15, so future years may be lower.",
+      "Personal exemption: $9,160 single and $18,320 MFJ, i.e. $9,160 per person.",
+      "Additional standard deduction for age 65+: $700 per spouse on joint returns. For a single filer it is $850 (understated here by $150).",
+      "Social Security is fully subtracted regardless of income (since 2024).",
+      "Exempt pensions: KPERS, Kansas teachers, police & fire systems, federal civil service and military. Pensions from other states' public systems are generally taxable. govPensionExempt=true reflects Kansas and federal pensions.",
+      "Private pensions, IRA/401(k) distributions and Roth conversions are fully taxable; Kansas has no general retirement exclusion."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Kansas DOR — 2025 Individual Income Tax booklet (IP25)",
+        "url": "https://www.ksrevenue.gov/pdf/ip25.pdf"
+      },
+      {
+        "label": "Kansas DOR — Notice 25-06: no rate reduction for tax year 2026",
+        "url": "https://ksrevenue.gov/taxnotices/notice25-06.pdf"
+      },
+      {
+        "label": "Kansas DOR — 2025 tax legislation summary (SB 269 triggers)",
+        "url": "https://www.ksrevenue.gov/pdf/2025LegChanges.pdf"
+      }
+    ]
+  },
+  "KY": {
+    "approximations": [
+      "Flat 3.5% for 2026 (down from 4.0% in 2025, under HB 1 of 2025).",
+      "The 2026 standard deduction is $3,360 per return. A true joint return gets only one. MFJ is shown as $6,720 because married couples normally file 'separately on a combined return' (status 3), where each spouse claims $3,360 and the flat rate makes the split costless.",
+      "No personal credit for everyone. The $40 credit per person aged 65+ is shown as extraDeduction65 = $1,143 ($40 / 3.5%) because the schema has no 65+ credit field.",
+      "Pension income exclusion: up to $31,110 per person per year, no age requirement. It covers all pension/annuity/IRA/401(k) income reported on federal 1040 lines 4b/5b, which includes Roth conversions.",
+      "Federal, military, and Kentucky state/local government pensions fall under the same $31,110 exclusion. The portion attributable to service before 1/1/1998 is fully excludable on top of the cap (Schedule P); this is not modeled, so govPensionExempt and militaryExempt are false.",
+      "Local occupational license taxes (city/county) apply to wages and net profits only, not to retirement income, so localTax is null. A working household would owe them on wages.",
+      "The Family Size Tax Credit (low income only) is ignored."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Kentucky DOR — 2026 standard deduction announcement",
+        "url": "https://revenue.ky.gov/News/Pages/Kentucky-DOR-Announces-2026-Standard-Deduction.aspx"
+      },
+      {
+        "label": "Kentucky DOR — 2026 withholding formula (3.5% rate)",
+        "url": "https://revenue.ky.gov/Forms/2026%20Withholding%20Formula.pdf"
+      },
+      {
+        "label": "Kentucky DOR — Schedule P (2025) pension income exclusion",
+        "url": "https://revenue.ky.gov/Forms/Schedule%20P%20(2025).pdf"
+      },
+      {
+        "label": "Kentucky DOR — Schedule ITC (2025) personal tax credits",
+        "url": "https://revenue.ky.gov/Forms/Schedule%20ITC%20(2025).pdf"
+      },
+      {
+        "label": "Kentucky DOR — 2025 Form 740 instructions",
+        "url": "https://revenue.ky.gov/Forms/740%20Packet%20Instructions.pdf"
+      }
+    ]
+  },
+  "LA": {
+    "approximations": [
+      "Flat 3% since 2025 (Act 11 of the 2024 Third Extraordinary Session). Payroll withholding tables use 3.09% to avoid under-withholding; the liability rate stays 3%.",
+      "Standard deduction for 2026, first CPI indexation: $12,875 single, $25,750 MFJ (2025 was $12,500 / $25,000). Figures are from the LDR withholding emergency rule as reported by Bloomberg Tax.",
+      "Personal exemptions were repealed in 2025.",
+      "Retirement income exclusion for age 65+: up to $12,000 per person of pension, annuity, IRA and 401(k) income (federal lines 4b/5b). It doubled from $6,000 in 2025.",
+      "Louisiana state and teacher systems, other Louisiana public systems, federal civil service, and military retirement are fully exempt on top of the $12,000."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Louisiana DOR — IT-540B 2025 instructions (rate, standard deduction, retirement exclusions)",
+        "url": "https://dam.ldr.la.gov/taxforms/IT540Bi-2025.pdf"
+      },
+      {
+        "label": "Louisiana DOR — Why do the withholding tables use 3.09%?",
+        "url": "https://revenue.louisiana.gov/tax-education-and-faqs/faqs/income-tax-reform/why-do-the-withholding-tables-use-3-09/"
+      },
+      {
+        "label": "Bloomberg Tax — Louisiana 2026 withholding / standard deductions ($12,875 / $25,750)",
+        "url": "https://news.bloombergtax.com/payroll/louisianas-2026-withholding-methods-increase-standard-deductions"
+      }
+    ]
+  },
+  "MA": {
+    "approximations": [
+      "Flat 5% on most income. Short-term capital gains are taxed at 8.5% and collectibles at 12% (with a 50% deduction); this is not modeled.",
+      "4% surtax on taxable income over $1,107,750 for 2026 ($1,083,150 for 2025), indexed. The threshold is the same for single and joint returns, and couples filing federally jointly must file jointly in MA.",
+      "Personal exemption: $4,400 single, $8,800 MFJ ($4,400 per person), plus $700 per person aged 65+. There is no standard deduction.",
+      "Government vs private pensions: distributions from CONTRIBUTORY public pensions (Massachusetts state/local systems and US federal civil service) and US military retirement are excluded. Pensions from other states' contributory systems are excluded only if that state reciprocates (or has no income tax / a pension exclusion). Private pensions, 401(k), 457 and federal TSP distributions are fully taxable at 5%. 403(b) payouts are taxable except for previously-taxed contributions. govPensionExempt=true reflects MA and federal contributory pensions only.",
+      "IRA distributions and Roth conversions are taxable at 5%, except MA basis from years when MA did not allow the IRA deduction; this basis recovery is ignored.",
+      "MA computes its own gross income rather than starting from federal AGI. Using federal AGI here is an approximation (e.g. MA's deduction of Social Security/Medicare payroll taxes up to $2,000 on wages is ignored).",
+      "The Senior Circuit Breaker (property-tax) credit is ignored."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Mass DOR — 4% surtax on taxable income (thresholds by year)",
+        "url": "https://www.mass.gov/info-details/massachusetts-4-surtax-on-taxable-income"
+      },
+      {
+        "label": "Mass DOR — Tax rates",
+        "url": "https://www.mass.gov/info-details/massachusetts-tax-rates"
+      },
+      {
+        "label": "Mass DOR — Personal income tax exemptions",
+        "url": "https://www.mass.gov/info-details/massachusetts-personal-income-tax-exemptions"
+      },
+      {
+        "label": "Mass DOR — Tax treatment of government pensions",
+        "url": "https://www.mass.gov/info-details/tax-treatment-of-government-pensions-in-massachusetts"
+      },
+      {
+        "label": "Mass DOR — 2026 Form 1-ES",
+        "url": "https://www.mass.gov/doc/2026-form-1-es-estimated-tax-payment-vouchers-instructions-and-worksheets/download"
+      }
+    ]
+  },
+  "MD": {
+    "approximations": [
+      "Brackets include the 6.25% and 6.5% tiers added by the 2025 Budget Reconciliation and Financing Act, effective tax year 2025. The lower-bracket structure is unchanged. The bracket table was assembled from the law change plus the long-standing schedule; the Comptroller rate pages did not render for verification.",
+      "Personal exemption: $3,200 per person, phased down above federal AGI $100,000 single / $150,000 MFJ and eliminated above $150,000 / $200,000. Plus $1,000 per person aged 65+. The phase-out is not modeled.",
+      "Military retirement: subtraction of up to $12,500 (up to $20,000 at age 55+), not a full exemption. No special treatment for government pensions beyond the pension exclusion.",
+      "A 2% surtax applies to net capital gains when federal AGI exceeds $350,000 (from 2025). It is not modeled as `surtax`, which applies to all taxable income.",
+      "Itemized deductions are reduced 7.5% of AGI over $200,000 (2025 law); this is ignored.",
+      "STILL UNCONFIRMED (checked 2026-10-03) — 2026 standard deduction (single / MFJ): Single $3,400 confirmed; MFJ not published - statute indexes $6,700 by the same COLA rounded down to $50, which likely gives $6,850 (not $6,800) Note: Tax-General 10-217 (https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gtg&section=10-217&enactments=false): $3,350 single / $6,700 joint, indexed after 2025 by IRC 1(f)(3) COLA (2024 base), each rounded down to nearest $50. Single landing at $3,400 means the COLA is between 1.0149 and 1.0299; federal 2026 indexation was about 2.3%, so 6,700 x 1.023 = 6,854 -> $6,850. Single $3,400 is confirmed; MFJ is $6,800 or $6,850 depending on the exact COLA (changes if COLA >= 1.0224). HB 411 (2026, $4,100/$8,200) was not enacted (died in Ways and Means). Source: https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/withholding/2026/withholding-guide.pdf",
+      "Verified 2026-10-03 (confirmed) — 2026 pension exclusion cap (65+): $40,600 Note: Comptroller KB0010012 page renders client-side (WebFetch got no body); figure is verbatim as reported from that page by Bloomberg Tax (https://news.bloombergtax.com/daily-tax-report-state/maryland-comptroller-publishes-2025-2026-pension-exclusion-benefits). The 2025 cap was $41,200, so it went DOWN for 2026 (it tracks the SS max benefit). Still reduced by SS/RR benefits received; applies only to employer-plan income (not IRA distributions or Roth conversions). Source: https://services.marylandcomptroller.gov/taxes?id=kb_article_view&sysparm_article=KB0010012",
+      "Verified 2026-10-03 (confirmed) — 2026 personal exemption: $3,200 per exemption (full amount up to FAGI $100k single / $150k joint), plus additional $1,000 if 65+ Note: TB-51 (https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/legal-publications/technical-bulletins/tb-51.pdf): 'federal adjusted gross income of up to $100,000 (up to $150,000 if filing jointly), they are entitled to a $3,200 exemption' plus 'an additional $1,000 exemption' for 65+. The exemption phases down above those FAGI levels ($1,600, $800, then $0 in steps). The engine should model the phase-down for high-AGI years. Source: https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/legal-publications/facts/withholding-tax-facts-2026.pdf",
+      "Verified 2026-10-03 (confirmed) — 2026 bracket schedule: Single: 2% to $1k, 3% to $2k, 4% to $3k, 4.75% to $100k, 5% to $125k, 5.25% to $150k, 5.5% to $250k, 5.75% to $500k, 6.25% to $1M, 6.5% above. MFJ/HOH: 2% to $1k, 3% to $2k, 4% to $3k, 4.75% to $150k, 5% to $175k, 5.25% to $225k, 5.5% to $300k, 5.75% to $600k, 6.25% to $1.2M, 6.5% above. Note: Joint: '6.25% of Maryland taxable income of $600,001 through $1,200,000'; '6.50% ... in excess of $1,200,000'. These brackets are not indexed. Also from 2025: a 2% surtax on net capital gains when FAGI > $350,000 (Comptroller 2025-session tax alert), and itemized deductions reduced by 7.5% of FAGI over $200k. Source: https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gtg&section=10-105&enactments=false",
+      "Verified 2026-10-03 (confirmed) — Average county income tax rate: ~3.0-3.1% (simple average of 24 jurisdictions about 3.04%; population-weighted about 3.1% since MoCo, PG, Baltimore Co/City and Howard are all 3.20%) Note: 2026 rates: 12 jurisdictions at 3.20%; Dorchester and Kent 3.30% (the new cap); Carroll 3.03, Cecil 2.74, Charles 3.03, Garrett 2.65, Harford 3.06, Talbot 2.40, Washington 2.95, Worcester 2.25; Anne Arundel tiered 2.70/2.94/3.20; Frederick tiered 2.25/2.75/2.96/3.20. 3.1% is fine as the default; 3.2% would suit most of the population. Source: https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/legal-publications/facts/withholding-tax-facts-2026.pdf"
+    ],
+    "localTaxNote": "County / Baltimore City income tax on Maryland taxable income. Rates run 2.25%-3.30% (cap raised to 3.3% in 2025); Anne Arundel and Frederick use brackets. The most populous jurisdictions (Montgomery, Prince George's, Baltimore County, Baltimore City, Howard) are at 3.2%, so ~3.1% is a typical blended rate. UNCONFIRMED: no official 2026 statewide average.",
+    "sources": [
+      {
+        "label": "Maryland Comptroller — 2026 Employer Withholding Guide (standard deduction $3,400, exemption $3,200, local rates)",
+        "url": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/withholding/2026/withholding-guide.pdf"
+      },
+      {
+        "label": "Maryland Comptroller — 2025 resident tax booklet (exemptions, pension exclusion rules, capital gains surtax)",
+        "url": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/resident-booklet.pdf"
+      },
+      {
+        "label": "Maryland Comptroller — Pension exclusion guidance",
+        "url": "https://services.marylandcomptroller.gov/taxes?id=kb_article_view&sysparm_article=KB0010012"
+      },
+      {
+        "label": "Bloomberg Tax — Comptroller publishes 2025/2026 pension exclusion ($41,200 / $40,600)",
+        "url": "https://news.bloombergtax.com/daily-tax-report-state/maryland-comptroller-publishes-2025-2026-pension-exclusion-benefits"
+      },
+      {
+        "label": "DeLeon & Stang — 2025 Maryland brackets 6.25%/6.5% and thresholds",
+        "url": "https://deleonandstang.com/insights/maryland-tax-law-changes"
+      },
+      {
+        "label": "2026 personal exemption (checked 2026-10-03)",
+        "url": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/legal-publications/facts/withholding-tax-facts-2026.pdf"
+      },
+      {
+        "label": "2026 bracket schedule (checked 2026-10-03)",
+        "url": "https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gtg&section=10-105&enactments=false"
+      }
+    ]
+  },
+  "ME": {
+    "approximations": [
+      "IMPORTANT: the pension income deduction cap ($49,824 per person for 2026, equal to the maximum Social Security benefit at full retirement age) is reduced dollar-for-dollar by that person's Social Security and railroad retirement benefits, taxable and non-taxable alike. Most retirees collecting Social Security get a much smaller deduction, often $0. The engine should cap the exclusion at max(0, 49,824 − that person's SS). The schema cannot express this.",
+      "The pension deduction covers pensions, IRAs, 401(k)/403(b)/457, and state/federal pensions included in federal AGI. Since 2025, distributions received before age 55 are excluded unless they are substantially equal periodic payments, hence minAge 55. The 2026 amount is $49,824, from the 2026 1040ES-ME as cited by the Axiom Foundation rules issue (2025: $48,216).",
+      "Pension deduction phase-out (since 2025): reduced $20 per $500 of federal AGI over $125,000 single / $250,000 MFJ (4% of the excess), with thresholds indexed after 2025. agiPhase is a stepped approximation that assumes both spouses claim the full cap.",
+      "Military retirement is fully exempt and not reduced by Social Security; from 2026 this includes all uniformed services.",
+      "2026 standard deduction is $15,700 / $31,400. It is set by Maine law and no longer equals the federal amount. Additional amount for age 65+/blind: $1,650 per married person, $2,050 single (understated here for singles). The standard deduction phases out above ~$100,000 single / ~$200,050 MFJ over a $75,000 / $150,000 range (2025 thresholds); this is not modeled.",
+      "Personal exemption $5,300 per person; phases out at very high income (2025: above $333,450 single / $400,100 MFJ); not modeled.",
+      "New 2% income surcharge from 2026 on Maine taxable income over $1,000,000 single / $1,500,000 MFJ. The schema has one threshold, so $1M is used; MFJ is overstated above $1M.",
+      "Social Security is fully subtracted."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Maine Revenue Services — 2026 individual income tax rate schedules (rev. May 20, 2026)",
+        "url": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf"
+      },
+      {
+        "label": "Maine Revenue Services — 2026 legislative changes (surcharge, standard deduction)",
+        "url": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/legischange26.pdf"
+      },
+      {
+        "label": "Maine Revenue Services — 2025 legislative changes (pension deduction phase-out, age 55)",
+        "url": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/legischange25_0.pdf"
+      },
+      {
+        "label": "Maine Revenue Services — 2025 Form 1040ME instructions (phase-out mechanics)",
+        "url": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_gen_instr_w_cover_pg.pdf"
+      },
+      {
+        "label": "Maine Revenue Services — Individual income tax FAQ (pension deduction)",
+        "url": "https://www.maine.gov/revenue/faq/individual-income-tax"
+      },
+      {
+        "label": "Axiom Foundation rulespec issue #1419 — 2026 Maine pension cap $49,824 (cites 1040ES-ME)",
+        "url": "https://github.com/TheAxiomFoundation/rulespec-us/issues/1419"
+      }
+    ]
+  },
+  "MI": {
+    "approximations": [
+      "Flat 4.25%. Personal exemption is $5,900 per person for 2026.",
+      "Retirement subtraction, households born 1955-1965: the Lowering MI Costs Plan (PA 4 of 2023) phases in the deduction at 25% (2023), 50% (2024), 75% (2025) and 100% from 2026, regardless of birth year. For tax year 2026 every retiree born after 1945 can deduct combined public and private retirement benefits up to $67,610 single / $135,220 MFJ (CPI-indexed each year), so the 1955-1965 cohort gets the full cap. In 2025 it was 75% of $65,897 / $131,794. A taxpayer may instead use the older birth-year tier method if better (born 1953-1965 and age 67+ could take the 'Michigan standard deduction' against all income); for this cohort the 2026 phase-in amount is almost always larger, so it is not modeled.",
+      "Public pensions are NOT unlimited for anyone born after 1945; they count against the same cap. Only those born before 1946 subtract public pensions in full, and qualified police/fire/state police/corrections retirees have a separate exemption. Hence govPensionExempt is false.",
+      "Military retirement and railroad retirement are fully exempt.",
+      "Social Security is fully exempt.",
+      "Interest/dividend/capital-gain senior subtraction applies only to those born before 1946; ignored.",
+      "City income taxes (Detroit and ~23 other cities) apply only to residents of those cities and exempt pensions and Social Security; localTax is null.",
+      "Verified 2026-10-03 (corrected) — Roth conversions as qualifying retirement benefits: Yes, but only if the individual is at least 59 1/2 when the conversion occurs; taxable, and subject to the tier limits Note: Treasury FAQ: 'conversions from a regular IRA to a Roth IRA that are included in adjusted gross income are subject to Michigan individual income tax.' Add an age >= 59.5 gate for conversions; below that age the conversion is fully taxable at 4.25%. Source: https://www.michigan.gov/taxes/questions/iit/accordion/roth/are-conversions-from-a-regular-ira-to-a-roth-ira-subject-to-michigan-individual-income-tax-1",
+      "Verified 2026-10-03 (confirmed) — IRA distributions before 59 1/2: Do NOT qualify (except on death or disability); fully taxable, with no state penalty Note: RAB 1988-22: 'A premature distribution of amounts from an IRA (withdrawal before reaching age 59 1/2) is taxable to the extent the distribution is includable in Federal gross income' (death or disability excepted). Employer-plan pensions follow plan retirement terms, not the 59 1/2 rule. RAB 2026-1 does not change this. Source: https://www.michigan.gov/treasury/reference/rab/content/1988/revenue-administrative-bulletin-1988-22"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Michigan Treasury — 2026 Income Tax Withholding Guide (Form 446: 4.25%, $5,900 exemption, $67,610 / $135,220 limits)",
+        "url": "https://www.michigan.gov/taxes/-/media/Project/Websites/taxes/Forms/SUW/TY2026/446_Withholding-Guide_2026.pdf?rev=21866d1f17d94a40b31cf2210221c2c6&hash=E76ACF8B9E1CDBD2B6767226386E9122"
+      },
+      {
+        "label": "Michigan Office of Retirement Services — Public Act 4 of 2023 FAQ",
+        "url": "https://www.michigan.gov/ors/public-act-4-of-2023-faq"
+      },
+      {
+        "label": "Michigan Treasury — Retirement and pension benefits",
+        "url": "https://www.michigan.gov/taxes/iit/retirement-and-pension-benefits"
+      },
+      {
+        "label": "Michigan Treasury — Revenue Administrative Bulletin 2026-1",
+        "url": "https://www.michigan.gov/taxes/rep-legal/rab/2026-revenue-administrative-bulletins/revenue-administrative-bulletin-2026-1"
+      },
+      {
+        "label": "Roth conversions as qualifying retirement benefits (checked 2026-10-03)",
+        "url": "https://www.michigan.gov/taxes/questions/iit/accordion/roth/are-conversions-from-a-regular-ira-to-a-roth-ira-subject-to-michigan-individual-income-tax-1"
+      },
+      {
+        "label": "IRA distributions before 59 1/2 (checked 2026-10-03)",
+        "url": "https://www.michigan.gov/treasury/reference/rab/content/1988/revenue-administrative-bulletin-1988-22"
+      }
+    ]
+  },
+  "MN": {
+    "approximations": [
+      "Social Security subtraction (simplified method): full subtraction of federally taxable SS when AGI is at or below $86,410 single / $110,780 MFJ (2026); the subtraction then shrinks 10% for each $4,000 of AGI above the threshold, reaching zero $40,000 above it. The record models this as a cliff at the threshold (conservative: overstates tax inside the $40,000 phase-out band).",
+      "Above the phase-out an 'alternate method' subtraction remains available, capped at $5,840 MFJ / $4,560 single (not indexed); not modeled.",
+      "Additional standard deduction for age 65+ is $1,600 per person for married filers but $2,000 for single filers; record uses $1,600 (single filers are understated by $400).",
+      "Standard deduction phases out at high AGI (thresholds $244,400 and $337,800 in 2026); not modeled.",
+      "Qualified public pension subtraction (PERA, TRA, federal and similar plans, ONLY for service NOT covered by Social Security): up to $13,540 single / $27,080 MFJ with income limits (2025 page figures; 2026 indexed maximums $13,850 / $27,690). Not modeled because it does not apply to Social Security-covered pensions.",
+      "Military retirement pay is fully subtracted (military pension subtraction).",
+      "Elderly/disabled exclusion has very low income limits; not modeled. 1% net-investment-income surtax above $1M not modeled.",
+      "No general pension/IRA exclusion: pensions, IRA/401(k) distributions and Roth conversions are fully taxable."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Minnesota DOR — Inflation-Adjusted Amounts, Tax Year 2026",
+        "url": "https://www.revenue.state.mn.us/sites/default/files/2025-12/inflation-adjusted-amounts-2026.pdf"
+      },
+      {
+        "label": "Minnesota DOR — Social Security Benefit Subtraction",
+        "url": "https://www.revenue.state.mn.us/social-security-benefit-subtraction"
+      },
+      {
+        "label": "Minnesota DOR — Qualified Public Pension Subtraction",
+        "url": "https://www.revenue.state.mn.us/public-pension-subtraction"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      }
+    ]
+  },
+  "MO": {
+    "approximations": [
+      "2026 top rate stays 4.7% (no further trigger cut for 2026); MFJ uses the same bracket thresholds as single.",
+      "Standard deduction equals the federal standard deduction ($16,100 / $32,200 for 2026). extraDeduction65 = the federal additional amount for married filers ($1,650 per person, 2026); single filers get $2,050. If the engine's 'federal' already includes age add-ons, set extraDeduction65 to 0. Missouri does not adopt the separate federal $6,000 senior deduction (not part of the standard deduction).",
+      "Social Security is 100% exempt from 2024 on (age 62+ or disability), no income limit.",
+      "Public pension exemption (federal, state, local government pensions): up to the maximum Social Security benefit per person ($47,633 in 2025; 2026 figure not confirmed), only if AGI is at or below $85,000 single / $100,000 MFJ, reduced dollar-for-dollar above. NOT modeled (retirementExclusion null) because the schema cannot restrict an exclusion to government pensions; this overstates tax for government retirees under the AGI limits.",
+      "Private pension exemption ($6,000 per person) only applies at AGI at or below $25,000 single / $32,000 MFJ; not modeled.",
+      "Capital gains are 100% subtracted for individuals from tax year 2025 (HB 594); not representable in this schema — the engine should exclude capital gains from the Missouri base.",
+      "Federal income tax deduction (up to $5,000 single / $10,000 MFJ, percentage shrinking with AGI) not modeled.",
+      "Military retirement pay fully subtracted. Local earnings taxes (Kansas City, St. Louis) apply only to residents of those cities; not modeled.",
+      "The federal standard deduction used here already includes the federal 65+ add-on and the 2025–2028 $6,000 senior deduction."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Missouri DOR — 2026 Withholding Formula (bracket chart and standard deduction)",
+        "url": "https://dor.mo.gov/forms/Withholding%20Formula_2026.pdf"
+      },
+      {
+        "label": "Missouri DOR — Pension FAQs",
+        "url": "https://dor.mo.gov/faq/taxation/individual/pension.html"
+      },
+      {
+        "label": "Missouri DOR — 2025 Income Tax Reference Guide (Form 4711)",
+        "url": "https://dor.mo.gov/forms/4711_2025.pdf"
+      },
+      {
+        "label": "Missouri DOR — First State to Fully Exempt Capital Gains Tax",
+        "url": "https://dor.mo.gov/news/newsitem/uuid/15044650-59dd-48f4-975a-01988d485255"
+      }
+    ]
+  },
+  "MS": {
+    "approximations": [
+      "2026 rate is 4.0% on taxable income above $10,000 (HB 1 of 2025; was 4.4% in 2025; scheduled to keep falling in later years).",
+      "Personal exemption is $6,000 single / $12,000 married (modeled as $6,000 per person); 65+ extra exemption is $1,500 per person.",
+      "Retirement income (pensions, annuities, IRA/401(k) distributions) is exempt once the recipient has met the plan's retirement requirements; early distributions are taxable. Modeled as fully exempt at any age; the engine should not exempt pre-retirement early withdrawals.",
+      "Verified 2026-10-03 (confirmed) — 2026 rate above zero band: 4.0% (2025 was 4.4%; 2027 3.75%) Note: The same DOR page also has a stale sentence saying 4.4% 'in 2026' (it refers to the 2025 tax year filed in 2026); the year table lists 2026 = 4%. Source: https://www.dor.ms.gov/general-information",
+      "Verified 2026-10-03 (confirmed) — $10,000 zero band: per return or per person (MFJ): Per person - each spouse's own taxable income gets a $10,000 zero band (tax computed in separate taxpayer/spouse columns) Note: Form 80-100 instructions: 'use Column A (Taxpayer) and Column B (Spouse) of the Tax Computation Schedule to compute the tax liability.' Each spouse's income goes in their own column, and the joint exemption and deduction can be allocated between spouses. The engine should split by spouse and apply $10k each, not $20k pooled (pooling overstates the zero band when income is lopsided). Source: https://www.dor.ms.gov/individual/individual-income-tax-frequently-asked-questions",
+      "Verified 2026-10-03 (confirmed) — Standard deduction and exemption: Std deduction $2,300 single / $4,600 MFJ; exemption $6,000 single / $12,000 MFJ; +$1,500 each for 65+ or blind, +$1,500 per dependent Note: Also in 2025 Form 80-100 instructions. Add the $1,500 per-person age-65 extra exemption if it isn't modeled. Source: https://www.dor.ms.gov/general-information",
+      "Verified 2026-10-03 (confirmed) — Roth conversions for a retired taxpayer: Exempt for a taxpayer who meets the plan's retirement requirements (not an early distribution); taxable if it counts as an early or excess distribution federally (e.g. under 59 1/2) Note: Inferred from regs 35-3-02-07-101 (IRA income is exempt as optional retirement allowances) and -104 ('Early distributions from retirement plans do not qualify for this exemption'); no primary source names Roth conversions explicitly. Form 80-100 instructions: distributions 'taxable as early or excess distributions under the Federal Internal Revenue Code (see Federal Form 5329) do not qualify.' DOR FAQ: exempt 'if the recipient has met the retirement plan requirements.' Model a conversion at 59 1/2+ / retired as exempt; under 59 1/2 as taxable. Source: https://law.cornell.edu/regulations/mississippi/35-Miss-Code-R-SS-3-02-07-104"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Mississippi DOR — Pub 89-700 (rev. 1/13/2026), 2026 rates, exemptions, standard deductions",
+        "url": "https://www.dor.ms.gov/sites/default/files/tax-forms/business/89700251revised1.13.2026.pdf"
+      },
+      {
+        "label": "Mississippi DOR — Individual Income Tax FAQs (retirement income, Social Security)",
+        "url": "https://www.dor.ms.gov/individual/individual-income-tax-faqs"
+      },
+      {
+        "label": "2026 rate above zero band (checked 2026-10-03)",
+        "url": "https://www.dor.ms.gov/general-information"
+      },
+      {
+        "label": "$10,000 zero band: per return or per person (MFJ) (checked 2026-10-03)",
+        "url": "https://www.dor.ms.gov/individual/individual-income-tax-frequently-asked-questions"
+      }
+    ]
+  },
+  "MT": {
+    "approximations": [
+      "HB 337 (2025): 2026 rates 4.7% / 5.65% with the 4.7% band to $47,500 single / $95,000 MFJ (statutory figures for 2026; 2027 goes to 4.7% / 5.4% with bands $65,000 / $130,000). bracketsIndexed=false because the 2026 and 2027 thresholds are set in statute.",
+      "Montana starts from federal taxable income (federal standard/itemized deduction already taken, excluding QBI), so standardDeduction is 0. Whether the federal $6,000 senior deduction flows through depends on Montana's conformity; not verified.",
+      "Social Security is taxed to the extent included in federal taxable income. The partial pension/IRA exclusion was repealed from 2024; no general retirement exclusion.",
+      "Net long-term capital gains are taxed at 3.0% / 4.1% instead of ordinary rates; not modeled (overstates tax on gains).",
+      "Military retirement: only a partial exemption for certain working military retirees and survivor benefits; treated as taxable.",
+      "Verified 2026-10-03 (confirmed) — 2026 subtraction for taxpayers 65+: $5,660 per person ($11,320 MFJ if both 65+) Note: 2025 Form 2 instructions: 'If married filing jointly, and both are 65 and older, the subtraction is equal to $11,320' and 'This amount is adjusted annually for inflation.' Caveat: the 2026 withholding guide shows the same $5,660 as TY2025, so the 2026 indexed figure may come out slightly higher when the 2026 Form 2 instructions are published. No income limit. Source: https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf",
+      "Verified 2026-10-03 (confirmed) — 2026 brackets: 4.7% to $47,500 single/MFS ($95,000 MFJ); 5.65% above Note: Brackets apply to taxable income excluding net long-term capital gains (LTCG taxed at 3.0%/4.1% separately). Source: https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Montana DOR — HB 337 changes",
+        "url": "https://revenue.mt.gov/news/recent-news/HB-337"
+      },
+      {
+        "label": "Montana DOR — Publication 1 (2026)",
+        "url": "https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf"
+      },
+      {
+        "label": "Montana DOR — Tax Simplification Resource Hub",
+        "url": "https://revenue.mt.gov/montana-tax-simplification-resource-hub"
+      },
+      {
+        "label": "Montana DOR — 2025 Tax Rates and Deductions",
+        "url": "https://revenue.mt.gov/files/BIT/Montana-Tax-Tables-and-Deductions/2025-Tax-Rates-and-Deductions.pdf"
+      }
+    ]
+  },
+  "NC": {
+    "approximations": [
+      "Flat 3.99% for 2026 (4.25% in 2025); further cuts from 2027 depend on revenue triggers (S.L. 2023-134).",
+      "Bailey settlement: government (NC state/local, federal) pensions are fully exempt only if the retiree had 5+ years of creditable service by August 12, 1989; otherwise taxable. govPensionExempt=false.",
+      "Military retirement pay exempt for retirees with 20+ years of service or medical retirement.",
+      "No general pension/IRA exclusion; no extra standard deduction for age 65+."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "NCDOR — Tax Rate Schedules",
+        "url": "https://www.ncdor.gov/taxes-forms/individual-income-tax/tax-rate-schedules"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      }
+    ]
+  },
+  "ND": {
+    "approximations": [
+      "North Dakota starts from federal taxable income, so the federal standard deduction (and any federal senior deduction) is already removed; standardDeduction is 0.",
+      "Social Security fully exempt (from 2023); military retirement pay fully exempt.",
+      "Verified 2026-10-03 (corrected) — 2026 bracket thresholds: 2026 single: 0% to $49,575; 1.95% to $250,400; 2.5% above. MFJ/QSS: 0% to $82,800; 1.95% to $304,850; 2.5% above Note: Values in engine were 2025; 2026 indexed values from Form ND-1ES 2026. MFS: $41,400/$152,425; HOH: $66,400/$277,600. Rates unchanged. Source: https://www.tax.nd.gov/sites/www/files/documents/forms/individual/2025-iit/28709-form-nd-1es-2026.pdf"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "ND Office of State Tax Commissioner — Individual Income Tax (rate schedules)",
+        "url": "https://www.tax.nd.gov/individual-income-tax"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      },
+      {
+        "label": "2026 bracket thresholds (checked 2026-10-03)",
+        "url": "https://www.tax.nd.gov/sites/www/files/documents/forms/individual/2025-iit/28709-form-nd-1es-2026.pdf"
+      }
+    ]
+  },
+  "NE": {
+    "approximations": [
+      "LB 754: for 2026 the third and fourth brackets are both 4.55% (2025 top was 5.2%; 3.99% scheduled for 2027), so the schedule collapses to three effective brackets.",
+      "Social Security fully exempt from 2024; military retirement pay fully exempt. No general pension/IRA exclusion.",
+      "Verified 2026-10-03 (confirmed) — personal exemption credit 2026: 176 Note: 2026 Form 1040N-ES (Rev. 11-2025). The 2027 draft 1040N-ES (Rev. 9-2026) shows $181 for 2027. Source: https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2025/f_1040N-ES.pdf",
+      "Verified 2026-10-03 (corrected) — additional standard deduction 65+/blind 2026: $1,700 per married individual; $2,050 unmarried (single/HOH) Note: NE does NOT track the federal 2026 amount ($1,650/$2,050); married is $1,700 per spouse per condition (both 65+ MFJ = $3,400). Unmarried differs from married. 2027 draft: $1,750 married / $2,150 unmarried. Source: https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2025/f_1040N-ES.pdf",
+      "Verified 2026-10-03 (confirmed) — 2026 brackets: Single: 2.46% to $4,130; 3.51% to $24,760; 4.55% above. MFJ: 2.46% to $8,250; 3.51% to $49,530; 4.55% above Note: Schedule prints a 4th row ($39,900 single / $79,800 MFJ) at the same 4.55% rate - harmless to collapse. HOH not checked. 2027 draft schedule: top rate 3.99%, single $4,270/$25,570, MFJ $8,520/$51,150. Source: https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2025/f_1040N-ES.pdf",
+      "Verified 2026-10-03 (confirmed) — 2026 standard deduction: $8,850 single / $17,700 MFJ ($12,950 HOH, $8,850 MFS) Note: 2027 draft: $9,100 / $18,200. Source: https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2025/f_1040N-ES.pdf"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Nebraska DOR — Tax Rate Chronologies, Individual Income Tax (incl. 2026)",
+        "url": "https://revenue.nebraska.gov/sites/default/files/doc/research/chronology/4-607table1.pdf"
+      },
+      {
+        "label": "Nebraska Revised Statute 77-2715.03 (rates)",
+        "url": "https://www.nebraskalegislature.gov/laws/statutes.php?statute=77-2715.03"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      },
+      {
+        "label": "personal exemption credit 2026 (checked 2026-10-03)",
+        "url": "https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2025/f_1040N-ES.pdf"
+      }
+    ]
+  },
+  "NJ": {
+    "approximations": [
+      "Pension exclusion (age 62+ or disabled): up to $75,000 single / $100,000 MFJ when NJ total income is $100,000 or less; $100,001–$125,000: 37.5% (single) / 50% (MFJ) of pension income; $125,001–$150,000: 18.75% / 25%; above $150,000: nothing (hard cliffs). In the phase bands NJ excludes a percentage of the pension income itself rather than of the cap; 'share' = single, 'shareMfj' = MFJ (non-standard key mirroring amountMfj).",
+      "The income test uses NJ total income (which excludes Social Security and differs slightly from federal AGI); approximated with AGI.",
+      "Covers taxable pensions, annuities and IRA/401(k)/403(b)/457 distributions. Roth conversions count as IRA income in NJ. Eligibility is age-based per spouse in reality; modeled as household exclusion once the qualifying age is met.",
+      "Other Retirement Income Exclusion not modeled: the unused pension exclusion can shelter other income (interest, dividends, gains) if earned income is $3,000 or less, plus a $3,000 single / $6,000 MFJ special exclusion for those ineligible for Social Security. covers.investment=false is conservative for fully retired households.",
+      "NJ starts from NJ gross income, not federal AGI (e.g. no deduction for some federal adjustments, 401(k) deferrals excluded but 403(b)/457 rules differ); approximated as AGI.",
+      "Exemptions: $1,000 per person plus $1,000 per person aged 65+. Property tax deduction/credit and senior property tax relief (ANCHOR, Stay NJ) not modeled.",
+      "Government (federal, state, local) pensions are taxable but eligible for the pension exclusion; military pensions fully exempt."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "NJ Division of Taxation — GIT-1&2 Retirement Income bulletin",
+        "url": "https://www.nj.gov/treasury/taxation/pdf/pubs/tgi-ee/git1&2.pdf"
+      },
+      {
+        "label": "NJ Division of Taxation — Retirement Income",
+        "url": "https://www.nj.gov/treasury/taxation/njit6.shtml"
+      },
+      {
+        "label": "NJMoneyHelp — single filer percentages (37.5% / 18.75%)",
+        "url": "https://njmoneyhelp.com/2024/10/do-i-qualify-for-the-n-j-pension-exclusion/"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      }
+    ]
+  },
+  "NM": {
+    "approximations": [
+      "Brackets from HB 252 (2024), effective 2025 and unchanged for 2026; not indexed.",
+      "Social Security exemption is a true cliff: fully exempt when income is under $100,000 single / $150,000 MFJ ($75,000 MFS), otherwise taxed as federal.",
+      "Standard deduction follows the federal amount. extraDeduction65 = federal additional amount for married filers ($1,650 per person, 2026; $2,050 single); set to 0 if the engine's 'federal' already includes age add-ons.",
+      "Deduction for taxpayers 65+ of up to $8,000 per person applies only at very low income (fully phased out around $28,500 single / $51,000 MFJ); not modeled.",
+      "Armed forces retirement pay: $30,000 per year exemption (no sunset). 2026 bills to make it 100% (HB 221) died. militaryExempt=false; the engine could subtract up to $30,000 of military retirement.",
+      "No general pension/IRA exclusion. Capital gains deduction not modeled.",
+      "The federal standard deduction used here already includes the federal 65+ add-on and the 2025–2028 $6,000 senior deduction."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "NM Taxation & Revenue — Social Security Income Tax Exemption",
+        "url": "https://www.tax.newmexico.gov/social-security-income-tax-exemption/"
+      },
+      {
+        "label": "NMSA 7-2-5.14 (Social Security exemption)",
+        "url": "https://law.justia.com/codes/new-mexico/chapter-7/article-2/section-7-2-5-14/"
+      },
+      {
+        "label": "NM Legislature — HB 221 (2026) fiscal impact report, armed forces retirement exemption",
+        "url": "https://www.nmlegis.gov/Sessions/26%20Regular/firs/HB0221.PDF"
+      },
+      {
+        "label": "Tax Foundation — State Individual Income Tax Rates and Brackets, 2026",
+        "url": "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      }
+    ]
+  },
+  "OH": {
+    "approximations": [
+      "Statutory 2026 schedule (ORC 5747.02 as amended by HB 96): 0 tax if Ohio taxable income (Ohio AGI less exemptions) <= $26,050; above that, $332 + 2.75% of the excess over $26,050. That is a $332 notch at $26,050. Modeled as 0% to $26,050, 6.07% from $26,050 to $36,050 (2.75% + $332 spread over $10,000), then 2.75%. Exact for Ohio taxable income above $36,050; between $26,050 and $36,050 it understates tax by up to $332. Ohio uses the same thresholds for single and joint filers.",
+      "HB 96 suspended inflation indexing of brackets and personal exemptions for 2025 and 2026, so bracketsIndexed and deductionsIndexed are false. The statute still allows GDP-deflator indexing after 2026.",
+      "The personal exemption depends on modified AGI: $2,400 per person at or below $40,000, $2,150 from $40,000 to $80,000, $1,900 above $80,000, and none above $500,000 starting in 2026. Modeled at the middle tier, $2,150.",
+      "Ohio gives credits instead of retirement deductions, and none are modeled. The retirement income credit is $25 to $200 per return depending on the amount of retirement income. The senior citizen credit is $50 per return at age 65+. Both require Ohio modified AGI less exemptions under $100,000. The joint filing credit is 5% to 20% of tax, capped at $650, available when each spouse has at least $500 of qualifying income and MAGI is at most $500,000 in 2026. There is also a $20-per-exemption credit at low income. Leaving these out overstates tax by roughly $250 to $900 for a typical middle-income retiree couple.",
+      "Social Security is fully exempt. Uniformed-services (military) retirement pay is deductible. Federal civil-service and state/local pensions, IRA and 401(k) distributions are taxable.",
+      "Municipal and school-district income taxes are not modeled. Municipal taxes generally don't reach retirement income. School-district taxes (about 190 districts) can reach pensions and IRA distributions where the district uses the traditional base."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Ohio Revised Code 5747.02 (tax rates, eff. 9-30-2025, as amended by HB 96)",
+        "url": "https://codes.ohio.gov/assets/laws/revised-code/authenticated/57/5747/5747.02/9-30-2025/5747.02-9-30-2025.pdf"
+      },
+      {
+        "label": "Kiplinger — Ohio state tax guide (2026 flat rate, $500k exemption limit)",
+        "url": "https://www.kiplinger.com/state-by-state-guide-taxes/ohio"
+      },
+      {
+        "label": "Rudler PSC — Ohio HB 96 summary (indexing suspended 2025-26, joint filing credit limit)",
+        "url": "https://rudler.cpa/ohio-house-bill-96-what-ohioans-need-to-know/"
+      }
+    ]
+  },
+  "OK": {
+    "approximations": [
+      "2026 brackets come from HB 2764 (2025): the top rate drops to 4.5% and six brackets become three, as tabulated in the Oklahoma Tax Commission's 2025 legislative summary. HB 2764 also allows triggered 0.25-point cuts when revenue tests are met, but those take effect only after a delay and are not expected for 2026.",
+      "Retirement exclusion: up to $10,000 per person of combined retirement benefits from pensions (private, state and local), IRAs and 401(k)/qualified plans. The OTC rule (OAC 710:50-15-49) sets no age requirement. Roth conversions are assumed to count as IRA distributions.",
+      "Federal civil-service retirement, including survivor annuities paid in lieu of Social Security, is 100% excludable with no cap. Oklahoma state and local pensions get only the $10,000 exclusion, so govPensionExempt is false. A federal civil-service retiree's pension is effectively fully exempt.",
+      "Military retirement has been 100% exempt since tax year 2022 (SB 401). An OTC help page still shows the older 'greater of $10,000 or 75%' rule, which is out of date.",
+      "There is an extra $1,000 exemption per person aged 65+, but only for low-income filers (AGI at or below roughly $15,000 single or $25,000 joint). Modeled as 0.",
+      "The standard deduction ($6,350 / $12,700) has been fixed since 2017 and is not indexed. The personal exemption is $1,000 per person."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Oklahoma Tax Commission — Summary of 2025 Tax Legislation (HB 2764 2026 rate tables)",
+        "url": "https://oklahoma.gov/content/dam/ok/en/tax/documents/resources/publications/legislation/2025LegislativeUpdate.pdf"
+      },
+      {
+        "label": "Oklahoma Administrative Code 710:50-15-49 — retirement income exclusion",
+        "url": "https://regulations.justia.com/states/oklahoma/title-710/chapter-50/subchapter-15/part-5/section-710-50-15-49"
+      },
+      {
+        "label": "Oklahoma Senate — military pensions exempt starting tax year 2022",
+        "url": "https://oksenate.gov/press-releases/military-pensions-now-exempt-state-income-tax-sen-brenda-stanley-says-retirees-can"
+      },
+      {
+        "label": "Oklahoma Tax Commission — Exemptions help page",
+        "url": "https://oklahoma.gov/tax/helpcenter/exemptions.html"
+      }
+    ]
+  },
+  "OR": {
+    "approximations": [
+      "The standard deduction field folds in the federal tax subtraction. The real 2026 basic standard deduction is $2,910 single / $5,820 joint (DOR 2026 withholding formulas). The federal tax subtraction cap of $8,750 per return is added on top, giving $11,660 / $14,570. In reality the subtraction is the lesser of federal income tax liability and the cap, and the cap phases to $0 between AGI $125,000 and $145,000 (single) or $250,000 and $290,000 (joint). This overstates the deduction, and understates Oregon tax by up to about $770, for households whose federal tax is under $8,750 or whose AGI is above the phase-out. An exact engine should take min(federal tax, cap) with the phase-out.",
+      "Extra standard deduction for age 65+: $1,000 per spouse on a joint return, $1,200 for a single filer (2025 figures, assumed unchanged for 2026). Modeled at $1,000 per person, so single 65+ filers are $200 short.",
+      "Personal exemption credit: $263 per person for 2026 (withholding formulas). It is not allowed when federal AGI exceeds $100,000 single or $200,000 joint, so this record overstates the credit for higher-income retirees.",
+      "Retirement income credit (ORS 316.157): 9% of net pension income at age 62+, but the base is reduced dollar for dollar by Social Security received and by household income above a low threshold. It is effectively zero for nearly all Social Security recipients and is not modeled.",
+      "Federal pensions get a subtraction only for service before October 1, 1991. Military retirement is treated the same way (pre-Oct-1991 service only), so both flags are false. State, local, private pensions, IRA and 401(k) distributions are fully taxable.",
+      "Lower bracket thresholds are indexed. The $125,000 / $250,000 top-bracket thresholds are statutory and not indexed. Local taxes (Portland Metro SHS and Multnomah PFA) apply only above $125k/$200k in those jurisdictions and are not modeled.",
+      "Verified 2026-10-03 (confirmed) — federal tax subtraction cap 2026: 8750 Note: Phases out at higher AGI (withholding formulas show the $8,750 cap stepping down in $1,750 steps from $125k to $0 at $145k for single; MFJ thresholds double). The withholding-formula PDF still contains a stale sentence citing $8,500 'in 2025'. Source: https://www.oregon.gov/dor/forms/FormsPubs/publication-or-estimate_101-026_2026.pdf",
+      "Verified 2026-10-03 (corrected) — standard deduction 2026: $2,900 single/MFS, $4,650-4,700 HOH, $5,800 MFJ (estimated); withholding formulas use $2,910 / $5,820 Note: The $11,660/$14,570 values are NOT Oregon's standard deduction - likely a bug/misattribution in the engine. OR-Estimate (Rev 10-07-25) and OR-W-4 instructions (Rev 02-17-26, 'estimated 2026 basic standard deduction is: $2,900', HOH $4,700) agree on $2,900/$5,800; withholding formulas (Rev 12-31-25) use $2,910 single/HOH and $5,820 married. Final 2026 OR-40 figure not yet published; use $2,900/$5,800 (or $2,910/$5,820). Source: https://www.oregon.gov/dor/forms/FormsPubs/publication-or-estimate_101-026_2026.pdf",
+      "Verified 2026-10-03 (confirmed) — additional std deduction 65+/blind 2026: $1,000 per married taxpayer; $1,200 all others Note: From 2026 OR-W-4 instructions. Source: https://www.oregon.gov/dor/forms/FormsPubs/form-or-W-4-instr_101-402-1_2026.pdf",
+      "Verified 2026-10-03 (confirmed) — personal exemption credit 2026: 263 Note: Withholding formulas (Rev 12-31-25) use $263; the earlier 2026 OR-Estimate (Rev 10-07-25) shows 'Personal exemption credit: $260' (pre-indexing estimate). Credit is $0 if federal AGI > $100,000 single/MFS or > $200,000 MFJ/HOH/QSS. Source: https://www.oregon.gov/dor/forms/FormsPubs/withholding-tax-formulas_206-436_2026.pdf",
+      "Verified 2026-10-03 (confirmed) — brackets 2026: Single: 4.75% to $4,550; 6.75% to $11,400; 8.75% to $125,000; 9.9% above. Joint/HOH: 4.75% to $9,100; 6.75% to $22,800; 8.75% to $250,000; 9.9% above Note: $125k/$250k top thresholds are fixed (not indexed); lower thresholds indexed. HOH uses joint chart. Source: https://www.oregon.gov/dor/forms/FormsPubs/publication-or-estimate_101-026_2026.pdf"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Oregon DOR — 2026 Withholding Tax Formulas (150-206-436)",
+        "url": "https://www.oregon.gov/dor/forms/FormsPubs/withholding-tax-formulas_206-436_2026.pdf"
+      },
+      {
+        "label": "Oregon DOR — 2025 Publication OR-17",
+        "url": "https://www.oregon.gov/dor/forms/FormsPubs/publication-or-17_101-431_2025.pdf"
+      },
+      {
+        "label": "ORS 316.157 — credit for retirement income",
+        "url": "https://law.justia.com/codes/oregon/volume-08/chapter-316/section-316-157/"
+      },
+      {
+        "label": "federal tax subtraction cap 2026 (checked 2026-10-03)",
+        "url": "https://www.oregon.gov/dor/forms/FormsPubs/publication-or-estimate_101-026_2026.pdf"
+      },
+      {
+        "label": "additional std deduction 65+/blind 2026 (checked 2026-10-03)",
+        "url": "https://www.oregon.gov/dor/forms/FormsPubs/form-or-W-4-instr_101-402-1_2026.pdf"
+      }
+    ]
+  },
+  "RI": {
+    "approximations": [
+      "Rhode Island uses one rate schedule for every filing status, so the joint brackets equal the single brackets.",
+      "Social Security modification: federally taxable benefits are fully exempt only if the taxpayer has reached full Social Security retirement age (66 to 67 depending on birth year) and federal AGI is at or below the 2026 threshold. Above the threshold, benefits are taxed as federal (a cliff, not a phase-out). The engine's AGI test doesn't check the age requirement, so recipients who claim before full retirement age would wrongly be exempted.",
+      "Pension/annuity modification: up to $50,000 per person of federally taxable pensions (private and government), 401(k), 403(b), 457(b) and annuities. Same full-retirement-age and AGI tests as Social Security, with a cliff at the threshold. minAge 67 approximates full retirement age (66 to 67). IRAs, including amounts rolled into IRAs, do NOT qualify, so ira = false. That is material for retirees whose savings sit in IRAs.",
+      "Military retirement pay is fully exempt (since 2023), with no age or income limit. Government pensions get only the $50,000 modification above, so govPensionExempt is false.",
+      "Standard deduction and the $5,250 exemption phase out between modified AGI $261,000 and $290,800 (2026). Not modeled.",
+      "Rhode Island has no extra age-65 deduction."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "RI Division of Taxation — ADV 2025-22, 2026 inflation adjustments",
+        "url": "https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf"
+      },
+      {
+        "label": "RI Division of Taxation — Retirement Income Tax Guide (Pub 2026-01)",
+        "url": "https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf"
+      }
+    ]
+  },
+  "SC": {
+    "approximations": [
+      "H.4216 (Act 110 of 2026) restructures SC tax retroactive to January 1, 2026. Federal AGI is now the starting point, and federal standard and itemized deductions are gone. The statutory rates are 1.99% on SC taxable income up to $30,000 and 5.21% above (the same thresholds for every filing status). All other state deductions, exemptions and credits are retained, including the retirement, age-65, military-retirement and Social Security subtractions and the dependent exemption.",
+      "The new SC Income Adjusted Deduction (SCIAD) is folded into the brackets, so standardDeduction is 0. SCIAD is $15,000 single / $30,000 joint ($22,500 head of household) and phases out linearly between federal AGI $40,000 and $95,000 (single) or $80,000 and $190,000 (joint). The brackets reproduce exactly 'income minus SCIAD, then 1.99%/5.21%'. Inside the phase-out range the marginal rate is 5.21% x 14/11 = 6.63%. The one approximation is that SCIAD is keyed to federal AGI, while these brackets apply after the retirement and 65+ deductions, so the phase-out window lands up to that deduction amount higher in AGI terms than it should.",
+      "Retirement deduction, per person, on qualified retirement income (pensions, IRA, 401(k), government plans): $3,000 under age 65, $10,000 at 65+.",
+      "Age-65 deduction: $15,000 per person aged 65+ against any income, reduced by any retirement deduction claimed. Modeled as extraDeduction65 = $5,000 on top of the $10,000 retirement deduction. That is exact when the person has at least $10,000 of retirement income. Someone 65+ with less retirement income really gets the full $15,000 against other income, which this record understates.",
+      "Military retirement is fully deductible at any age (since 2022). Federal, state and local civilian pensions get only the retirement and 65+ deductions, so govPensionExempt is false.",
+      "Further top-rate cuts toward 1.99% are triggered only when revenue grows 5% or more. None applies to 2026. The nonrefundable SC EITC is capped at $200 under H.4216 (not modeled)."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "SCDOR — Information about H. 4216",
+        "url": "https://dor.sc.gov/news/information-about-h-4216"
+      },
+      {
+        "label": "SC Revenue and Fiscal Affairs Office — H.4216 fiscal impact statement (2026-02-24, SCIAD phase-outs)",
+        "url": "https://www.scstatehouse.gov/sess126_2025-2026/fiscalimpactstatements/H4216%202026-02-24%20amended.pdf"
+      },
+      {
+        "label": "EY Tax News — South Carolina law lowers rate retroactive to January 1, 2026",
+        "url": "https://taxnews.ey.com/news/2026-0919-south-carolina-law-lowers-state-income-tax-rate-retroactive-to-january-1-2026"
+      }
+    ]
+  },
+  "UT": {
+    "approximations": [
+      "The statutory rate is a flat 4.45% for 2026 (SB 60, 2026 session, down from 4.5%). The brackets fold in the nonrefundable taxpayer tax credit and its phase-out, so they are not a statutory schedule.",
+      "Taxpayer credit: 6% of the federal standard deduction (2026: $16,100 single / $32,200 joint, giving $966 / $1,932), reduced by 1.3% of Utah taxable income above a base amount ($18,213 single / $36,426 joint in 2025). Tax = max(0, 4.45% x income - credit). Algebraically that equals 0% up to $20,918, 5.75% (4.45% + 1.3%) until the credit is gone at $92,521, then 4.45% (joint: $41,835 / $185,041). This is exact for a filer taking the federal standard deduction.",
+      "Not captured in the brackets: the federal additional standard deduction for age 65+ (2026: $2,050 single, $1,650 per spouse) raises the credit by $123 / $99 per person and extends the phase-out. Itemizers and filers with dependents get a larger credit. The OBBBA $6,000 senior deduction isn't part of the federal standard deduction and doesn't enter the Utah credit.",
+      "Social Security credit: 4.45% of federally taxable benefits, reduced by $0.25 per $1 of income above $54,000 single / $90,000 joint ($45,000 married filing separately). Since 2025 (SB 71) the income test uses Utah taxable income rather than federal AGI. The record treats Social Security as fully exempt at or below the threshold and fully taxed above it. In reality the credit tapers over the 4 x credit amount above the threshold (for example about $3,600 for a $20,000 taxable benefit), so tax is overstated just above the threshold.",
+      "Retirement tax credit: $450 per person, only for those born on or before 1952, and not combinable with the Social Security credit. Ignored (retirementExclusion null).",
+      "Military retirement credit = 4.45% x taxable military retirement pay, which makes it effectively fully exempt (it can be combined with the Social Security credit). Federal, state and local civilian pensions, IRA and 401(k) distributions are fully taxable.",
+      "Verified 2026-10-03 (confirmed) — income tax rate 2026: 4.45% Note: SB 60 (2026). A substitute (S01) proposed 5.15% above $1M but the enrolled bill is a single flat 4.45%. Pub 14 withholding also uses .0445. Source: https://le.utah.gov/Session/2026/bills/enrolled/SB0060.pdf",
+      "Verified 2026-10-03 (corrected) — taxpayer credit base phase-out amounts 2026: $18,696 single/MFS / $37,392 MFJ (HOH ~$28,045) Note: MODERATE confidence. No 2026 TC-40 yet. HB 210 FAILED (House 31-42, 3/2/2026), so it did not change law, but its text restates the current-law indexed 2026 base as $18,696 single / $37,392 joint (2025 $18,213 x ~2.65%). Tax Commission Pub 14 (eff. 6/1/2026) uses $18,696 as the annual married withholding threshold ($9,348 single), consistent. Phase-out rate 1.3% unchanged. Recheck against 2026 TC-40 instructions when released. Source: https://le.utah.gov/Session/2026/bills/introduced/HB0210S05.pdf",
+      "Verified 2026-10-03 (confirmed) — social security credit income thresholds 2026: $54,000 single / $90,000 MFJ and HOH / $45,000 MFS; phase-out $0.025 per $1 Note: Quoted from 59-10-1042 as reproduced in 2026 SB 60 substitute; enrolled SB 60 did not amend 1042. Thresholds are statutory (not indexed). Phase-out is 2.5 cents per dollar of MAGI over threshold. Source: https://le.utah.gov/Session/2026/bills/introduced/SB0060S01.pdf"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Utah House — 2026 legislative session summary (SB 60, rate 4.45%)",
+        "url": "https://house.utleg.gov/utahs-2026-legislative-session-lower-costs-stronger-families-and-long-term-investments/"
+      },
+      {
+        "label": "Utah State Tax Commission — 2026-01-15 practitioner webinar (taxpayer credit bases, SS credit thresholds)",
+        "url": "https://files.tax.utah.gov/tax/train/webinars/2026-01-15-presentation.pdf"
+      },
+      {
+        "label": "AARP — Utah state tax guide (SS credit phase-out, retirement & military credits)",
+        "url": "https://www.aarp.org/states/utah/state-tax-guide/"
+      },
+      {
+        "label": "income tax rate 2026 (checked 2026-10-03)",
+        "url": "https://le.utah.gov/Session/2026/bills/enrolled/SB0060.pdf"
+      },
+      {
+        "label": "taxpayer credit base phase-out amounts 2026 (checked 2026-10-03)",
+        "url": "https://le.utah.gov/Session/2026/bills/introduced/HB0210S05.pdf"
+      },
+      {
+        "label": "social security credit income thresholds 2026 (checked 2026-10-03)",
+        "url": "https://le.utah.gov/Session/2026/bills/introduced/SB0060S01.pdf"
+      }
+    ]
+  },
+  "VT": {
+    "approximations": [
+      "2026 brackets are derived from the Tax Department's 2026 withholding annual rate schedule (GB-1210-2026) by removing the withholding offset ($3,925 single / $11,775 married). The base-tax amounts in that schedule match these widths exactly. The 2026 rate schedules in the IN-111 instructions weren't available to confirm.",
+      "Social Security exemption (2025 thresholds, not indexed): fully exempt with AGI up to $55,000 single / $70,000 joint, phasing out linearly over the next $10,000, and none at or above $65,000 / $80,000. The record cliffs at the lower threshold, so tax is overstated inside the $10,000 phase-out band.",
+      "Retirement income exemption, not modeled (null): the first $10,000 of CSRS, military, or Vermont state teacher/employee/municipal retirement income can be excluded, with income limits that track the Social Security phase-out. It doesn't cover private pensions or IRAs, and a taxpayer can claim only one of the Social Security, CSRS, military or other-system exemptions. So military and government pensions are not exempt beyond this.",
+      "Minimum tax: filers with federal AGI over $150,000 owe at least 3% of AGI (less U.S. obligation interest). Not modeled. It can bind for high-AGI retirees with large itemized/exempt items.",
+      "The 24% Vermont credit for the elderly or disabled (piggybacking the federal credit) is not modeled. It is negligible for most retirees.",
+      "STILL UNCONFIRMED (checked 2026-10-03) — standard deduction 2026: 2025 confirmed ($7,650 / $15,300 / HOH $11,450); 2026 amount not found Note: No 2026 VT primary source lists the standard deduction yet (IN-114 2026 instructions only give rate schedules). It is inflation-indexed; expect ~3% higher than 2025. Keep 2025 or index. Source: https://tax.vermont.gov/sites/tax/files/documents/IN-111-2025.pdf",
+      "STILL UNCONFIRMED (checked 2026-10-03) — extra standard deduction per 65+/blind: not verified for 2025 or 2026 Note: Dept page shows the base $1,000 (unindexed original) with annual inflation adjustment; no 2026 indexed figure found. $1,250 plausible but unverified. Source: https://tax.vermont.gov/individuals/seniors-and-retirees",
+      "Verified 2026-10-03 (corrected) — personal exemption 2026: $5,400 (2026, from withholding allowance); 2025 was $5,300 Note: VT withholding allowance historically equals the personal exemption (2025 IN-111: '$5,300 (2025 Personal Exemption)'). 2026 IN-111 not yet published; $5,400 is strong but indirect evidence. Source: https://tax.vermont.gov/sites/tax/files/documents/GB-1210-2026.pdf",
+      "Verified 2026-10-03 (confirmed) — 2026 brackets: Single: 3.35% to $50,750; 6.6% to $122,850; 7.6% to $256,300; 8.75% above. MFJ: 3.35% to $84,700; 6.6% to $204,750; 7.6% to $312,050; 8.75% above Note: 2026 preliminary schedules (IN-114 instructions, Rev. 10/25). Rates confirmed; thresholds are the 2026 indexed values. Source: https://tax.vermont.gov/sites/tax/files/documents/IN-114-Instr-2026.pdf",
+      "Verified 2026-10-03 (confirmed) — Social Security exemption thresholds: Full exemption to $55,000 single/other, $70,000 MFJ; partial through $64,999 / $79,999; none at $65,000 / $80,000 Note: Table is labeled 2025; thresholds are statutory (not indexed), no 2026 change found. Note the seniors-and-retirees page is stale ($50k/$65k). Applies to all non-joint statuses (single, MFS, HOH, widow). Source: https://tax.vermont.gov/individuals/income-tax-returns/social-security-exemption"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Vermont Dept. of Taxes — 2026 Income Tax Withholding Instructions, Tables and Charts (GB-1210)",
+        "url": "https://tax.vermont.gov/sites/tax/files/documents/GB-1210-2026.pdf"
+      },
+      {
+        "label": "Vermont Dept. of Taxes — 2025 IN-111 Instructions",
+        "url": "https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf"
+      },
+      {
+        "label": "Vermont Dept. of Taxes — Social Security Exemption",
+        "url": "https://tax.vermont.gov/individuals/income-tax-returns/social-security-exemption"
+      },
+      {
+        "label": "Vermont Dept. of Taxes — Seniors and Retirees",
+        "url": "https://tax.vermont.gov/individuals/seniors-and-retirees"
+      },
+      {
+        "label": "2026 brackets (checked 2026-10-03)",
+        "url": "https://tax.vermont.gov/sites/tax/files/documents/IN-114-Instr-2026.pdf"
+      }
+    ]
+  },
+  "WI": {
+    "approximations": [
+      "Statutory 2026 brackets (DOR 2026 Form 1-ES): single 3.5% to $15,110, 4.4% to $51,950, 5.3% to $332,720, then 7.65%. Joint 3.5% to $20,150, 4.4% to $69,260, 5.3% to $443,630, then 7.65%. The 2025 Act 15 widened the second bracket.",
+      "The sliding-scale standard deduction is folded into the brackets, so standardDeduction is 0. 2026 deduction: single $13,960, reduced by 12% of Wisconsin income over $20,119 and reaching 0 at $136,453. Joint $25,840, reduced by 19.778% over $29,039 and reaching 0 at $159,690. The bracket rows reproduce 'income minus deduction, then statutory rates' exactly. Inside the phase-out the marginal rate is the statutory rate x 1.12 (single) or x 1.19778 (joint). Small approximation: the engine subtracts exemptions before applying these rows, while the real phase-out is keyed to Wisconsin income before exemptions (an error of a few dollars of tax).",
+      "Retirement income exclusion (2025 Act 15, from tax year 2025): age 67+ by year-end, up to $24,000 per person ($48,000 joint if both qualify) of distributions from IRC qualified plans and IRAs, including RMDs, inherited IRAs and Roth conversions. Commercial annuities don't qualify. Trade-off not modeled: a filer who claims it may claim NO Wisconsin credits that year (married couple credit up to $480, itemized deduction credit, school property tax credit, and others), so the true benefit is somewhat smaller.",
+      "Older $5,000 retirement subtraction (age 65+, AGI under $15,000 single / $30,000 joint) is not modeled because it is negligible.",
+      "Exemptions: $700 per person plus $250 per person aged 65+ (extraDeduction65). Wisconsin exemptions are technically deductions from income, so they are modeled that way.",
+      "Military and uniformed-services retirement is fully exempt. Federal, WRS and Milwaukee pensions are exempt only for members who joined before 1964, so govPensionExempt is false."
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "Wisconsin DOR — 2026 Form 1-ES instructions (rate schedules, standard deduction table, exemptions)",
+        "url": "https://www.revenue.wi.gov/TaxForms2026/2026-Form1-ES-inst.pdf"
+      },
+      {
+        "label": "Wisconsin DOR — 2025 Fall Tax Practitioner Q&A (age-67 retirement subtraction)",
+        "url": "https://www.revenue.wi.gov/Pages/TaxPro/2026/TaxPractitonerFall2025QandA.aspx"
+      },
+      {
+        "label": "Wisconsin LFB — tax modifications in 2025 Act 15",
+        "url": "https://docs.legis.wisconsin.gov/misc/lfb/budget/2025_27_biennial_budget/285_state_tax_and_fee_modifications_included_in_2025_wisconsin_act_15_7_29_25"
+      },
+      {
+        "label": "Wisconsin DOR — 2025 Form 1 instructions",
+        "url": "https://www.revenue.wi.gov/TaxForms2025/2025-Form1-Inst.pdf"
+      }
+    ]
+  },
+  "WV": {
+    "approximations": [
+      "2026 rates are from SB 392 (approved March 31, 2026, retroactive to January 1, 2026), which cut every rate by about 5% (top rate 4.82% to 4.58%) and left thresholds unchanged. West Virginia uses the same thresholds for single and joint filers (married filing separately is halved).",
+      "Social Security: the decreasing modification reaches 100% for all filers in 2026 (35% in 2024 and 65% in 2025 above AGI $50k single / $100k joint).",
+      "Senior citizen modification: up to $8,000 per person aged 65+, but under Schedule M it is reduced by the person's other retirement modifications, which include the Social Security modification, the military and government pension modifications and U.S. obligation interest. Now that Social Security is 100% exempt, anyone with $8,000 or more of taxable Social Security gets nothing extra, so extraDeduction65 = 0. A 65+ person who hasn't started Social Security (or has small benefits) actually gets up to $8,000 off IRA, pension or other income, which this record misses.",
+      "Government pensions: WV PERS, Teachers' Retirement and federal civil-service benefits get only a $2,000 modification, so govPensionExempt is false and that $2,000 isn't modeled. WV police, fire and deputy-sheriff pensions are fully exempt. Military retirement is fully exempt.",
+      "There is no standard deduction. The personal exemption is $2,000 per person. A low-income earned-income exclusion is not modeled.",
+      "Verified 2026-10-03 (corrected) — 2026 rate schedule (SB 392): 2.81%. Full: 2.11% to $10,000; $211 + 2.81% to $25,000; $632.50 + 3.16% to $40,000; $1,106.50 + 4.22% to $60,000; $1,950.50 + 4.58% above Note: Enrolled Committee Substitute SB 392; effective June 12, 2026, retroactive to Jan 1, 2026 (W. Va. Code 11-21-4j; tax.wv.gov confirms). Same brackets for single/MFJ/HOH. MFS uses half thresholds: $5,000/$12,500/$20,000/$30,000 (bases $105.50/$316.25/$553.25/$975.25). Base $632.50 = 211 + 15,000 x 2.81% confirms 2.81%. Status 'corrected' only if engine had 2.82%. Source: https://www.wvlegislature.gov/bill_status/bills_text.cfm?billdoc=sb392+sub1+enr.htm&yr=2026&sesstype=RS&i=392"
+    ],
+    "localTaxNote": null,
+    "sources": [
+      {
+        "label": "WV Tax Division — Social Security Modification",
+        "url": "https://tax.wv.gov/Individuals/SeniorCitizens/Pages/SeniorCitizenSocialSecurityModification.aspx"
+      },
+      {
+        "label": "WV Tax Division — 2024 IT-140 forms & instructions (Schedule M, $2,000 exemption, pension modifications)",
+        "url": "https://tax.wv.gov/Documents/PIT/2024/it140.PersonalIncomeTaxFormsAndInstructions.2024.pdf"
+      },
+      {
+        "label": "EY Tax News — West Virginia SB 392 lowers rates retroactive to January 1, 2026",
+        "url": "https://taxnews.ey.com/news/2026-0864-west-virginia-law-lowers-personal-income-tax-rate-retroactive-to-january-1-2026-updated-withholding-formula-is-now-available"
+      },
+      {
+        "label": "PolicyEngine — WV SB 392 rate schedule",
+        "url": "https://www.policyengine.org/us/wv-sb392-tax-cut"
+      },
+      {
+        "label": "2026 rate schedule (SB 392) (checked 2026-10-03)",
+        "url": "https://www.wvlegislature.gov/bill_status/bills_text.cfm?billdoc=sb392+sub1+enr.htm&yr=2026&sesstype=RS&i=392"
+      }
+    ]
+  }
+}
