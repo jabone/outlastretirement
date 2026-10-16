@@ -1,0 +1,107 @@
+/* The public pages' colors, dark and light (changelog 368).
+   One file for every page -- the home page, privacy, terms, verify,
+   accessibility, 404 and the three generated pages -- so a panel on the
+   site and a card in the app stay the same color in both themes. The values
+   are the APP's own (src/index.css: :root for dark, [data-theme="light"]
+   for light), restated here, not re-derived.
+
+   Which theme: the one chosen in the app (Preferences -> Light / Dark),
+   which /brand/theme.js copies onto <html data-theme>, else the device's
+   own setting. Dark is the fallback for a browser that states neither. */
+
+:root {
+  color-scheme: dark;
+  --bg: var(--or-navy);
+  --panel: #213650;        /* app --card-bg */
+  --panel-hover: #2B4058;  /* app --card-hover */
+  --panel-2: #1A314C;      /* app --bg-secondary */
+  --code-bg: #0F2238;
+  --border: rgba(234, 230, 221, 0.18);
+  --text: var(--or-paper);
+  --text-2: #C3C4C1;
+  --muted: #AEB3B6;
+  --accent: var(--or-teal);
+  --accent-text: #52BFB8;  /* 5.6:1 on navy */
+  --success: #5CC08A;
+  --header-bg: color-mix(in srgb, var(--or-navy) 92%, transparent);
+  --btn-bg: var(--or-paper);
+  --btn-fg: var(--or-navy);
+  --btn-hover: var(--or-cream);
+  --hover-border: rgba(42, 127, 122, 0.55);
+  --hover-border-strong: rgba(42, 127, 122, 0.7);
+  --line: rgba(234, 230, 221, 0.08);
+  --track: rgba(234, 230, 221, 0.15);
+  --dot: rgba(234, 230, 221, 0.25);
+  --shadow: rgba(0, 0, 0, 0.7);
+  --shadow-soft: rgba(0, 0, 0, 0.28);
+  --success-border: rgba(92, 192, 138, 0.5);
+}
+
+/* The brand's light side: cream page, navy ink, the same teal stepped
+   darker for type. The block appears twice because CSS cannot share one
+   between a media query and an attribute selector. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: var(--or-cream);
+    --panel: var(--or-cream);  /* app --card-bg */
+    --panel-hover: #FFFFFF;
+    --panel-2: var(--or-paper);
+    --code-bg: #F3EFE7;
+    --border: rgba(15, 39, 68, 0.16);
+    --text: var(--or-navy);  /* 14.5:1 on cream */
+    --text-2: #2C4059;       /* 10.2:1 on cream */
+    --muted: #576679;        /*  5.7:1 on cream */
+    --accent: var(--or-teal);
+    --accent-text: #006763;  /*  6.5:1 on cream */
+    --success: #046B50;
+    --header-bg: color-mix(in srgb, var(--or-cream) 92%, transparent);
+    --btn-bg: var(--or-navy);
+    --btn-fg: var(--or-cream);
+    --btn-hover: #1A314C;
+    --hover-border: rgba(42, 127, 122, 0.6);
+    --hover-border-strong: rgba(42, 127, 122, 0.8);
+    --line: rgba(15, 39, 68, 0.08);
+    --track: rgba(15, 39, 68, 0.15);
+    --dot: rgba(15, 39, 68, 0.25);
+    --shadow: rgba(15, 39, 68, 0.28);
+    --shadow-soft: rgba(15, 39, 68, 0.12);
+    --success-border: rgba(4, 107, 80, 0.45);
+  }
+  :root:not([data-theme="dark"]) .logo-on-dark { display: none; }
+  :root:not([data-theme="dark"]) .logo-on-light { display: block; }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: var(--or-cream);
+  --panel: var(--or-cream);
+  --panel-hover: #FFFFFF;
+  --panel-2: var(--or-paper);
+  --code-bg: #F3EFE7;
+  --border: rgba(15, 39, 68, 0.16);
+  --text: var(--or-navy);
+  --text-2: #2C4059;
+  --muted: #576679;
+  --accent: var(--or-teal);
+  --accent-text: #006763;
+  --success: #046B50;
+  --header-bg: color-mix(in srgb, var(--or-cream) 92%, transparent);
+  --btn-bg: var(--or-navy);
+  --btn-fg: var(--or-cream);
+  --btn-hover: #1A314C;
+  --hover-border: rgba(42, 127, 122, 0.6);
+  --hover-border-strong: rgba(42, 127, 122, 0.8);
+  --line: rgba(15, 39, 68, 0.08);
+  --track: rgba(15, 39, 68, 0.15);
+  --dot: rgba(15, 39, 68, 0.25);
+  --shadow: rgba(15, 39, 68, 0.28);
+  --shadow-soft: rgba(15, 39, 68, 0.12);
+  --success-border: rgba(4, 107, 80, 0.45);
+}
+
+/* The lockup: paper-on-navy art in dark, navy-on-cream art in light. */
+/* img.or-logo.… outranks each page's own ".brand .or-logo { display: block }",
+   which would otherwise show both lockups side by side in dark. */
+img.or-logo.logo-on-light { display: none; }
+:root[data-theme="light"] .logo-on-dark { display: none; }
+:root[data-theme="light"] .logo-on-light { display: block; }

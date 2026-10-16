@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page not found — OutlastRetirement</title>
+  <meta name="description" content="This page does not exist. Find the retirement planner, the privacy policy and the terms from here." />
+  <meta name="robots" content="noindex" />
+  <!-- Served by Vercel for any address that matches no file. Same styling as
+       the privacy page. Links only to pages that exist; its one script is
+       /brand/theme.js, which picks light or dark. -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="stylesheet" href="/brand/outlastretirement.tokens.css" />
+  <link rel="stylesheet" href="/brand/site-theme.css" />
+  <script src="/brand/theme.js"></script>
+  <link rel="stylesheet" href="/brand/fonts.css" />
+  <style>
+    /* Colors come from /brand/site-theme.css (dark and light, the app's own
+       values) so a panel here and a card in the app match in either theme. */
+    :root {
+      --maxw: 1080px;
+      --font-heading: 'Outfit Variable', 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-padding-top: 76px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-2);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: var(--maxw); margin: 0 auto; padding: 44px 20px 40px; }
+    /* A reading column, starting under the logo as the home page's does. */
+    .page-head, main { max-width: 720px; }
+    .page-head { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+    /* The site's one header: the home page's sticky bar,
+       logo left, links right, Open the app as the button. Below 1000px
+       the links fold away and the footer carries them. */
+    header.nav {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--header-bg);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; gap: 18px; padding: 12px 20px; max-width: var(--maxw); margin: 0 auto; }
+    .brand { display: flex; align-items: center; text-decoration: none; margin-right: auto; }
+    .brand .or-logo { height: var(--or-logo-nav); width: auto; display: block; }
+    .nav a.navlink { color: var(--text-2); text-decoration: none; font-size: 14px; white-space: nowrap; }
+    .nav a.navlink:hover, .nav a.navlink[aria-current="page"] { color: var(--text); }
+    .nav a.navlink[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--or-teal); text-underline-offset: 6px; text-decoration-thickness: 2px; }
+    .btn {
+      display: inline-block; text-decoration: none; font-weight: 600; font-family: var(--font-heading);
+      border-radius: 12px; border: 1px solid transparent; white-space: nowrap;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--btn-bg); color: var(--btn-fg); }
+    .btn-primary:hover { background: var(--btn-hover); }
+    .btn-sm { padding: 8px 14px; font-size: 14px; }
+    @media (max-width: 1000px) {
+      .nav-inner { gap: 12px; padding: 10px 16px; }
+      .nav-inner .navlink { display: none; }
+    }
+    .eyebrow { font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--accent-text); font-weight: 700; margin-bottom: 10px; }
+    h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.02em; color: var(--text); }
+    h1 { font-size: clamp(28px, 4.2vw, 40px); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+    .subtitle { color: var(--muted); font-size: 15px; margin-top: 6px; }
+    .effective {
+      display: inline-block; margin-top: 12px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 6px 14px; font-size: 13px; color: var(--muted);
+    }
+    h2 { font-size: 18px; font-weight: 600; margin: 36px 0 12px; }
+    p { color: var(--text-2); margin-bottom: 14px; }
+    ul { color: var(--text-2); padding-left: 24px; margin-bottom: 14px; }
+    ul li { margin-bottom: 8px; }
+    strong { color: var(--text); }
+    code {
+      font-size: 0.92em; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 6px; padding: 1px 6px;
+    }
+    /* The landing page's .privacy-line, same recipe: a teal rule and a wash
+       that fades out, not a filled green block. */
+    .highlight {
+      border-left: 3px solid var(--or-teal);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--or-teal) 14%, transparent), transparent);
+      padding: 16px 20px; border-radius: 0 12px 12px 0;
+      margin: 24px 0;
+    }
+    .highlight p { color: var(--text); margin: 0; font-weight: 500; }
+    /* Paper type underlined in teal, as on the landing page -- a link color
+       of its own would be a fifth brand color. */
+    a { color: var(--text); text-decoration-color: var(--or-teal); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    footer a { color: var(--text-2); }
+    /* Footer links: a 44px-tall tap target each, wrapping on a phone. */
+    .foot-links { display: flex; flex-wrap: wrap; margin: 2px -10px 6px; }
+    .foot-links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+    .site-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; margin-bottom: 20px; }
+    .site-nav a { color: var(--text-2); }
+    .site-nav a[aria-current="page"] { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="/" aria-label="OutlastRetirement home">
+        <img class="or-logo or-logo--full logo-on-dark" alt="OutlastRetirement" src="/brand/outlast-full-dark-h96.png" srcset="/brand/outlast-full-dark-h96.png 413w, /brand/outlast-full-dark.png 870w" sizes="121px" width="121" height="28" />
+        <img class="or-logo or-logo--full logo-on-light" alt="OutlastRetirement" src="/brand/outlast-full-light-h96.png" srcset="/brand/outlast-full-light-h96.png 413w, /brand/outlast-full-light.png 870w" sizes="121px" width="121" height="28" />
+      </a>
+      <a class="navlink" href="/#how">How it works</a>
+      <a class="navlink" href="/learn">Learn</a>
+      <a class="navlink" href="/how-the-math-works">How the math works</a>
+      <a class="navlink" href="/privacy">Privacy</a>
+      <a class="navlink" href="/verify">Verify it yourself</a>
+      <a class="navlink" href="/premium">Free and Premium</a>
+      <a class="btn btn-primary btn-sm" href="/app/">Open the app</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-head">
+      <h1>Page not found</h1>
+    </div>
+
+    <main>
+    <p>There is nothing at this address. It may have moved, or the link may have a typo.</p>
+    <p>Your plan is not affected: it lives in your browser, not at any address on this site.</p>
+
+    <h2>Where to go</h2>
+    <ul>
+      <li><a href="/app/">Open the planner</a></li>
+      <li><a href="/">Home page</a></li>
+      <li><a href="/privacy">Privacy policy</a>, <a href="/terms">terms of use</a> and <a href="/accessibility">accessibility</a></li>
+    </ul>
+    <p>If a link on this site brought you here, please tell us at <a href="mailto:outlastretirement@gmail.com?subject=Broken%20link">outlastretirement@gmail.com</a>.</p>
+    </main>
+
+    <footer>
+      <p><strong>Local-first retirement education. Your numbers never leave your device.</strong></p>
+      <nav class="foot-links" aria-label="Site links"><a href="/">Home</a> <a href="/learn">Learn</a> <a href="/how-the-math-works">How the math works</a> <a href="/changelog">Release notes</a> <a href="/privacy">Privacy</a> <a href="/terms">Terms</a> <a href="/accessibility">Accessibility</a> <a href="/verify">Verify it yourself</a> <a href="/premium">Free and Premium</a> <a href="mailto:outlastretirement@gmail.com">Contact</a> <a href="/app/">Open the app</a></nav>
+      <p>© 2026 OutlastRetirement LLC. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

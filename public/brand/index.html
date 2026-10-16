@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="icon" type="image/png" href="/brand/or-short-light.png" />
+    <title>OutlastRetirement — brand reference</title>
+    <!-- The tokens file, verbatim from the brand folder. This page exists to
+         exercise it: if a mark is paired with the wrong ground or a token
+         drifts, it shows up here rather than in production. -->
+    <link rel="stylesheet" href="/brand/outlastretirement.tokens.css" />
+    <style>
+      body { margin: 0; font-family: var(--or-sans); }
+      .band { padding: 40px 24px; }
+      .band + .band { border-top: 1px solid var(--or-border); }
+      .inner { max-width: 900px; margin: 0 auto; }
+      h1 { font-family: var(--or-serif); font-weight: 600; font-size: 1.5rem; margin: 0 0 4px; }
+      h2 { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; opacity: .65; margin: 0 0 18px; font-weight: 600; }
+      p { margin: 0 0 18px; line-height: 1.55; max-width: 62ch; }
+      .row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--or-logo-clear); margin-bottom: 26px; }
+      .spec { font-size: .75rem; opacity: .6; margin: 6px 0 0; }
+      .swatches { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 8px; padding: 0; list-style: none; }
+      .swatch { width: 132px; }
+      .chip { height: 52px; border-radius: 6px; border: 1px solid var(--or-border); }
+      .chip code { display: none; }
+      .swatch b { display: block; font-size: .78rem; margin-top: 6px; font-weight: 600; }
+      .swatch span { font-size: .72rem; opacity: .6; }
+      .note { font-size: .8rem; opacity: .75; border-left: 2px solid var(--or-accent); padding-left: 12px; }
+      ul.rules { font-size: .85rem; line-height: 1.7; padding-left: 18px; margin: 0; max-width: 62ch; }
+      /* The header-size specimens. Min heights come from the tokens, so a
+         change there moves these too rather than leaving them stale. */
+      .at-min.or-logo--full { height: var(--or-logo-full-min); }
+      .at-min.or-logo--short { height: var(--or-logo-short-min); }
+      .at-3x.or-logo--full { height: calc(var(--or-logo-full-min) * 3); }
+      .at-3x.or-logo--short { height: calc(var(--or-logo-short-min) * 3); }
+    </style>
+  </head>
+  <body>
+    <!-- LIGHT: cream ground, navy type, teal path. -->
+    <div class="or-page band" data-or-theme="light">
+      <div class="inner">
+        <h1>OutlastRetirement</h1>
+        <p class="spec" style="margin-bottom:26px;">Brand reference — locked 2026-09-11. Not linked from anywhere; noindex. The live app is OutlastRetirement, at outlastretirement.com.</p>
+
+        <h2>Full lockup on cream</h2>
+        <div class="row">
+          <img class="or-logo or-logo--full at-min" alt="OutlastRetirement" src="/brand/outlast-full-light.png" />
+          <img class="or-logo or-logo--full at-3x" alt="OutlastRetirement" src="/brand/outlast-full-light.png" />
+        </div>
+        <p class="spec">Site header, docs, legal, OG fallback. Minimum height 28px.</p>
+
+        <h2 style="margin-top:34px;">Short mark on cream</h2>
+        <div class="row">
+          <img class="or-logo or-logo--short at-min" alt="OutlastRetirement" src="/brand/or-short-light.png" />
+          <img class="or-logo or-logo--short at-3x" alt="OutlastRetirement" src="/brand/or-short-light.png" />
+        </div>
+        <p class="spec">Favicon, app icon, compact nav, watermark. Minimum height 32px. OR is the alternate mark, never the product name — the alt text on both marks reads OutlastRetirement.</p>
+      </div>
+    </div>
+
+    <!-- DARK: navy ground, paper type, the same teal path. -->
+    <div class="or-page band" data-or-theme="dark">
+      <div class="inner">
+        <h2>Full lockup on navy</h2>
+        <div class="row">
+          <img class="or-logo or-logo--full at-min" alt="OutlastRetirement" src="/brand/outlast-full-dark.png" />
+          <img class="or-logo or-logo--full at-3x" alt="OutlastRetirement" src="/brand/outlast-full-dark.png" />
+        </div>
+
+        <h2 style="margin-top:34px;">Short mark on navy</h2>
+        <div class="row">
+          <img class="or-logo or-logo--short at-min" alt="OutlastRetirement" src="/brand/or-short-dark.png" />
+          <img class="or-logo or-logo--short at-3x" alt="OutlastRetirement" src="/brand/or-short-dark.png" />
+        </div>
+        <p class="note">Each mark is keyed to transparency, so pairing one with the wrong ground makes it vanish rather than sit in a colored box. That is deliberate: a wrong pairing should be obvious.</p>
+      </div>
+    </div>
+
+    <!-- Tokens, drawn from the stylesheet itself rather than hardcoded hexes. -->
+    <div class="or-page band" data-or-theme="light">
+      <div class="inner">
+        <h2>Color</h2>
+        <ul class="swatches">
+          <li class="swatch"><div class="chip" style="background: var(--or-navy);"></div><b>--or-navy</b><span>#0F2744 · dark surfaces, ink on cream</span></li>
+          <li class="swatch"><div class="chip" style="background: var(--or-cream);"></div><b>--or-cream</b><span>#FFFAF4 · light surfaces</span></li>
+          <li class="swatch"><div class="chip" style="background: var(--or-paper);"></div><b>--or-paper</b><span>#EAE6DD · type and marks on navy</span></li>
+          <li class="swatch"><div class="chip" style="background: var(--or-teal);"></div><b>--or-teal</b><span>#2A7F7A · path and arrow</span></li>
+        </ul>
+        <p class="note" style="margin-top:18px;">The supplied rasters sample a hair off the token — about #356D72 on the full path. The token wins, and there is only ever one teal.</p>
+
+        <h2 style="margin-top:34px;">Rules</h2>
+        <ul class="rules">
+          <li>Paths and arrows never end on a downslope. Both strokes finish up and to the right.</li>
+          <li>No round end-dot — it reads as a resting point. The upper stroke of the full mark ends in a full arrowhead.</li>
+          <li>Full mark: two teal strokes to the left of the stacked type, exactly one arrowhead. The lower stroke has no arrow and no dot.</li>
+          <li>Short mark: the arrow cuts through the R. It never parks beside the letters.</li>
+          <li>Never stretch, outline, drop-shadow, recolour the arrow on its own, or add a second arrowhead.</li>
+          <li>Never redraw the wordmark in live type — it stays in the asset. UI chrome may use a clean sans.</li>
+          <li>No competitor name appears on a mark or in a lockup.</li>
+          <li>Clearspace around a mark is about 0.6 × its height.</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
