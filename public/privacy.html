@@ -188,7 +188,7 @@
 
     <h2 id="premium-modules">Premium Modules</h2>
     <p>The code for the Premium features — Detailed Holdings, Retirement Spending, Readiness in Full and Relocation &amp; Residency — is kept separate from the rest of the App. It is not part of what your browser downloads from outlastretirement.com; it is fetched, one module at a time, from our own module server, <code>premium.outlastretirement.com</code>, and only when a valid Premium Access key is present and the first time you open the part of the App that uses it.</p>
-    <p>Here is exactly what happens, and the code enforcing it is in the open-source App:</p>
+    <p>Here is exactly what happens, and the code enforcing it is in the App&rsquo;s <a href="https://github.com/jabone/outlastretirement" target="_blank" rel="noopener">published source</a>:</p>
     <ul>
       <li>The App sends the module server <strong>one thing</strong>: your Premium Access key, so the server can check it is valid and unexpired. It is sent as a request header, never in a web address. The key carries the email address it was issued to (see "If You Email Us" below), so that address is inside what the server receives; the server checks the key's signature and expiry and keeps no record of the request. Nothing from your plan or your holdings is sent — the server delivers code to your browser; your data never travels the other way.</li>
       <li>The server answers with a signed module. The App verifies the signature against a public key built into the App before running a single line of it, so what you run is what we published, not something altered on the way.</li>
@@ -196,7 +196,7 @@
       <li><strong>Local-Only Mode</strong> stops this connection too. While it is on, no Premium module is fetched, and a Premium part of the App that has not been loaded yet shows a note saying so instead. A module that was already loaded in the current session keeps working: once Detailed Holdings, Retirement Spending, Readiness in Full and Relocation &amp; Residency have each been opened once, you can turn Local-Only Mode on and carry on using all four with no further connection until you reload the page.</li>
       <li>If your key has lapsed, Premium parts of the App lock, but your holdings and everything else you entered stay on your device, readable and restorable from a backup, exactly as before.</li>
     </ul>
-    <p>Which version of each Premium module is loaded is shown in Preferences, and the Premium source is published so it can be read and checked, even though it is not open source.</p>
+    <p>Which version of each Premium module is loaded is shown in Preferences. The App itself is open source (<a href="https://github.com/jabone/outlastretirement" target="_blank" rel="noopener">github.com/jabone/outlastretirement</a>, under the GNU Affero General Public License); the Premium modules are a separate work and are not.</p>
 
     <h2>What Our Host Sees</h2>
     <p>The App&rsquo;s pages and code are served by our hosting provider, Vercel Inc. When your browser asks for a page, Vercel&rsquo;s servers receive your IP address and browser type, as any web server does. We don&rsquo;t receive or keep them, and nothing you type into the App is part of those requests.</p>

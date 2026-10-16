@@ -23,11 +23,9 @@ jobs:
       - run: npm run build
 
   e2e:
-    # Browser tests against the production build. Informational: a failure
-    # here does not block the unit-test job above.
+    # Browser tests against the production build. Required, like `check`.
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
