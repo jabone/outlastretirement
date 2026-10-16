@@ -21,14 +21,23 @@ test.describe('landing page', () => {
 
   test('wears the brand: the lockup renders, and it is an image not type', async ({ page }) => {
     await page.goto('/');
-    const mark = page.locator('header .brand img');
-    await expect(mark).toHaveAttribute('alt', 'OutlastRetirement');
+    // The lockup is two marks, one for each color scheme, and CSS shows
+    // one; the one on screen is the one that has to be a real, loaded image.
+    const marks = page.locator('header .brand img');
+    await expect(marks).toHaveCount(2);
+    for (const mark of await marks.all()) await expect(mark).toHaveAttribute('alt', 'OutlastRetirement');
+    const mark = marks.locator('visible=true');
+    await expect(mark).toHaveCount(1);
     // Rendered, not merely present. A broken src still matches a selector;
     // a mark that failed to load reports naturalWidth 0.
     expect(await mark.evaluate((el) => el.naturalWidth)).toBeGreaterThan(0);
-    // The brand ground, straight off the tokens.
-    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor))
-      .toBe('rgb(15, 39, 68)');
+    // The brand ground, straight off the tokens, in both color schemes
+    // (the page follows the system; Playwright's default is light).
+    const ground = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    await page.emulateMedia({ colorScheme: 'light' });
+    expect(await ground()).toBe('rgb(255, 250, 244)');
+    await page.emulateMedia({ colorScheme: 'dark' });
+    expect(await ground()).toBe('rgb(15, 39, 68)');
   });
 
   test('requests nothing from another origin', async ({ page }) => {

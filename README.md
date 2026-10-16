@@ -121,8 +121,9 @@ keeps the code and the policy from drifting apart.
 
 ## License
 
-See `LICENSE`. The open core of OutlastRetirement is published under the GNU
-Affero General Public License, version 3. The Premium modules are a separate
+See `LICENSE` (the GNU Affero General Public License, version 3) and
+`NOTICE` (the copyright holder and what the license does not cover). The
+open core of OutlastRetirement is published under the AGPL v3. The Premium modules are a separate
 work under a separate license and are not covered by it. "OutlastRetirement"
 and the brand marks in `public/brand/` identify the product as published by
 OutlastRetirement LLC; a fork should carry its own name.

@@ -33,11 +33,18 @@ describe('the repository is licensed', () => {
   const license = existsSync(join(ROOT, 'LICENSE')) ? read('LICENSE') : '';
   const isPublic = /GNU AFFERO GENERAL PUBLIC LICENSE/.test(license);
 
-  it('carries a LICENSE naming the copyright holder', () => {
+  it('carries a LICENSE, and the copyright holder is named (in NOTICE for the public repo)', () => {
     expect(license, 'no LICENSE file').not.toBe('');
-    expect(license).toContain(ENTITY);
-    if (isPublic) expect(license).toMatch(/Version 3, 19 November 2007/);
-    else expect(license).toMatch(/All rights reserved/i);
+    if (isPublic) {
+      // LICENSE is the verbatim AGPL so license detection works; the
+      // copyright notice sits beside it in NOTICE.
+      expect(license).toMatch(/Version 3, 19 November 2007/);
+      expect(license).not.toContain(ENTITY);
+      expect(read('NOTICE')).toContain(ENTITY);
+    } else {
+      expect(license).toContain(ENTITY);
+      expect(license).toMatch(/All rights reserved/i);
+    }
   });
 
   it('package.json agrees with the LICENSE file', () => {
