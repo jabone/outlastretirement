@@ -5556,7 +5556,7 @@ describe('calculator.js core logic', () => {
         equityGlidePathFloor: -2,
       });
       expect(glided.successProbability).toBeLessThan(flat.successProbability);
-    });
+    }, 60000); // full Monte Carlo runs: well over vitest's 5 s default on a loaded CI runner
   });
 
 

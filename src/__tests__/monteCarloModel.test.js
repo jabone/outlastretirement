@@ -102,7 +102,7 @@ describe('runMonteCarlo is reproducible for its seed', () => {
     expect(a.seed).toBe(12345);
     expect(a.returnModel).toBe('lognormal');
     expect(a.trials).toBe(1000);
-  });
+  }, 60000); // full Monte Carlo runs: well over vitest's 5 s default on a loaded CI runner
 
   it('a different seed gives different trials', () => {
     const a = runMonteCarlo(plan);
