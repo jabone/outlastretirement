@@ -26,6 +26,8 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-10-12',
     headline: 'Premium loads as its own module, and asking for Premium no longer fails silently',
     bullets: [
+      { title: 'Restoring a backup on a new browser keeps your DRIP labels', ids: [398], premium: true,
+        text: 'A backup now records that the one-time lot-label correction from September has run, so restoring it on a new browser or computer no longer re-runs that correction on holdings you had already fixed. One restore is enough. A backup made between September 30 and today does not carry the record; make a fresh one.' },
       { title: 'A Premium key now says whose it is', ids: [397], premium: true,
         text: 'A Premium Access key issued from October 16 carries the email address it was sent to, alongside the Premium flag and the expiry; Preferences shows it. Keys issued earlier carry no address and keep working. The privacy policy now says exactly what a key holds, and its Premium Modules section describes the module server as it runs today.' },
       { title: 'Relocation & Residency is now a separate module', ids: [396], premium: true,

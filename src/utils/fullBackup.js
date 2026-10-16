@@ -118,6 +118,14 @@ const KEYS = {
   scenarios: 'retire_plan_scenarios',
   holdings: 'cfe_premium_holdings_v1',
   liquidations: 'cfe_premium_liquidations_v1',
+  // Whether the one-time lot-source retraction (holdingsCore.js
+  // retractGuessedLotSources, changelog 347) has run on these holdings. It
+  // is a fact about the DATA, so it travels with it: without it, a restore
+  // onto a browser that had never run the retraction ran it again on
+  // holdings that had already been corrected, and turned every DRIP label
+  // the user had since set by hand back to "not specified" -- fixed only by
+  // restoring the same file a second time. (Changelog 398.)
+  lotSourceRetraction: 'cfe_lot_source_retraction_v1',
   interviewProgress: 'retire_plan_interview_progress',
   // Real-world paperwork progress, deliberately NOT part of `inputs` (see
   // EstateChecklist.jsx). Included here because losing it means losing an
@@ -140,6 +148,11 @@ const KEYS = {
 };
 
 export const FULL_BACKUP_VERSION = 'cfe-full-backup-1';
+
+// A plain string flag, or null when absent (or storage is unavailable).
+function readFlag(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
 
 function readJSON(key, fallback) {
   try {
@@ -188,6 +201,7 @@ export function buildFullBackupPayload(options = {}) {
     savedScenarios: Array.isArray(rawScenarios) ? rawScenarios : (rawScenarios?.scenarios ?? []),
     portfolioHoldings: readJSON(KEYS.holdings, []),
     liquidations: readJSON(KEYS.liquidations, []),
+    lotSourceRetraction: readFlag(KEYS.lotSourceRetraction),
     interviewProgress: readJSON(KEYS.interviewProgress, null),
     estateChecklist: readJSON(KEYS.estateChecklist, null),
     lifePlan: readJSON(KEYS.lifePlan, null),
@@ -621,6 +635,11 @@ export function stageFullBackup(parsed, options = {}) {
       if (restorePremiumData) {
         const sanitized = stageHoldings(parsed.portfolioHoldings);
         writes.push([KEYS.holdings, JSON.stringify(sanitized)]);
+        // The retraction flag follows the holdings: a file that says it has
+        // run must not have it run again here. A file without the field
+        // (written before changelog 398) leaves this browser's flag as it
+        // is, so a genuinely old backup still gets the correction.
+        if (parsed.lotSourceRetraction === 'done') writes.push([KEYS.lotSourceRetraction, 'done']);
         restored.push(`${sanitized.length} Detailed Holdings`);
       } else if (parsed.portfolioHoldings.length > 0) {
         restored.push(`skipped ${parsed.portfolioHoldings.length} Detailed Holdings (Premium Access required — left this browser's existing holdings, if any, untouched)`);

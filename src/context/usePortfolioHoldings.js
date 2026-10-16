@@ -44,7 +44,7 @@ const LIQUIDATIONS_STORAGE_KEY = 'cfe_premium_liquidations_v1';
 // Reinvestment keeps that answer on every later load.
 const LOT_SOURCE_RETRACTION_KEY = 'cfe_lot_source_retraction_v1';
 
-function loadHoldings() {
+export function loadHoldings() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return [];
