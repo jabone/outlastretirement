@@ -91,5 +91,5 @@ describe('outlastretirement_demo.json matches demoPlan.js (regenerate if this fa
     // inputs, at the seed those inputs carry. ~1s per scenario.
     const today = DEMO_SCENARIO_DEFS.map((def) => runMonteCarlo(def.mutate(fresh.activeInputs)).successProbability);
     expect(committed.savedScenarios.map((s) => s.metrics.successProbability)).toEqual(today);
-  }, 30000);
+  }, 60000); // several seeded Monte Carlo runs: slow on a loaded CI runner
 });
