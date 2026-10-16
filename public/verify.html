@@ -251,6 +251,7 @@
         <li><a href="#offline"><span class="n">1</span> Turn off the internet</a></li>
         <li><a href="#network"><span class="n">2</span> Watch the network</a></li>
         <li><a href="#policy"><span class="n">3</span> The browser enforces it</a></li>
+        <li><a href="#code"><span class="n">4</span> Read the code</a></li>
         <li><a href="#list"><span class="n" aria-hidden="true">&rarr;</span> Everything that can touch the network</a></li>
       </ul>
     </section>
@@ -401,7 +402,7 @@
           <dl class="legend">
             <dt>'self'</dt><dd>www.outlastretirement.com &mdash; our own site.</dd>
             <dt>connect-src</dt><dd>The line that controls where the page&rsquo;s code can send data. The Google addresses are only for the optional Live Pricing. The browser permits any Google Sheet at those addresses; the app contacts only the one you connect, and sends only ticker symbols.</dd>
-            <dt>premium.outlastretirement.com</dt><dd>Our Premium module server. The app sends it your Premium Access key and nothing else, and it answers with signed code. Not in use yet; see <a href="/privacy#premium-modules">Premium Modules</a> in the privacy policy.</dd>
+            <dt>premium.outlastretirement.com</dt><dd>Our Premium module server. The app sends it your Premium Access key and nothing else, and it answers with signed code that the app checks before running. See <a href="/privacy#premium-modules">Premium Modules</a> in the privacy policy.</dd>
             <dt>blob:</dt><dd>Lets the app run a Premium module after it has checked the module&rsquo;s signature. A blob is a file held only inside the page; no other site can supply one.</dd>
             <dt>script-src premium.outlastretirement.com</dt><dd>A verified Premium module may load supporting library code (the PDF reader for statement import) from our module server. Nothing from that server runs unless a signed module the app has already checked asks for it.</dd>
             <dt>'none'</dt><dd>Nothing at all: no embedded pages or plug-ins, and no other site can frame this one.</dd>
@@ -423,6 +424,19 @@
           </details>
         </figure>
       </div>
+    </section>
+
+    <section id="code" aria-labelledby="code-h">
+      <p class="eyebrow">Test 4</p>
+      <h2 id="code-h">Read the code</h2>
+      <p class="lede">The three tests above show what the app does. The source shows why it cannot do otherwise.</p>
+      <p>The app&rsquo;s source is published at <a href="https://github.com/jabone/outlastretirement" target="_blank" rel="noopener">github.com/jabone/outlastretirement</a> under the GNU Affero General Public License. What you can check there:</p>
+      <ul>
+        <li><strong>The policy the browser enforces</strong> (test 3) is <code>vercel.json</code>, and a test, <code>src/__tests__/cspHeader.test.js</code>, fails the build if anyone widens it.</li>
+        <li><strong>Where a request could be made.</strong> The open app has no <code>fetch</code> of its own except the Premium module loader, <code>src/premium/registry.js</code>; the optional analytics (<code>src/components/GatedAnalytics.jsx</code>) and the update check (<code>src/utils/pwa.js</code>) are the other two things that touch the network, and all three ask <code>src/utils/localOnlyMode.js</code> first. Live Pricing&rsquo;s URL rules are <code>src/utils/pricingSource.js</code>; its request is made by the Detailed Holdings module. <code>src/__tests__/privacyTenets.test.js</code> pins the privacy policy&rsquo;s claims to the code.</li>
+        <li><strong>What a Premium key carries.</strong> The loader sends it and nothing else; <code>src/utils/premiumJwt.js</code> is what reads it.</li>
+      </ul>
+      <p>What is not there: the Premium modules themselves. They are a separate, closed work, fetched from our module server only when a key is present; what <em>loads</em> them, and the interface they are written against (<code>PREMIUM_MODULE_CONTRACT.md</code>), is in the open code. And the published source is the source of the site you are reading; we do not yet offer a way to prove byte-for-byte that the files your browser received were built from it, so treat the three tests above as the proof and the code as the explanation.</p>
     </section>
 
     <section id="list" aria-labelledby="list-h">
@@ -457,6 +471,12 @@
             <td data-label="Off by default?"><span class="pill on">Yes</span><span class="sub">off unless you set it up</span></td>
             <td data-label="What it sends">Ticker symbols only &mdash; never amounts, share counts or balances</td>
             <td data-label="Where">Your own Google Sheet, through Google&rsquo;s servers. The Sheet&rsquo;s script then looks the symbol up with Google Finance and Yahoo Finance from Google&rsquo;s servers; those services see the symbol, not you.</td>
+          </tr>
+          <tr>
+            <td>Premium modules <span class="sub">Premium only</span></td>
+            <td data-label="Off by default?"><span class="pill on">Yes</span><span class="sub">nothing without a Premium key</span></td>
+            <td data-label="What it sends">Your Premium Access key, as a request header &mdash; never your plan</td>
+            <td data-label="Where">Our module server, premium.outlastretirement.com, which answers with signed code. Loaded once per area the first time you open it; Local-Only Mode stops it.</td>
           </tr>
           <tr>
             <td>Contacting us</td>
