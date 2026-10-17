@@ -29,4 +29,13 @@ export const PREMIUM_PUBLIC_KEYS = [
       alg: 'RS256',
     },
   },
+  {
+    kid: 'k2',
+    jwk: {
+      kty: 'OKP',
+      crv: 'Ed25519',
+      x: 'moUOVZIxOxKo5VWiHZjc8eSjUarSqC_EXtcdZnkPA8c',
+      alg: 'EdDSA',
+    },
+  },
 ];
