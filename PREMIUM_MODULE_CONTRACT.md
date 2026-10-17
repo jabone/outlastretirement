@@ -105,6 +105,11 @@ backup, reconciliation and the ledger CSV need the schema with no module loaded.
 | `expiresAt` | Date or null |
 | `preview` | boolean — read-only demo rendering; stores reject mutations. |
 
+In preview (Demo Mode, no valid key) the host loads only the areas on its demo
+list (`src/config/demoDeliveryKey.js`, today `holdings`), with the demo
+delivery key described in section 6; every other mount shows its locked
+element. A mount never fetches without a key.
+
 ### 2.7 Shared UI
 
 Modules render with the host's design tokens (CSS variables). Shared
@@ -194,6 +199,14 @@ exception in the same sentence as the rule.
 The chunk itself is fetched by the **host loader**, not by any module: the
 loader sends the key to the endpoint, verifies the returned chunk's signature
 and version against the manifest, and evaluates it. Modules never see this.
+
+**The demo delivery key.** The endpoint serves a chunk to a valid Premium key
+(`premium: true`) for any area, and to the demo delivery key (`demo: true`,
+no premium flag, no address; `src/config/demoDeliveryKey.js`) for the demo
+areas only. The demo key ships in the app bundle and is sent only in preview.
+It carries no entitlement: the host requires `premium: true` of a pasted key,
+so the demo key unlocks nothing, and what it exposes is the demo areas' code,
+which every Premium holder receives anyway.
 
 ## 7. Engine extensions (reserved, not in v1)
 

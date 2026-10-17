@@ -92,4 +92,16 @@ describe('AppDialog extras', () => {
     fireEvent.click(btn);
     expect(onClose).toHaveBeenCalledWith(true);
   });
+
+  // The restore confirmation prints two long Live Pricing URLs. A flex
+  // child with no min-width grows to fit an unbreakable string, which
+  // pushed the dialog wider than the window; the message must be allowed
+  // to shrink and to break inside the URL.
+  it('a long unbreakable URL in the message wraps instead of widening the dialog', () => {
+    const url = 'https://script.google.com/macros/s/' + 'A'.repeat(120) + '/exec';
+    render(<AppDialog dialog={{ type: 'confirm', title: 'Restore Backup', message: `Apps Script: ${url}` }} onClose={() => {}} />);
+    const message = screen.getByText((_, el) => el?.id === 'app-dialog-message');
+    expect(message.style.overflowWrap).toBe('anywhere');
+    expect(message.parentElement.style.minWidth).toBe('0px');
+  });
 });

@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { generateKeyPair, exportJWK, SignJWT } from 'jose';
 
-// Mocks the public key config with a real, freshly-generated test keypair
-// so this file can exercise the full verify path (valid / expired / wrong
-// signature / missing claim) -- see premiumJwt.defaultConfig.test.js for
-// coverage of the real repo default (PREMIUM_PUBLIC_KEY_JWK === null,
-// "ships closed").
+// Mocks the key ring with real, freshly-generated test keypairs so this
+// file can exercise the full verify path (valid / expired / wrong signature
+// / missing claim / kid lookup) -- see premiumJwt.defaultConfig.test.js for
+// coverage of the empty ring ("ships closed").
+//
+// The ring: k1 is the legacy RS256 key (tokens with no header kid verify
+// against it), k2 is a second key, EdDSA, the kind rotation adds.
 let testPublicKeyJwk;
-let testPrivateKey;
+let testPrivateKey; // k1
+let k2PrivateKey; // k2 (EdDSA)
+let k2PublicKeyJwk;
 let otherPrivateKey; // a different keypair, for the "wrong signature" case
 
 beforeAll(async () => {
@@ -16,17 +20,25 @@ beforeAll(async () => {
   testPublicKeyJwk.alg = 'RS256';
   testPrivateKey = privateKey;
 
+  const k2 = await generateKeyPair('EdDSA', { crv: 'Ed25519', extractable: true });
+  k2PublicKeyJwk = await exportJWK(k2.publicKey);
+  k2PublicKeyJwk.alg = 'EdDSA';
+  k2PrivateKey = k2.privateKey;
+
   const other = await generateKeyPair('RS256', { extractable: true });
   otherPrivateKey = other.privateKey;
 });
 
 vi.mock('../config/premiumPublicKey', () => ({
-  get PREMIUM_PUBLIC_KEY_JWK() {
-    return testPublicKeyJwk;
+  get PREMIUM_PUBLIC_KEYS() {
+    return [
+      { kid: 'k1', legacy: true, jwk: testPublicKeyJwk },
+      { kid: 'k2', jwk: k2PublicKeyJwk },
+    ];
   },
 }));
 
-const { verifyPremiumJwt } = await import('../utils/premiumJwt.js');
+const { verifyPremiumJwt, ringEntryFor } = await import('../utils/premiumJwt.js');
 
 async function signToken(privateKey, { premium = true, expiresIn = '1h', licensedTo } = {}) {
   return new SignJWT(licensedTo ? { premium, licensedTo } : { premium })
@@ -66,6 +78,14 @@ describe('verifyPremiumJwt', () => {
   it('rejects an expired token even if correctly signed', async () => {
     const token = await signToken(testPrivateKey, { expiresIn: '-1h' });
     expect(await verifyPremiumJwt(token)).toEqual({ valid: false, expiresAt: null, licensedTo: null });
+  });
+
+  // The demo delivery key (config/demoDeliveryKey.js) is signed by the same
+  // key but carries { demo: true } and no premium flag: pasted into
+  // Preferences it must unlock nothing.
+  it('rejects the demo delivery key as a Premium key', async () => {
+    const demo = await new SignJWT({ demo: true }).setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setExpirationTime('30d').sign(testPrivateKey);
+    expect(await verifyPremiumJwt(demo)).toEqual({ valid: false, expiresAt: null, licensedTo: null });
   });
 
   it('rejects a token missing the premium claim', async () => {
@@ -151,5 +171,47 @@ describe('verifyPremiumJwt', () => {
     expect((await verifyPremiumJwt(inside)).valid).toBe(true);
     const outside = await new SignJWT({ premium: true }).setProtectedHeader({ alg: 'RS256' }).setExpirationTime(now + 401 * day).sign(testPrivateKey);
     expect(await verifyPremiumJwt(outside)).toEqual({ valid: false, expiresAt: null, licensedTo: null });
+  });
+});
+
+describe('the key ring and kid', () => {
+  const sign = (privateKey, header) => new SignJWT({ premium: true })
+    .setProtectedHeader(header)
+    .setExpirationTime('30d')
+    .sign(privateKey);
+
+  it('a token with no kid verifies against the legacy key (every key issued before kids)', async () => {
+    expect((await verifyPremiumJwt(await sign(testPrivateKey, { alg: 'RS256' }))).valid).toBe(true);
+  });
+
+  it('a token that names k1 verifies against k1', async () => {
+    expect((await verifyPremiumJwt(await sign(testPrivateKey, { alg: 'RS256', kid: 'k1' }))).valid).toBe(true);
+  });
+
+  it('a token that names k2 verifies against k2, an EdDSA key', async () => {
+    const token = await sign(k2PrivateKey, { alg: 'EdDSA', kid: 'k2' });
+    expect((await verifyPremiumJwt(token)).valid).toBe(true);
+  });
+
+  it('rejects a token that names a kid not in the ring', async () => {
+    expect(await verifyPremiumJwt(await sign(testPrivateKey, { alg: 'RS256', kid: 'k9' }))).toEqual({ valid: false, expiresAt: null, licensedTo: null });
+  });
+
+  it('rejects a token signed by k2 but claiming to be k1 (and the other way round)', async () => {
+    expect((await verifyPremiumJwt(await sign(k2PrivateKey, { alg: 'EdDSA', kid: 'k1' }))).valid).toBe(false);
+    expect((await verifyPremiumJwt(await sign(testPrivateKey, { alg: 'RS256', kid: 'k2' }))).valid).toBe(false);
+  });
+
+  it('a token with no kid does not verify against a non-legacy key', async () => {
+    // k2 signed it, but with no kid the verifier only tries the legacy key.
+    expect((await verifyPremiumJwt(await sign(k2PrivateKey, { alg: 'EdDSA' }))).valid).toBe(false);
+  });
+
+  it('ringEntryFor picks by kid, and the legacy entry when there is none', () => {
+    const keys = [{ kid: 'a', legacy: true, jwk: {} }, { kid: 'b', jwk: {} }];
+    expect(ringEntryFor({ kid: 'b' }, keys).kid).toBe('b');
+    expect(ringEntryFor({}, keys).kid).toBe('a');
+    expect(ringEntryFor({ kid: 'zz' }, keys)).toBeNull();
+    expect(ringEntryFor({}, [{ kid: 'b', jwk: {} }])).toBeNull();
   });
 });

@@ -193,8 +193,11 @@ The absolutes, as the policy states them:
    tracker. Fonts are self-hosted via `@fontsource-variable/*`.
 4. **Analytics is off until the user opts in** (`analyticsOptIn.js`), and
    Local-Only overrides even that.
-5. **The Premium token identifies nobody** — `{ premium: true }` plus a
-   lifetime. No name, no email, no id.
+5. **The Premium key carries three things and nothing else** — the address
+   it was sent to (`licensedTo`), `premium: true`, and an expiry rounded to
+   a day. No issue time, no device, no id. Its header names the signing key
+   (`kid`) so the key ring can be rotated. `privacyTenets.test.js` pins the
+   claim set.
 6. **Data leaves only when the USER moves it** — Backup, save to a synced
    folder, Print / Save as PDF, CSV exports, or Live Pricing (a bare ticker to
    the user's own Sheet, whose script looks it up with Google Finance and
