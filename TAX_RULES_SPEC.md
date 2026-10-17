@@ -1,6 +1,6 @@
 # OutlastRetirement — Tax Rules Specification for Professional Review
 
-**Version:** 2.6 — 2026-09-30, engine as of changelog 349. *(2.6: new Rule 4.8 — a Washington jurisdiction with the capital gains excise tax (7% + 2.9% over $1M, RCW 82.87) and, from 2028, the ESSB 6346 income tax (9.9% over a $1,000,000 household deduction, capital gains tax credited); Washington's estate tax runs through its graduated 10%–20% table (Rule 5.5, Q-19 revised); New York's 2026 / 2027–2032 / 2033+ rates re-confirmed against Tax Law §601 (Rule 4.5); Pub. 590-A labelled as the 2025 edition used for rules only, 2026 IRA figures from Notice 2025-67.)* v2.5 — 2026-09-30, engine after the 2026-09 tax review. *(2.5: the senior bonus phases out per person (Rule 2.2); MFS gives each return its own deduction, age add-on, state return and IRMAA test (Rules 1.1, 2.1, 2.2, 2.9, 4.1) and no premium tax credit (Rule 2.10); the survivor keeps their own 65+ deduction whichever spouse survives; provisional income includes every AGI item (§1.2, Rule 2.6); Life-Event Pre-Tax withdrawals before 59½ are penalized (Rule 3.5); Colorado's SS subtraction shares the pension cap and Pennsylvania taxes 401(k) deferrals (Rules 4.2, 4.3, 4.6); NIIT excludes a Pre-Tax-funded annuity (Rule 2.4); the FRA-year earnings test runs for FRA 67 (Rule 2.11); IRMAA's top tier is ≥ and the MFS-together top line is $500,000 less the lower one (Rule 2.9); Auto-Max 401(k) routes the catch-up to Roth over the wage threshold (Rule 3.1); the estate exemption doubles for MFS and the DSUE indexes only to the first death (Rule 5.1); Illinois' 2026 exemption is $2,925; §1.3 corrected.)* v2.4 — 2026-09-24, engine as of changelog 265. *(2.4 replaces the survivor Social Security rule in Rule 3.12: age-60 start, the 71.5%–100% age reduction, RIB-LIM and carried delayed credits, in place of "the greater of the two from 62".)* v2.3 — 2026-09-10, engine as of changelog 165. *(2.3 documents
+**Version:** 2.7 — 2026-10-17, engine as of changelog 406. *(2.7: the max-bracket conversion ceiling and the ledger's marginal bracket read the larger MFS return's share, as the IRMAA cap already did (Rule 1.1); the heir's year-one inherited-IRA draw is priced above the year-one HSA/NQDC lumps on the same return, federal and state; the household effective estate tax rate counts GST and the heirs' state income tax as each heir's rate already did; Today's Dollars deflates the heirs' state income tax (Rule 5.0 and the per-heir rules); a harvested loss covers the solver's draw gains before any of it offsets ordinary income, and the senior-bonus MAGI nets the loss used (Rule 2.8); the draws that fund the ACA boost tax, the subsidy clawback and the IRMAA true-up are taxed and penalized like any other and keep the Roth layer accounting; the boost's tax is split federal/state; the foreign dividend surtax and the §904 re-sourcing follow the split-year and remitted shares and the passive basket needs the country to tax investment income; a QCD comes only from taxable money and leaves the Form 8606 ratio (Rules 2.10, 3.2, the years-abroad section).)* v2.6 — 2026-09-30, engine as of changelog 349. *(2.6: new Rule 4.8 — a Washington jurisdiction with the capital gains excise tax (7% + 2.9% over $1M, RCW 82.87) and, from 2028, the ESSB 6346 income tax (9.9% over a $1,000,000 household deduction, capital gains tax credited); Washington's estate tax runs through its graduated 10%–20% table (Rule 5.5, Q-19 revised); New York's 2026 / 2027–2032 / 2033+ rates re-confirmed against Tax Law §601 (Rule 4.5); Pub. 590-A labelled as the 2025 edition used for rules only, 2026 IRA figures from Notice 2025-67.)* v2.5 — 2026-09-30, engine after the 2026-09 tax review. *(2.5: the senior bonus phases out per person (Rule 2.2); MFS gives each return its own deduction, age add-on, state return and IRMAA test (Rules 1.1, 2.1, 2.2, 2.9, 4.1) and no premium tax credit (Rule 2.10); the survivor keeps their own 65+ deduction whichever spouse survives; provisional income includes every AGI item (§1.2, Rule 2.6); Life-Event Pre-Tax withdrawals before 59½ are penalized (Rule 3.5); Colorado's SS subtraction shares the pension cap and Pennsylvania taxes 401(k) deferrals (Rules 4.2, 4.3, 4.6); NIIT excludes a Pre-Tax-funded annuity (Rule 2.4); the FRA-year earnings test runs for FRA 67 (Rule 2.11); IRMAA's top tier is ≥ and the MFS-together top line is $500,000 less the lower one (Rule 2.9); Auto-Max 401(k) routes the catch-up to Roth over the wage threshold (Rule 3.1); the estate exemption doubles for MFS and the DSUE indexes only to the first death (Rule 5.1); Illinois' 2026 exemption is $2,925; §1.3 corrected.)* v2.4 — 2026-09-24, engine as of changelog 265. *(2.4 replaces the survivor Social Security rule in Rule 3.12: age-60 start, the 71.5%–100% age reduction, RIB-LIM and carried delayed credits, in place of "the greater of the two from 62".)* v2.3 — 2026-09-10, engine as of changelog 165. *(2.3 documents
 the taxable-account income change already shipped in changelog 161: the
 holdings-linked yield now counts every taxable distribution rather than
 dividends alone. It also adds **Q-24**, which proposes splitting that
@@ -164,6 +164,17 @@ one-earner couple and is what the engine assumed for every MFS plan before
 v2.0 (overstating a two-earner couple's ordinary tax by roughly a third).
 A plan with no second spouse enabled always uses a single return, since
 there is only one person filing.
+
+Every per-return line the engine reads against the household figure is
+read the same way: the larger return crosses it first, so the household
+can reach the line divided by the larger return's share. That is how the
+max-bracket conversion ceiling (Rule 3.3) and the IRMAA conversion cap size
+a conversion on two returns, and how the ledger's marginal bracket is read
+(the larger return's share of the household's taxable income against the
+MFS schedule). Until changelog 403 the conversion ceiling and the marginal
+bracket read the whole household figure against one MFS return, which for
+an even split converted half of what fit and showed a bracket one or two
+steps too high.
 
 Each of the two returns also carries its **own** MFS standard deduction and
 its own spouse's age-65 add-on (Rule 2.2); the household deduction is the
@@ -398,7 +409,13 @@ Taxable withdrawals and on the discretionary Taxable draw the solver takes
 — and never the qualified-dividend proxy (v1.7, Q-11(c)); then up to
 $3,000 of ordinary income ($1,500 MFS, §1211(b)(1); not indexed —
 Q-11(a)(b)); the remainder carries forward indefinitely. Wash-sale
-compliance is assumed, not modelled.
+compliance is assumed, not modelled. The order holds for the solver's own
+draw too (changelog 404): the ordinary offset is set provisionally before
+the draw is sized, and if the draw's gains exceed the loss left after it,
+the solver reclaims the offset to cover those gains first, so no loss
+reaches ordinary income while a gain is still untaxed. The MAGI the
+senior-bonus phase-out is read against (Rule 2.2) counts the draw's gains
+net of the loss used on them, as the IRMAA MAGI does.
 
 **Authority.** IRC §§1211–1212.
 
@@ -555,7 +572,11 @@ Medicare, and resident in AL, FL, GA, KS, MS, SC, TN, TX, WI or WY, flags
 any year in which ACA MAGI (§1.2) falls below 100% of the Federal Poverty
 Level — no Medicaid and no marketplace subsidy. With "ACA Subsidy
 Protection" on, the engine forces a Roth conversion just large enough to
-reach the floor.
+reach the floor. Its tax is priced federal and state separately, and the
+draws that pay it — as with the subsidy clawback and the IRMAA true-up —
+are themselves taxed and, before 59½, penalized, with the tax on that tax
+funded the same way (changelog 405; until then the state part of the
+boost's tax was reported as federal, and the funding draws went untaxed).
 
 FPL 2026 (48 states + DC): $15,960 for one person, +$5,680 per additional
 person; indexed. Household size is 2 for MFJ, else 1.
@@ -713,9 +734,13 @@ Uniform Lifetime Table (Reg. §1.401(a)(9)-9, 2022 update):
 **What the engine does.** Once RMDs have begun, an annual QCD (user input)
 is routed from Pre-Tax to charity: it satisfies the RMD and is excluded
 from ordinary income, provisional income and IRMAA MAGI. Capped at the
-lesser of the RMD and **$111,000** (2026, indexed). One household cap, not
-per spouse; not available from 70½ before RMDs begin; the one-time
-$55,000 split-interest election is not modelled.
+lesser of the RMD and **$111,000** (2026, indexed), and at the part of the
+account that is not basis (§408(d)(8)(D): a QCD comes only from otherwise
+taxable money). The QCD sits in neither Form 8606's year-end balance nor
+its distributions, so the pro-rata basis ratio every other distribution
+uses that year is basis over the balance less the QCD (changelog 405).
+One household cap, not per spouse; not available from 70½ before RMDs
+begin; the one-time $55,000 split-interest election is not modelled.
 
 **Authority.** IRC §408(d)(8); IRS Notice 2025-67 ($111,000).
 
@@ -1463,7 +1488,15 @@ the heir owes ordinary income tax on it as well as the estate owing
 estate tax — the same double hit an inherited IRA takes. Modelled as
 year-one income to the heir, stacked above the inherited HSA, which is the
 common lump-sum-at-death election; a plan whose NQDC election spreads
-payments over years would spread the tax and pay somewhat less.
+payments over years would spread the tax and pay somewhat less. The
+heir's year-one draw from the inherited IRA (an RMD, a tenth, or the whole
+balance under lump-sum-at-start) sits on the same return and is priced
+ABOVE both lumps, federal and state (changelog 402; until then it was
+priced from the heir's own income as if the lumps were not there). The
+household's effective estate tax rate is every tax between the gross
+estate and what the heirs keep -- estate, inheritance, GST, foreign, the
+heirs' income tax on the IRA, HSA and NQDC, and the heirs' state income
+tax -- over the gross estate, the same drag each heir's own rate counts.
 
 **Why it mattered.** Before this, a plan dying with a $19,000,000 founder
 position paid estate tax on none of it. The demo household's estate was

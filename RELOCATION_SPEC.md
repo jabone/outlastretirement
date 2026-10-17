@@ -57,7 +57,13 @@ is the part every online "retire abroad, pay 7%!" article omits:
    is near-useless. Re-sourcing is what makes a high-tax treaty country
    survivable, and it is capped by the "would-have-paid-as-a-non-citizen"
    rule -- it relieves the incremental double tax, it does not zero out
-   US tax on US-source income.
+   US tax on US-source income. Re-sourcing applies only to the share of
+   the year lived there and, on a remittance basis, only to what was
+   remitted -- the numerator is scaled like the local tax is (changelog
+   405; before, a December move re-sourced the whole year). The passive
+   basket is re-sourced only where the country taxes investment income at
+   all, so a carryforward never shelters US tax on gains it exempts. The
+   dividend surtax (Mexico) follows the same shares.
 4. **Basket segregation.** Section 904(d) baskets (passive, general,
    re-sourced-by-treaty, with a separate Form 1116 per treaty country) do
    not blend. Excess credits on pension income cannot shelter US tax on

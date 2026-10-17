@@ -2975,7 +2975,10 @@ export function priceForeignYear(ctx, d) {
     localOrdinaryTaxGross = scaleTax(ordinaryLocal);
     const investOnScale = f.investmentMode === 'ordinary' ? investment : 0;
     const withInvestment = investOnScale > 0 ? scaleTax(ordinaryLocal + investOnScale) : localOrdinaryTaxGross;
-    const surtax = f.taxesInvestmentIncome ? Math.max(0, ctx.dividends) * (f.dividendSurtax / 100) : 0;
+    // On the dividends the country actually reaches this year: the split-
+    // year share and the remitted share, like every other layer (changelog
+    // 405; it used to charge the whole year's dividends for a December move).
+    const surtax = f.taxesInvestmentIncome ? dividendGross * remitted * (f.dividendSurtax / 100) : 0;
     localInvestmentTax = (f.investmentMode === 'ordinary'
       ? withInvestment - localOrdinaryTaxGross
       : f.investmentMode === 'brackets'
@@ -3057,14 +3060,27 @@ export function priceForeignYear(ctx, d) {
   const adj = capGains > 0 ? Math.min(1, (Math.max(0, d.usCapGainsTax) / capGains) / FTC_TOP_ORDINARY_RATE) : 0;
   const denom = Math.max(0, d.usOrdinaryIncome) + capGains * adj;
   const usRegular = Math.max(0, d.usRegularTax);
-  const generalNum = ctx.wages + (f.treatyResourcing ? ctx.pension + ctx.iraBase + d.preTaxOrdinary : 0)
-    + (f.treatyResourcing && f.treatyResourcesSocialSecurity && f.taxesSocialSecurity ? Math.max(0, d.usTaxableSS || 0) : 0);
+  // US-source income is foreign-source only while the household is a
+  // treaty resident there (the split-year share) and, under a remittance
+  // regime, only to the extent remitted -- the same scaling the local tax
+  // and the country's own credits use (changelog 405; before this a
+  // December move re-sourced the whole year's pension and gains and let
+  // one month's foreign tax wipe out eleven months of US tax). Wages
+  // earned there are foreign-source in full.
+  const resourceScale = share * remitted;
+  const generalNum = ctx.wages + (f.treatyResourcing ? (ctx.pension + ctx.iraBase + d.preTaxOrdinary) * resourceScale : 0)
+    + (f.treatyResourcing && f.treatyResourcesSocialSecurity && f.taxesSocialSecurity ? Math.max(0, d.usTaxableSS || 0) * resourceScale : 0);
   // Changelog 365: dividends the US taxes at ordinary rates (the
   // non-qualified share, inside usOrdinaryIncome) are passive income too;
   // the room used to count only the preferential-rate dividends and gains,
   // which understated the passive limit for a re-sourcing treaty.
+  // Only where the country taxes investment income at all (changelog 405):
+  // a passive carryforward must not shelter US tax on gains the country
+  // exempts, the way the general basket already tests taxesSocialSecurity.
   const passiveOrdinary = Math.min(Math.max(0, ctx.ordinaryDividends || 0), Math.max(0, d.usOrdinaryIncome));
-  const passiveNum = f.treatyResourcing ? capGains * adj + passiveOrdinary : 0;
+  const passiveNum = f.treatyResourcing && f.taxesInvestmentIncome
+    ? (capGains * adj * (f.capitalGainsTaxedPct < 100 ? f.capitalGainsTaxedPct / 100 : 1) + passiveOrdinary) * resourceScale
+    : 0;
   const limitGeneral = denom > 0 ? usRegular * Math.min(1, generalNum / denom) : 0;
   const limitPassive = denom > 0 ? usRegular * Math.min(1, passiveNum / denom) : 0;
 
@@ -3283,6 +3299,17 @@ export function effectiveMfsSplitPct(inputs) {
   if (!inputs || !inputs.spouse2Enabled) return 100;
   const v = inputs.mfsIncomeSplitPct;
   return v === undefined || v === null ? MFS_DEFAULT_INCOME_SPLIT_PCT : v;
+}
+
+// The larger of the two MFS returns' shares of every household figure
+// (1 when there is one return). A per-return line -- a bracket ceiling, an
+// IRMAA tier -- is crossed by the larger return first, so the HOUSEHOLD
+// figure can reach line / largerShare before either return crosses it.
+export function mfsLargerShare(inputs, status) {
+  if (status !== 'MFS' || !inputs || !inputs.spouse2Enabled) return 1;
+  const pct = effectiveMfsSplitPct(inputs);
+  const share = Math.max(pct, 100 - pct) / 100;
+  return share > 0 && share <= 1 ? share : 1;
 }
 
 // Runs `fn` once per return for MFS and once for everyone else. `parts` is
@@ -5683,8 +5710,20 @@ function solveWithdrawals(
   status, inflationFactor, strategy, stateType, taxSS, taxPension, pension, ssIncome,
   taxableDividends, inputs, age1, age2, militaryPension, taxableBasisRatioForYear = 0,
   pensionDetail = null, stateExtras = {}, rothDrawSplit = null, capitalLossCarryforward = 0,
-  preTaxTaxableShare = 1, ssResettle = null, foreignPricer = null
+  preTaxTaxableShare = 1, ssResettle = null, foreignPricer = null, ordinaryOffsetReclaimable = 0
 ) {
+  // ordinaryOffsetReclaimable (changelog 404): the up-to-$3,000 ($1,500
+  // MFS) of harvested loss the caller has already set against ORDINARY
+  // income this year. s 1211(b) allows that only for loss left over after
+  // every capital gain is netted, and the gains this draw realizes are not
+  // known until the solve. So when a candidate draw's gains exceed the
+  // carryforward, the ordinary offset is reclaimed to cover them first:
+  // ordinary income rises by the reclaimed amount and the gains fall by it.
+  // The caller mirrors the reclaim for the draw it settles on.
+  const reclaimFor = (grossGains) => {
+    const afterCarryforward = Math.max(0, grossGains - Math.max(0, capitalLossCarryforward));
+    return Math.min(Math.max(0, ordinaryOffsetReclaimable), afterCarryforward);
+  };
   let dPreTax = 0;
   let dRoth = 0;
   let dTaxable = 0;
@@ -5723,7 +5762,9 @@ function solveWithdrawals(
     // used amount after the solve.
     // Computed BEFORE ordinaryInc because realized gains are part of AGI and
     // therefore part of the provisional-income test re-settled just below.
-    const realizedGains = Math.max(0, taxableDraw * (1 - taxableBasisRatioForYear) - Math.max(0, capitalLossCarryforward));
+    const grossGains = taxableDraw * (1 - taxableBasisRatioForYear);
+    const reclaim = reclaimFor(grossGains);
+    const realizedGains = Math.max(0, grossGains - Math.max(0, capitalLossCarryforward)) - reclaim;
     const capGains = taxableDividends + realizedGains;
 
     // Social Security taxability has to be re-settled against THIS candidate
@@ -5744,7 +5785,7 @@ function solveWithdrawals(
       const extraProvisional = preTaxOrdinary + rothTaxableEarnings + realizedGains;
       ssAdjustment = ssResettle.taxableSSFor(ssResettle.provisionalOther + extraProvisional) - ssResettle.baseTaxableSS;
     }
-    const ordinaryInc = baseOrdinaryTaxableIncome + preTaxOrdinary + rothTaxableEarnings + ssAdjustment;
+    const ordinaryInc = baseOrdinaryTaxableIncome + reclaim + preTaxOrdinary + rothTaxableEarnings + ssAdjustment;
     const deduction = deductionAt(ordinaryInc + capGains);
     const ordinaryTaxable = Math.max(0, ordinaryInc - deduction);
     
@@ -8186,6 +8227,41 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       else if (inputs.backdoorRothEnabled) backdoorRothContribution += (inputs.backdoorRothAnnualAmount2 || 0);
     }
 
+    // The year's RMD owner and divisor, figured here because the QCD below
+    // feeds the basis ratio. The Pre-Tax balance is one pooled household
+    // number, so RMDs follow whichever spouse currently "owns" it: Spouse 1
+    // while alive, and after Spouse 1's death the surviving Spouse 2 -- who,
+    // as a sole-beneficiary spouse, rolls the IRA into their own name and
+    // takes RMDs on THEIR age and THEIR birth-year start age (73, or 75 for
+    // anyone born 1960+). Gating this on spouse1Alive alone used to switch
+    // RMDs off entirely the year Spouse 1 died, letting a surviving spouse
+    // hold the IRA untouched for decades. The SECURE 2.0 start age is
+    // evaluated per owner, so a widow born in 1961 inheriting from a
+    // husband born in 1957 does not start RMDs until 75.
+    const rmdOwnerAge = spouse1Alive || spouse2Alive ? ownerAge : null;
+    const rmdAge = rmdStartAge(spouse1Alive ? birthYear1 : birthYear2);
+    const rmdApplies = rmdOwnerAge !== null && rmdOwnerAge >= rmdAge;
+    const rmdDivisor = rmdApplies ? getRMDDivisor(rmdOwnerAge) : 0;
+    // B3: the RMD is figured on the prior December 31 balance (the plan's
+    // opening balance in its first year), not on this year's balance after
+    // contributions -- and can never exceed what is there.
+    const priorYearEndPreTax = prevYearEndingField(years, 'preTaxEnd') ?? inputs.preTaxInit;
+    const rmdFromPriorBalance = rmdDivisor > 0 ? Math.max(0, priorYearEndPreTax) / rmdDivisor : 0;
+    // The Qualified Charitable Distribution, figured ahead of the basis
+    // ratio (changelog 405). Two things s 408(d)(8)(D) and Form 8606 say:
+    // a QCD comes only from the otherwise-taxable part of the account, so
+    // it is capped at the balance less basis; and a QCD sits in neither
+    // Form 8606's year-end balance nor its distributions, so the pro-rata
+    // ratio every OTHER distribution uses is basis over the pool LESS the
+    // QCD. Capped at what the user asked for, the RMD, and the IRS annual
+    // limit; the RMD block below takes the final figure against the RMD
+    // actually taken.
+    const qcdLimit = QCD_LIMIT_2026 * inflFactor;
+    const qcdTaxableRoom = Math.max(0, preTax - Math.max(0, preTaxBasis));
+    const qcdPlanned = rmdApplies
+      ? Math.max(0, Math.min(inputs.qcdAnnualAmount || 0, Math.min(Math.max(0, preTax), rmdFromPriorBalance), qcdLimit, qcdTaxableRoom))
+      : 0;
+
     // After-tax basis inside the Pre-Tax bucket, as a share of the balance
     // BEFORE any of this year's distributions (audit Q-9(c), changelog 126).
     // IRC s 72(e)(8) / s 408(d)(2) apply pro-rata to EVERY distribution, not
@@ -8198,7 +8274,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // pure backdoor contribution converted the same year still comes out
     // 100% tax-free. The 401(k)-vs-IRA caveat under the Roth conversion
     // pro-rata below applies here too.
-    const preTaxBalanceForBasisRatio = preTax + backdoorRothContribution;
+    // Less the QCD (changelog 405): see qcdPlanned above.
+    const preTaxBalanceForBasisRatio = Math.max(0, preTax + backdoorRothContribution - qcdPlanned);
     const preTaxBasisRatioForYear = preTaxBalanceForBasisRatio > 0
       ? Math.min(1, (Math.max(0, preTaxBasis) + backdoorRothContribution) / preTaxBalanceForBasisRatio)
       : 0;
@@ -8250,30 +8327,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     taxableBasis += taxableContribution;
     hsa += hsaContribution;
 
-    // RMD Divisor. The Pre-Tax balance is one pooled household number, so
-    // RMDs follow whichever spouse currently "owns" it: Spouse 1 while
-    // alive, and after Spouse 1's death the surviving Spouse 2 -- who, as a
-    // sole-beneficiary spouse, rolls the IRA into their own name and takes
-    // RMDs on THEIR age and THEIR birth-year start age (73, or 75 for
-    // anyone born 1960+). Gating this on spouse1Alive alone used to switch
-    // RMDs off entirely the year Spouse 1 died, letting a surviving spouse
-    // hold the IRA untouched for decades. The SECURE 2.0 start age is
-    // evaluated per owner, so a widow born in 1961 inheriting from a
-    // husband born in 1957 does not start RMDs until 75.
-    const rmdOwnerAge = spouse1Alive || spouse2Alive ? ownerAge : null;
-    const rmdAge = rmdStartAge(spouse1Alive ? birthYear1 : birthYear2);
-    const rmdApplies = rmdOwnerAge !== null && rmdOwnerAge >= rmdAge;
+    // The RMD (owner, divisor and prior-balance figure above, beside the
+    // QCD): the prior December 31 balance over the divisor, never more
+    // than what is there now.
     let rmdAmount = 0;
-    if (rmdApplies) {
-      const divisor = getRMDDivisor(rmdOwnerAge);
-      if (divisor > 0) {
-        // B3: the RMD is figured on the prior December 31 balance (the
-        // plan's opening balance in its first year), not on this year's
-        // balance after contributions -- and can never exceed what is there.
-        const priorYearEndPreTax = prevYearEndingField(years, 'preTaxEnd') ?? inputs.preTaxInit;
-        rmdAmount = Math.min(Math.max(0, preTax), Math.max(0, priorYearEndPreTax) / divisor);
-      }
-    }
+    if (rmdApplies && rmdDivisor > 0) rmdAmount = Math.min(Math.max(0, preTax), rmdFromPriorBalance);
     preTax = Math.max(0, preTax - rmdAmount);
 
     // Qualified Charitable Distribution. The money still leaves the Pre-Tax
@@ -8287,10 +8345,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // exceed the per-person IRS annual QCD limit. Only available once RMDs
     // have actually begun in this model (a simplification — real QCDs are
     // allowed from age 70.5, which can be earlier than the 73/75 RMD age).
-    const qcdLimit = QCD_LIMIT_2026 * inflFactor;
-    const qcdAmount = rmdApplies
-      ? Math.max(0, Math.min(inputs.qcdAnnualAmount || 0, rmdAmount, qcdLimit))
-      : 0;
+    const qcdAmount = Math.min(qcdPlanned, rmdAmount);
     // The taxable/spendable portion of the RMD — used everywhere below that
     // rmdAmount previously fed into taxable income or household cash flow.
     // Basis is applied pro-rata to the non-QCD remainder only: a QCD is
@@ -8423,7 +8478,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     lossCarryforward -= harvestedGainsOffset;
     const taxableDividends = Math.max(0, taxableDividendsGross - harvestedGainsOffset);
     const harvestedOrdinaryOffsetLimit = currentStatus === 'MFS' ? 1500 : 3000;
-    const harvestedOrdinaryOffset = inputs.taxLossHarvestingEnabled ? Math.min(lossCarryforward, harvestedOrdinaryOffsetLimit) : 0;
+    // Provisional: the solver below may reclaim part of this for the gains
+    // its draw realizes (s 1211(b) nets losses against gains first), and
+    // the settled figure is written back after the solve (changelog 404).
+    let harvestedOrdinaryOffset = inputs.taxLossHarvestingEnabled ? Math.min(lossCarryforward, harvestedOrdinaryOffsetLimit) : 0;
     lossCarryforward -= harvestedOrdinaryOffset;
 
     // SS taxability -- IRS "provisional income" (a.k.a. combined income)
@@ -8552,7 +8610,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         convertAmount = Math.min(preTax, inputs.rothConversionAmount);
       } else if (inputs.rothConversionStrategy === 'maxBracket') {
         const targetRate = inputs.rothConversionBracket;
-        const bracketLimit = getTaxBracketLimit(currentStatus, targetRate, taxBracketInflationFactor);
+        // The ceiling is a per-return figure. MFS splits the household's
+        // taxable income across two returns (forEachSeparateReturn), so the
+        // household can fill to the ceiling divided by the larger return's
+        // share before that return crosses the bracket (changelog 403;
+        // until then an even split converted half of what fit).
+        const bracketLimit = getTaxBracketLimit(currentStatus, targetRate, taxBracketInflationFactor) / mfsLargerShare(inputs, currentStatus);
         const ceiling = bracketLimit - inputs.rothConversionBuffer;
         // Ordinary income other than Social Security and the conversion.
         const otherOrdinary = otherOrdinaryAgi; // net of NQDC deferrals, plus NUA basis, as in baseOrdinaryTaxableIncome
@@ -8647,10 +8710,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           // MFS prices each spouse on their own share of the MAGI (see
           // priceIrmaa), so the household figure can reach the tier line
           // divided by the larger share before either return crosses it.
-          const mfsLargerShare = currentStatus === 'MFS' && inputs.spouse2Enabled
-            ? Math.max(effectiveMfsSplitPct(inputs), 100 - effectiveMfsSplitPct(inputs)) / 100
-            : 1;
-          const limit = tiersIn2[tierIdx] / (mfsLargerShare > 0 ? mfsLargerShare : 1);
+          const limit = tiersIn2[tierIdx] / mfsLargerShare(inputs, currentStatus);
           if (Number.isFinite(limit)) {
             const ceiling = limit - inputs.rothConversionBuffer;
             irmaaCapCeiling = ceiling;
@@ -9423,13 +9483,24 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // the matching taxableSS, so the solver adds only the delta its own
         // draw causes and never double-counts the conversion.
         { taxableSSFor, provisionalOther: provisionalOtherIncome + convertAmountTaxable, baseTaxableSS: taxableSS },
-        abroad ? (d) => priceForeignYear(foreignCtx, d) : null
+        abroad ? (d) => priceForeignYear(foreignCtx, d) : null,
+        harvestedOrdinaryOffset
       );
 
       // Consume the carryforward the solver netted against this draw's gains.
       const solvedRealizedGains = Math.max(0, solveResult.dTaxable) * (1 - taxableBasisRatioForYear);
       lossUsedOnDraw = Math.min(lossCarryforward, solvedRealizedGains);
       lossCarryforward -= lossUsedOnDraw;
+      // Mirror the solver's reclaim (changelog 404): loss that had been set
+      // against ordinary income goes against the draw's gains instead, as
+      // the solver priced it. The carryforward itself is unchanged -- that
+      // loss had already left it.
+      const reclaimed = Math.min(harvestedOrdinaryOffset, Math.max(0, solvedRealizedGains - lossUsedOnDraw));
+      if (reclaimed > 0) {
+        harvestedOrdinaryOffset -= reclaimed;
+        lossUsedOnDraw += reclaimed;
+        baseOrdinaryTaxableIncome += reclaimed;
+      }
 
       drawPreTax += solveResult.dPreTax;
       drawRoth += solveResult.dRoth;
@@ -9457,6 +9528,121 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // any other contribution -- 100% basis.
       taxableBasis += surplus;
     }
+
+    // ---- Tax charged after the solver (changelog 405) -------------------
+    // Three things are paid for after solveWithdrawals has run and cannot
+    // be grossed up by it: the tax on the ACA boost conversion, the ACA
+    // subsidy clawback, and the IRMAA true-up. The draws that fund them
+    // are themselves income -- a Pre-Tax dollar is taxable, a Taxable
+    // dollar realizes gain, a Roth dollar may be earnings or a young
+    // conversion -- so they are priced here, stacked on the settled year,
+    // and the tax on that tax is funded the same way, pass after pass until
+    // what is left is under half a dollar (each pass shrinks it by the
+    // marginal rate, so a handful suffice; three left a few dollars that
+    // the Readiness headline then showed as "other"). Roth draws keep the layer accounting the solver's
+    // draw gets (rothDrawSplitThisYear), so a pre-59 1/2 draw of earnings
+    // is taxed and penalized like any other.
+    const taxableSSPreSolver = taxableSS;
+    // The year's income as it stands now, from the draws taken so far.
+    const settledIncomeNow = () => {
+      const preTaxOrdinary = Math.max(0, drawPreTax - actualMilestonePreTax) * (1 - preTaxBasisRatioForYear);
+      const gainsNet = Math.max(0, Math.max(0, drawTaxable - actualMilestoneTaxable) * (1 - taxableBasisRatioForYear) - lossUsedOnDraw);
+      const rothEarnings = rothDrawSplitThisYear.taxableEarnings || 0;
+      const ss = taxableSSFor(provisionalOtherIncome + convertAmountTaxable + preTaxOrdinary + rothEarnings + gainsNet);
+      return {
+        ordinary: baseOrdinaryTaxableIncome - taxableSSPreSolver + ss + preTaxOrdinary + rothEarnings,
+        capGains: taxableDividends + gainsNet,
+        preTaxOrdinary, gainsNet,
+      };
+    };
+    // Federal and state tax on a year with this ordinary income and these
+    // gains, stacked the way the solver stacks them.
+    const priceSettledYear = ({ ordinary, capGains, preTaxOrdinary, gainsNet }, conversionTaxableForState = convertAmountTaxable) => {
+      const ded = deductionFor(ordinary + capGains);
+      const ordinaryTaxable = Math.max(0, ordinary - ded);
+      const federal = calculateTaxes(ordinaryTaxable, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, effectiveMfsSplitPct(inputs))
+        + calculateCapitalGainsTaxes(ordinaryTaxable, capGains, currentStatus, taxBracketInflationFactor, ded, Math.max(0, ded - ordinary), niiOtherForYear, effectiveMfsSplitPct(inputs));
+      const incomeForState = ordinary + capGains;
+      const state = calculateStateTaxes(
+        incomeForState, pension, ssIncome, residence.stateTaxState,
+        residence.stateTaxSocialSecurityTaxable, residence.stateTaxPensionTaxable,
+        currentStatus, ownerAge, age2, residence.stateTaxFlatRate, militaryPension,
+        { stateExempt: stateExemptPension, private1: privatePension1, private2: privatePension2, military1: military1Pension, military2: military2Pension },
+        residence.yonkersResident, {
+          ...stateExtrasForYear,
+          federalAGI: incomeForState,
+          federalDeduction: ded,
+          retirementDistributions: (stateExtrasForYear.retirementDistributions || 0) + Math.max(0, preTaxOrdinary),
+          rothConversionTaxable: conversionTaxableForState,
+          longTermGains: (stateExtrasForYear.longTermGains || 0) + gainsNet,
+        }
+      );
+      return { federal, state };
+    };
+    // Draws `amount` in `order` (bucket names), charges the tax those draws
+    // cause to extraTax/extraTaxFederal/extraTaxState, funds that tax too,
+    // and adds anything the accounts cannot cover to the shortfall.
+    const fundAfterSolver = (amount, order) => {
+      let remaining = Math.max(0, amount || 0);
+      for (let pass = 0; pass < 12 && remaining > 0.5; pass++) {
+        const before = settledIncomeNow();
+        const taxBefore = priceSettledYear(before);
+        let toFund = remaining;
+        let preTaxTaken = 0;
+        let rothPenalized = 0;
+        for (const bucket of order) {
+          if (toFund <= 0) break;
+          if (bucket === 'taxable') {
+            const take = Math.min(taxable, toFund);
+            if (take > 0) {
+              taxable -= take;
+              taxableBasis = Math.max(0, taxableBasis - take * taxableBasisRatioForYear);
+              drawTaxable += take;
+              toFund -= take;
+              // Any loss carryforward left nets this gain too.
+              const gain = take * (1 - taxableBasisRatioForYear);
+              const used = Math.min(lossCarryforward, gain);
+              lossCarryforward -= used;
+              lossUsedOnDraw += used;
+            }
+          } else if (bucket === 'preTax') {
+            const take = Math.min(preTax, toFund);
+            if (take > 0) {
+              preTax -= take;
+              preTaxBasis = Math.max(0, preTaxBasis - take * preTaxBasisRatioForYear);
+              drawPreTax += take;
+              preTaxTaken += take;
+              toFund -= take;
+            }
+          } else {
+            const take = Math.min(roth, toFund);
+            if (take > 0) {
+              const split = rothSplitFor(take);
+              roth -= take;
+              consumeRothLayers(take, rothLayers);
+              drawRoth += take;
+              for (const k of Object.keys(split)) rothDrawSplitThisYear[k] = (rothDrawSplitThisYear[k] || 0) + split[k];
+              rothPenalized += split.penalized || 0;
+              toFund -= take;
+            }
+          }
+        }
+        const drawn = remaining - toFund;
+        if (toFund > 0) shortfall += toFund;
+        if (drawn <= 0.005) break;
+        const after = settledIncomeNow();
+        const taxAfter = priceSettledYear(after);
+        // The 10% federal penalty and any state additional tax on a
+        // pre-59 1/2 Pre-Tax or penalized Roth draw, as the solver charges.
+        const earlyDistribution = ownerAge < 59.5 ? preTaxTaken * (1 - preTaxBasisRatioForYear) + rothPenalized : 0;
+        const federal = Math.max(0, taxAfter.federal - taxBefore.federal) + earlyDistribution * 0.10;
+        const state = Math.max(0, taxAfter.state - taxBefore.state) + (earlyDistribution > 0 ? stateEarlyDistributionTax(residence.stateTaxState, earlyDistribution, ownerAge) : 0);
+        extraTax += federal + state;
+        extraTaxFederal += federal;
+        extraTaxState += state;
+        remaining = federal + state;
+      }
+    };
 
     // ACA Subsidy Protection / Medicaid non-expansion "coverage gap". In the
     // ~10 states that didn't expand Medicaid (ACA_NON_EXPANSION_STATES),
@@ -9506,63 +9692,25 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
             convertAmountTaxable += acaSubsidyBoostTaxable;
             baseOrdinaryTaxableIncome += acaSubsidyBoostTaxable;
 
-            // Marginal tax on the boost, stacked on the solved year.
-            const capGainsForAca = taxableDividends + realizedGainsThisYear;
-            const priceYear = (ordinaryInc, conversionTaxableForState) => {
-              const acaDeduction = deductionFor(ordinaryInc + capGainsForAca);
-              const ordinaryTaxable = Math.max(0, ordinaryInc - acaDeduction);
-              const fed = calculateTaxes(ordinaryTaxable, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, effectiveMfsSplitPct(inputs))
-                + calculateCapitalGainsTaxes(ordinaryTaxable, capGainsForAca, currentStatus, taxBracketInflationFactor, acaDeduction, Math.max(0, acaDeduction - ordinaryInc), niiOtherForYear, effectiveMfsSplitPct(inputs));
-              const incomeForState = ordinaryInc + capGainsForAca;
-              const state = calculateStateTaxes(
-                incomeForState, pension, ssIncome, residence.stateTaxState,
-                residence.stateTaxSocialSecurityTaxable, residence.stateTaxPensionTaxable,
-                currentStatus, ownerAge, age2, residence.stateTaxFlatRate, militaryPension,
-                { stateExempt: stateExemptPension, private1: privatePension1, private2: privatePension2, military1: military1Pension, military2: military2Pension },
-                residence.yonkersResident, {
-                  ...stateExtrasForYear,
-                  federalAGI: incomeForState,
-                  federalDeduction: acaDeduction,
-                  retirementDistributions: (stateExtrasForYear.retirementDistributions || 0) + Math.max(0, discretionaryPreTaxDraw),
-                  rothConversionTaxable: conversionTaxableForState,
-                  longTermGains: (stateExtrasForYear.longTermGains || 0) + realizedGainsThisYear,
-                }
-              );
-              return fed + state;
-            };
+            // Marginal tax on the boost, stacked on the solved year, federal
+            // and state kept apart (changelog 405; the state part used to be
+            // reported as federal).
+            const withBoost = settledIncomeNow();
+            const withoutBoost = { ...withBoost, ordinary: withBoost.ordinary - acaSubsidyBoostTaxable };
             const priorConversionTaxable = convertAmountTaxable - acaSubsidyBoostTaxable;
-            const acaBoostTax = Math.max(0, priceYear(ordinaryIncomeForAca + acaSubsidyBoostTaxable, convertAmountTaxable) - priceYear(ordinaryIncomeForAca, priorConversionTaxable));
+            const boostAfter = priceSettledYear(withBoost, convertAmountTaxable);
+            const boostBefore = priceSettledYear(withoutBoost, priorConversionTaxable);
+            const acaBoostTaxFederal = Math.max(0, boostAfter.federal - boostBefore.federal);
+            const acaBoostTaxState = Math.max(0, boostAfter.state - boostBefore.state);
+            const acaBoostTax = acaBoostTaxFederal + acaBoostTaxState;
             extraTax += acaBoostTax;
-            // A forced Roth conversion to clear the Medicaid coverage gap:
-            // the premium tax credit is a federal credit and the conversion
-            // tax here is priced federally.
-            extraTaxFederal += acaBoostTax;
+            extraTaxFederal += acaBoostTaxFederal;
+            extraTaxState += acaBoostTaxState;
             conversionTaxCost += acaBoostTax;
 
-            // Pay that tax: Taxable first, then Roth, then Pre-Tax.
-            let taxToFund = acaBoostTax;
-            const fromTaxable = Math.min(taxable, taxToFund);
-            if (fromTaxable > 0) {
-              taxable -= fromTaxable;
-              taxableBasis = Math.max(0, taxableBasis - fromTaxable * taxableBasisRatioForYear);
-              drawTaxable += fromTaxable;
-              taxToFund -= fromTaxable;
-            }
-            const fromRoth = Math.min(roth, taxToFund);
-            if (fromRoth > 0) {
-              roth -= fromRoth;
-              consumeRothLayers(fromRoth, rothLayers);
-              drawRoth += fromRoth;
-              taxToFund -= fromRoth;
-            }
-            const fromPreTax = Math.min(preTax, taxToFund);
-            if (fromPreTax > 0) {
-              preTax -= fromPreTax;
-              preTaxBasis = Math.max(0, preTaxBasis - fromPreTax * preTaxBasisRatioForYear);
-              drawPreTax += fromPreTax;
-              taxToFund -= fromPreTax;
-            }
-            if (taxToFund > 0) shortfall += taxToFund;
+            // Pay that tax: Taxable first, then Roth, then Pre-Tax -- and the
+            // tax the paying itself causes.
+            fundAfterSolver(acaBoostTax, ['taxable', 'roth', 'preTax']);
 
             // Not enough remaining pre-tax balance to fully close the gap.
             if (acaSubsidyBoost < gapAmount - 0.005) inAcaCoverageGap = true;
@@ -9584,29 +9732,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         extraTax += acaSubsidyClawback;
         // Repaying the advance premium tax credit on Form 8962 -- federal.
         extraTaxFederal += acaSubsidyClawback;
-        let toFund = acaSubsidyClawback;
-        const fromTaxable = Math.min(taxable, toFund);
-        if (fromTaxable > 0) {
-          taxable -= fromTaxable;
-          taxableBasis = Math.max(0, taxableBasis - fromTaxable * taxableBasisRatioForYear);
-          drawTaxable += fromTaxable;
-          toFund -= fromTaxable;
-        }
-        const fromRoth = Math.min(roth, toFund);
-        if (fromRoth > 0) {
-          roth -= fromRoth;
-          consumeRothLayers(fromRoth, rothLayers);
-          drawRoth += fromRoth;
-          toFund -= fromRoth;
-        }
-        const fromPreTax = Math.min(preTax, toFund);
-        if (fromPreTax > 0) {
-          preTax -= fromPreTax;
-          preTaxBasis = Math.max(0, preTaxBasis - fromPreTax * preTaxBasisRatioForYear);
-          drawPreTax += fromPreTax;
-          toFund -= fromPreTax;
-        }
-        if (toFund > 0) shortfall += toFund;
+        fundAfterSolver(acaSubsidyClawback, ['taxable', 'roth', 'preTax']);
       }
     }
 
@@ -9627,22 +9753,32 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // instead of showing the pre-solver estimate. Before this, a plan could
     // display "$0 of your benefits are taxable" in the ledger while the
     // engine charged tax on $20,000 of them.
-    const solvedPreTaxOrdinary = Math.max(0, drawPreTax - actualMilestonePreTax) * (1 - preTaxBasisRatioForYear);
-    const solvedRealizedGainsNet = Math.max(0, Math.max(0, drawTaxable - actualMilestoneTaxable) * (1 - taxableBasisRatioForYear) - lossUsedOnDraw);
-    const taxableSSFinal = taxableSSFor(
-      provisionalOtherIncome + convertAmountTaxable
-      + solvedPreTaxOrdinary
-      + (rothDrawSplitThisYear.taxableEarnings || 0)
-      + solvedRealizedGainsNet
-    );
-    const taxableSSSettleDelta = taxableSSFinal - taxableSS;
-    taxableSS = taxableSSFinal;
-
-    let irmaaMagiFinal = baseOrdinaryTaxableIncome + taxableSSSettleDelta
-      + solvedPreTaxOrdinary
-      + (rothDrawSplitThisYear.taxableEarnings || 0)
-      + taxableDividends
-      + solvedRealizedGainsNet;
+    // Run once here and again after the IRMAA true-up below has drawn
+    // (changelog 405), so the reported figures and the MAGI the lookback
+    // will read two years on include every draw the year made.
+    let solvedPreTaxOrdinary = 0;
+    let solvedRealizedGainsNet = 0;
+    let taxableSSSettleDelta = 0;
+    let irmaaMagiFinal = 0;
+    const settleIncome = () => {
+      const now = settledIncomeNow();
+      solvedPreTaxOrdinary = now.preTaxOrdinary;
+      solvedRealizedGainsNet = now.gainsNet;
+      const taxableSSFinal = taxableSSFor(
+        provisionalOtherIncome + convertAmountTaxable
+        + solvedPreTaxOrdinary
+        + (rothDrawSplitThisYear.taxableEarnings || 0)
+        + solvedRealizedGainsNet
+      );
+      taxableSSSettleDelta = taxableSSFinal - taxableSSPreSolver;
+      taxableSS = taxableSSFinal;
+      irmaaMagiFinal = baseOrdinaryTaxableIncome + taxableSSSettleDelta
+        + solvedPreTaxOrdinary
+        + (rothDrawSplitThisYear.taxableEarnings || 0)
+        + taxableDividends
+        + solvedRealizedGainsNet;
+    };
+    settleIncome();
     irmaaMagiHistory.push({ magi: irmaaMagiFinal, status: currentStatus });
     if (irmaaBasisSource !== 'lookback' && medicareMembers > 0) {
       const settled = priceIrmaa(irmaaMagiFinal, currentStatus);
@@ -9664,42 +9800,17 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (irmaaTrueUp > 0.005) {
         // A premium is ordinary spending, so it follows the plan's own
         // withdrawal order (unlike the ACA clawback, which is a tax). The
-        // extra Pre-Tax dollars this draws are not re-priced for tax --
-        // second-order on a figure that is itself at most a few thousand.
-        let toFund = irmaaTrueUp;
+        // draws are priced for tax like any other (changelog 405).
         const order = inputs.withdrawalStrategy === 'PreTaxFirst' ? ['preTax', 'taxable', 'roth']
           : inputs.withdrawalStrategy === 'RothFirst' ? ['roth', 'taxable', 'preTax']
           : ['taxable', 'preTax', 'roth'];
-        for (const bucket of order) {
-          if (toFund <= 0) break;
-          if (bucket === 'taxable') {
-            const take = Math.min(taxable, toFund);
-            if (take > 0) {
-              taxable -= take;
-              taxableBasis = Math.max(0, taxableBasis - take * taxableBasisRatioForYear);
-              drawTaxable += take;
-              toFund -= take;
-            }
-          } else if (bucket === 'preTax') {
-            const take = Math.min(preTax, toFund);
-            if (take > 0) {
-              preTax -= take;
-              preTaxBasis = Math.max(0, preTaxBasis - take * preTaxBasisRatioForYear);
-              drawPreTax += take;
-              toFund -= take;
-            }
-          } else {
-            const take = Math.min(roth, toFund);
-            if (take > 0) {
-              roth -= take;
-              consumeRothLayers(take, rothLayers);
-              drawRoth += take;
-              toFund -= take;
-            }
-          }
-        }
-        if (toFund > 0) shortfall += toFund;
+        fundAfterSolver(irmaaTrueUp, order);
         expensesExcludingTaxes += irmaaTrueUp;
+        // The draws just taken are income: settle again so the reported
+        // figures and the MAGI the lookback reads two years on carry them.
+        // The premium itself is not re-tiered on them (one pass).
+        settleIncome();
+        irmaaMagiHistory[irmaaMagiHistory.length - 1] = { magi: irmaaMagiFinal, status: currentStatus };
       } else if (irmaaTrueUp < -0.005) {
         // Estimate overshot (rare: a lower settled tier). Refund to Taxable.
         taxable -= irmaaTrueUp;
@@ -9946,8 +10057,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // actually got: basic + age-65 add-on + whatever OBBBA senior bonus
     // survived the phase-out at this MAGI.
     const finalOrdinaryIncome = baseOrdinaryTaxableIncome + taxableSSSettleDelta + Math.max(0, drawPreTax - actualMilestonePreTax) * (1 - preTaxBasisRatioForYear) + rothDrawSplitThisYear.taxableEarnings + hsaGeneralOrdinary;
-    const finalMagi = finalOrdinaryIncome + taxableDividends
-      + Math.max(0, drawTaxable - actualMilestoneTaxable) * (1 - taxableBasisRatioForYear);
+    // Realized gains net of the loss carryforward used on the draw, as the
+    // IRMAA MAGI above already has them (changelog 404; the gross figure
+    // overstated MAGI for the senior-bonus phase-out shown on the ledger).
+    const finalMagi = finalOrdinaryIncome + taxableDividends + solvedRealizedGainsNet;
     const finalDeduction = deductionFor(finalMagi);
     const seniorBonusDeductionThisYear = finalDeduction - stdDeduction;
 
@@ -10262,7 +10375,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       irmaaCapCeiling,
       ordinaryTaxableIncome: Math.max(0, finalOrdinaryIncome - finalDeduction),
       taxBracketInflationFactor,
-      marginalBracket: getMarginalTaxRate(Math.max(0, finalOrdinaryIncome - finalDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled),
+      // The bracket the household's next ordinary dollar lands in. On MFS
+      // that dollar splits across two returns, and the larger return sets
+      // the rate, so its share of the household's taxable income is what
+      // is read against the MFS schedule (changelog 403).
+      marginalBracket: getMarginalTaxRate(Math.max(0, finalOrdinaryIncome - finalDeduction) * mfsLargerShare(inputs, currentStatus), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled),
       shortfall,
       netChange,
       growthRate: returnRate,
@@ -12212,8 +12329,17 @@ export function coloradoMilitarySubtraction(militaryPension, age1, age2, status,
 // contributes to the aggregate result. growthRate is the annual % the
 // un-withdrawn remainder earns while it's still sitting in the inherited
 // account (see getEffectivePostRetireReturn above).
-function runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, strategy, growthRate, ctx = null, inflationFactor = 1) {
+// yearOneLumps: the inherited HSA and NQDC an heir receives as year-one
+// income. A year-one draw from the inherited IRA lands on the same return,
+// ABOVE those lumps, so its tax is priced from where they leave the heir,
+// not from the heir's own income (changelog 402). Later years carry no
+// lumps and are priced as before.
+function runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, strategy, growthRate, ctx = null, inflationFactor = 1, yearOneLumps = 0) {
   const baselineTax = getHeirBracketTax(heirIncome, status, inflationFactor);
+  const lumps = Math.max(0, Number(yearOneLumps) || 0);
+  // The income a year's draw sits on, and the tax already owed on it.
+  const baseFor = (year) => (year === 1 && lumps > 0 ? heirIncome + lumps : heirIncome);
+  const baseTaxFor = (year) => (year === 1 && lumps > 0 ? getHeirBracketTax(heirIncome + lumps, status, inflationFactor) : baselineTax);
   let totalHeirTax = 0;
   let totalWithdrawn = 0;
   const annualWithdrawals = [];
@@ -12250,9 +12376,9 @@ function runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, strategy, gro
       }
       balance -= withdrawal;
       totalWithdrawn += withdrawal;
-      const yearTaxableIncome = heirIncome + withdrawal;
+      const yearTaxableIncome = baseFor(i) + withdrawal;
       const combinedTax = getHeirBracketTax(yearTaxableIncome, status, inflationFactor);
-      const taxDrag = combinedTax - baselineTax;
+      const taxDrag = combinedTax - baseTaxFor(i);
       totalHeirTax += taxDrag;
       annualWithdrawals.push({ year: i, withdrawal, combinedIncome: yearTaxableIncome, taxPaid: combinedTax, taxDrag });
     }
@@ -12269,18 +12395,18 @@ function runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, strategy, gro
       const withdrawal = balance / yearsRemaining;
       balance -= withdrawal;
       totalWithdrawn += withdrawal;
-      const yearTaxableIncome = heirIncome + withdrawal;
+      const yearTaxableIncome = baseFor(i) + withdrawal;
       const combinedTax = getHeirBracketTax(yearTaxableIncome, status, inflationFactor);
-      const taxDrag = combinedTax - baselineTax;
+      const taxDrag = combinedTax - baseTaxFor(i);
       totalHeirTax += taxDrag;
       annualWithdrawals.push({ year: i, withdrawal, combinedIncome: yearTaxableIncome, taxPaid: combinedTax, taxDrag });
     }
   } else if (strategy === 'lump_sum_start') {
     // Withdrawn immediately -- there's no holding period, so no growth
     // applies here regardless of growthRate.
-    const yearTaxableIncome = heirIncome + heirPreTax;
+    const yearTaxableIncome = baseFor(1) + heirPreTax;
     const combinedTax = getHeirBracketTax(yearTaxableIncome, status, inflationFactor);
-    const taxDrag = combinedTax - baselineTax;
+    const taxDrag = combinedTax - baseTaxFor(1);
     totalHeirTax = taxDrag;
     totalWithdrawn = heirPreTax;
     annualWithdrawals.push({ year: 1, withdrawal: heirPreTax, combinedIncome: yearTaxableIncome, taxPaid: combinedTax, taxDrag });
@@ -13211,13 +13337,13 @@ const ESTATE_TOP_DOLLAR_FIELDS = [
   'totalStateEstateTax', 'totalFederalEstateTax', 'totalGenerationSkippingTax',
   'charitableBequest', 'totalPreTaxWithdrawn', 'totalLifeInsuranceProceeds',
   'lifeInsuranceEstateInclusion', 'preTaxEstateTax', 'rothEstateTax', 'taxableEstateTax',
-  'totalForeignEstateTax',
+  'totalForeignEstateTax', 'totalHeirStateIncomeTax',
 ];
 const ESTATE_PERHEIR_DOLLAR_FIELDS = [
   'grossInherited', 'netInherited', 'totalHeirTax', 'hsaInherited', 'hsaHeirTax',
   'nqdcInherited', 'nqdcHeirTax', 'steppedUpAssetsInherited', 'rothInherited',
   'taxableInherited', 'stateEstateTax', 'federalEstateTax', 'gstTax',
-  'preTaxWithdrawn', 'lifeInsuranceInherited', 'income', 'foreignEstateTax',
+  'preTaxWithdrawn', 'lifeInsuranceInherited', 'income', 'foreignEstateTax', 'stateIncomeTax',
 ];
 const ESTATE_WITHDRAWAL_DOLLAR_FIELDS = ['withdrawal', 'combinedIncome', 'taxPaid', 'taxDrag'];
 const ESTATE_CSC_DOLLAR_FIELDS = [
@@ -13287,13 +13413,19 @@ export function heirStateIncomeTax(heir, fallbackStateCode, heirIncome, status, 
     { calendarYear, retirementDistributions: distributions / f, stateCode: code, federalAGI: ordinary / f },
   ) * f;
   const baseline = tax(heirIncome, 0);
+  const lumps = Math.max(0, Number(heirHsa) || 0) + Math.max(0, Number(heirNqdc) || 0);
   let total = 0;
+  if (lumps > 0) total += Math.max(0, tax(heirIncome + lumps, lumps) - baseline);
   (annualWithdrawals || []).forEach((w) => {
     const draw = Math.max(0, Number(w.withdrawal) || 0);
-    if (draw > 0) total += Math.max(0, tax(heirIncome + draw, draw) - baseline);
+    if (draw <= 0) return;
+    // A year-one draw stacks above the year-one lumps on the same return,
+    // as the federal schedule prices it (changelog 402).
+    const onLumps = Number(w.year) === 1 && lumps > 0;
+    total += onLumps
+      ? Math.max(0, tax(heirIncome + lumps + draw, lumps + draw) - tax(heirIncome + lumps, lumps))
+      : Math.max(0, tax(heirIncome + draw, draw) - baseline);
   });
-  const lumps = Math.max(0, Number(heirHsa) || 0) + Math.max(0, Number(heirNqdc) || 0);
-  if (lumps > 0) total += Math.max(0, tax(heirIncome + lumps, lumps) - baseline);
   return { stateIncomeTax: total, stateCode: code };
 }
 
@@ -13639,7 +13771,7 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
     // required beginning date -- annual RMDs are mandatory in years 1-9
     // (audit Q-21). Swap it for the RMD schedule and say so in the result.
     const heirStrategy = (heirStrategyChosen === 'lump_sum_end' && inheritanceCtx.decedentPastRbd) ? 'rmd_10' : heirStrategyChosen;
-    const { totalHeirTax, annualWithdrawals, totalWithdrawn } = runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, heirStrategy, growthRate, inheritanceCtx, estateInflationFactor);
+    const { totalHeirTax, annualWithdrawals, totalWithdrawn } = runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, heirStrategy, growthRate, inheritanceCtx, estateInflationFactor, heirHsa + heirNqdc);
     // The heir's own state's income tax on the same withdrawals (changelog
     // 263) -- keyed to where the HEIR lives, unlike every death tax below.
     const { stateIncomeTax: heirStateTax, stateCode: heirStateCode } = heirStateIncomeTax(
@@ -13767,7 +13899,11 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
   // all three reduce what heirs actually keep — totalHeirTax itself stays
   // federal-INCOME-tax-only for backward compatibility with call sites that
   // specifically want the IRS 10-Year Rule income-tax figure.
-  const effectiveEstateTaxRate = grossInherited > 0 ? ((totalHeirTax + totalHsaHeirTax + totalNqdcHeirTax + totalStateEstateTax + totalFederalEstateTax + totalForeignEstateTax) / grossInherited) * 100 : 0;
+  // The same drag the per-heir rate counts: every tax between the gross
+  // estate and what the heirs keep, GST and the heirs' own state income
+  // tax included (the two were left out until changelog 402, so the
+  // household rate read lower than any heir's).
+  const effectiveEstateTaxRate = grossInherited > 0 ? ((totalHeirTax + totalHsaHeirTax + totalNqdcHeirTax + totalStateEstateTax + totalFederalEstateTax + totalForeignEstateTax + totalGenerationSkippingTax + totalHeirStateIncomeTax) / grossInherited) * 100 : 0;
 
   // What the targeting is actually worth, in dollars.
   //
