@@ -140,7 +140,7 @@ describe('IRMAA Status states the education without overclaiming', () => {
 
   it('defines MAGI as AGI plus tax-exempt interest, and admits muni interest is not modeled', () => {
     renderWith(row({ magi: 40000, irmaaBasisMagi: 40000, irmaaBasisSource: 'lookback' }));
-    expect(screen.getByText(/adjusted gross income plus tax-exempt interest/)).toBeInTheDocument();
+    expect(screen.getByText(/MAGI here is adjusted gross income plus tax-exempt interest/)).toBeInTheDocument();
     expect(screen.getByText(/tax-exempt interest is\s+not modeled in this plan/)).toBeInTheDocument();
   });
 

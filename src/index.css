@@ -1228,8 +1228,12 @@ select.form-input,
 /* Chart hover cards are ChartTooltip.jsx (a themed card with a color
    swatch per series); Recharts' stock tooltip is no longer used. */
 
-/* Responsive Grid / Media Queries */
-@media (max-width: 900px) {
+/* Responsive Grid / Media Queries.
+   Every width query here is `screen and`: a printed page is about as wide
+   as a small tablet, so a bare (max-width: ...) query also fires on paper
+   and the phone layout prints (the gray bar of changelog 300 was one such
+   rule). Print has its own @media print blocks and nothing else. */
+@media screen and (max-width: 900px) {
   .app-container {
     grid-template-columns: 1fr;
   }
@@ -1301,7 +1305,7 @@ select.form-input,
   }
 }
 
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
   .kpi-grid {
     grid-auto-flow: row;
     grid-template-columns: minmax(0, 1fr);
@@ -1322,7 +1326,7 @@ select.form-input,
    site set the actual position/inset/padding for desktop, so this class only
    needs to take over on narrow screens (where 20px insets + 30px padding on
    all sides leave almost no room for content) via !important. */
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
   .maximized-modal {
     top: 8px !important;
     left: 8px !important;
@@ -1675,7 +1679,7 @@ select.form-input,
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .app-container, .app-container.sidebar-closed {
     grid-template-columns: 1fr !important;
     display: flex !important;
@@ -2603,7 +2607,7 @@ html.status-bar-on {
 html.status-bar-on .main-content {
   padding-bottom: calc(32px + var(--status-bar-reserve));
 }
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   html.status-bar-on {
     --status-bar-reserve: 64px;
   }
@@ -2623,7 +2627,7 @@ html.status-bar-on .main-content {
   row-gap: 8px;
   overflow-x: visible;
 }
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
   .sub-tab-container {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -2655,7 +2659,7 @@ html.status-bar-on .main-content {
 /* Touch: every tap target at least 44px on a phone. Where the visible
    control is small by design (an icon, a checkbox, a text link) the hit
    area grows, not the drawing. */
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
   .mobile-topbar-hamburger {
     min-width: 44px;
     min-height: 44px;
@@ -2698,7 +2702,7 @@ html.status-bar-on .main-content {
 }
 
 /* Keyboard shortcut hints mean nothing on a touch screen. */
-@media (hover: none), (pointer: coarse), (max-width: 600px) {
+@media screen and (hover: none), screen and (pointer: coarse), screen and (max-width: 600px) {
   .find-setting-kbd {
     display: none !important;
   }
@@ -2708,7 +2712,7 @@ html.status-bar-on .main-content {
    under it, clipping its first item beside a second logo), and casts its
    shadow only while open: closed, the shadow showed as a dark strip down
    the left edge of every page. */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .sidebar {
     box-shadow: none;
   }
@@ -2752,7 +2756,7 @@ html.status-bar-on .main-content {
 /* On a phone: one group of columns at a time (Summary, Income & spending,
    Taxes, Accounts), chosen with the buttons above the table; the ages ride
    under the year. */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .ledger-presets { display: flex; }
   .year-ledger-table .lg { display: none; }
   .year-ledger-table.preset-sum .g-sum,

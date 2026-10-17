@@ -22,6 +22,16 @@ import { createPortal } from 'react-dom';
 //    so screen readers announce the label regardless of whether the visual
 //    tooltip is showing — this matters most for icon-only buttons, which
 //    otherwise have no accessible name once a native title= is removed.
+//  - `labeled`: the child already shows its name as text (a nav item, a
+//    button with a caption). Then the tip must NOT become its aria-label:
+//    a screen reader would announce the long tip in place of the visible
+//    words, and a voice-control user saying the words they see would find
+//    no control by that name (WCAG 2.5.3, label in name). The tip is
+//    attached as a description instead (aria-description), read after the
+//    name; an attribute, not a hidden copy of the text, so nothing joins
+//    the control's textContent. If the caller also hides the visible text
+//    at times (the minimized sidebar), it passes its own aria-label for
+//    those times.
 // Touch devices don't get a "peek" interaction (there's no touch equivalent
 // of hover that doesn't also trigger the element's own tap action), but the
 // aria-label still gives screen-reader users on touch the same information.
@@ -40,7 +50,7 @@ const MOBILE_BREAKPOINT = 768;
 const isMobileViewport = () =>
   typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT;
 
-const HoverTooltip = ({ text, children, offsetX = 10, offsetY = -30 }) => {
+const HoverTooltip = ({ text, children, offsetX = 10, offsetY = -30, labeled = false }) => {
   const [pos, setPos] = useState(null);
 
   if (!text) return children;
@@ -61,7 +71,7 @@ const HoverTooltip = ({ text, children, offsetX = 10, offsetY = -30 }) => {
     setPos({ x: rect.left, y: rect.top });
   };
 
-  const existingLabel = children.props['aria-label'] || children.props['aria-labelledby'];
+  const existingLabel = children.props['aria-label'] || children.props['aria-labeledby'];
 
   return (
     <>
@@ -71,7 +81,9 @@ const HoverTooltip = ({ text, children, offsetX = 10, offsetY = -30 }) => {
         onMouseLeave: (e) => { children.props.onMouseLeave?.(e); handleLeave(); },
         onFocus: (e) => { children.props.onFocus?.(e); handleFocus(e); },
         onBlur: (e) => { children.props.onBlur?.(e); handleLeave(); },
-        ...(existingLabel ? {} : { 'aria-label': text }),
+        ...(labeled
+          ? { 'aria-description': text }
+          : existingLabel ? {} : { 'aria-label': text }),
       })}
       {pos && createPortal(
         <div style={{

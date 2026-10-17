@@ -66,17 +66,24 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavO
     setMoreOpenPref(next);
     writeNavMoreOpen(next);
   };
+  // The nav items and the captioned buttons show their names as text, so
+  // their tips ride along as descriptions (HoverTooltip `labeled`), never
+  // as the accessible name. Minimized, the rail hides that text, and the
+  // name must come from somewhere: the same words, as aria-label, for only
+  // as long as they are hidden.
+  const minimizedName = (label) => (isSidebarOpen ? undefined : label);
   const renderNavItem = (e) => {
     const Icon = NAV_ICONS[e.icon];
     const target = e.id === 'plan' ? planTab : e.id;
     const active = e.matches.includes(activeTab);
     return (
-      <HoverTooltip key={e.id} text={e.tip}>
+      <HoverTooltip key={e.id} text={e.tip} labeled>
         <div
           className={`nav-item ${active ? 'active' : ''}`}
           onClick={handleNavClick(target)}
           role="button"
           tabIndex={0}
+          aria-label={minimizedName(e.label)}
           aria-current={active ? 'page' : undefined}
           onKeyDown={handleNavKeyDown(target)}
           data-nav={e.id}
@@ -140,10 +147,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavO
 
         {/* Quick Update: the handful of numbers people actually change day-to-day,
             without having to dig through the full Plan Settings pages. */}
-        <HoverTooltip text="Quick Update: balances, salary, retirement age & SS claiming age">
+        <HoverTooltip text="Quick Update: balances, salary, retirement age & SS claiming age" labeled>
           <button
             className="btn-primary"
             onClick={() => setShowQuickUpdate(true)}
+            aria-label={minimizedName('Quick Update')}
             style={{
               width: '100%',
               padding: '12px 16px',
@@ -199,10 +207,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavO
               profile, "Clear browsing data," an incognito window, a new
               machine — and at that point the only copy of a user's plan
               is whatever file they'd already downloaded. */}
-          <HoverTooltip text="Download everything needed to restore your plan on this or another browser">
+          <HoverTooltip text="Download everything needed to restore your plan on this or another browser" labeled>
             <button
               className="btn-outline"
               onClick={handleBackupEverything}
+              aria-label={minimizedName('Backup Everything')}
               style={{
                 width: '100%',
                 padding: '10px 16px',
@@ -218,10 +227,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavO
               <span>Backup Everything</span>
             </button>
           </HoverTooltip>
-          <HoverTooltip text="Restore your plan from a Backup Everything (or Cloud Backup & Sync) file">
+          <HoverTooltip text="Restore your plan from a Backup Everything (or Cloud Backup & Sync) file" labeled>
             <button
               className="btn-outline"
               onClick={() => restoreFileInputRef.current?.click()}
+              aria-label={minimizedName('Restore Backup')}
               style={{
                 width: '100%',
                 padding: '10px 16px',
@@ -243,10 +253,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavO
             </button>
           </HoverTooltip>
 
-          <HoverTooltip text="Save Current Scenario">
+          <HoverTooltip text="Save Current Scenario" labeled>
             <button
               className="btn-outline"
               disabled={isSavingScenario}
+              aria-label={minimizedName('Save Current Scenario')}
               aria-busy={isSavingScenario}
               onClick={() => {
                 showPrompt('Enter a name for this scenario:', {

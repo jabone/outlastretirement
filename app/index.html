@@ -15,6 +15,15 @@
          rewrites these paths to the same hashed files the CSS refers to. -->
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2" />
+    <!-- The light-theme brand marks, which every printout uses whatever
+         theme the screen is in (changelog 262). In dark mode they sit in
+         display:none <img>s, and a browser does not fetch an image it is not
+         rendering, so the first print started the download as the page was
+         being laid out for paper and drew a gray box where the logo goes.
+         Fetched here, they are in the cache before anyone prints. The -h96
+         copies are the ones srcset picks at print sizes (28-34 CSS px tall). -->
+    <link rel="preload" as="image" href="/brand/outlast-full-light-h96.png" />
+    <link rel="preload" as="image" href="/brand/or-short-light-h96.png" />
     <link rel="canonical" href="https://www.outlastretirement.com/app/" />
     <!-- The marketing page at / is the indexable, shareable surface; this is
          the application itself. Keeping it out of the index stops a search

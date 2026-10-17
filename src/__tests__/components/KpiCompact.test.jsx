@@ -47,7 +47,7 @@ describe('KPI strip on a phone', () => {
     const css = fs.readFileSync(path.resolve(__dirname, '../../index.css'), 'utf8');
     const top = css.slice(0, css.indexOf('@media'));
     expect(top).toMatch(/\.kpi-compact \{\s*display: none;/);
-    const phone = css.slice(css.indexOf('@media (max-width: 768px)'));
+    const phone = css.slice(css.indexOf('@media screen and (max-width: 768px)'));
     expect(phone).toMatch(/\.kpi-grid\.kpi-collapsed \{\s*display: none !important;/);
     expect(phone).toMatch(/html, body \{\s*overflow-x: clip;/);
     expect(top).not.toMatch(/kpi-collapsed/);
