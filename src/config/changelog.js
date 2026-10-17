@@ -29,6 +29,39 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 401,
+    date: '2026-10-17',
+    title: 'The demo no longer reports a rejected Premium key',
+    summary: 'Opening the demo without a Premium key showed error cards in place of the Premium previews, saying a key had not been accepted; the demo now shows the same locked cards a free user sees, and its read-only Detailed Holdings view loads again.',
+    items: [
+      "**What was wrong.** Since Premium moved into separate modules, the demo tried to load every Premium area as if a key were present, could not, and reported that your Premium key was not accepted -- to visitors who never had one -- across Readiness, Retirement Spending, Relocation and Detailed Holdings.",
+      "**What changed.** In the demo, the Premium areas show the same locked cards they show any free user, and the App never asks the module server for anything without a key. The one exception the demo has always made, a read-only look at the fictional household's Detailed Holdings, is back: the App carries a key for that single module which unlocks nothing else and identifies no one.",
+      "**If you have a Premium key,** nothing changes: the demo uses your key as everywhere else.",
+    ],
+  },
+  {
+    id: 400,
+    date: '2026-10-17',
+    title: 'The Restore Backup confirmation fits the window again',
+    summary: 'When a backup carries a Live Pricing connection, the two long Google addresses in the confirmation now wrap instead of pushing the dialog off the right edge of the screen.',
+    items: [
+      "**What was wrong.** The Restore Backup confirmation shows the Apps Script and Sheet addresses a file carries. Neither address has a space in it, so the dialog grew to fit them and ran off the right of the window, taking the rest of the text with it.",
+      "**What changed.** The addresses wrap inside the dialog, which stays its usual width.",
+      "**The red button.** The Restore & Reload, Erase and Reset buttons were the ordinary paper-colored button with its background swapped to red, leaving dark type on dark red and the browser’s blue focus ring around it. They now use the App’s own red with type that reads on it, in both themes, and the same teal focus ring the rest of the App uses.",
+    ],
+  },
+  {
+    id: 399,
+    date: '2026-10-17',
+    title: 'Premium keys can be re-keyed without cutting anyone off',
+    summary: 'Each Premium key now names the signing key that issued it, and the App keeps a short list of signing keys it trusts, so we can retire one and start another while every key already issued keeps working.',
+    items: [
+      "**What changed.** A Premium Access key issued from today on names, in its header, which of our signing keys issued it. The App and the Premium module server each keep a list of the public halves of those keys, and check a key against the one it names. A key issued before today names none and is checked against the original key, as before. Nothing about what a key carries about you has changed: the address it was sent to, the Premium flag and its expiry.",
+      "**Why.** Until now there was exactly one signing key, held on one computer. If it ever had to be replaced, every key issued with it would have stopped working on the same day. Now a new signing key can be brought in alongside the old one, the old one retired once its last key has expired, and no one has to paste in a new key because of it. It is also the groundwork for issuing keys from a server rather than by hand.",
+      "**What you do.** Nothing. Your key keeps working until it expires.",
+    ],
+  },
+  {
     id: 398,
     date: '2026-10-16',
     title: 'Restoring a backup on a new browser no longer undoes DRIP labels',
