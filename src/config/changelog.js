@@ -41,6 +41,51 @@ export const CHANGELOG = [
     ],
   },
   {
+    id: 405,
+    date: '2026-10-17',
+    title: 'Seven small corrections to tax arithmetic around the edges of a year',
+    summary: 'Withdrawals that pay an ACA clawback, the ACA boost\u2019s tax or an IRMAA true-up are now taxed like any other; a QCD follows Form 8606; a mid-year move abroad is credited for that part of the year.',
+    items: [
+      "**Paying tax after the year is sized.** Three charges are settled after the App has sized the year\u2019s withdrawals: the tax on an ACA Subsidy Protection conversion, the repayment of a premium tax credit in a year that crossed the cliff, and a Medicare premium true-up. The withdrawals that paid them were not themselves taxed, so a Pre-Tax dollar spent on a clawback at 58 escaped income tax and the 10% penalty, and a Roth dollar drawn for it lost its layer accounting. Those withdrawals are now taxed and penalized like any other, the tax on that tax is paid the same way, and the Roth split is kept. The ACA boost\u2019s state tax is now reported as state tax rather than federal.",
+      "**A QCD and your IRA basis.** A qualified charitable distribution can only come from the taxable part of an IRA, and Form 8606 leaves it out of the pro-rata arithmetic; the App now caps the QCD at the taxable part and takes it out of the basis ratio the rest of the year\u2019s withdrawals use. For an IRA with after-tax basis this recovers slightly more basis on the RMD\u2019s cash portion.",
+      "**A move abroad part-way through the year.** The foreign tax credit\u2019s re-sourcing, and a country\u2019s dividend surtax, now cover only the months lived there (and, on a remittance basis, only what was remitted); a December move no longer let one month of foreign tax cancel eleven months of US tax. A carried-forward passive credit no longer shelters US tax on gains the country does not tax.",
+      "**Your numbers will change** if a plan has an ACA clawback or boost, a Medicare true-up, a QCD from an IRA with basis, or a year abroad that starts or ends mid-year. The first is the one most likely to show: a year with a clawback funded from Pre-Tax now costs the tax on that draw too.",
+    ],
+  },
+  {
+    id: 404,
+    date: '2026-10-17',
+    title: 'A harvested loss covers every gain before it touches ordinary income',
+    summary: 'With tax-loss harvesting on, the $3,000 ordinary-income offset now comes only from loss left after the year\u2019s withdrawal gains, and the senior deduction\u2019s phase-out reads income net of the loss used.',
+    items: [
+      "**What was wrong.** The rules let a capital loss offset ordinary income (up to $3,000 a year) only once every capital gain is covered. The App set the $3,000 aside before it sized the year\u2019s withdrawal, so in a year the withdrawal realized more gain than the rest of the loss covered, $3,000 of loss went against ordinary income while that much gain was taxed. Separately, the income the 65+ senior deduction\u2019s phase-out was read against counted the withdrawal\u2019s gains before the loss, so the deduction shown could be too small.",
+      "**What changed.** The withdrawal is sized with the loss covering its gains first; the ordinary-income offset is whatever loss is left, up to $3,000. The senior deduction is read against income net of the loss used, as Medicare premiums already were.",
+      "**Your numbers will change** a little, only with harvesting on, in years a withdrawal realizes more gain than the harvested loss: tax is slightly higher (the offset was worth more against ordinary income than against gains), and the senior deduction can be slightly larger.",
+    ],
+  },
+  {
+    id: 403,
+    date: '2026-10-17',
+    title: 'Roth conversions on two separate returns fill both brackets',
+    summary: 'For a couple filing separately on two returns, the fill-to-bracket conversion now fills the bracket on both returns instead of half of one, and the marginal bracket reads the larger return.',
+    items: [
+      "**What was wrong.** Since September the engine has priced Married Filing Separately as two returns, splitting the household\u2019s income between them. The fill-to-bracket conversion strategy still measured the whole household against one return\u2019s bracket ceiling, so an even split converted about half of what actually fit. The Year by Year marginal bracket read the same way and showed a bracket a step or two too high.",
+      "**What changed.** Both now read the larger return\u2019s share, the way the IRMAA conversion cap already did: with an even split the household fills to twice one return\u2019s ceiling, which is where a joint return would land, and the marginal bracket is the larger return\u2019s. A one-earner couple with the split at 100 is unchanged.",
+      "**Your numbers will change** if you file separately with the income split and use fill-to-bracket conversions: conversions roughly double, and the optimizer\u2019s conversion rows move with them.",
+    ],
+  },
+  {
+    id: 402,
+    date: '2026-10-17',
+    title: 'Three estate figures now agree with each other',
+    summary: 'Today\u2019s Dollars now deflates the heirs\u2019 state income tax, the household estate tax rate counts what each heir\u2019s rate counts, and a year-one IRA draw is priced above the year-one lumps.',
+    items: [
+      "**Today\u2019s Dollars.** With Today\u2019s Dollars on, every estate figure was shown in today\u2019s money except the heirs\u2019 state income tax, which stayed in plan-end dollars; it now deflates with the rest.",
+      "**The household rate.** The effective estate tax rate on the Estate page left out generation-skipping tax and the heirs\u2019 state income tax, while each heir\u2019s own rate counted both, so the household read lower than any heir. The household rate now counts the same taxes: estate, inheritance, generation-skipping and foreign taxes, the heirs\u2019 income tax on the IRA, HSA and NQDC, and their state income tax, all over the gross estate.",
+      "**Year one on the heir\u2019s return.** An inherited HSA and an unpaid NQDC balance are income to the heir in the year after death, and the first draw from the inherited IRA lands on that same return. The draw was priced from the heir\u2019s own income as if the lumps were not there; it is now priced above them, federal and state, which can raise the heir\u2019s year-one tax and lower what they keep. Later years are unchanged. Your estate figures will change if an heir inherits an HSA or NQDC and draws from the IRA in year one.",
+    ],
+  },
+  {
     id: 401,
     date: '2026-10-17',
     title: 'The demo no longer reports a rejected Premium key',
