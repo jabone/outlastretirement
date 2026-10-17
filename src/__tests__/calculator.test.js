@@ -1378,7 +1378,11 @@ describe('calculator.js core logic', () => {
       const r = calculateHeirEstateTax(DEFAULT_INPUTS, 1000000, 200000, 100000, 0, 0, false, 0, { nqdc: 400000 });
       const withoutNqdc = calculateHeirEstateTax(DEFAULT_INPUTS, 1000000, 200000, 100000);
       const netGain = r.netInherited - withoutNqdc.netInherited;
-      expect(netGain).toBeCloseTo(400000 - r.totalNqdcHeirTax, 2);
+      // The lump costs its own tax, and (changelog 402) pushes the heir's
+      // year-one IRA draw higher in the brackets, federal and state.
+      const extraDrawTax = (r.totalHeirTax - withoutNqdc.totalHeirTax) + (r.totalHeirStateIncomeTax - withoutNqdc.totalHeirStateIncomeTax);
+      expect(extraDrawTax).toBeGreaterThan(0);
+      expect(netGain).toBeCloseTo(400000 - r.totalNqdcHeirTax - extraDrawTax, 2);
       expect(netGain).toBeLessThan(400000);
     });
 
