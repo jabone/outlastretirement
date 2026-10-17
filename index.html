@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0F2744" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FFFAF4" media="(prefers-color-scheme: light)" />
+    <meta name="description" content="Local-first retirement education. Your numbers never leave your device. See if your current path outlasts you, with no user accounts. Education, not advice." />
+    <title>OutlastRetirement — Local-first retirement planner</title>
+    <link rel="canonical" href="https://www.outlastretirement.com/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OutlastRetirement" />
+    <meta property="og:url" content="https://www.outlastretirement.com/" />
+    <meta property="og:title" content="OutlastRetirement — Does your money outlast you?" />
+    <meta property="og:description" content="Local-first retirement education. Your numbers never leave your device. See if your current path outlasts you, with no user accounts. Education, not advice." />
+    <meta property="og:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The OutlastRetirement logo: a teal line rising to an arrow beside the name." />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OutlastRetirement — Does your money outlast you?" />
+    <meta name="twitter:description" content="Local-first retirement education. Your numbers never leave your device. See if your current path outlasts you, with no user accounts. Education, not advice." />
+    <meta name="twitter:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+
+    <!-- Structured data, landing page only. Deliberately minimal: it states
+         what the thing is and that it costs nothing, and claims nothing else.
+         No aggregateRating, no reviewCount, no downloads -- Google penalizes
+         invented review markup, and there is nothing here to count honestly
+         yet. price "0" is true: Premium is invite-only and free, with no
+         checkout. Revisit this block the day that changes. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "OutlastRetirement",
+          "url": "https://www.outlastretirement.com/",
+          "description": "Local-first retirement education. Your numbers never leave your device. See if your current path outlasts you, with no user accounts. Education, not advice."
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "OutlastRetirement",
+          "applicationCategory": "FinanceApplication",
+          "operatingSystem": "Web",
+          "url": "https://www.outlastretirement.com/",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+        }
+      ]
+    }
+    </script>
+
+    <!--
+      No web fonts, no analytics, no tag manager, nothing third-party. A page
+      whose argument is "we don't collect your data" cannot open by loading a
+      tracker, and self-hosted fonts were changelog 148's whole point -- a
+      marketing page reaching for fonts.googleapis.com would undo it in the
+      one place a visitor is deciding whether to believe us.
+    -->
+    <style>
+      /* Palette derives from the OutlastRetirement tokens rather than
+         restating hexes, so a change to the brand file moves this page.
+         Dark theme of the brand system: navy ground, paper type, teal path.
+
+         Teal carries no text anywhere on this page. It is 3.17:1 on navy,
+         which fails AA for body copy, and the brand allows exactly one teal
+         so there is no lighter variant to reach for. It does the job it was
+         drawn for -- the mark, rules, and accents -- and paper carries the
+         words. The secondary and muted grays below are paper mixed toward
+         navy, measured at 7.9:1 and 5.3:1. */
+      :root {
+        --font-heading: 'Outfit Variable', 'Outfit', sans-serif;
+        --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
+        --maxw: 1080px;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        /* The app's body face, self-hosted in /brand/fonts.css. Still
+           nothing off-origin -- a Google Fonts link here would undo
+           changelog 148 in the one place a visitor is deciding whether to
+           believe the privacy claim. */
+        font-family: var(--font-body);
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: var(--text); text-decoration-color: var(--or-teal); text-underline-offset: 3px; }
+      a:hover { text-decoration-thickness: 2px; }
+      .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+      /* Outfit with the app's -0.02em tracking: its headings and this page's
+         are now the same type at the same setting. */
+      h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 12px; }
+      h3 { font-weight: 600; }
+      h1 { font-size: clamp(30px, 5vw, 50px); }
+      h2 { font-size: clamp(22px, 3.2vw, 31px); }
+      h3 { font-size: 17px; }
+      p { margin: 0 0 14px; }
+      .lede { font-size: clamp(16px, 2vw, 19px); color: var(--text-2); }
+      .muted { color: var(--muted); }
+      /* Emphasis without italics: an italic phrase made every visitor
+         download a 30 KB italic font for a handful of words (PageSpeed,
+         2026-10-07). Weight and the brighter ink carry it instead. */
+      em { font-style: normal; font-weight: 600; color: var(--text); }
+      .small { font-size: 13px; }
+
+      header.nav {
+        position: sticky; top: 0; z-index: 10;
+        background: var(--header-bg);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-inner { display: flex; align-items: center; gap: 14px; padding: 12px 20px; max-width: var(--maxw); margin: 0 auto; }
+      /* The brand sits left, everything else right. `margin-left:auto`
+         on the first link does that without a second wrapper div. */
+      .nav-inner .navlink:first-of-type, .nav-inner .brand + * { margin-left: auto; }
+      .brand { display: flex; align-items: center; text-decoration: none; margin-right: auto; }
+      .nav a.navlink { color: var(--text-2); text-decoration: none; font-size: 14px; }
+      .nav a.navlink:hover { color: var(--text); }
+
+      /* Matches the app's .btn-primary / .btn-outline: heading face, 12px
+         radius, the 1px lift on hover. Padding stays lighter than the app's
+         16/32, which is sized for touch targets in a dense tool. */
+      .btn {
+        display: inline-block; text-decoration: none; font-weight: 600;
+        font-family: var(--font-heading);
+        padding: 12px 22px; border-radius: 12px; font-size: 15px; border: 1px solid transparent;
+        transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+      }
+      .btn:hover { transform: translateY(-1px); }
+      .btn:active { transform: translateY(1px); }
+      /* Paper on navy, per the tokens' own .or-btn--primary in dark theme.
+         A teal button would be 3.17:1 and unreadable at this size. */
+      .btn-primary { background: var(--btn-bg); color: var(--btn-fg); }
+      .btn-primary:hover { background: var(--btn-hover); }
+      /* The app's .btn-outline is a 2px card-border rule, not a text-gray one. */
+      .btn-ghost { border: 2px solid var(--border); color: var(--text); }
+      .btn-ghost:hover { border-color: var(--hover-border); }
+      .btn-sm { padding: 8px 14px; font-size: 14px; }
+      .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 22px 0 10px; }
+
+      section { padding: 56px 0; border-top: 1px solid var(--border); }
+      section:first-of-type { border-top: none; }
+      /* The app labels a section with an uppercase teal eyebrow in the
+         heading face (SectionPanel, "LET'S GET STARTED"). Same here, now
+         that --accent-text gives a teal that clears AA at this size. */
+      .eyebrow { font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--accent-text); font-weight: 700; margin-bottom: 12px; }
+      /* The privacy promise leads the page: a panel above the headline, so
+         it is the first thing a visitor reads, before what the tool does. */
+      .privacy-panel {
+        display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: start;
+        margin: 0 0 30px; padding: 20px 22px;
+        border: 2px solid var(--or-teal); border-radius: 16px;
+        background: linear-gradient(135deg, color-mix(in srgb, var(--or-teal) 20%, transparent), color-mix(in srgb, var(--or-teal) 6%, transparent));
+      }
+      .privacy-panel .lock { width: 34px; height: 34px; color: var(--accent-text); grid-row: span 3; margin-top: 2px; }
+      .privacy-line {
+        margin: 0; color: var(--text);
+        font-family: var(--font-heading); font-weight: 700; letter-spacing: -0.01em;
+        font-size: clamp(19px, 2.6vw, 25px); line-height: 1.3;
+      }
+      ul.privacy-points { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+      ul.privacy-points li { color: var(--text-2); font-size: 15px; padding-left: 20px; position: relative; }
+      ul.privacy-points li::before { content: "\2713"; position: absolute; left: 0; color: var(--accent-text); font-weight: 800; }
+      .privacy-panel .verify-link { margin: 6px 0 0; font-weight: 600; }
+      @media (max-width: 520px) {
+        .privacy-panel { grid-template-columns: 1fr; padding: 16px; }
+        .privacy-panel .lock { grid-row: auto; width: 28px; height: 28px; }
+      }
+      .grid { display: grid; gap: 18px; }
+      @media (min-width: 760px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+      /* Below ~700px the six nav items wrapped onto three lines and pushed
+         the headline below the fold. Everything they link to is a section of
+         this same page (or a CTA repeated five more times further down), so
+         the narrow header keeps the brand and the one button that matters
+         and drops the rest rather than shipping a hamburger menu for a
+         single-scroll page. */
+      /* 880px since the Verify it yourself link joined: below that the
+         labels wrapped onto two lines. */
+      .nav-inner a { white-space: nowrap; }
+      /* 1100px since the Learn link joined and the logo grew to 36px. */
+      @media (max-width: 1100px) {
+        .nav-inner { gap: 12px; padding: 10px 16px; }
+        .nav-inner .navlink { display: none; }
+        .nav-inner .brand + .navlink, .nav-inner .btn { margin-left: auto; }
+      }
+      /* The app's .glass-panel: --card-bg, 1px card border, 16px radius,
+         and the same lift-and-tint on hover. */
+      /* Product screenshots (the demo household, captured from the app). The
+         border and radius match the app's own panels so the picture reads as
+         the product, not an illustration. */
+      .shot { margin: 28px 0 0; }
+      .shot img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 18px 40px -24px var(--shadow); }
+      .shot figcaption { margin-top: 10px; font-size: 14px; color: var(--text-2); }
+      .card {
+        background: var(--panel); border: 1px solid var(--border);
+        border-radius: 16px; padding: 20px;
+        transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .card:hover { background: var(--panel-hover); border-color: var(--hover-border); transform: translateY(-2px); }
+      /* Teal outline with a paper numeral. A filled teal chip would put a
+         13px figure on 3.17:1 -- the outline keeps the accent and moves the
+         text onto paper. */
+      .step-n {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 26px; height: 26px; border-radius: 50%;
+        border: 1px solid var(--or-teal); color: var(--accent-text);
+        font-family: var(--font-heading);
+        font-weight: 700; font-size: 13px; margin-bottom: 10px;
+      }
+      ul.ticks { list-style: none; padding: 0; margin: 14px 0 0; }
+      ul.ticks li { padding-left: 26px; position: relative; margin-bottom: 9px; color: var(--text-2); }
+      /* 19px and bold puts the glyph in WCAG's large-text bracket, where
+         teal's 3.17:1 passes. Below that size it would not. */
+      ul.ticks li::before {
+        content: "✓"; position: absolute; left: 0; top: -1px;
+        color: var(--accent-text); font-weight: 800; font-size: 19px; line-height: 1.3;
+      }
+      ul.ticks li strong { color: var(--text); }
+      .note { border: 1px dashed var(--border); border-radius: 16px; padding: 14px 16px; color: var(--muted); font-size: 13px; }
+      /* Shown by /mailto-fallback.js under a mailto link after a click, so
+         nobody walks away thinking a message was sent when no mail app opened. */
+      .mailto-note { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; flex-basis: 100%; border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+      .mailto-note--nothing { border-color: #e07a5f; }
+      .mailto-note-text { flex: 1 1 260px; }
+      .mailto-note strong { color: var(--text); }
+      .faq dt { font-family: var(--font-heading); font-weight: 600; letter-spacing: -0.01em; margin-top: 16px; }
+      .faq dd { margin: 4px 0 0; color: var(--text-2); }
+      .band { background: var(--panel-2); }
+      footer { border-top: 1px solid var(--border); padding: 28px 0 44px; color: var(--muted); font-size: 13px; }
+      footer a { color: var(--text-2); }
+    /* Footer links: a 44px-tall tap target each, wrapping on a phone. */
+    .foot-links { display: flex; flex-wrap: wrap; margin: 2px -10px 6px; }
+    .foot-links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+
+      /* The header lockup. Height comes from the tokens; the mark is keyed
+         to transparency, so it sits on the navy with no field behind it. */
+      .brand .or-logo { height: var(--or-logo-nav); width: auto; display: block; }
+
+      /* Shown only to someone this browser already has a plan for. */
+      #returning { display: none; }
+      #returning.show { display: block; }
+    </style>
+    <!-- OutlastRetirement brand tokens, locked 2026-09-11. This page's whole
+         palette derives from them: see the :root block below. Same origin, so
+         the page still reaches for nothing off-site. Marks, rules and the
+         keying recipe: /brand/ (noindex). -->
+    <link rel="stylesheet" href="/brand/outlastretirement.tokens.css" />
+    <link rel="stylesheet" href="/brand/site-theme.css" />
+    <script src="/brand/theme.js"></script>
+    <!-- The app's two UI faces, self-hosted and same-origin. Without these
+         this page fell back to the system UI face while /app/ rendered in
+         Outfit and Plus Jakarta Sans, which is most of why the two read as
+         different products. Preload only the two latin uprights actually
+         used above the fold; the ext and italic cuts load on demand. -->
+    <link rel="preload" href="/brand/fonts/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/brand/fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/brand/fonts.css" />
+
+    <script src="/home-installed.js"></script>
+  </head>
+  <body>
+    <header class="nav">
+      <div class="nav-inner">
+        <a class="brand" href="/" aria-label="OutlastRetirement home">
+          <img class="or-logo or-logo--full logo-on-dark" alt="OutlastRetirement" src="/brand/outlast-full-dark-h96.png" srcset="/brand/outlast-full-dark-h96.png 413w, /brand/outlast-full-dark.png 870w" sizes="121px" width="121" height="28" />
+          <img class="or-logo or-logo--full logo-on-light" alt="OutlastRetirement" src="/brand/outlast-full-light-h96.png" srcset="/brand/outlast-full-light-h96.png 413w, /brand/outlast-full-light.png 870w" sizes="121px" width="121" height="28" />
+        </a>
+        <a class="navlink" href="#how">How it works</a>
+        <a class="navlink" href="/learn">Learn</a>
+        <a class="navlink" href="/how-the-math-works">How the math works</a>
+        <a class="navlink" href="#privacy">Privacy</a>
+        <a class="navlink" href="/verify">Verify it yourself</a>
+        <a class="navlink" href="#premium">Free and Premium</a>
+        <a class="btn btn-primary btn-sm" href="/app/?demo=1">Try the Demo Plan</a>
+        <a class="navlink" href="/app/">Open the app</a>
+      </div>
+    </header>
+
+    <main>
+    <div class="wrap">
+      <div id="returning" class="note" style="margin-top:18px; border-style:solid; border-color:var(--accent); color:var(--text);">
+        <strong>Welcome back.</strong> This browser already has a plan saved.
+        <a class="btn btn-primary btn-sm" style="margin-left:8px;" href="/app/">Open your plan</a>
+      </div>
+
+      <!-- Every link into the app carries a trailing slash: '/app/', not
+           '/app'. The app is a FOLDER in the build output, so '/app/'
+           resolves to the document inside it on any static server -- the
+           dev server, vite preview, and Vercel alike. Bare '/app' resolves
+           only where a server rewrite says so (vercel.json has one), and
+           where it does not, the request falls back to THIS page: the
+           button appears to do nothing because the landing page simply
+           reloads itself. That failure is silent, which is why the slash
+           is here rather than in a deploy config. -->
+      <!-- Shown ONLY on the old host. localStorage is per-origin, so a plan
+           saved on cashflowengine.app does not exist here -- a redirect would
+           look like it worked and leave people with an empty form. Hidden by
+           default and revealed by script, so it can never flash on the new
+           domain if the script does not run. -->
+      <section id="moving" hidden>
+        <div class="note" style="border-style:solid;border-color:var(--or-teal);color:var(--text);">
+          <p style="font-size:20px;margin:0 0 8px;"><strong>This address is moving to outlastretirement.com</strong></p>
+          <p style="margin:0 0 10px;">cashflowengine.app stops working on <strong><span id="moving-date">October 1, 2026</span></strong>. <strong>Your plan will not move by itself</strong> &mdash; it is saved in this browser under this web address, and the new address is a different one as far as your browser is concerned.</p>
+          <ol style="margin:0 0 12px;padding-left:20px;line-height:1.9;">
+            <li>Open the app here and click <strong>Backup Everything</strong> to save a copy of your plan.</li>
+            <li>Go to <strong>outlastretirement.com</strong> and use <strong>Restore Backup</strong> to load that file.</li>
+            <li>Bookmark the new address, and delete any bookmark to this one.</li>
+          </ol>
+          <div class="cta-row" style="margin:0;">
+            <a class="btn btn-primary" href="https://www.outlastretirement.com/">Go to outlastretirement.com</a>
+            <a class="btn btn-ghost" href="/app/">Open the app here to back up</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="hero">
+        <div class="privacy-panel" role="note" aria-label="Our privacy promise">
+          <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <p class="privacy-line">Local-first retirement education. Your numbers never leave your device.</p>
+          <ul class="privacy-points">
+            <li>No user accounts</li>
+            <li>No bank linking</li>
+            <li>Your plan and the math stay on your device</li>
+            <li>Analytics off unless you turn them on</li>
+          </ul>
+          <p class="verify-link"><a href="/verify">Verify it yourself in two minutes &rarr;</a></p>
+        </div>
+        <div class="eyebrow">Retirement planner · Beta</div>
+        <h1>If you keep doing what you’re doing, does the money outlast you?</h1>
+        <p class="lede">OutlastRetirement answers that question on <em>your</em> machine — without bank logins, user accounts, or an advisor funnel.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/app/?demo=1">Try the Demo Plan</a>
+          <a class="btn btn-ghost" href="/app/">Open the app</a>
+        </div>
+        <p class="small muted">Uses a fictional household (the Carters). Your own plan stays on your device. Education, not financial advice.</p>
+        <figure class="shot">
+          <img src="/brand/screens/dashboard-1600.webp" srcset="/brand/screens/dashboard-800.webp 800w, /brand/screens/dashboard-1100.webp 1100w, /brand/screens/dashboard-1600.webp 1600w" sizes="(max-width: 1080px) calc(100vw - 40px), 1040px" width="1600" height="1112" loading="eager" fetchpriority="high" decoding="async" alt="The OutlastRetirement Dashboard for the fictional Carter household: headline figures, a Will It Last? verdict reading On track, and a chart of their savings from 2026 to 2063 with the range across simulated markets shaded behind it." />
+          <figcaption>The Carters&rsquo; Dashboard: one verdict, their savings year by year, and a sentence that says what the chart shows.</figcaption>
+        </figure>
+      </section>
+
+      <section id="problem">
+        <h2>Most tools start by connecting your life.</h2>
+        <p class="lede">Link accounts. Create a login. Sync balances into the cloud — then upsell advice or managed money. That architecture is fine for some products. It isn’t ours.</p>
+        <p class="lede">You don’t need a dossier to ask a simple question: <em>if nothing changes, does this path hold?</em></p>
+      </section>
+
+      <section id="how">
+        <h2>How OutlastRetirement works</h2>
+        <div class="grid grid-3" style="margin-top:22px;">
+          <div class="card">
+            <span class="step-n">1</span>
+            <h3>Start with the keep-doing question</h3>
+            <p class="small muted" style="margin:0;">Load the Carters demo or enter your own assumptions. See year-by-year whether the path outlasts you — or you outlast the money.</p>
+          </div>
+          <div class="card">
+            <span class="step-n">2</span>
+            <h3>Your plan stays on your machine</h3>
+            <p class="small muted" style="margin:0;">Plan inputs and projections run on-device. No OutlastRetirement account. Free path and Premium share the same privacy boundary.</p>
+          </div>
+          <div class="card">
+            <span class="step-n">3</span>
+            <h3>Go deeper only if you want</h3>
+            <p class="small muted" style="margin:0;">Optional Premium unlocks Detailed Holdings, Retirement Spending, Readiness in Full, and Relocation &amp; Residency — still calculated locally. Invite-only while we’re in beta.</p>
+          </div>
+        </div>
+        <div class="cta-row"><a class="btn btn-primary" href="/app/?demo=1">Try the Demo Plan</a><a class="btn btn-ghost" href="/how-the-math-works">How the math works</a><a class="btn btn-ghost" href="/changelog">Release notes</a></div>
+      </section>
+
+      <section id="readiness">
+        <h2>The questions you actually ask, answered from your plan</h2>
+        <p class="lede">Retirement Readiness turns the projection into plain answers, each worked out from your own numbers rather than a rule of thumb:</p>
+        <ul class="ticks" style="margin-top:14px;">
+          <li>If you walked away today, could the portfolio carry this lifestyle?</li>
+          <li>What would working longer actually buy you?</li>
+          <li>Where does your first five years of money come from, and how does it reach you?</li>
+          <li>If the market fell 20% right after you retire, could you stay retired without changing your lifestyle?</li>
+          <li>Are your biggest expenses landing in the years that can least absorb them?</li>
+        </ul>
+        <figure class="shot">
+          <img src="/brand/screens/readiness-1600.webp" srcset="/brand/screens/readiness-800.webp 800w, /brand/screens/readiness-1100.webp 1100w, /brand/screens/readiness-1600.webp 1600w" sizes="(max-width: 1080px) calc(100vw - 40px), 1040px" width="1600" height="1145" loading="lazy" decoding="async" alt="The Retirement Readiness page for the fictional Carters, answering whether they could walk away from work today and how much they could spend and still last." />
+          <figcaption>Retirement Readiness for the Carters: how long the plan has to last, and whether they could stop working today.</figcaption>
+        </figure>
+      </section>
+
+      <section id="privacy">
+        <h2>Built so we can’t sell what we never hold</h2>
+        <p class="lede">Your numbers are your business. We don't collect your plan data, we don't have user accounts, and we never sell your financial profile.</p>
+        <ul class="ticks">
+          <li><strong>No user accounts</strong> to run a projection</li>
+          <li><strong>No bank linking</strong> required to start</li>
+          <li><strong>Plan data + math on your device</strong> (free and Premium)</li>
+          <li><strong>No third-party beacons by default</strong> — anonymous visit analytics are opt-in and off until you turn them on</li>
+          <li><strong>Backup you own</strong> — export a file to your disk; optional encrypted backup</li>
+        </ul>
+        <p class="note" style="margin-top:20px;">
+          Loading the app still contacts our host to serve the page. Optional Live Pricing can send <em>ticker symbols only</em> to a spreadsheet you control — never share counts or dollars invested. We don’t claim the browser “never touches the network.”
+        </p>
+        <p style="margin-top:14px;"><a href="/verify"><strong>Verify it yourself in two minutes</strong></a> &nbsp;·&nbsp; <a href="/privacy">Privacy policy</a> &nbsp;·&nbsp; <a href="/terms">Terms of use</a> &nbsp;·&nbsp; <a href="/accessibility">Accessibility</a></p>
+      </section>
+
+      <section id="contrast">
+        <h2>Different job than sync-first tools</h2>
+        <p class="lede">Many “free” planners start by connecting banks so balances live on their servers — then retention, coaching, or managed money. Others skip linking but still require an account and keep your plan in the cloud.</p>
+        <p class="lede">OutlastRetirement is a local planning instrument: see if your current path outlasts you, without uploading your life or getting walked to an advisor.</p>
+      </section>
+
+      <section id="premium">
+        <h2>Free core. Optional depth.</h2>
+        <div class="grid grid-2" style="margin-top:22px;">
+          <div class="card">
+            <h3>Free — OutlastRetirement</h3>
+            <ul class="ticks" style="margin-top:8px;">
+              <li><strong>Monte Carlo</strong> — 1,000 simulated markets and one verdict: will it last?</li>
+              <li><strong>Every real retirement since 1928</strong> — your plan replayed through each start year, plus the crashes of 1929 to 2008</li>
+              <li><strong>Retirement Readiness</strong> — a plain answer to every question, from walking away today to a 20% market fall</li>
+              <li><strong>Optimizers</strong> — Social Security claiming, Roth conversion ladders and withdrawal order</li>
+              <li><strong>The full plan</strong> — federal and state tax, IRMAA, ACA credits, RMDs, Year by Year detail, scenarios and spending guardrails</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Premium — optional</h3>
+            <ul class="ticks" style="margin-top:8px;">
+              <li><strong>Detailed Holdings</strong> — ticker-level lots, employer stock, distributions</li>
+              <li><strong>Retirement Spending</strong> — spending composition and need, still on-device</li>
+              <li><strong>Readiness in Full</strong> — the working behind each Retirement Readiness answer</li>
+              <li><strong>Relocation &amp; Residency</strong> — years abroad priced on top of the US tax you keep paying, with summaries for eighteen countries (our own research, not yet reviewed by a cross-border tax professional)</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note" style="margin-top:20px;">
+          Premium is <strong>invite-only</strong> right now. Email <a href="mailto:outlastretirement@gmail.com?subject=Premium%20access" data-mailto-fallback>outlastretirement@gmail.com</a> from your usual email and we’ll send enable instructions. Nothing is sent from this page. Feedback welcome at the same address.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-ghost" href="/premium">Everything in Free and Premium</a>
+          <a class="btn btn-ghost" href="mailto:outlastretirement@gmail.com?subject=Premium%20access" data-mailto-fallback>Request Premium by email</a>
+          <a class="btn btn-primary" href="/app/?demo=1">Try the Demo Plan</a>
+        </div>
+      </section>
+
+      <section id="learn">
+        <h2>New to retirement planning? Start with a lesson.</h2>
+        <p class="lede">Six short lessons, a few minutes each, in plain words. They follow Ray and Angie Parker, a fictional couple, from “will my money last?” to fixing a plan that runs short.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/learn/will-my-money-last">Read lesson 1</a>
+          <a class="btn btn-ghost" href="/learn">See all the lessons</a>
+        </div>
+      </section>
+
+      <section id="demo">
+        <h2>Learn on a fictional household first</h2>
+        <p class="lede">Two made-up families come with a full plan already filled in. The Carters have a large, detailed plan that is on track. Ray and Angie Parker are an ordinary couple with two paychecks and a mortgage, whose plan runs short until a few small changes fix it. Change a number, watch the answer move, then bring your own numbers when you’re ready.</p>
+        <figure class="shot">
+          <img src="/brand/screens/montecarlo-1600.webp" srcset="/brand/screens/montecarlo-800.webp 800w, /brand/screens/montecarlo-1100.webp 1100w, /brand/screens/montecarlo-1600.webp 1600w" sizes="(max-width: 1080px) calc(100vw - 40px), 1040px" width="1600" height="1168" loading="lazy" decoding="async" alt="The Risk tab for the fictional Carters: a Monte Carlo of 1,000 simulated markets with the success rate and the best, median and worst ending balances." />
+          <figcaption>Stress it: 1,000 simulated markets, historical crashes, and the range behind every ending balance.</figcaption>
+        </figure>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/app/?demo=1">Try the Demo Plan</a>
+          <a class="btn btn-ghost" href="/app/?demo=parkers">Open Ray and Angie’s plan</a>
+        </div>
+      </section>
+
+      <section id="advice">
+        <h2>We illuminate. We don’t prescribe.</h2>
+        <p class="lede">OutlastRetirement shows levers and tradeoffs on your assumptions so you can decide. It is educational software, not financial, tax, or legal advice. Decisions stay yours.</p>
+      </section>
+
+      <section id="faq">
+        <h2>Questions</h2>
+        <dl class="faq">
+          <dt>Do I need an account?</dt><dd>No.</dd>
+          <dt>Do I have to link my bank?</dt><dd>No.</dd>
+          <dt>Where does my plan live?</dt><dd>On your device. Export a backup anytime (Preferences → Your Data).</dd>
+          <dt>Is Premium a separate product?</dt><dd>No — one OutlastRetirement, optional depth (Detailed Holdings, Retirement Spending, Readiness in Full, and Relocation &amp; Residency).</dd>
+          <dt>How do I get Premium in beta?</dt><dd>Email <a href="mailto:outlastretirement@gmail.com">outlastretirement@gmail.com</a>.</dd>
+          <dt>Is this advice?</dt><dd>No. Education only.</dd>
+          <dt>Who is it for?</dt><dd>The App models United States tax, Social Security and Medicare rules for U.S. taxpayers.</dd>
+          <dt>Used cashflowengine.app?</dt><dd>Your plan did not move with the address. Restore it here from a Backup Everything file (Preferences → Your Data → Restore Backup).</dd>
+        </dl>
+      </section>
+    </div>
+
+    <div class="band">
+      <div class="wrap">
+        <section style="border-top:none;">
+          <h2>See if your path outlasts you.</h2>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="/app/?demo=1">Try the Demo Plan</a>
+            <a class="btn btn-ghost" href="/app/">Open the app</a>
+          </div>
+          <p class="small muted">Or email <a href="mailto:outlastretirement@gmail.com">outlastretirement@gmail.com</a> for Premium access or feedback.</p>
+        </section>
+      </div>
+    </div>
+
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <strong>Local-first retirement education. Your numbers never leave your device.</strong><br />
+        <nav class="foot-links" aria-label="Site links"><a href="/">Home</a> <a href="/learn">Learn</a> <a href="/how-the-math-works">How the math works</a> <a href="/changelog">Release notes</a> <a href="/privacy">Privacy</a> <a href="/terms">Terms</a> <a href="/accessibility">Accessibility</a> <a href="/verify">Verify it yourself</a> <a href="/premium">Free and Premium</a> <a href="mailto:outlastretirement@gmail.com">Contact</a> <a href="/app/">Open the app</a></nav>
+        © 2026 OutlastRetirement LLC. All rights reserved. · Beta<br />
+        <em>Educational software. Not financial, tax, or legal advice.</em>
+      </div>
+    </footer>
+
+    <script src="/home-returning.js"></script>
+    <script src="/mailto-fallback.js"></script>
+  </body>
+</html>

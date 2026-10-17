@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — OutlastRetirement</title>
+  <meta name="description" content="OutlastRetirement Privacy Policy. Your financial plan stays on your device unless you move it. Optional, anonymous usage analytics are off by default." />
+  <link rel="canonical" href="https://www.outlastretirement.com/privacy" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="OutlastRetirement" />
+  <meta property="og:url" content="https://www.outlastretirement.com/privacy" />
+  <meta property="og:title" content="Privacy Policy — OutlastRetirement" />
+  <meta property="og:description" content="OutlastRetirement Privacy Policy. Your financial plan stays on your device unless you move it. Optional, anonymous usage analytics are off by default." />
+  <meta property="og:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="The OutlastRetirement logo: a teal line rising to an arrow beside the name." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Privacy Policy — OutlastRetirement" />
+  <meta name="twitter:description" content="OutlastRetirement Privacy Policy. Your financial plan stays on your device unless you move it. Optional, anonymous usage analytics are off by default." />
+  <meta name="twitter:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+  <!-- This page used to carry its own slate/emerald/violet palette and a
+       system-font stack from before the brand lock (2026-09-11), so it read
+       as a third product next to / and /app/. It now uses the app's own dark
+       tokens and its two UI faces, self-hosted and same-origin -- privacyTenets
+       asserts this document loads nothing off-origin, and a font host here
+       would be the worst possible place to break that. Wording is untouched. -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="stylesheet" href="/brand/outlastretirement.tokens.css" />
+  <link rel="stylesheet" href="/brand/site-theme.css" />
+  <script src="/brand/theme.js"></script>
+  <link rel="stylesheet" href="/brand/fonts.css" />
+  <style>
+    /* Colors come from /brand/site-theme.css (dark and light, the app's own
+       values) so a panel here and a card in the app match in either theme. */
+    :root {
+      --maxw: 1080px;
+      --font-heading: 'Outfit Variable', 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-padding-top: 76px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-2);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: var(--maxw); margin: 0 auto; padding: 44px 20px 40px; }
+    /* A reading column, starting under the logo as the home page's does. */
+    .page-head, main { max-width: 720px; }
+    .page-head { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+    /* The site's one header: the home page's sticky bar,
+       logo left, links right, Open the app as the button. Below 1000px
+       the links fold away and the footer carries them. */
+    header.nav {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--header-bg);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; gap: 18px; padding: 12px 20px; max-width: var(--maxw); margin: 0 auto; }
+    .brand { display: flex; align-items: center; text-decoration: none; margin-right: auto; }
+    .brand .or-logo { height: var(--or-logo-nav); width: auto; display: block; }
+    .nav a.navlink { color: var(--text-2); text-decoration: none; font-size: 14px; white-space: nowrap; }
+    .nav a.navlink:hover, .nav a.navlink[aria-current="page"] { color: var(--text); }
+    .nav a.navlink[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--or-teal); text-underline-offset: 6px; text-decoration-thickness: 2px; }
+    .btn {
+      display: inline-block; text-decoration: none; font-weight: 600; font-family: var(--font-heading);
+      border-radius: 12px; border: 1px solid transparent; white-space: nowrap;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--btn-bg); color: var(--btn-fg); }
+    .btn-primary:hover { background: var(--btn-hover); }
+    .btn-sm { padding: 8px 14px; font-size: 14px; }
+    @media (max-width: 1000px) {
+      .nav-inner { gap: 12px; padding: 10px 16px; }
+      .nav-inner .navlink { display: none; }
+    }
+    .eyebrow { font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--accent-text); font-weight: 700; margin-bottom: 10px; }
+    h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.02em; color: var(--text); }
+    h1 { font-size: clamp(28px, 4.2vw, 40px); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+    .subtitle { color: var(--muted); font-size: 15px; margin-top: 6px; }
+    .effective {
+      display: inline-block; margin-top: 12px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 6px 14px; font-size: 13px; color: var(--muted);
+    }
+    h2 { font-size: 18px; font-weight: 600; margin: 36px 0 12px; }
+    p { color: var(--text-2); margin-bottom: 14px; }
+    ul { color: var(--text-2); padding-left: 24px; margin-bottom: 14px; }
+    ul li { margin-bottom: 8px; }
+    strong { color: var(--text); }
+    code {
+      font-size: 0.92em; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 6px; padding: 1px 6px;
+    }
+    /* The landing page's .privacy-line, same recipe: a teal rule and a wash
+       that fades out, not a filled green block. */
+    .highlight {
+      border-left: 3px solid var(--or-teal);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--or-teal) 14%, transparent), transparent);
+      padding: 16px 20px; border-radius: 0 12px 12px 0;
+      margin: 24px 0;
+    }
+    .highlight p { color: var(--text); margin: 0; font-weight: 500; }
+    /* Paper type underlined in teal, as on the landing page -- a link color
+       of its own would be a fifth brand color. */
+    a { color: var(--text); text-decoration-color: var(--or-teal); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    footer a { color: var(--text-2); }
+    /* Footer links: a 44px-tall tap target each, wrapping on a phone. */
+    .foot-links { display: flex; flex-wrap: wrap; margin: 2px -10px 6px; }
+    .foot-links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+    .site-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; margin-bottom: 20px; }
+    .site-nav a { color: var(--text-2); }
+    .site-nav a[aria-current="page"] { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="/" aria-label="OutlastRetirement home">
+        <img class="or-logo or-logo--full logo-on-dark" alt="OutlastRetirement" src="/brand/outlast-full-dark-h96.png" srcset="/brand/outlast-full-dark-h96.png 413w, /brand/outlast-full-dark.png 870w" sizes="121px" width="121" height="28" />
+        <img class="or-logo or-logo--full logo-on-light" alt="OutlastRetirement" src="/brand/outlast-full-light-h96.png" srcset="/brand/outlast-full-light-h96.png 413w, /brand/outlast-full-light.png 870w" sizes="121px" width="121" height="28" />
+      </a>
+      <a class="navlink" href="/#how">How it works</a>
+      <a class="navlink" href="/learn">Learn</a>
+      <a class="navlink" href="/how-the-math-works">How the math works</a>
+      <a class="navlink" href="/privacy" aria-current="page">Privacy</a>
+      <a class="navlink" href="/verify">Verify it yourself</a>
+      <a class="navlink" href="/premium">Free and Premium</a>
+      <a class="btn btn-primary btn-sm" href="/app/">Open the app</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-head">
+      <h1>Privacy Policy</h1>
+      <span class="effective">Effective Date: October 17, 2026</span>
+    </div>
+
+    <main>
+
+    <div class="highlight">
+      <p>Everything you enter into OutlastRetirement — your ages, balances, income, and spending assumptions — stays on your device. The App never transmits it; it leaves only when you move it yourself, as described under "Moving Your Data Off Your Device." Emailing us is the one place we hold anything about you, and it is never connected to your plan. Optional anonymous usage analytics are off by default and only run if you turn them on; see "Anonymous Usage Analytics" below for exactly what that includes.</p>
+    </div>
+
+    <h2>Overview</h2>
+    <p>OutlastRetirement ("the App") is an educational retirement cash flow calculator designed to help individuals model their financial future. We are committed to your privacy. This policy describes how the App handles information, including the limited, anonymous analytics data described below.</p>
+
+    <h2>Data We Do Not Collect</h2>
+    <p>OutlastRetirement does not collect, store, transmit, or share any of your personal or financial planning information. Specifically, we do not collect:</p>
+    <ul>
+      <li>Names, email addresses, or contact information <em>through the App</em>. You can type names into your plan, such as a spouse, heirs, account labels or Life Plan notes, but they stay on your device and are never transmitted. If you email us, we of course have your address; see <a href="#email">If You Email Us</a> below.</li>
+      <li>Financial account numbers, balances, or transaction data</li>
+      <li>Any of the retirement-plan inputs or results you enter into the App (ages, income, savings, spending, tax settings, simulation outputs, etc.)</li>
+      <li>Social Security numbers or government identifiers</li>
+      <li>Precise location data</li>
+      <li>Device identifiers or advertising IDs</li>
+      <li>Individually identifiable usage or behavioral data — see below for the limited, anonymous analytics we do use</li>
+      <li>Crash reports or diagnostic data sent to us</li>
+    </ul>
+
+    <h2>How Your Data Is Stored</h2>
+    <p>All information you enter into OutlastRetirement — including retirement ages, account balances, income figures, and spending assumptions — is stored exclusively on your device using the browser's local storage. This data:</p>
+    <ul>
+      <li>Is never sent anywhere by the App</li>
+      <li>Is not backed up to any server operated by OutlastRetirement — there is no such server</li>
+      <li>Is not accessible to the developer, because we never receive a copy of it</li>
+      <li>Can be erased at any time with <strong>Erase everything on this device</strong> in Preferences → Your Data, which removes everything the App has stored in this browser once you confirm, or by clearing this site's data in your browser. <strong>Reset Plan to Defaults</strong> is different: it resets only the plan you have open and erases nothing else.</li>
+    </ul>
+
+    <h2>Moving Your Data Off Your Device</h2>
+    <p>The App never moves your plan anywhere. You can, and these are the ways you can move it — each one something you do deliberately, none of them automatic, and none of them routed through us:</p>
+    <ul>
+      <li><strong>Backup Everything</strong> downloads your plan as a file to your computer. What happens to that file afterwards is entirely up to you: where you keep it, whether you email it, whether you encrypt it. You can password-protect it on the way out if you want to.</li>
+      <li><strong>Save to a cloud folder</strong> writes that same file to a location you pick — typically a folder your own Dropbox, Google Drive, iCloud or OneDrive client already watches. Worth being precise about how this works: the App has no account with any of those providers, no sign-in, and no API key. It writes an ordinary file to a folder you chose; your own sync software is what carries it to the cloud, under whatever terms you already have with that provider. We are not in the path and never see it.</li>
+      <li><strong>Print / Save as PDF</strong> sends a report to your browser&rsquo;s print dialog. Where it goes from there, a printer or a PDF file, is your choice.</li>
+      <li><strong>CSV exports</strong>, such as the Year by Year table or your holdings, download a spreadsheet file to your computer, the same way a backup does.</li>
+      <li><strong>Live Pricing</strong> (optional, off until you connect it) is the only feature that sends anything out while you use the App. It sends a bare ticker symbol — for example <code>VTI</code> — to a Google Sheet in <em>your own</em> Google account, and reads back a price. The Sheet&rsquo;s script then looks the symbol up with Google Finance and Yahoo Finance from Google&rsquo;s servers; those services see the symbol, not you. It never sends how many shares you own, which accounts hold them, what they cost you, or any dollar amount. The Sheet is yours; we have no access to it.</li>
+    </ul>
+    <p>If you would rather none of that were possible, turning on <strong>Local-Only Mode</strong> (Preferences → Your Data) stops the App&rsquo;s optional connections, Live Pricing and analytics included. Your browser still loads the App and checks for updates when you reload. It is enforced in the code at the point every request would be made, not by hiding buttons.</p>
+
+    <h2 id="premium-modules">Premium Modules</h2>
+    <p>The code for the Premium features — Detailed Holdings, Retirement Spending, Readiness in Full and Relocation &amp; Residency — is kept separate from the rest of the App. It is not part of what your browser downloads from outlastretirement.com; it is fetched, one module at a time, from our own module server, <code>premium.outlastretirement.com</code>, and only when a valid Premium Access key is present and the first time you open the part of the App that uses it.</p>
+    <p>Here is exactly what happens, and the code enforcing it is in the App&rsquo;s <a href="https://github.com/jabone/outlastretirement" target="_blank" rel="noopener">published source</a>:</p>
+    <ul>
+      <li>The App sends the module server <strong>one thing</strong>: your Premium Access key, so the server can check it is valid and unexpired. It is sent as a request header, never in a web address. The key carries the email address it was issued to (see "If You Email Us" below), so that address is inside what the server receives; the server checks the key's signature and expiry and keeps no record of its own; Vercel, which hosts it, keeps the same short-lived request logs it keeps for every page (below). Nothing from your plan or your holdings is sent — the server delivers code to your browser; your data never travels the other way.</li>
+      <li>The server answers with a signed module. The App verifies the signature against a public key built into the App before running a single line of it, so what you run is what we published, not something altered on the way.</li>
+      <li>Premium modules run under the same rules as the rest of the App. They do not store anything outside the App&rsquo;s own data on your device, and they make no network connections of their own — with the one exception already described above, Live Pricing to your own Google Sheet, which only the Detailed Holdings module uses and only when you have connected it.</li>
+      <li><strong>Local-Only Mode</strong> stops this connection too. While it is on, no Premium module is fetched, and a Premium part of the App that has not been loaded yet shows a note saying so instead. A module that was already loaded in the current session keeps working: once Detailed Holdings, Retirement Spending, Readiness in Full and Relocation &amp; Residency have each been opened once, you can turn Local-Only Mode on and carry on using all four with no further connection until you reload the page.</li>
+      <li>If your key has lapsed, Premium parts of the App lock, but your holdings and everything else you entered stay on your device, readable and restorable from a backup, exactly as before.</li>
+    </ul>
+    <p>Which version of each Premium module is loaded is shown in Preferences. The App itself is open source (<a href="https://github.com/jabone/outlastretirement" target="_blank" rel="noopener">github.com/jabone/outlastretirement</a>, under the GNU Affero General Public License); the Premium modules are a separate work and are not.</p>
+
+    <h2>What Our Host Sees</h2>
+    <p>The App&rsquo;s pages and code are served by our hosting provider, Vercel Inc. When your browser asks for a page, Vercel&rsquo;s servers receive your IP address and browser type, as any web server does, and keep short-lived request logs (the address asked for, the response, and in some views the IP address) that we can see in Vercel&rsquo;s dashboard for a short time. We don&rsquo;t export, analyze or keep them, we send them nowhere else, and nothing you type into the App is part of those requests.</p>
+
+    <h2>Anonymous Usage Analytics</h2>
+    <p><strong>These analytics are off by default.</strong> The App sends no usage data at all unless you turn on "Anonymous Usage Analytics" in Preferences &rarr; Your Data. If you never turn it on, this whole section does not apply to you and nothing described here is ever sent.</p>
+    <p>When you switch it on, the App uses Vercel Web Analytics, a privacy-focused service from our hosting provider, Vercel Inc., to understand overall traffic. It then sends the following anonymous, aggregate technical information to Vercel's servers on each visit:</p>
+    <ul>
+      <li>Which part of the App was opened, as the tab name only (for example, Scenarios): no sub-page, no search or link parameters, and nothing after the address</li>
+      <li>The site you came from, if any. That site decides how much of its address your browser passes on; most, including search engines, pass on only their domain. Moving between our own pages passes on only our domain.</li>
+      <li>Approximate location (country/region, derived from network address — not precise GPS location)</li>
+      <li>Device type, operating system, and browser (e.g. "Mobile, iOS, Safari")</li>
+      <li>Timestamp of the visit</li>
+    </ul>
+    <p>This is the same category of information a web server logs by default — it does not include anything you type into the App. None of your names, ages, balances, income, spending, tax settings, or simulation results are ever included in this data, because the App never sends that information anywhere (see "How Your Data Is Stored" above).</p>
+    <p>The service uses no cookies or persistent device identifiers and cannot identify you individually or link your visits across other apps or websites. Visitors are distinguished only by a one-way hash of the incoming request, which is automatically discarded after 24 hours. For Vercel's own technical documentation on exactly what is collected, see their <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noopener">Web Analytics privacy policy</a>. Turning the setting back off stops all of it immediately, and turning on the App's <strong>Local-Only Mode</strong> overrides the setting entirely — while that is on, no analytics are sent.</p>
+    <p>The App's fonts are bundled into the App itself rather than loaded from a third party, so opening the App reveals nothing to any font host. OutlastRetirement does not use any advertising networks, third-party trackers, or data-sharing services beyond the optional Web Analytics described above.</p>
+
+    <h2 id="email">If You Email Us</h2>
+    <p>Premium access is arranged by email — today it is invite-only, and if that changes we will say so here — so emailing us is the one point where we hold something about you. We think you should know exactly what that is.</p>
+    <ul>
+      <li><strong>What we have:</strong> your email address, and whatever you choose to write to us. Nothing more — we do not ask for your name, and there is no form that collects anything else.</li>
+      <li><strong>Where it sits:</strong> an ordinary Gmail mailbox. Google hosts it and can access it under their own terms, the same as any email you send to any Gmail address.</li>
+      <li><strong>How long:</strong> indefinitely. We keep correspondence in the mailbox and do not delete it on a schedule. Ask us to delete yours and we will.</li>
+      <li><strong>What we use it for:</strong> replying to you, and sending Premium enable instructions. We do not add you to a mailing list, and we do not sell, rent, or share your address.</li>
+    </ul>
+    <p><strong>It is never linked to your plan.</strong> This is not a promise about our intentions — it is how the App is built. The App never sends us your plan data, so we do not have it to link anything to. The Premium access key we send you carries three things: the email address we sent it to, the fact that Premium is enabled, and when it expires. Nothing else — no name, no device, no plan data. The address is there so that a key says whose it is: the App shows it under Preferences › Premium Access, and a key that turns up where it should not can be traced to the address it was issued to. The key is checked by the Premium module server when a module is fetched (see "Premium Modules" above), so that server sees the address inside your key on each fetch, and nothing else about you; it keeps no record of those fetches. Nothing in the App sends us anything, so we still cannot tell who is using it or how.</p>
+    <p><strong>Payment:</strong> Premium is free while it is invite-only. There is no checkout, no price, and no payment processor, so we hold no payment or card information whatsoever. If that ever changes, this policy will be updated before any payment is taken, not after.</p>
+
+    <h2>Your Choices</h2>
+    <p>Your plan data is yours in the most literal sense: it is on your device, and you can export it with Backup Everything, or erase it with <strong>Erase everything on this device</strong>, at any time from Preferences → Your Data. We have no copy to hand over or delete.</p>
+    <p>For anything you have emailed us, write to the address at the bottom of this page and we will tell you what correspondence we hold from you, or delete it. We will not ask you to prove anything beyond replying from the address in question.</p>
+
+    <h2>No Account Required</h2>
+    <p>OutlastRetirement requires no account creation, login, or registration. You can use the full functionality of the App without providing any identifying information.</p>
+
+    <h2>Children's Privacy</h2>
+    <p>OutlastRetirement is for adults. As the <a href="/terms">Terms of Use</a> say, you must be at least 18 to use it. We do not knowingly collect any information from anyone under 18.</p>
+
+    <h2>Changes to This Policy</h2>
+    <p>If we ever change this privacy policy in a material way — for example, adding or removing a third-party service, or changing what data it collects — we will update the effective date above and note the changes in the App's release notes.</p>
+    <p><em>Update, October 17, 2026: Two sentences said that our host's request data is something we "don't receive or keep" and that the module server "keeps no record of the request". More precisely: Vercel keeps short-lived request logs for every request to the site and the module server, which we can see in its dashboard for a short time and do not export, analyze or keep. Nothing about what the App sends has changed.</em></p>
+    <p><em>Update, October 16, 2026: The Premium module server is now in use for all four Premium areas, and the "Premium Modules" section now describes what happens rather than what would. One change to what a Premium Access key carries: a key issued from this date on includes the email address it was sent to, so a key says whose it is. Keys issued before this date carry no address and keep working. "If You Email Us" says what the key holds now; nothing else about what the App sends has changed.</em></p>
+    <p><em>Update, October 14, 2026: Added the "Premium Modules" section. The App now has a separate loader for Premium code; today it still loads that code from outlastretirement.com, and the section explains what will change when our module server takes over (the Premium Access key is sent to it, nothing else) and how Local-Only Mode applies. The Live Pricing settings in Preferences now appear only when a Premium key is present, since only Detailed Holdings uses them. Nothing about what the App sends has changed yet.</em></p>
+    <p><em>Update, September 30, 2026: This policy now says what our host receives when it serves a page (your IP address and browser type, which we don't receive or keep), that the Live Pricing Sheet looks symbols up with Google Finance and Yahoo Finance, that printing and CSV exports are also ways you can move your data, and how Erase everything on this device differs from Reset Plan to Defaults. It also no longer says there is nowhere in the App to enter names: there is, and those names stay on your device. The age line now matches the Terms of Use (18). Nothing about what the App sends changed.</em></p>
+    <p><em>Update, September 28, 2026: An independent check found that, for people who had opted in, analytics sent the full address of each page view, including the tab and sub-page and any link parameters, and the full address of the page you came from. None of it was plan data, but it was more than this policy described. The App now sends only the tab name, never link parameters, and every page tells your browser to pass on only our domain as the referring site. The list above was updated to match, and the Local-Only Mode description was corrected: it stops the App&rsquo;s optional connections, not every network request.</em></p>
+    <p><em>Update, September 12, 2026: The App was renamed from CashFlowEngine to OutlastRetirement and the contact address changed. More importantly, this policy previously stated that we do not collect email addresses, full stop. That was wrong: Premium access is arranged by email, so we hold the address of anyone who writes to us. The new "If You Email Us" section describes exactly what we have, where it sits, and how long we keep it. The storage section has also been rewritten: it said your data "never leaves your device" without qualification, which read as a promise the App could not keep once you use Backup, save to a synced folder, or connect Live Pricing. The App still sends nothing — but you can move your data, and the new "Moving Your Data Off Your Device" section says exactly what each of those does. Nothing about the App's own behavior changed — it collects no more and no less than before — but a data flow that was always happening had not been disclosed, so the effective date above has moved.</em></p>
+    <p><em>Update, September 8, 2026: Anonymous Vercel Web Analytics is now OFF by default and only runs if you opt in (Preferences &rarr; Your Data). The Vercel Speed Insights performance-metrics service was removed entirely and is no longer used. App fonts were moved in-app so nothing is fetched from a third-party font host.</em></p>
+    <p><em>Update, July 21, 2026: This policy was revised to accurately disclose the anonymous Vercel Web Analytics and Speed Insights services described above, which were already in use but had not previously been disclosed here. Nothing about what these services collect changed; only this policy's description of it did.</em></p>
+
+    <h2>Contact</h2>
+    <p>If you have any questions about this privacy policy, please contact us at:<br />
+    <a href="mailto:outlastretirement@gmail.com">outlastretirement@gmail.com</a></p>
+
+    </main>
+
+    <footer>
+      <p><strong>Local-first retirement education. Your numbers never leave your device.</strong></p>
+      <nav class="foot-links" aria-label="Site links"><a href="/">Home</a> <a href="/learn">Learn</a> <a href="/how-the-math-works">How the math works</a> <a href="/changelog">Release notes</a> <a href="/privacy">Privacy</a> <a href="/terms">Terms</a> <a href="/accessibility">Accessibility</a> <a href="/verify">Verify it yourself</a> <a href="/premium">Free and Premium</a> <a href="mailto:outlastretirement@gmail.com">Contact</a> <a href="/app/">Open the app</a></nav>
+      <p>© 2026 OutlastRetirement LLC. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

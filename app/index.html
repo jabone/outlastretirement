@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0F2744" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FFFAF4" media="(prefers-color-scheme: light)" />
+    <meta name="description" content="Local-first retirement education. Your numbers never leave your device. See if your current path outlasts you, with no user accounts and no advisor funnel. Education, not advice." />
+    <title>OutlastRetirement</title>
+    <!-- The two faces used on first paint, fetched alongside the app bundle
+         rather than after the stylesheet names them (changelog 323). Vite
+         rewrites these paths to the same hashed files the CSS refers to. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2" />
+    <!-- The light-theme brand marks, which every printout uses whatever
+         theme the screen is in (changelog 262). In dark mode they sit in
+         display:none <img>s, and a browser does not fetch an image it is not
+         rendering, so the first print started the download as the page was
+         being laid out for paper and drew a gray box where the logo goes.
+         Fetched here, they are in the cache before anyone prints. The -h96
+         copies are the ones srcset picks at print sizes (28-34 CSS px tall). -->
+    <link rel="preload" as="image" href="/brand/outlast-full-light-h96.png" />
+    <link rel="preload" as="image" href="/brand/or-short-light-h96.png" />
+    <link rel="canonical" href="https://www.outlastretirement.com/app/" />
+    <!-- The marketing page at / is the indexable, shareable surface; this is
+         the application itself. Keeping it out of the index stops a search
+         result dropping a cold visitor into a spreadsheet with no context. -->
+    <meta name="robots" content="noindex,follow" />
+
+    <!-- Open Graph (Facebook, LinkedIn, Slack, iMessage previews, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OutlastRetirement" />
+    <meta property="og:url" content="https://www.outlastretirement.com/app/" />
+    <meta property="og:title" content="OutlastRetirement — Does your money outlast you?" />
+    <meta property="og:description" content="Local-first retirement education. Your numbers never leave your device. See if your current path outlasts you, with no user accounts and no advisor funnel. Education, not advice." />
+    <meta property="og:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The OutlastRetirement logo: a teal line rising to an arrow beside the name." />
+
+    <!-- Twitter/X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OutlastRetirement — Does your money outlast you?" />
+    <meta name="twitter:description" content="Local-first retirement education. Your numbers never leave your device. See if your current path outlasts you, with no user accounts and no advisor funnel. Education, not advice." />
+    <meta name="twitter:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

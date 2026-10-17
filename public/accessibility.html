@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accessibility — OutlastRetirement</title>
+  <meta name="description" content="How OutlastRetirement supports screen readers, keyboard use and low vision, what we have tested, what still falls short, and how to reach us about a barrier." />
+  <link rel="canonical" href="https://www.outlastretirement.com/accessibility" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="OutlastRetirement" />
+  <meta property="og:url" content="https://www.outlastretirement.com/accessibility" />
+  <meta property="og:title" content="Accessibility — OutlastRetirement" />
+  <meta property="og:description" content="How OutlastRetirement supports screen readers, keyboard use and low vision, what we have tested, what still falls short, and how to reach us about a barrier." />
+  <meta property="og:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="The OutlastRetirement logo: a teal line rising to an arrow beside the name." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Accessibility — OutlastRetirement" />
+  <meta name="twitter:description" content="How OutlastRetirement supports screen readers, keyboard use and low vision, what we have tested, what still falls short, and how to reach us about a barrier." />
+  <meta name="twitter:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+  <!-- Written 2026-09-27 after the automated WCAG pass (changelogs 303-304).
+       Styling is the privacy page's, unchanged. Keep every claim here true:
+       it says what was tested and how, and lists what still falls short.
+       Update the "Last reviewed" date whenever it is re-checked. -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="stylesheet" href="/brand/outlastretirement.tokens.css" />
+  <link rel="stylesheet" href="/brand/site-theme.css" />
+  <script src="/brand/theme.js"></script>
+  <link rel="stylesheet" href="/brand/fonts.css" />
+  <style>
+    /* Colors come from /brand/site-theme.css (dark and light, the app's own
+       values) so a panel here and a card in the app match in either theme. */
+    :root {
+      --maxw: 1080px;
+      --font-heading: 'Outfit Variable', 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-padding-top: 76px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-2);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: var(--maxw); margin: 0 auto; padding: 44px 20px 40px; }
+    /* A reading column, starting under the logo as the home page's does. */
+    .page-head, main { max-width: 720px; }
+    .page-head { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+    /* The site's one header: the home page's sticky bar,
+       logo left, links right, Open the app as the button. Below 1000px
+       the links fold away and the footer carries them. */
+    header.nav {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--header-bg);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; gap: 18px; padding: 12px 20px; max-width: var(--maxw); margin: 0 auto; }
+    .brand { display: flex; align-items: center; text-decoration: none; margin-right: auto; }
+    .brand .or-logo { height: var(--or-logo-nav); width: auto; display: block; }
+    .nav a.navlink { color: var(--text-2); text-decoration: none; font-size: 14px; white-space: nowrap; }
+    .nav a.navlink:hover, .nav a.navlink[aria-current="page"] { color: var(--text); }
+    .nav a.navlink[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--or-teal); text-underline-offset: 6px; text-decoration-thickness: 2px; }
+    .btn {
+      display: inline-block; text-decoration: none; font-weight: 600; font-family: var(--font-heading);
+      border-radius: 12px; border: 1px solid transparent; white-space: nowrap;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--btn-bg); color: var(--btn-fg); }
+    .btn-primary:hover { background: var(--btn-hover); }
+    .btn-sm { padding: 8px 14px; font-size: 14px; }
+    @media (max-width: 1000px) {
+      .nav-inner { gap: 12px; padding: 10px 16px; }
+      .nav-inner .navlink { display: none; }
+    }
+    .eyebrow { font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--accent-text); font-weight: 700; margin-bottom: 10px; }
+    h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.02em; color: var(--text); }
+    h1 { font-size: clamp(28px, 4.2vw, 40px); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+    .subtitle { color: var(--muted); font-size: 15px; margin-top: 6px; }
+    .effective {
+      display: inline-block; margin-top: 12px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 6px 14px; font-size: 13px; color: var(--muted);
+    }
+    h2 { font-size: 18px; font-weight: 600; margin: 36px 0 12px; }
+    p { color: var(--text-2); margin-bottom: 14px; }
+    ul { color: var(--text-2); padding-left: 24px; margin-bottom: 14px; }
+    ul li { margin-bottom: 8px; }
+    strong { color: var(--text); }
+    code {
+      font-size: 0.92em; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 6px; padding: 1px 6px;
+    }
+    /* The landing page's .privacy-line, same recipe: a teal rule and a wash
+       that fades out, not a filled green block. */
+    .highlight {
+      border-left: 3px solid var(--or-teal);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--or-teal) 14%, transparent), transparent);
+      padding: 16px 20px; border-radius: 0 12px 12px 0;
+      margin: 24px 0;
+    }
+    .highlight p { color: var(--text); margin: 0; font-weight: 500; }
+    /* Paper type underlined in teal, as on the landing page -- a link color
+       of its own would be a fifth brand color. */
+    a { color: var(--text); text-decoration-color: var(--or-teal); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    footer a { color: var(--text-2); }
+    /* Footer links: a 44px-tall tap target each, wrapping on a phone. */
+    .foot-links { display: flex; flex-wrap: wrap; margin: 2px -10px 6px; }
+    .foot-links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+    .site-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; margin-bottom: 20px; }
+    .site-nav a { color: var(--text-2); }
+    .site-nav a[aria-current="page"] { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="/" aria-label="OutlastRetirement home">
+        <img class="or-logo or-logo--full logo-on-dark" alt="OutlastRetirement" src="/brand/outlast-full-dark-h96.png" srcset="/brand/outlast-full-dark-h96.png 413w, /brand/outlast-full-dark.png 870w" sizes="121px" width="121" height="28" />
+        <img class="or-logo or-logo--full logo-on-light" alt="OutlastRetirement" src="/brand/outlast-full-light-h96.png" srcset="/brand/outlast-full-light-h96.png 413w, /brand/outlast-full-light.png 870w" sizes="121px" width="121" height="28" />
+      </a>
+      <a class="navlink" href="/#how">How it works</a>
+      <a class="navlink" href="/learn">Learn</a>
+      <a class="navlink" href="/how-the-math-works">How the math works</a>
+      <a class="navlink" href="/privacy">Privacy</a>
+      <a class="navlink" href="/verify">Verify it yourself</a>
+      <a class="navlink" href="/premium">Free and Premium</a>
+      <a class="btn btn-primary btn-sm" href="/app/">Open the app</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-head">
+      <h1>Accessibility</h1>
+      <span class="effective">Last reviewed: September 30, 2026</span>
+    </div>
+
+    <main>
+    <div class="highlight">
+      <p>We want OutlastRetirement to work for everyone who plans for retirement, including people who use a screen reader, navigate with a keyboard, magnify the screen, or have low vision. If anything in the app gets in your way, please tell us. We treat it as a bug.</p>
+    </div>
+
+    <h2>The Standard We Work To</h2>
+    <p>Our goal is to meet the <strong>Web Content Accessibility Guidelines (WCAG) 2.1, Level AA</strong>, published by the World Wide Web Consortium. It is the standard most accessibility laws and courts in the United States point to.</p>
+
+    <h2>What We Have Done</h2>
+    <ul>
+      <li><strong>Automated testing of every screen.</strong> We check each page of the app, in both the dark and light themes, with axe-core, a widely used accessibility testing engine, against WCAG 2.0, 2.1 and 2.2 Level A and AA rules. As of the date above it reports no failures.</li>
+      <li><strong>Names for screen readers.</strong> Every slider, dropdown, checkbox, text box and icon-only button carries a name a screen reader announces, such as &ldquo;Annual lifestyle spending&rdquo; or &ldquo;Delete scenario.&rdquo; A check in our test suite stops a new control from shipping without one.</li>
+      <li><strong>Readable contrast.</strong> Text is tested to meet the 4.5:1 contrast ratio WCAG requires, in both themes, and a test checks the colors we use for it.</li>
+      <li><strong>Large Text.</strong> Preferences &rarr; Display has a Large Text setting that enlarges type across the app, alongside a choice of dark or light theme.</li>
+      <li><strong>A hands-on screen-reader check.</strong> We walked through the main tasks with VoiceOver in Safari on a Mac: moving between tabs, reading headings, adjusting the spending slider, filling in plan fields, using Find a setting, confirming and canceling a dialog, reading the heatmaps and Year-by-Year tables, and scrolling the per-heir table. Each one worked, and the one thing it turned up (sliders read as a bare number) is fixed: they now say &ldquo;$48,000 per year&rdquo; or &ldquo;3.5 percent.&rdquo;</li>
+      <li><strong>A written summary for every chart.</strong> Each chart has a one- or two-sentence summary of what it shows, such as where savings start, peak and end, which a screen reader reads as the chart&rsquo;s name. Most are also shown under the chart. The figures behind the portfolio chart are in the Year-by-Year tables as well.</li>
+      <li><strong>Chart details on touch screens.</strong> On a phone or tablet, tapping a chart opens its details, and they stay open until you tap somewhere else.</li>
+      <li><strong>Status in words, not color alone.</strong> The plan&rsquo;s status is always given as words, such as &ldquo;On track,&rdquo; including in the phone&rsquo;s top bar.</li>
+      <li><strong>Keyboard use.</strong> Controls are standard buttons and form fields you can reach with Tab. Heatmap cells respond to Enter and Space, tables that scroll sideways can be focused and scrolled with the arrow keys, and Ctrl+K (Cmd+K on a Mac) opens &ldquo;Find a setting&rdquo; so you can jump straight to any field.</li>
+    </ul>
+
+    <h2>What Still Falls Short</h2>
+    <p>Automated tools find only part of what matters, so we want to be plain about what we know and what we have not yet confirmed:</p>
+    <ul>
+      <li><strong>Other screen readers.</strong> Our hands-on review so far has been with VoiceOver in Safari on a Mac. We have not yet tested with NVDA or JAWS on Windows, or with VoiceOver on an iPhone, so something may read less smoothly there.</li>
+      <li><strong>Printed and saved reports.</strong> A report saved as a PDF from your browser&rsquo;s print dialog is not a tagged PDF, so a screen reader may read it poorly. The same information is available in the app itself.</li>
+    </ul>
+    <p>We will update this page as each of these is addressed.</p>
+
+    <h2>Tell Us About a Barrier</h2>
+    <p>If something is hard or impossible to use, email us at <a href="mailto:outlastretirement@gmail.com?subject=Accessibility">outlastretirement@gmail.com</a> with &ldquo;Accessibility&rdquo; in the subject. It helps to include:</p>
+    <ul>
+      <li>the page or tab you were on, and what you were trying to do;</li>
+      <li>what happened instead;</li>
+      <li>the browser, device and any assistive technology you use (for example, VoiceOver on an iPhone, or NVDA with Firefox).</li>
+    </ul>
+    <p>We read every message and reply as soon as we can. If a barrier stops you from getting information you need from the app, we will work with you to provide it another way while we fix it.</p>
+
+    <h2>Compatibility</h2>
+    <p>OutlastRetirement runs in current versions of Chrome, Edge, Firefox and Safari on desktop and mobile. It relies on standard web technologies (HTML, CSS, JavaScript and the WAI-ARIA attributes that tell assistive technology what each control is) and needs no plug-ins.</p>
+
+    <h2>How We Assessed This</h2>
+    <p>This statement is based on our own evaluation: automated testing with axe-core across every page and both themes, plus review of the source code. It has not been audited by an outside accessibility firm.</p>
+    </main>
+
+    <footer>
+      <p><strong>Local-first retirement education. Your numbers never leave your device.</strong></p>
+      <nav class="foot-links" aria-label="Site links"><a href="/">Home</a> <a href="/learn">Learn</a> <a href="/how-the-math-works">How the math works</a> <a href="/changelog">Release notes</a> <a href="/privacy">Privacy</a> <a href="/terms">Terms</a> <a href="/accessibility">Accessibility</a> <a href="/verify">Verify it yourself</a> <a href="/premium">Free and Premium</a> <a href="mailto:outlastretirement@gmail.com">Contact</a> <a href="/app/">Open the app</a></nav>
+      <p>© 2026 OutlastRetirement LLC. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

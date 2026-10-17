@@ -1,0 +1,65 @@
+# Backstop for the release gate. The real gate is `predeploy` in
+# package.json, which npm runs before every `npm run deploy` on the machine
+# that ships; this workflow catches anything pushed without deploying.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx vitest run
+      - run: npm run build
+
+  e2e:
+    # Browser tests against the production build. Required, like `check`.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  provenance:
+    # Public repository only: every commit in its history is authored AND
+    # committed by the LLC (a squash or a rebase done under another identity
+    # re-stamps the committer), and no image carries an embedded
+    # provenance manifest. The identity that releases is in OPERATIONS.md
+    # in the working repository.
+    if: github.repository == 'jabone/outlastretirement'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: One identity in the whole history
+        run: |
+          ids=$(git log --format='%an <%ae> / %cn <%ce>' | sort -u)
+          echo "$ids"
+          test "$ids" = "OutlastRetirement LLC <outlastretirement@gmail.com> / OutlastRetirement LLC <outlastretirement@gmail.com>"
+      - name: No provenance manifest in any image
+        run: |
+          ! grep -rlaE 'c2pa|caBX|<x:xmpmeta' --include='*.png' --include='*.webp' --include='*.jpg' --include='*.ico' --include='*.svg' . --exclude-dir=node_modules --exclude-dir=.git

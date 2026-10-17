@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Use — OutlastRetirement</title>
+  <meta name="description" content="OutlastRetirement Terms of Use. Educational software for personal use, provided as-is: what you may and may not do with it, and what it does not promise." />
+  <link rel="canonical" href="https://www.outlastretirement.com/terms" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="OutlastRetirement" />
+  <meta property="og:url" content="https://www.outlastretirement.com/terms" />
+  <meta property="og:title" content="Terms of Use — OutlastRetirement" />
+  <meta property="og:description" content="OutlastRetirement Terms of Use. Educational software for personal use, provided as-is: what you may and may not do with it, and what it does not promise." />
+  <meta property="og:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="The OutlastRetirement logo: a teal line rising to an arrow beside the name." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Terms of Use — OutlastRetirement" />
+  <meta name="twitter:description" content="OutlastRetirement Terms of Use. Educational software for personal use, provided as-is: what you may and may not do with it, and what it does not promise." />
+  <meta name="twitter:image" content="https://www.outlastretirement.com/brand/og-outlastretirement.png" />
+  <!-- Written 2026-09-20, alongside the LICENSE file: the product had no
+       terms of any kind, so the only thing a user had ever been shown was
+       the educational-tool disclaimer, and the only thing standing between
+       the code and a copy of it was that nobody had bothered.
+
+       Head and styles are LIFTED FROM privacy.html on purpose, tokens and
+       all -- a third stylesheet is how / and /privacy.html drifted into
+       looking like separate products before the 2026-09-11 brand lock.
+       privacyTenets asserts this document, like the other two, loads
+       nothing off-origin. -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="stylesheet" href="/brand/outlastretirement.tokens.css" />
+  <link rel="stylesheet" href="/brand/site-theme.css" />
+  <script src="/brand/theme.js"></script>
+  <link rel="stylesheet" href="/brand/fonts.css" />
+  <style>
+    /* Colors come from /brand/site-theme.css (dark and light, the app's own
+       values) so a panel here and a card in the app match in either theme. */
+    :root {
+      --maxw: 1080px;
+      --font-heading: 'Outfit Variable', 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-padding-top: 76px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-2);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: var(--maxw); margin: 0 auto; padding: 44px 20px 40px; }
+    /* A reading column, starting under the logo as the home page's does. */
+    .page-head, main { max-width: 720px; }
+    .page-head { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+    /* The site's one header: the home page's sticky bar,
+       logo left, links right, Open the app as the button. Below 1000px
+       the links fold away and the footer carries them. */
+    header.nav {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--header-bg);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; gap: 18px; padding: 12px 20px; max-width: var(--maxw); margin: 0 auto; }
+    .brand { display: flex; align-items: center; text-decoration: none; margin-right: auto; }
+    .brand .or-logo { height: var(--or-logo-nav); width: auto; display: block; }
+    .nav a.navlink { color: var(--text-2); text-decoration: none; font-size: 14px; white-space: nowrap; }
+    .nav a.navlink:hover, .nav a.navlink[aria-current="page"] { color: var(--text); }
+    .nav a.navlink[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--or-teal); text-underline-offset: 6px; text-decoration-thickness: 2px; }
+    .btn {
+      display: inline-block; text-decoration: none; font-weight: 600; font-family: var(--font-heading);
+      border-radius: 12px; border: 1px solid transparent; white-space: nowrap;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--btn-bg); color: var(--btn-fg); }
+    .btn-primary:hover { background: var(--btn-hover); }
+    .btn-sm { padding: 8px 14px; font-size: 14px; }
+    @media (max-width: 1000px) {
+      .nav-inner { gap: 12px; padding: 10px 16px; }
+      .nav-inner .navlink { display: none; }
+    }
+    .eyebrow { font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--accent-text); font-weight: 700; margin-bottom: 10px; }
+    h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.02em; color: var(--text); }
+    h1 { font-size: clamp(28px, 4.2vw, 40px); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+    .subtitle { color: var(--muted); font-size: 15px; margin-top: 6px; }
+    .effective {
+      display: inline-block; margin-top: 12px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 6px 14px; font-size: 13px; color: var(--muted);
+    }
+    h2 { font-size: 18px; font-weight: 600; margin: 36px 0 12px; }
+    p { color: var(--text-2); margin-bottom: 14px; }
+    ul { color: var(--text-2); padding-left: 24px; margin-bottom: 14px; }
+    ul li { margin-bottom: 8px; }
+    strong { color: var(--text); }
+    code {
+      font-size: 0.92em; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 6px; padding: 1px 6px;
+    }
+    /* The landing page's .privacy-line, same recipe: a teal rule and a wash
+       that fades out, not a filled green block. */
+    .highlight {
+      border-left: 3px solid var(--or-teal);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--or-teal) 14%, transparent), transparent);
+      padding: 16px 20px; border-radius: 0 12px 12px 0;
+      margin: 24px 0;
+    }
+    .highlight p { color: var(--text); margin: 0; font-weight: 500; }
+    /* Paper type underlined in teal, as on the landing page -- a link color
+       of its own would be a fifth brand color. */
+    a { color: var(--text); text-decoration-color: var(--or-teal); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    footer a { color: var(--text-2); }
+    /* Footer links: a 44px-tall tap target each, wrapping on a phone. */
+    .foot-links { display: flex; flex-wrap: wrap; margin: 2px -10px 6px; }
+    .foot-links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+    .site-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; margin-bottom: 20px; }
+    .site-nav a { color: var(--text-2); }
+    .site-nav a[aria-current="page"] { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="/" aria-label="OutlastRetirement home">
+        <img class="or-logo or-logo--full logo-on-dark" alt="OutlastRetirement" src="/brand/outlast-full-dark-h96.png" srcset="/brand/outlast-full-dark-h96.png 413w, /brand/outlast-full-dark.png 870w" sizes="121px" width="121" height="28" />
+        <img class="or-logo or-logo--full logo-on-light" alt="OutlastRetirement" src="/brand/outlast-full-light-h96.png" srcset="/brand/outlast-full-light-h96.png 413w, /brand/outlast-full-light.png 870w" sizes="121px" width="121" height="28" />
+      </a>
+      <a class="navlink" href="/#how">How it works</a>
+      <a class="navlink" href="/learn">Learn</a>
+      <a class="navlink" href="/how-the-math-works">How the math works</a>
+      <a class="navlink" href="/privacy">Privacy</a>
+      <a class="navlink" href="/verify">Verify it yourself</a>
+      <a class="navlink" href="/premium">Free and Premium</a>
+      <a class="btn btn-primary btn-sm" href="/app/">Open the app</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-head">
+      <h1>Terms of Use</h1>
+      <span class="effective">Effective Date: October 16, 2026</span>
+    </div>
+
+    <main>
+
+    <div class="highlight">
+      <p>OutlastRetirement is educational software. It models what might happen to your money under the assumptions you give it &mdash; it does not give financial, tax, legal, or investment advice, and no projection it produces is a prediction. You may use it for your own planning, free of charge. You may not copy it, resell it, or build a competing product out of it. It comes with no warranty, and if a number it shows you turns out to be wrong, the responsibility for what you did with it is yours.</p>
+    </div>
+
+    <h2>Agreeing to These Terms</h2>
+    <p>These Terms of Use are an agreement between you and OutlastRetirement LLC ("we", "us"), the company that makes the OutlastRetirement application and website (together, "the App"). By using the App you agree to them. If you do not agree, do not use it.</p>
+    <p>You must be at least 18 years old, and legally able to enter into this agreement, to use the App.</p>
+
+    <h2>What the App Is &mdash; and Is Not</h2>
+    <p>The App is an educational and informational retirement modeling tool. Every figure it displays &mdash; projected balances, tax owed, Social Security, Medicare surcharges, estate tax, Monte Carlo success rates, optimizer recommendations &mdash; is a mathematical projection calculated from the assumptions you entered and the simplified rules the App implements.</p>
+    <p><strong>We are not a financial adviser, investment adviser, broker-dealer, tax adviser, accountant, or law firm, and nothing in the App is advice of any of those kinds.</strong> No relationship of trust or advice is created by your use of it. In particular:</p>
+    <ul>
+      <li>The App models United States tax, Social Security and Medicare rules for U.S. taxpayers. It is not built for anyone else&rsquo;s tax system, and its country summaries for a move abroad are our own research, not reviewed by a cross-border tax professional.</li>
+      <li>The App does not know your full circumstances. It knows what you typed into it.</li>
+      <li>Tax rules, contribution limits, Social Security rules, and Medicare thresholds change. The App models a specific set of them as of a specific date, and its coverage is deliberately incomplete &mdash; state tax treatment, community property rules, and many less common situations are approximated or not modeled at all. <a href="/app/#guide">The Guide</a> says where the edges are.</li>
+      <li>Past market behavior, including the historical sequences the stress tests replay, does not predict future returns.</li>
+      <li>A projection that ends well is not a promise, and one that ends badly is not a diagnosis.</li>
+    </ul>
+    <p><strong>Consult a licensed professional &mdash; a financial adviser, a CPA or enrolled agent, an estate attorney &mdash; before acting on anything you see here.</strong> Decisions about your retirement, your taxes, and your estate are yours, and you make them at your own risk.</p>
+
+    <h2>Your License to Use the App</h2>
+    <p>Subject to these Terms, we grant you a personal, non-exclusive, non-transferable, revocable license to use the App for your own retirement planning, or on behalf of your household. That is the whole of what is granted.</p>
+    <p>You may not:</p>
+    <ul>
+      <li>Copy, reproduce, republish, mirror, or redistribute the App or any part of its code, content, or design;</li>
+      <li>Sell, rent, lease, sublicense, or otherwise provide the App to anyone else, whether or not for a fee;</li>
+      <li>Reverse-engineer, decompile, or disassemble any part of the App, except to the extent that this restriction cannot be excluded by law;</li>
+      <li>Use the App, its calculations, or its outputs to build, train, or improve a competing product or service;</li>
+      <li>Scrape, crawl, or bulk-download the App or its content by automated means;</li>
+      <li>Remove or obscure any copyright, trademark, or other proprietary notice;</li>
+      <li>Use the App to provide financial planning services to third parties as a paid or professional service, without our written permission;</li>
+      <li>Use the App for anything unlawful, or in a way that interferes with its operation or with anyone else&rsquo;s use of it.</li>
+    </ul>
+    <p>The App runs in your browser, which means its code is delivered to your device and you can read it there. That is a fact of how web software works, not a license. It remains our property, and copying it is infringement.</p>
+
+    <h2>Who Owns What</h2>
+    <p><strong>We own the App, and most of it is open source.</strong> The software, the projection engine, the tax rule sets, the documentation, the interface design, the copy, and the OutlastRetirement name and logo are owned by OutlastRetirement LLC and protected by copyright and trademark law. The App&rsquo;s core &mdash; everything except the Premium modules &mdash; is published at <a href="https://github.com/jabone/outlastretirement" target="_blank" rel="noopener">github.com/jabone/outlastretirement</a> under the GNU Affero General Public License, version 3, which grants you the rights that license describes; the Premium modules, the OutlastRetirement name and the logo are not covered by it, and all rights in them not expressly granted above are reserved. Third-party open-source components included in the App remain the property of their own authors and are used under their own licenses.</p>
+    <p><strong>You own your plan.</strong> Everything you enter &mdash; your ages, balances, income, holdings, assumptions &mdash; is yours. It stays on your device; we do not receive it, do not store it, and claim no rights in it whatsoever. See the <a href="/privacy">Privacy Policy</a> for exactly how that works, and for the ways you can move your data off your device, all of which you start yourself.</p>
+
+    <h2>Premium</h2>
+    <p>Premium unlocks additional capability areas within the App. While Premium is invite-only it is provided free of charge: there is no checkout, no price, and no payment processor. Access is enabled by a key we email you, which identifies nobody &mdash; it records only that Premium is enabled and when it expires. An access key lasts 30 days and is renewed by email.</p>
+    <p>Premium access is granted at our discretion. A key normally runs its full 30 days, but we may change or withdraw Premium access at any time, as described under Ending It below. We may begin charging for Premium in future; if we do, we will say so before any payment is taken, and nothing will start charging you automatically. Premium features are covered by these Terms in full, including the disclaimers and the limitation of liability below.</p>
+
+    <h2>Your Data Is Your Responsibility to Keep</h2>
+    <p>Because your plan lives on your device and we hold no copy, <strong>we cannot recover it for you.</strong> Clearing your browser data, using a private window, switching browsers or machines, or a device failure will take your plan with it. The App provides Backup Everything for exactly this reason. Keeping a current backup is your responsibility, and we are not liable for plan data that is lost.</p>
+
+    <h2>Services You Connect Yourself</h2>
+    <p>Some optional features work with services you control &mdash; Live Pricing sends a ticker symbol to a Google Sheet you own, whose script looks it up with Google Finance and Yahoo Finance, and saving a backup to a synced folder hands the file to your own Dropbox, Google Drive, iCloud, or OneDrive client. Those services are governed by your agreements with them, not by these Terms, and we are not responsible for them or for what they do with what you send them.</p>
+
+    <h2>No Warranty</h2>
+    <p>THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.</p>
+    <p>In plainer words: we do not warrant that the App will be available, uninterrupted, or error-free; that its calculations are accurate, complete, or current with tax law; or that its results are suitable for your situation. Software of this kind contains errors, and this one is in beta. If a figure looks wrong to you, it may well be &mdash; tell us, and check it against a professional before you rely on it.</p>
+
+    <h2>Limitation of Liability</h2>
+    <p>TO THE FULLEST EXTENT PERMITTED BY LAW, OUTLASTRETIREMENT LLC AND ITS MEMBERS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR ANY LOST PROFITS, LOST SAVINGS, INVESTMENT LOSSES, TAX LIABILITIES OR PENALTIES, OR LOST DATA, ARISING OUT OF OR RELATING TO YOUR USE OF THE APP &mdash; WHETHER OR NOT WE HAVE BEEN ADVISED THAT SUCH DAMAGES ARE POSSIBLE.</p>
+    <p>OUR TOTAL LIABILITY FOR ALL CLAIMS RELATING TO THE APP SHALL NOT EXCEED THE GREATER OF (A) THE AMOUNT YOU PAID US FOR THE APP IN THE TWELVE MONTHS BEFORE THE CLAIM AROSE, OR (B) ONE HUNDRED U.S. DOLLARS ($100).</p>
+    <p>Some jurisdictions do not allow the exclusion of certain warranties or the limitation of certain damages. Where that is so, the exclusions and limits above apply only as far as that jurisdiction allows, and nothing in these Terms excludes liability for fraud or for anything else that cannot lawfully be excluded.</p>
+
+    <h2>Indemnity</h2>
+    <p>You agree to indemnify and hold harmless OutlastRetirement LLC from any claim, loss, or expense (including reasonable legal fees) arising from your use of the App in breach of these Terms, or from your use of its outputs in advising or acting for anyone else.</p>
+
+    <h2>Ending It</h2>
+    <p>You may stop using the App at any time; your plan is on your device, and <strong>Erase everything on this device</strong>, in Preferences &rarr; Your Data, removes everything the App has stored in this browser. (Reset Plan to Defaults resets only the plan you have open.) We may suspend or end your access to the App, or to Premium, at any time and for any reason, including a breach of these Terms. We may also change, suspend, or discontinue the App itself. The sections on ownership, warranty, liability, and indemnity survive the end of this agreement.</p>
+
+    <h2>Changes to These Terms</h2>
+    <p>We may update these Terms. If a change is material, we will move the effective date above and note it in the App&rsquo;s release notes. Continuing to use the App after a change means you accept the updated Terms. If you do not, stop using it.</p>
+
+    <h2>Governing Law</h2>
+    <p>These Terms are governed by the laws of the State of Texas, without regard to its conflict-of-laws rules. Any dispute arising out of them shall be brought in the state or federal courts located in Travis County, Texas, and you consent to the jurisdiction of those courts. If any provision of these Terms is held unenforceable, the rest remains in force.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about these Terms:<br />
+    <a href="mailto:outlastretirement@gmail.com">outlastretirement@gmail.com</a></p>
+
+    </main>
+
+    <footer>
+      <p><strong>Local-first retirement education. Your numbers never leave your device.</strong></p>
+      <nav class="foot-links" aria-label="Site links"><a href="/">Home</a> <a href="/learn">Learn</a> <a href="/how-the-math-works">How the math works</a> <a href="/changelog">Release notes</a> <a href="/privacy">Privacy</a> <a href="/terms">Terms</a> <a href="/accessibility">Accessibility</a> <a href="/verify">Verify it yourself</a> <a href="/premium">Free and Premium</a> <a href="mailto:outlastretirement@gmail.com">Contact</a> <a href="/app/">Open the app</a></nav>
+      <p>© 2026 OutlastRetirement LLC. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

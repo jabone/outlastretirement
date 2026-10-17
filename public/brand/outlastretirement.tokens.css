@@ -1,0 +1,113 @@
+/* OutlastRetirement brand tokens — 2026-09-11 lock
+   Full = spelled-out lockup. Short = OR monogram.
+   Light cream / dark navy. Do not invent new brand colors.
+*/
+
+:root {
+  /* Surfaces */
+  --or-navy: #0f2744;
+  --or-cream: #fffaf4;
+  --or-paper: #eae6dd; /* type / marks on navy */
+
+  /* Path / arrow. Raster PNGs vary slightly (#356d72 full, #2a7f7a short).
+     Implementation and any SVG recut use this token. */
+  --or-teal: #2a7f7a;
+
+  /* Semantic */
+  --or-bg: var(--or-cream);
+  --or-fg: var(--or-navy);
+  --or-accent: var(--or-teal);
+  --or-border: color-mix(in srgb, var(--or-navy) 18%, transparent);
+
+  /* Type (UI chrome only — do not recreate the wordmark in live type) */
+  --or-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --or-sans: "Source Sans 3", "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+
+  /* Logo */
+  --or-logo-full-min: 28px;  /* smallest the full lockup may be drawn */
+  --or-logo-header: 48px;    /* full lockup in a page header, beside the title */
+  --or-logo-nav: 36px;       /* full lockup in the sticky bar (home, verify) */
+  --or-logo-short-min: 32px; /* height of OR mark (favicon/app/nav compact) */
+  --or-logo-clear: 0.6em;    /* clearspace around mark ≈ 0.6 × logo height */
+}
+
+[data-or-theme="dark"],
+.or-theme-dark {
+  --or-bg: var(--or-navy);
+  --or-fg: var(--or-paper);
+  --or-border: color-mix(in srgb, var(--or-paper) 18%, transparent);
+}
+
+.or-page {
+  background: var(--or-bg);
+  color: var(--or-fg);
+}
+
+.or-logo {
+  display: block;
+  height: var(--or-logo-full-min);
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.or-logo--short {
+  height: var(--or-logo-short-min);
+}
+
+.or-logo--full {
+  height: var(--or-logo-full-min);
+}
+
+/* Pair assets in HTML, not via CSS content on <img>:
+   light full  → outlast-full-light.png
+   dark full   → outlast-full-dark.png
+   light short → or-short-light.png
+   dark short  → or-short-dark.png
+*/
+
+.or-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  padding: 0.65em 1.15em;
+  border-radius: 6px;
+  font-family: var(--or-sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.or-btn--primary {
+  background: var(--or-navy);
+  color: var(--or-cream);
+}
+
+[data-or-theme="dark"] .or-btn--primary,
+.or-theme-dark .or-btn--primary {
+  background: var(--or-paper);
+  color: var(--or-navy);
+}
+
+.or-btn--secondary {
+  background: transparent;
+  color: var(--or-fg);
+  border-color: var(--or-fg);
+}
+
+.or-accent { color: var(--or-accent); }
+.or-path { stroke: var(--or-accent); fill: var(--or-accent); }
+
+/* Hard rules (comments for implementers)
+   - Never end a path/arrow on a downslope. Both strokes finish up and right.
+   - Never use the round end-dot. Arrowhead = continuation, not a resting point.
+   - Short mark: teal arrow must intersect/cut through the R (not sit beside it).
+   - Do not put competitor names on marks or in logo lockups.
+   - OR is the alternate/monogram, not the product name. Product name is OutlastRetirement.
+   - Do not redraw the wordmark in CSS/HTML text. Use the provided PNG assets.
+   - Do not stretch, outline, recolor the arrow independently, or add a second arrowhead.
+*/
