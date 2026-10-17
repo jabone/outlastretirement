@@ -3312,12 +3312,51 @@ export function mfsLargerShare(inputs, status) {
   return share > 0 && share <= 1 ? share : 1;
 }
 
+// The last argument the federal helpers take is a "split": the income-split
+// percentage (a number; every figure divides between the two returns in
+// that proportion), or, for two MFS returns that each carry their OWN
+// standard deduction, an object { pct, ordinary, deductions: [d1, d2] }.
+// `ordinary` is the household's ordinary income BEFORE the deduction, so
+// each return's taxable income can be floored at zero on its own: a 20%
+// return whose share of the income is under its deduction wastes the rest
+// of it, which dividing the summed deduction in the income proportion
+// hid (the "approximation otherwise" that Rule 1.1 carried until
+// changelog 407). The projection builds these with mfsSplitSpec.
+export function mfsSplitSpec(inputs, ordinaryBeforeDeduction, deductions) {
+  const pct = effectiveMfsSplitPct(inputs);
+  if (!Array.isArray(deductions) || deductions.length !== 2 || !inputs || !inputs.spouse2Enabled || !(pct > 0 && pct < 100)) return pct;
+  return { pct, ordinary: Math.max(0, ordinaryBeforeDeduction || 0), deductions };
+}
+// The deduction of the return with the larger share (Spouse 1's when the
+// split is 50 or more), for the per-return lines that return crosses first.
+export function mfsLargerReturnDeduction(pct, deductions) {
+  return pct >= 50 ? deductions[0] : deductions[1];
+}
+const isReturnSpec = (split) => split !== null && typeof split === 'object' && Array.isArray(split.deductions);
+const splitPctOf = (split) => (isReturnSpec(split) ? split.pct : split);
+// The two returns of a spec: each one's share of every household figure,
+// its own deduction, its taxable ordinary income and the deduction left
+// unused (what shelters gains, as in capGainsTaxForOneReturn).
+export function mfsReturnsOf(split) {
+  const share = Math.min(1, Math.max(0, split.pct / 100));
+  const other = Math.min(1, Math.max(0, (100 - split.pct) / 100));
+  return [[share, split.deductions[0]], [other, split.deductions[1]]].map(([s, d]) => ({
+    share: s,
+    deduction: d,
+    taxable: Math.max(0, s * split.ordinary - d),
+    unusedDeduction: Math.max(0, d - s * split.ordinary),
+  }));
+}
+
 // Runs `fn` once per return for MFS and once for everyone else. `parts` is
 // the list of amounts to divide between the two returns in the same
-// proportion (ordinary income, gains, deductions all move together).
+// proportion (ordinary income, gains, deductions all move together). A
+// return spec (above) is read for its percentage here; the helpers that
+// need the per-return deductions handle it themselves.
 export function forEachSeparateReturn(status, parts, splitPct, fn) {
   if (status !== 'MFS') return fn(parts, 1);
-  const raw = splitPct === undefined || splitPct === null ? MFS_DEFAULT_INCOME_SPLIT_PCT : splitPct;
+  const pct = splitPctOf(splitPct);
+  const raw = pct === undefined || pct === null ? MFS_DEFAULT_INCOME_SPLIT_PCT : pct;
   const share = Math.min(1, Math.max(0, raw / 100));
   const other = 1 - share;
   if (other <= 0) return fn(parts, 1);
@@ -4186,7 +4225,7 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
   // couple with $75,000 each at $9,705 against $5,549 filing jointly.
   const mfsSplit = extras && extras.mfsSplitPct;
   if (status === 'MFS' && mfsSplit > 0 && mfsSplit < 100) {
-    const oneReturn = (f, ownAge) => {
+    const oneReturn = (f, ownAge, idx) => {
       const pd = pensionDetail ? {
         stateExempt: (pensionDetail.stateExempt || 0) * f,
         private1: ((pensionDetail.private1 || 0) + (pensionDetail.private2 || 0)) * f,
@@ -4194,12 +4233,15 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
         military1: ((pensionDetail.military1 || 0) + (pensionDetail.military2 || 0)) * f,
         military2: 0,
       } : null;
-      const scaled = { ...extras, mfsSplitPct: null };
+      const scaled = { ...extras, mfsSplitPct: null, mfsReturnDeductions: null };
       scaled.federalAGI = (extras.federalAGI ?? income) * f;
       scaled.federalTaxableSS = (extras.federalTaxableSS ?? ss) * f;
       for (const k of ['retirementDistributions', 'rothConversionTaxable', 'hsaAddback', 'federalDeduction', 'paCompensationAddback', 'longTermGains', 'earnedIncome']) {
         if (extras[k] !== undefined && extras[k] !== null) scaled[k] = extras[k] * f;
       }
+      // A state that starts from the federal deduction takes this return's
+      // own (changelog 407), not a share of the pair's.
+      if (Array.isArray(extras.mfsReturnDeductions) && extras.federalDeduction !== undefined && extras.federalDeduction !== null) scaled.federalDeduction = extras.mfsReturnDeductions[idx];
       // Washington gives spouses ONE standard deduction however they file
       // (capital gains and income tax alike), so each return takes its share.
       scaled.waDeductionShare = f;
@@ -4207,7 +4249,7 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
         ownAge, ownAge, flatRate, militaryPension * f, pd, yonkersResident, scaled);
     };
     const share = mfsSplit / 100;
-    return oneReturn(share, age1) + oneReturn(1 - share, age2);
+    return oneReturn(share, age1, 0) + oneReturn(1 - share, age2, 1);
   }
 
   // Washington (changelog 349): its capital gains excise tax, and from 2028
@@ -4683,6 +4725,11 @@ function applyStateBrackets(taxableIncome, brackets) {
 }
 
 export function calculateTaxes(taxableIncome, status, inflationFactor = 1, useTcjaSunset = false, mfsSplitPct = MFS_DEFAULT_INCOME_SPLIT_PCT) {
+  if (status === 'MFS' && isReturnSpec(mfsSplitPct)) {
+    // Two returns, each with its own deduction: taxable income is floored
+    // per return, so the household figure passed in is not used.
+    return mfsReturnsOf(mfsSplitPct).reduce((t, r) => t + ordinaryTaxForOneReturn(r.taxable, status, inflationFactor, useTcjaSunset), 0);
+  }
   return forEachSeparateReturn(status, [taxableIncome], mfsSplitPct,
     ([ti]) => ordinaryTaxForOneReturn(ti, status, inflationFactor, useTcjaSunset));
 }
@@ -4723,6 +4770,7 @@ function ordinaryTaxForOneReturn(taxableIncome, status, inflationFactor = 1, use
 // the NIIT base without touching the 0/15/20% stacking. Pass the year's
 // rental + annuity income; omitting it keeps the gains-only NIIT base.
 export function calculateCapitalGainsTaxes(ordinaryIncome, capitalGains, status, inflationFactor = 1, standardDeduction = 0, unusedDeduction = 0, otherNetInvestmentIncome = 0, mfsSplitPct = MFS_DEFAULT_INCOME_SPLIT_PCT) {
+  if (status === 'MFS' && isReturnSpec(mfsSplitPct)) return capGainsTaxOnReturns(mfsSplitPct, capitalGains, status, inflationFactor, otherNetInvestmentIncome, false);
   // Every figure here is a dollar amount that divides between the two
   // separate returns in the same proportion, so the whole computation --
   // the 0/15/20% bands AND the NIIT threshold test -- runs once per return
@@ -4742,12 +4790,23 @@ export function calculateCapitalGainsTaxes(ordinaryIncome, capitalGains, status,
 // Christensen v. United States, No. 2024-1284). Same arguments, same
 // per-return split. Changelog 196.
 export function calculateNetInvestmentIncomeTax(ordinaryIncome, capitalGains, status, inflationFactor = 1, standardDeduction = 0, unusedDeduction = 0, otherNetInvestmentIncome = 0, mfsSplitPct = MFS_DEFAULT_INCOME_SPLIT_PCT) {
+  if (status === 'MFS' && isReturnSpec(mfsSplitPct)) return capGainsTaxOnReturns(mfsSplitPct, capitalGains, status, inflationFactor, otherNetInvestmentIncome, true);
   return forEachSeparateReturn(
     status,
     [ordinaryIncome, capitalGains, standardDeduction, unusedDeduction, otherNetInvestmentIncome],
     mfsSplitPct,
     ([oi, cg, sd, ud, oni]) => capGainsTaxForOneReturn(oi, cg, status, inflationFactor, sd, ud, oni, true),
   );
+}
+
+// Two MFS returns with their own deductions: gains and other NII divide in
+// the income proportion; each return stacks its share of the gains on its
+// OWN taxable ordinary income and shelters them with its OWN unused
+// deduction.
+function capGainsTaxOnReturns(spec, capitalGains, status, inflationFactor, otherNetInvestmentIncome, niitOnly) {
+  return mfsReturnsOf(spec).reduce((t, r) => t + capGainsTaxForOneReturn(
+    r.taxable, capitalGains * r.share, status, inflationFactor, r.deduction, r.unusedDeduction, (otherNetInvestmentIncome || 0) * r.share, niitOnly,
+  ), 0);
 }
 
 // niitOnly returns just the NIIT slice; every existing caller omits it and
@@ -5789,8 +5848,9 @@ function solveWithdrawals(
     const deduction = deductionAt(ordinaryInc + capGains);
     const ordinaryTaxable = Math.max(0, ordinaryInc - deduction);
     
-    const fedOrdinaryTax = calculateTaxes(ordinaryTaxable, status, inflationFactor, inputs.tcjaSunsetEnabled, effectiveMfsSplitPct(inputs));
-    const fedCapGainsTax = calculateCapitalGainsTaxes(ordinaryTaxable, capGains, status, inflationFactor, deduction, Math.max(0, deduction - ordinaryInc), stateExtras.niiOther || 0, effectiveMfsSplitPct(inputs));
+    const mfsSplit = mfsSplitSpec(inputs, ordinaryInc, stateExtras.mfsReturnDeductions);
+    const fedOrdinaryTax = calculateTaxes(ordinaryTaxable, status, inflationFactor, inputs.tcjaSunsetEnabled, mfsSplit);
+    const fedCapGainsTax = calculateCapitalGainsTaxes(ordinaryTaxable, capGains, status, inflationFactor, deduction, Math.max(0, deduction - ordinaryInc), stateExtras.niiOther || 0, mfsSplit);
     const fedTax = fedOrdinaryTax + fedCapGainsTax;
     
     // State taxes apply to ordinary income, dividends, and realized capital gains
@@ -5842,7 +5902,7 @@ function solveWithdrawals(
     // this same candidate draw, so the solver grosses the draw up for it.
     // The credit is limited by US REGULAR tax -- never NIIT, never the 10%
     // penalty.
-    const niit = calculateNetInvestmentIncomeTax(ordinaryTaxable, capGains, status, inflationFactor, deduction, Math.max(0, deduction - ordinaryInc), stateExtras.niiOther || 0, effectiveMfsSplitPct(inputs));
+    const niit = calculateNetInvestmentIncomeTax(ordinaryTaxable, capGains, status, inflationFactor, deduction, Math.max(0, deduction - ordinaryInc), stateExtras.niiOther || 0, mfsSplit);
     const foreignParts = foreignPricer({
       preTaxOrdinary,
       realizedGains,
@@ -6917,6 +6977,14 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // indexed). Income-independent, so a plain number.
     const stdDeduction = stdDeductionBase * taxBracketInflationFactor
       + additionalStandardDeductionAged(currentStatus, seniorCount, taxBracketInflationFactor);
+    // Two MFS returns: each spouse's own deduction (the MFS basic amount
+    // plus their own age-65 add-on; MFS gets no senior bonus), which the
+    // federal helpers floor per return (mfsSplitSpec). The pair sums to
+    // stdDeduction.
+    const mfsReturnDeductions = mfsTwoReturns ? [age1, age2].map((age) =>
+      (stdDeductionBase / 2) * taxBracketInflationFactor
+        + additionalStandardDeductionAged(currentStatus, age >= 65 ? 1 : 0, taxBracketInflationFactor)) : null;
+    const mfsSplitFor = (ordinaryBeforeDeduction) => mfsSplitSpec(inputs, ordinaryBeforeDeduction, mfsReturnDeductions);
     // The OBBBA senior bonus (2025-2028) depends on MAGI through its
     // phase-out, and MAGI depends on this year's Pre-Tax draws and
     // conversions -- so the full deduction is a function of the income it
@@ -8632,11 +8700,20 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // one-shot "ceiling minus today's taxable income" missed: the SS
         // tax torpedo (taxableSSFor) and the senior bonus shrinking as
         // MAGI rises (deductionFor).
+        // Two MFS returns: the larger return's taxable income is its share
+        // of the ordinary income less its OWN deduction, so in household
+        // terms (the ceiling above is household terms) the deduction to
+        // take off is that one divided by the share -- the same as the
+        // summed deduction for an even split between spouses of one age
+        // band, and the exact figure otherwise (changelog 407).
+        const largerReturnDeduction = mfsReturnDeductions
+          ? mfsLargerReturnDeduction(mfsSplitForYear, mfsReturnDeductions) / mfsLargerShare(inputs, currentStatus)
+          : null;
         const taxableIncomeWith = (c) => {
           const cTaxable = c * taxableShare;
           const ss = taxableSSFor(provisionalOtherIncome + cTaxable);
           const ordinary = otherOrdinary + ss + cTaxable;
-          return ordinary - deductionFor(ordinary + taxableDividends);
+          return ordinary - (largerReturnDeduction !== null ? largerReturnDeduction : deductionFor(ordinary + taxableDividends));
         };
         if (taxableShare <= 0) {
           // 100% basis: the conversion is tax-free, convert it all (as before).
@@ -8801,7 +8878,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let inAcaCoverageGap = false;
 
     const baseDeduction = deductionFor(baseOrdinaryTaxableIncome + taxableDividends);
-    const ordinaryFedTaxes = calculateTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, effectiveMfsSplitPct(inputs));
+    const ordinaryFedTaxes = calculateTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
     // Q-10(a): rents and annuity income are net investment income for the
     // 3.8% NIIT even though they are ordinary income for the brackets.
     // The purchased annuity's taxable slice counts only when it is a
@@ -8810,7 +8887,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // (s 1411(c)(5)), so a Pre-Tax-funded annuity owes no NIIT.
     const niiAnnuity = inputs.annuitySourceAccount === 'taxable' ? taxableAnnuityOrdinary : 0;
     const niiOtherForYear = rentalAnnuity + niiAnnuity + ordinaryDividends;
-    const baseCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, effectiveMfsSplitPct(inputs));
+    const baseCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
     // What the diversification actually cost, now that it is taxed inside
     // the engine: the year's capital-gains tax with the gain, less the same
     // figure without it. That is the marginal number a user wants -- it
@@ -8823,7 +8900,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         Math.max(0, baseOrdinaryTaxableIncome - baseDeduction),
         Math.max(0, taxableDividends - concentratedStockRealizedGain),
         currentStatus, taxBracketInflationFactor, baseDeduction,
-        Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, effectiveMfsSplitPct(inputs),
+        Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome),
       ))
       : 0;
 
@@ -8838,8 +8915,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let harvestTaxSavings = 0;
     if (!isRetired && (harvestedOrdinaryOffset > 0 || harvestedGainsOffset > 0)) {
       const refDeduction = deductionFor(preHarvestOrdinaryTaxableIncome + taxableDividendsGross);
-      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, effectiveMfsSplitPct(inputs));
-      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), taxableDividendsGross, currentStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - preHarvestOrdinaryTaxableIncome), niiOtherForYear, effectiveMfsSplitPct(inputs));
+      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
+      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), taxableDividendsGross, currentStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - preHarvestOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
       harvestTaxSavings = Math.max(0, (refOrdinaryFedTaxes + refCapGainsTaxes) - (ordinaryFedTaxes + baseCapGainsTaxes));
     }
 
@@ -8877,6 +8954,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       calendarYear: year,
       // Two MFS returns: the state tax is priced per return too.
       mfsSplitPct: mfsTwoReturns ? mfsSplitForYear : null,
+      // ...and the federal side floors each return's own deduction.
+      mfsReturnDeductions,
       // Employee 401(k) deferrals, which Pennsylvania taxes as compensation.
       paCompensationAddback: preTaxContribution,
       // Changelog 203: a split move year's state tax is shared by months.
@@ -8954,7 +9033,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         yearShare: moveShare,
         year,
       };
-      const baseNiit = calculateNetInvestmentIncomeTax(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, effectiveMfsSplitPct(inputs));
+      const baseNiit = calculateNetInvestmentIncomeTax(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
       foreignBase = priceForeignYear(foreignCtx, {
         preTaxOrdinary: 0, realizedGains: 0, rothDraw: 0, rothEarnings: 0,
         usRegularTax: ordinaryFedTaxes + baseCapGainsTaxes - baseNiit,
@@ -8982,8 +9061,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (convertAmountTaxable > 0) {
       const noConversionOrdinaryIncome = Math.max(0, baseOrdinaryTaxableIncome - convertAmountTaxable);
       const refDeduction = deductionFor(noConversionOrdinaryIncome + taxableDividends);
-      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, effectiveMfsSplitPct(inputs));
-      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - noConversionOrdinaryIncome), niiOtherForYear, effectiveMfsSplitPct(inputs));
+      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(noConversionOrdinaryIncome));
+      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - noConversionOrdinaryIncome), niiOtherForYear, mfsSplitFor(noConversionOrdinaryIncome));
       const refTotalIncomeForState = noConversionOrdinaryIncome + taxableDividends;
       const refStateTaxes = calculateStateTaxes(
         refTotalIncomeForState, pension, ssIncome, residence.stateTaxState,
@@ -9560,8 +9639,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const priceSettledYear = ({ ordinary, capGains, preTaxOrdinary, gainsNet }, conversionTaxableForState = convertAmountTaxable) => {
       const ded = deductionFor(ordinary + capGains);
       const ordinaryTaxable = Math.max(0, ordinary - ded);
-      const federal = calculateTaxes(ordinaryTaxable, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, effectiveMfsSplitPct(inputs))
-        + calculateCapitalGainsTaxes(ordinaryTaxable, capGains, currentStatus, taxBracketInflationFactor, ded, Math.max(0, ded - ordinary), niiOtherForYear, effectiveMfsSplitPct(inputs));
+      const federal = calculateTaxes(ordinaryTaxable, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinary))
+        + calculateCapitalGainsTaxes(ordinaryTaxable, capGains, currentStatus, taxBracketInflationFactor, ded, Math.max(0, ded - ordinary), niiOtherForYear, mfsSplitFor(ordinary));
       const incomeForState = ordinary + capGains;
       const state = calculateStateTaxes(
         incomeForState, pension, ssIncome, residence.stateTaxState,
@@ -9872,8 +9951,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const ordinaryInc = settledOrdinary + ssAdj + h;
         const deduction = deductionFor(ordinaryInc + settledCapGains);
         const ordinaryTaxable = Math.max(0, ordinaryInc - deduction);
-        const federal = calculateTaxes(ordinaryTaxable, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, effectiveMfsSplitPct(inputs))
-          + calculateCapitalGainsTaxes(ordinaryTaxable, settledCapGains, currentStatus, taxBracketInflationFactor, deduction, Math.max(0, deduction - ordinaryInc), niiOtherForYear, effectiveMfsSplitPct(inputs));
+        const federal = calculateTaxes(ordinaryTaxable, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinaryInc))
+          + calculateCapitalGainsTaxes(ordinaryTaxable, settledCapGains, currentStatus, taxBracketInflationFactor, deduction, Math.max(0, deduction - ordinaryInc), niiOtherForYear, mfsSplitFor(ordinaryInc));
         const penalty = ownerAge < 65 ? h * 0.20 : 0;
         const incomeForState = ordinaryInc + settledCapGains;
         const state = calculateStateTaxes(
@@ -10379,7 +10458,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // that dollar splits across two returns, and the larger return sets
       // the rate, so its share of the household's taxable income is what
       // is read against the MFS schedule (changelog 403).
-      marginalBracket: getMarginalTaxRate(Math.max(0, finalOrdinaryIncome - finalDeduction) * mfsLargerShare(inputs, currentStatus), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled),
+      marginalBracket: getMarginalTaxRate(
+        mfsReturnDeductions
+          ? Math.max(0, finalOrdinaryIncome * mfsLargerShare(inputs, currentStatus) - mfsLargerReturnDeduction(mfsSplitForYear, mfsReturnDeductions))
+          : Math.max(0, finalOrdinaryIncome - finalDeduction) * mfsLargerShare(inputs, currentStatus),
+        currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled),
       shortfall,
       netChange,
       growthRate: returnRate,

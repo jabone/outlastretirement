@@ -1228,6 +1228,16 @@ select.form-input,
 /* Chart hover cards are ChartTooltip.jsx (a themed card with a color
    swatch per series); Recharts' stock tooltip is no longer used. */
 
+/* The card appears where the pointer is (changelog 408). Recharts moves
+   its wrapper with a 400ms transform transition, so the first card on a
+   chart slid in from the chart's top-left corner, and every later one
+   trailed the pointer across the chart -- the same fly-in the help popups
+   had (changelog 282). The wrapper's transition is inline, hence the
+   !important. */
+.recharts-tooltip-wrapper {
+  transition: none !important;
+}
+
 /* Responsive Grid / Media Queries.
    Every width query here is `screen and`: a printed page is about as wide
    as a small tablet, so a bare (max-width: ...) query also fires on paper

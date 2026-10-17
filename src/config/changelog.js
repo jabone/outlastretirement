@@ -29,6 +29,27 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 408,
+    date: '2026-10-17',
+    title: 'Chart hover cards appear in place',
+    summary: 'The hover card on every chart now appears where the pointer is instead of sliding in from the chart\u2019s top-left corner and trailing the pointer after that.',
+    items: [
+      "**What was wrong.** The first time you hovered a chart, its card slid in from the chart\u2019s corner, and as the pointer moved the card followed a beat behind. Every chart did it: the Dashboard projection, the Detailed Holdings charts, the tax and income charts.",
+      "**What changed.** The card appears at the pointer and stays with it. The help popups had the same slide until September; this is the chart equivalent.",
+    ],
+  },
+  {
+    id: 407,
+    date: '2026-10-17',
+    title: 'Filing separately with an uneven split: each return keeps its own deduction',
+    summary: 'Filing separately with an uneven income split, each return now takes its own standard deduction against its own income; a low-income return no longer uses deduction it cannot. Even splits unchanged.',
+    items: [
+      "**What was wrong.** The App gives each separate return its own standard deduction and age-65 add-on, but divided the two deductions between the returns in the same proportion as the income. At an 80/20 split of $60,000, the 20% return has $12,000 of income against a $16,100 deduction; $4,100 of it is lost in life, and the App had quietly moved it to the other return.",
+      "**What changed.** Each return's taxable income is now its share of the income less its own deduction, floored at zero. The ordinary tax, the 0/15/20% capital-gains stack and the net investment income tax all run that way, each return sheltering its share of the gains with its own unused deduction; a state that starts from the federal deduction takes that return's own. Fill-to-bracket conversions and the Year by Year marginal bracket read the larger return the same way.",
+      "**Who is affected.** Only plans filing separately with the income split set to something other than 50/50, or with spouses in different age bands. Your numbers will change there, by more where the split is more uneven. Even splits between spouses of one age band are unchanged to the dollar.",
+    ],
+  },
+  {
     id: 406,
     date: '2026-10-17',
     title: 'Help popups reachable by keyboard, names a voice can say, and the logo on paper',
