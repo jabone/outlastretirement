@@ -49,7 +49,9 @@ rewrites in `vercel.json`. The dev server serves them at their `.html` names.
 
 Without a Premium key the app runs as the free product, which is complete in
 itself: every question is answered, and the Premium parts show what the paid
-detail would add. The demo (`/app/#/demo`) shows Detailed Holdings read-only.
+detail would add. The demo (`/app/#/demo`) shows Detailed Holdings read-only,
+fetched with the demo delivery key in `src/config/demoDeliveryKey.js` (a key
+that unlocks nothing; see `PREMIUM_MODULE_CONTRACT.md`, section 6).
 
 ## Test it
 

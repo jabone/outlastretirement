@@ -2305,7 +2305,20 @@ export default function App() {
 
         {activeTab === 'portfolio' && (entitlementState.isPremium || entitlementState.portfolioPreview) && (
           <ErrorBoundary fallbackMessage="The Detailed Holdings tab hit an unexpected error and stopped rendering. Your holdings data is unaffected — switch to another tab and back, or click Try Again below.">
-            <PremiumMount id="portfolioTab" fallback={<TabFallback />} />
+            <PremiumMount
+              id="portfolioTab"
+              fallback={<TabFallback />}
+              locked={(
+                // Only reachable in the demo when no demo delivery key is
+                // configured (config/demoDeliveryKey.js); never a blank tab.
+                <div className="glass-panel" role="status" style={{ padding: '18px 20px', borderRadius: '10px' }}>
+                  <div style={{ fontWeight: 600 }}>The Detailed Holdings preview is not available right now</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-sm)', marginTop: '4px' }}>
+                    The demo normally shows this household&rsquo;s holdings here, read-only. Everything else in the demo works as usual.
+                  </div>
+                </div>
+              )}
+            />
           </ErrorBoundary>
         )}
         </React.Suspense>

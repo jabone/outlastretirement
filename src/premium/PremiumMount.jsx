@@ -7,6 +7,8 @@
 // States, in order:
 //   no entitlement and no preview  -> `locked` (or nothing, for tab-level mounts
 //                                     the host already hides)
+//   preview (demo, no key) outside DEMO_AREAS, or with no demo delivery key
+//                                  -> `locked`: nothing is fetched without a key
 //   loading                        -> `fallback`
 //   module failed to load          -> a short card saying so; never a blank tab
 //   module loaded, mount unfilled  -> `locked` (the module may fill a subset)
@@ -18,6 +20,7 @@ import { loadModule } from './registry';
 import { useHostApi } from './useHostApi';
 import { useEntitlement } from '../context/useEntitlement';
 import { PREMIUM_AREAS } from '../config/premiumOffering';
+import { DEMO_DELIVERY_KEY, DEMO_AREAS } from '../config/demoDeliveryKey';
 
 function areaName(area) {
   return PREMIUM_AREAS.find((a) => a.id === area)?.name || 'Premium';
@@ -51,9 +54,15 @@ export default function PremiumMount({ id, locked = null, fallback = null, ...re
   const host = useHostApi();
   // The key itself never reaches a module (contract section 3); only the
   // loader, which is host code, carries it to the module server.
-  const { premiumJwtToken: token } = useEntitlement();
+  const { premiumJwtToken: pastedToken } = useEntitlement();
   const { isPremium, preview } = host.entitlement;
-  const wanted = isPremium || preview;
+  // A Premium user sends their own key. The demo (preview: Demo Mode with
+  // no valid key) sends the demo delivery key, and only for the areas the
+  // demo shows; everywhere else it is a free user and sees `locked`. A
+  // mount never fetches without a key: that would fail as if a key had
+  // been rejected, to someone who never had one.
+  const token = isPremium ? pastedToken : (preview && DEMO_AREAS.includes(area) ? DEMO_DELIVERY_KEY : '');
+  const wanted = isPremium || (preview && Boolean(token));
   const [state, setState] = useState({ status: wanted ? 'loading' : 'idle', instance: null, error: null });
 
   useEffect(() => {

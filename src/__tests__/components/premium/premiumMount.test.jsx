@@ -4,12 +4,21 @@
 // Uses the registry's test seam to install stub module loaders, so none
 // of this depends on a module server.
 import React from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import PremiumMount from '../../../premium/PremiumMount.jsx';
 import { __setModuleLoader, __resetModuleCache } from '../../../premium/registry.js';
 import { CONTRACT_VERSION, MOUNT_POINTS, AREAS, areaForMount, isCompatibleContract } from '../../../premium/contract.js';
 import { renderWithSimulation } from '../../testUtils.jsx';
+
+// The demo delivery key is null in the repo until one is minted; the demo
+// tests below need one present (its value is never read by a stub loader),
+// and one test sets it back to null.
+const demoKey = { value: 'demo.delivery.key' };
+vi.mock('../../../config/demoDeliveryKey', () => ({
+  get DEMO_DELIVERY_KEY() { return demoKey.value; },
+  DEMO_AREAS: ['holdings'],
+}));
 
 const stub = (overrides = {}) => () => ({
   area: 'holdings',
@@ -55,6 +64,31 @@ describe('PremiumMount', () => {
   it('mounts in preview mode too (read-only demo), per the entitlement contract', async () => {
     renderWithSimulation(<PremiumMount id="portfolioTab" />, {}, { isPremium: false, portfolioPreview: true });
     await waitFor(() => expect(screen.getByText(/stub tab for/)).toBeInTheDocument());
+  });
+
+  // Demo Mode without a key is preview for every mount, but only Detailed
+  // Holdings is part of the demo: the other areas must show their locked
+  // cards, not try to load and then report a rejected key to someone who
+  // never had one.
+  it('in preview, a mount outside the demo areas shows locked and loads nothing', async () => {
+    __setModuleLoader('readiness', () => { throw new Error('must not be called'); });
+    renderWithSimulation(<PremiumMount id="readinessDetail" locked={<div>locked card</div>} />, {}, { isPremium: false, portfolioPreview: true });
+    expect(screen.getByText('locked card')).toBeInTheDocument();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(screen.queryByText(/could not be loaded/)).toBeNull();
+  });
+
+  it('in preview with no demo delivery key minted, even the holdings mount shows locked and loads nothing', async () => {
+    demoKey.value = null;
+    try {
+      __setModuleLoader('holdings', () => { throw new Error('must not be called'); });
+      renderWithSimulation(<PremiumMount id="portfolioTab" locked={<div>locked card</div>} />, {}, { isPremium: false, portfolioPreview: true });
+      expect(screen.getByText('locked card')).toBeInTheDocument();
+      await new Promise((r) => setTimeout(r, 20));
+      expect(screen.queryByText(/Premium key was not accepted/)).toBeNull();
+    } finally {
+      demoKey.value = 'demo.delivery.key';
+    }
   });
 
   it('shows the locked element when the module leaves this mount unfilled', async () => {

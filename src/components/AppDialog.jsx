@@ -142,11 +142,15 @@ const AppDialog = ({ dialog, onClose }) => {
           ) : (
             <Info size={22} style={{ color: 'var(--accent-text)', flexShrink: 0, marginTop: '2px' }} />
           )}
-          <div>
+          {/* minWidth 0 lets this flex child shrink below its content, and
+              overflowWrap breaks a long unbreakable string (a Live Pricing
+              URL in the restore confirmation) instead of widening the
+              dialog past the window. */}
+          <div style={{ minWidth: 0, flex: 1 }}>
             <h3 id="app-dialog-title" style={{ margin: 0, fontSize: '17px', fontWeight: '700', color: 'var(--text-primary)' }}>
               {dialog.title}
             </h3>
-            <p id="app-dialog-message" style={{ margin: '8px 0 0', fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: '1.5', whiteSpace: 'pre-line' }}>
+            <p id="app-dialog-message" style={{ margin: '8px 0 0', fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: '1.5', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
               {dialog.message}
             </p>
           </div>
@@ -215,14 +219,10 @@ const AppDialog = ({ dialog, onClose }) => {
             </button>
           )}
           <button
-            className="btn-primary"
+            className={dialog.danger ? 'btn-primary btn-danger' : 'btn-primary'}
             data-dialog-confirm
             disabled={!typedOk}
-            style={{
-              padding: '10px 20px',
-              minHeight: 'auto',
-              ...(dialog.danger ? { background: 'var(--error)', boxShadow: 'none' } : {}),
-            }}
+            style={{ padding: '10px 20px', minHeight: 'auto' }}
             onClick={handleConfirm}
           >
             {dialog.type === 'alert' ? 'OK' : (dialog.confirmLabel || 'Confirm')}

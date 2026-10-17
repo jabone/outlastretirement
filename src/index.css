@@ -51,6 +51,8 @@
      ground but landed at 3.8:1 on a hovered card here. */
   --error: #FCA5A5;
   --danger: #FCA5A5;
+  /* Type on a --danger fill (the destructive button): navy on the pale red, 9.6:1. */
+  --on-danger: var(--or-navy);
   --warning: #FBBF24;
   --text-primary: var(--or-paper);       /* 12.1:1 on navy  */
   --text-secondary: #C3C4C1;             /*  8.6:1 on navy  */
@@ -144,6 +146,8 @@
   --success: #046B50;
   --error: #B81C1C;
   --danger: #B81C1C;
+  /* Cream on the deep red, 6.4:1. */
+  --on-danger: var(--or-cream);
   --warning: #96460A;
 }
 
@@ -1007,6 +1011,34 @@ select.form-input,
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
+}
+
+/* The destructive confirm (Restore & Reload, Erase, Reset): the primary
+   button's shape in the theme's danger red with type that reads on it,
+   instead of the paper button with its background swapped and navy type
+   left on brick red. */
+.btn-primary.btn-danger {
+  background: var(--danger);
+  color: var(--on-danger);
+  box-shadow: none;
+}
+.btn-primary.btn-danger:hover {
+  background: var(--danger);
+  filter: brightness(1.08);
+}
+.btn-primary.btn-danger:disabled {
+  background: var(--text-muted);
+  color: var(--bg-primary);
+  filter: none;
+}
+
+/* Keyboard focus on the buttons: the brand ring (as the switches, sliders
+   and nav items have), not the browser's blue. A dialog focuses its confirm
+   button on open, so this is seen often. */
+.btn-primary:focus-visible,
+.btn-outline:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 3px;
 }
 
 .btn-outline {

@@ -150,9 +150,12 @@ describe('privacy tenet: the entitlement token carries what the policy says, and
     // system is the likely reason someone would add a claim; this is what
     // stops that shipping silently.
     const minter = readFileSync(join(ROOT, 'scripts', 'mint-premium-jwt.mjs'), 'utf8');
-    const claims = /new SignJWT\(([^)]*)\)/.exec(minter)[1].replace(/\s/g, '');
+    // The script signs two kinds of token: the Premium key, and the demo
+    // delivery key ({ demo: true }, which identifies no one and unlocks
+    // nothing). Each claim set is pinned; anything else is a new token.
+    const claims = [...minter.matchAll(/new SignJWT\(([^)]*)\)/g)].map((m) => m[1].replace(/\s/g, '')).sort();
     expect(claims, 'the Premium token gained a claim -- privacy.html lists what it has')
-      .toBe('{premium:true,licensedTo}');
+      .toEqual(['{demo:true}', '{premium:true,licensedTo}']);
     // iat dated each key to the second it was minted; the address already
     // says whose it is, and nothing else needs to.
     expect(minter).not.toMatch(/setIssuedAt/);
