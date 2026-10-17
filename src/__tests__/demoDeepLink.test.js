@@ -568,8 +568,10 @@ describe('privacy policy', () => {
     // flag and its expiry, and nothing else. If a future token ever gains
     // another claim, this is what catches the policy becoming false.
     const minter = readFileSync(join(SRC, '..', 'scripts', 'mint-premium-jwt.mjs'), 'utf8');
-    const claims = /new SignJWT\(([^)]*)\)/.exec(minter)[1];
-    expect(claims.replace(/\s/g, '')).toBe('{premium:true,licensedTo}');
+    // Two mints: the Premium key, and the demo delivery key (changelog 401),
+    // which carries no address and no Premium flag -- only { demo: true }.
+    const claims = [...minter.matchAll(/new SignJWT\(([^)]*)\)/g)].map((m) => m[1].replace(/\s/g, '')).sort();
+    expect(claims).toEqual(['{demo:true}', '{premium:true,licensedTo}']);
     expect(privacy).toMatch(/carries three things: the email address we sent it to, the fact that Premium is enabled, and when it expires/);
     expect(privacy).not.toMatch(/no name, no email address, and no identifier/);
   });

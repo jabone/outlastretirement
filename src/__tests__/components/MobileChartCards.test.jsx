@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const read = (rel) => fs.readFileSync(path.resolve(__dirname, '../..', rel), 'utf8');
-const phoneCss = () => { const css = read('index.css'); return css.slice(css.indexOf('@media (max-width: 768px)')); };
+const phoneCss = () => { const css = read('index.css'); return css.slice(css.indexOf('@media screen and (max-width: 768px)')); };
 
 describe('phone: nothing drags the page sideways', () => {
   it('the content area clips sideways (its overflow-y: auto would otherwise make it scroll sideways)', () => {

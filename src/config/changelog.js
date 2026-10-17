@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 406,
+    date: '2026-10-17',
+    title: 'Help popups reachable by keyboard, names a voice can say, and the logo on paper',
+    summary: 'Help popups can be reached with Tab, the sidebar\u2019s controls are named by the words they show, a dark-theme printout no longer starts with a gray box, and the Terms carry their October 16 date.',
+    items: [
+      "**Help popups from the keyboard.** A help popup with a *Look it up in the Input Dictionary* link opened on Tab, but the link itself could not be reached: Tab moved on to the next field and the popup closed. Now, with the popup open, Tab moves into the link; Tab, Shift+Tab or Escape from the link closes the popup and returns to the trigger, where Tab carries on as before.",
+      "**Names a voice can say.** The sidebar\u2019s entries and buttons show their names as text, but a screen reader announced their longer hover descriptions in place of those names, and voice control (\u201cclick Dashboard\u201d) found nothing by the words on screen. The words on screen are the name again; the description is read after it. The same holds for a help popup\u2019s trigger: its field label is its name and the definition its description.",
+      "**The logo on paper.** Printing from the dark theme could show a gray box in place of the logo at the top of the report and in the footer, because the light-theme files the printout uses were fetched only as the page was being laid out for paper. The App now fetches them with the page. Phone-width layout rules also no longer apply to paper at all, which they could since a printed page is about as wide as a small tablet.",
+      "**Terms of Use.** The ownership clause was updated on October 16 to say that the App\u2019s core is published under the GNU Affero General Public License and what is not; the effective date at the top now says October 16 as the privacy policy already does. Brand images and the Learn lessons\u2019 pictures are also cached by your browser for a week, so returning pages load faster.",
+    ],
+  },
+  {
     id: 401,
     date: '2026-10-17',
     title: 'The demo no longer reports a rejected Premium key',
