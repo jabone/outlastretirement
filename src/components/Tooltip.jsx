@@ -18,6 +18,21 @@ import SimulationContext from '../context/SimulationContext';
 // search box, where the full treatment lives. The link makes the popup
 // interactive, so leaving the trigger closes it after a short grace period
 // that entering the popup cancels.
+//
+// The portal puts the popup at the end of <body>, which is where Tab would
+// have found the link: after every other control on the page, by which
+// time the popup had long closed. So the trigger hands focus to the link
+// itself: Tab with the popup open moves into it, and Tab, Shift+Tab or
+// Escape from the link closes the popup and returns focus to the trigger,
+// where the next Tab carries on through the page as usual. Nothing is ever
+// left focused inside a popup that has closed.
+//
+// The visible label stays the trigger's accessible name; the definition is
+// its description (aria-description), not an aria-label that would replace
+// the words on screen (WCAG 2.5.3). The attribute rather than a hidden
+// copy of the text: a hidden span inside a table header or a field label
+// would turn up in textContent, which the Dictionary search and the
+// settings-finder compare against.
 const MARGIN = 8;
 const GAP = 8;
 const Z = 1500; // above the sidebar (950) and status bar, below modals (1999+)
@@ -27,6 +42,7 @@ export default function Tooltip({ text, children, position = 'top', more }) {
   const [isVisible, setIsVisible] = useState(false);
   const triggerRef = useRef(null);
   const popupRef = useRef(null);
+  const moreRef = useRef(null);
   const closeTimer = useRef(null);
   const sim = useContext(SimulationContext);
   const openDictionary = sim && sim.openDictionary;
@@ -39,6 +55,17 @@ export default function Tooltip({ text, children, position = 'top', more }) {
     closeTimer.current = setTimeout(() => setIsVisible(false), CLOSE_DELAY_MS);
   };
   const cancelClose = () => clearTimeout(closeTimer.current);
+  // Close and put focus back on the trigger (from the link, by keyboard).
+  // Focusing the trigger would reopen the popup through its onFocus, so
+  // that one focus event is told to leave it closed.
+  const returning = useRef(false);
+  const closeToTrigger = () => {
+    cancelClose();
+    setIsVisible(false);
+    returning.current = true;
+    triggerRef.current?.focus();
+    returning.current = false;
+  };
   // Where the popup goes, in viewport pixels, and where its arrow points.
   const [place, setPlace] = useState(null);
   const isBottom = position === 'bottom';
@@ -119,9 +146,15 @@ export default function Tooltip({ text, children, position = 'top', more }) {
         {showMore && (
           <div style={{ marginTop: '8px' }}>
             <button
+              ref={moreRef}
               type="button"
               className="tooltip-more"
               onClick={(e) => { e.stopPropagation(); setIsVisible(false); openDictionary(term); }}
+              onFocus={cancelClose}
+              onBlur={scheduleClose}
+              onKeyDown={(e) => {
+                if (e.key === 'Tab' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeToTrigger(); }
+              }}
               style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontSize: '13px', color: 'var(--accent-text)', cursor: 'pointer', textDecoration: 'underline' }}
             >
               Look it up in the Input Dictionary
@@ -152,12 +185,17 @@ export default function Tooltip({ text, children, position = 'top', more }) {
       onMouseEnter={() => { cancelClose(); setIsVisible(true); }}
       onMouseLeave={scheduleClose}
       onClick={() => setIsVisible(!isVisible)}
-      onFocus={() => { cancelClose(); setIsVisible(true); }}
+      onFocus={() => { if (returning.current) return; cancelClose(); setIsVisible(true); }}
       onBlur={scheduleClose}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsVisible(v => !v); } else if (e.key === 'Escape') { setIsVisible(false); } }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsVisible(v => !v); }
+        else if (e.key === 'Escape') { setIsVisible(false); }
+        else if (e.key === 'Tab' && !e.shiftKey && isVisible && showMore && moreRef.current) { e.preventDefault(); moreRef.current.focus(); }
+      }}
       tabIndex={0}
       role="button"
-      aria-label={typeof text === 'string' ? text : undefined}
+      aria-expanded={showMore ? isVisible : undefined}
+      aria-description={typeof text === 'string' ? text : undefined}
     >
       <span style={{ borderBottom: '1px dashed var(--text-muted)' }}>{children}</span>
       {/* flexShrink 0: in a narrow table header the flex row squeezed the

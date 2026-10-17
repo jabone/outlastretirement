@@ -81,7 +81,7 @@ describe('help popups', () => {
         <Tooltip text="The order of returns matters." more="sequence-of-returns">sequence risk</Tooltip>
       </SimulationContext.Provider>,
     );
-    fireEvent.mouseEnter(screen.getByRole('button', { name: /order of returns/ }));
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'sequence risk' }));
     const link = screen.getByRole('button', { name: /Look it up in the Input Dictionary/ });
     expect(screen.getByRole('tooltip').style.pointerEvents).toBe('auto');
     fireEvent.click(link);
@@ -97,7 +97,7 @@ describe('help popups', () => {
           <Tooltip position="bottom" text="Conversion tax." more="Conv Tax">Conv Tax</Tooltip>
         </SimulationContext.Provider>,
       );
-      const trigger = screen.getByRole('button', { name: 'Conversion tax.' });
+      const trigger = screen.getByRole('button', { name: 'Conv Tax' });
       fireEvent.mouseEnter(trigger);
       fireEvent.mouseLeave(trigger);
       act(() => { vi.advanceTimersByTime(200); });
@@ -115,7 +115,7 @@ describe('help popups', () => {
 
   it('without a provider (or without `more`) the popup has no link and ignores the pointer', () => {
     render(<Tooltip text="Plain help." more="sequence-of-returns">label</Tooltip>);
-    fireEvent.mouseEnter(screen.getByRole('button', { name: 'Plain help.' }));
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'label' }));
     expect(screen.queryByText(/Look it up/)).toBeNull();
     expect(screen.getByRole('tooltip').style.pointerEvents).toBe('none');
   });

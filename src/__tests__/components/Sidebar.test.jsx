@@ -106,3 +106,28 @@ describe('Sidebar — one Plan entry for the two Plan views (changelog 252)', ()
     localStorage.removeItem('retire_plan_plan_mode');
   });
 });
+
+describe('Sidebar accessible names (WCAG 2.5.3, label in name)', () => {
+  beforeEach(() => { localStorage.clear(); });
+
+  it('a nav item is named by the words it shows; its tip is a description, not its name', () => {
+    renderWithSimulation(<Sidebar {...baseProps} />);
+    const item = screen.getByRole('button', { name: 'Dashboard' });
+    expect(item).toHaveAttribute('data-nav', 'dashboard');
+    expect(item).not.toHaveAttribute('aria-label');
+    expect(item).toHaveAttribute('aria-description', expect.stringMatching(/where you are, where it is going/));
+  });
+
+  it('the captioned buttons keep their captions as names, with the tip as a description', () => {
+    renderWithSimulation(<Sidebar {...baseProps} />);
+    expect(screen.getByRole('button', { name: 'Quick Update' })).toHaveAttribute('aria-description', expect.stringMatching(/balances, salary/));
+    expect(screen.getByRole('button', { name: 'Backup Everything' })).toHaveAttribute('aria-description', expect.stringMatching(/restore your plan on this or another browser/));
+    expect(screen.getByRole('button', { name: 'Restore Backup' })).toHaveAttribute('aria-description', expect.stringMatching(/Backup Everything/));
+  });
+
+  it('minimized, where the rail hides the words, the same words become the aria-label', () => {
+    renderWithSimulation(<Sidebar {...baseProps} isSidebarOpen={false} />);
+    expect(screen.getByRole('button', { name: 'Dashboard' })).toHaveAttribute('aria-label', 'Dashboard');
+    expect(screen.getByRole('button', { name: 'Quick Update' })).toHaveAttribute('aria-label', 'Quick Update');
+  });
+});

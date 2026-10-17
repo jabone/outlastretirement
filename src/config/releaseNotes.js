@@ -26,6 +26,8 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-10-12',
     headline: 'Premium loads as its own module, and asking for Premium no longer fails silently',
     bullets: [
+      { title: 'Help popups from the keyboard, names a voice can say, the logo on paper', ids: [406],
+        text: 'The Look it up link inside a help popup can now be reached with Tab, and Tab or Escape from it returns to the field. The sidebar\u2019s entries and buttons are named by the words they show, so a screen reader or voice control finds them by those words. A printout from the dark theme no longer starts with a gray box where the logo goes. The Terms of Use now carry their October 16 date, for the clause added that day saying the App\u2019s core is published under the GNU Affero General Public License.' },
       { title: 'The demo no longer reports a rejected Premium key', ids: [401],
         text: 'Opening the demo without a key had shown error cards saying a Premium key was not accepted, in place of the Premium previews. The demo now shows the locked cards a free user sees, and its read-only Detailed Holdings view loads again.' },
       { title: 'Premium keys can be re-keyed without cutting anyone off', ids: [399], premium: true,
