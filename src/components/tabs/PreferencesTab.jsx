@@ -189,7 +189,7 @@ const PreferencesTab = () => {
   } = useSimulation();
   const {
     isPremium,
-    premiumJwtToken, setPremiumJwtToken, premiumJwtExpiresAt, licensedTo,
+    premiumJwtToken, setPremiumJwtToken, premiumJwtExpiresAt, licensedTo, premiumKeySerial,
   } = useEntitlement();
 
   const restoreFileInputRef = useRef(null);
@@ -333,7 +333,7 @@ const PreferencesTab = () => {
   const premiumKeyStatusLabel = !premiumJwtToken
     ? 'Not set'
     : premiumJwtExpiresAt
-      ? `Active until ${premiumJwtExpiresAt.toLocaleDateString()}${licensedTo ? ` \u00b7 licensed to ${licensedTo}` : ''}`
+      ? `Active until ${premiumJwtExpiresAt.toLocaleDateString()}${licensedTo ? ` \u00b7 licensed to ${licensedTo}` : ''}${premiumKeySerial ? ` \u00b7 key ${premiumKeySerial.slice(0, 8)}` : ''}`
       : 'Invalid or expired';
   const premiumKeyStatusColor = !premiumJwtToken
     ? 'var(--text-secondary)'

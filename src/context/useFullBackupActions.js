@@ -185,9 +185,17 @@ export function useFullBackupActions() {
     // A Premium key in the file is only restored -- and only unlocks the
     // holdings below -- when its signature actually verifies. Writing a
     // bad or expired key would sign this browser out of one that works.
-    const premiumKeyValid = looksLikeJwt(parsed.premiumJwt)
-      ? (await verifyPremiumJwt(parsed.premiumJwt)).valid
-      : false;
+    const keyCheck = looksLikeJwt(parsed.premiumJwt)
+      ? await verifyPremiumJwt(parsed.premiumJwt)
+      : null;
+    // Changelog 424: when the verifier could not be loaded at all (a cold
+    // browser whose jose chunk did not arrive), nothing is known about the
+    // key. If this browser holds no key of its own, the file's key is
+    // restored provisionally and the app verifies it on reload exactly as
+    // it verifies a pasted one -- so the holdings come back in one pass
+    // instead of two. A browser that already has a key keeps it.
+    const keyUnverifiable = Boolean(keyCheck?.unavailable) && !localStorage.getItem('cfe_premium_jwt');
+    const premiumKeyValid = Boolean(keyCheck?.valid) || keyUnverifiable;
 
     // Holdings/liquidations are only applied when premium is active here,
     // or the file itself carries a working key. Say so before the user
@@ -199,9 +207,11 @@ export function useFullBackupActions() {
     const skipNotice = (!restorePremiumData && premiumDataInFile)
       ? "\n\nNote: this file also has Detailed Holdings/Liquidations data, but Premium Access isn't active on this browser, so that part will be skipped -- whatever Detailed Holdings you already have here (if any) will be left as-is."
       : '';
-    const keyNotice = (looksLikeJwt(parsed.premiumJwt) && !premiumKeyValid)
-      ? "\n\nThe Premium Access key in this file isn't valid (or has expired), so it won't be restored. Any key already on this browser stays."
-      : '';
+    const keyNotice = keyUnverifiable
+      ? "\n\nThe Premium Access key in this file couldn't be checked just now; it will be restored and checked when the page reloads."
+      : (looksLikeJwt(parsed.premiumJwt) && !premiumKeyValid)
+        ? "\n\nThe Premium Access key in this file isn't valid (or has expired), so it won't be restored. Any key already on this browser stays."
+        : '';
 
     // Live Pricing points this browser at a Sheet, so it is never
     // re-pointed silently: both links are shown, and it is restored only

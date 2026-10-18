@@ -3,8 +3,23 @@ import { PREMIUM_PUBLIC_KEYS } from '../config/premiumPublicKey';
 // jose (the JWT library) loads on first use rather than with the app: only
 // someone who has pasted a Premium key ever needs it, so the other visitors
 // never download it.
+//
+// A failed load is not remembered (changelog 424): the first restore on a
+// fresh browser used to fail its key check when the jose chunk did not
+// arrive in time, remember that rejection, and skip the holdings, so a
+// backup took two restores. One retry, then the caller is told the check
+// was unavailable -- distinct from a key that verified and failed.
 let josePromise = null;
-const loadJose = () => (josePromise ||= import('jose'));
+const loadJose = () => {
+  if (!josePromise) {
+    josePromise = import('jose').catch(() => import('jose')).catch((err) => {
+      josePromise = null;
+      throw err;
+    });
+  }
+  return josePromise;
+};
+export class VerificationUnavailableError extends Error {}
 
 // Client-side verification of the self-issued premium access token (see
 // scripts/mint-premium-jwt.mjs). Deliberately does full signature
@@ -41,6 +56,8 @@ const MAX_TOKEN_LIFETIME_SECONDS = MAX_TOKEN_LIFETIME_DAYS * 24 * 60 * 60;
 export const PREMIUM_KEY_ALGORITHMS = ['RS256', 'EdDSA'];
 
 const INVALID = Object.freeze({ valid: false, expiresAt: null, licensedTo: null });
+// The verifier itself could not be loaded, so nothing is known about the key.
+const UNAVAILABLE = Object.freeze({ valid: false, expiresAt: null, licensedTo: null, unavailable: true });
 
 // The ring as configured: an array of { kid, jwk, legacy? }, or empty when
 // nothing is configured (the app then accepts no key at all -- it ships
@@ -65,7 +82,7 @@ function importRingKey(entry) {
   return importedKeys.get(entry.kid);
 }
 
-// Returns { valid: boolean, expiresAt: Date | null, licensedTo: string | null }
+// Returns { valid: boolean, expiresAt: Date | null, licensedTo: string | null, serial: string | null }
 // -- licensedTo is the address the key was issued to, when the key carries
 // one (keys minted before 2026-10-16 do not). Never throws -- any
 // verification failure (missing key, bad signature, expired, malformed
@@ -73,8 +90,13 @@ function importRingKey(entry) {
 export async function verifyPremiumJwt(token) {
   if (!token || typeof token !== 'string') return INVALID;
   if (ring().length === 0) return INVALID;
+  let jwtVerify;
   try {
-    const { jwtVerify } = await loadJose();
+    ({ jwtVerify } = await loadJose());
+  } catch {
+    return UNAVAILABLE;
+  }
+  try {
     const resolveKey = (protectedHeader) => {
       const entry = ringEntryFor(protectedHeader);
       if (!entry) throw new Error('unknown kid');
@@ -90,6 +112,10 @@ export async function verifyPremiumJwt(token) {
       valid: true,
       expiresAt: new Date(payload.exp * 1000),
       licensedTo: typeof payload.licensedTo === 'string' && payload.licensedTo ? payload.licensedTo : null,
+      // The key's serial (`jti`, keys minted from 2026-10-18): a random id
+      // the operator's ledger maps to the address, so one key can be
+      // revoked on the module server without retiring its signing key.
+      serial: typeof payload.jti === 'string' && payload.jti ? payload.jti : null,
     };
   } catch {
     // Covers expired tokens, bad signatures, unknown kids, malformed tokens,

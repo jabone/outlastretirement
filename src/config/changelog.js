@@ -29,6 +29,39 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 426,
+    date: '2026-10-18',
+    title: 'A Premium key can be canceled on its own',
+    summary: 'A key issued from today carries a random serial number, so one key that leaked or was canceled can be refused by the module server without retiring the signing key behind every other key.',
+    items: [
+      "**What was wrong.** Keys could only be retired together: the one lever was dropping a whole signing key, which cut off every key it had signed.",
+      "**What changed.** Each key minted from October 18 carries a random serial number alongside the address, the Premium flag and the expiry. The module server keeps a short list of canceled serials and refuses those keys; nothing else changes, and keys issued earlier (which carry no serial) keep working. Preferences shows the first eight characters of your serial next to \u201clicensed to\u201d, so you can name your key if you ever ask for it to be replaced. The privacy policy says what the serial is and that the record of which serial went to which address is kept off the server.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
+    id: 425,
+    date: '2026-10-18',
+    title: 'The privacy policy says what the demo sends and what a module fetches without a key',
+    summary: 'Two flows the policy had not described: the Demo Plan sends the module server a built-in demo delivery key, and a loaded module fetches a few third-party files with no key. Neither sends your data.',
+    items: [
+      "**What was missing.** The section said a module is fetched only when a valid Premium Access key is present. The Demo Plan is an exception: so that visitors without a key can see the read-only Detailed Holdings view, the App sends the module server a demo delivery key built into the App \u2014 the same for every visitor, not a Premium key, carrying nothing about you. And once a module is loaded it may fetch supporting third-party files from the same server with no key at all: the PDF reader used for statement import, the chart library, the Live Pricing script.",
+      "**What changed.** Both are now described in the Premium Modules section, with an update note, and the policy\u2019s effective date has moved to October 18, as it does whenever a flow that was always happening had not been written down. Nothing about what the App sends has changed.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
+    id: 424,
+    date: '2026-10-18',
+    title: 'A backup with a Premium key restores its Detailed Holdings in one pass',
+    summary: 'On a fresh browser the restore could fail to load its key checker, call the key invalid and skip the holdings, so a backup took two restores. The check now retries; a key it cannot check is checked on reload.',
+    items: [
+      "**What was wrong.** Restore verifies the Premium Access key in a backup before writing it, using a verifier the app loads on first use. On a browser that had never loaded it, that load could fail or arrive late; the failure was then remembered, the key was reported as invalid, the Detailed Holdings were skipped, and only a second restore brought them back.",
+      "**What changed.** The verifier is retried and a failed load is never remembered. When it still cannot be loaded, the restore says the key couldn\u2019t be checked just now, writes it anyway if this browser holds no key of its own, and the app checks it when the page reloads \u2014 exactly as it checks a pasted key. A browser that already has a key keeps it. A key that loads and fails its check is still refused, as before.",
+      "**Your numbers do not change.** This is the restore flow only.",
+    ],
+  },
+  {
     id: 423,
     date: '2026-10-18',
     title: 'A max-bracket Roth conversion makes room for the Pre-Tax draw that funds the year',

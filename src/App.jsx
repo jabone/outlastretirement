@@ -343,6 +343,10 @@ export default function App() {
     // The address the key was issued to, shown in Preferences; null for a
     // key minted before keys carried one.
     licensedTo: premiumJwtStatus.valid ? premiumJwtStatus.licensedTo : null,
+    // The key's serial, shown so a holder can name their key when asking
+    // for it to be revoked or replaced; null for a key minted before
+    // 2026-10-18.
+    premiumKeySerial: premiumJwtStatus.valid ? (premiumJwtStatus.serial || null) : null,
   }), [premiumJwtToken, premiumJwtStatus, demoActive]);
 
   // KNOWN_ISSUES.md issue #1 fix: pairs each custom-switch's visible label

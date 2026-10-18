@@ -530,7 +530,12 @@ describe('privacy policy', () => {
     // the Live Pricing Sheet, and names typed into a plan were disclosed.
     // And on 2026-10-17: the host's short-lived request logs, which two
     // sentences had said we neither receive nor keep (changelog 413).
-    expect(privacy).toMatch(/Effective Date: October 17, 2026/);
+    // And on 2026-10-18: the demo delivery key the Demo Plan sends the
+    // module server, and the supporting files a module fetches without a
+    // key (changelog 425).
+    expect(privacy).toMatch(/Effective Date: October 18, 2026/);
+    expect(privacy).toMatch(/Update, October 18, 2026/);
+    expect(privacy).toMatch(/demo delivery key/);
     expect(privacy).toMatch(/Update, October 17, 2026/);
     expect(privacy).toMatch(/Update, October 16, 2026/);
     expect(privacy).toMatch(/Update, September 30, 2026/);
@@ -575,7 +580,9 @@ describe('privacy policy', () => {
     // which carries no address and no Premium flag -- only { demo: true }.
     const claims = [...minter.matchAll(/new SignJWT\(([^)]*)\)/g)].map((m) => m[1].replace(/\s/g, '')).sort();
     expect(claims).toEqual(['{demo:true}', '{premium:true,licensedTo}']);
-    expect(privacy).toMatch(/carries three things: the email address we sent it to, the fact that Premium is enabled, and when it expires/);
+    // The server mint (Premium repo, api/mint.js) adds a fourth claim from
+    // 2026-10-18, the serial (`jti`); the policy names it.
+    expect(privacy).toMatch(/carries four things: the email address we sent it to, the fact that Premium is enabled, when it expires, and \(from October 18, 2026\) a random serial number/);
     expect(privacy).not.toMatch(/no name, no email address, and no identifier/);
   });
 });
