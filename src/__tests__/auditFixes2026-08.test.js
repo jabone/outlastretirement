@@ -32,6 +32,9 @@ const RETIRED_SINGLE = {
   lifestyleExpense: 60000,
   rothConversionStrategy: 'none',
   stateTaxState: 'none',
+  // Retired at 60 with the default bridge: the computed marketplace credit
+  // (changelog 415) would move with the income under test, so it is off.
+  acaCreditSource: 'manual',
 };
 
 describe('1.1 Rental and annuity income are ordinary taxable income', () => {

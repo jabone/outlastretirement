@@ -10,7 +10,7 @@
 // remove one to fold it. Nothing else changes: the field is still on the
 // page either way.
 export const GUIDED_CORE_KEYS = new Set([
-  'acaCliffProtectionEnabled', 'acaSubsidyAnnualValue', 'acaSubsidyProtectionEnabled', 'afterTaxContributionsAllowed',
+  'acaBenchmarkPremiumAnnual', 'acaBenchmarkPremiumSource', 'acaCliffProtectionEnabled', 'acaCreditSource', 'acaSubsidyAnnualValue', 'acaSubsidyProtectionEnabled', 'rmdSpouseSoleBeneficiary', 'itemizeDeductions', 'propertyTaxAnnual', 'charitableGivingAnnual', 'mortgageIsAcquisitionDebt', 'afterTaxContributionsAllowed',
   'annuityIncome', 'annuityIndexation', 'annuityIsTaxable', 'annuityPayoutRate', 'annuityPurchaseAge', 'annuityPurchaseAmount', 'annuitySourceAccount',
   'autoMaxContribution', 'backdoorRothAnnualAmount', 'backdoorRothEnabled', 'birthYear',
   'cashFloorEnabled', 'cashFloorInit', 'cashFloorPreFundEnabled', 'cashFloorReturnRate',

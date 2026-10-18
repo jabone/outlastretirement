@@ -35,6 +35,7 @@ import LifeInsuranceSection from '../plan/sections/LifeInsuranceSection';
 import ReturnAssumptionsSection from '../plan/sections/ReturnAssumptionsSection';
 import GranularInflationSection from '../plan/sections/GranularInflationSection';
 import StateTaxesSection from '../plan/sections/StateTaxesSection';
+import DeductionsSection from '../plan/sections/DeductionsSection';
 import LegislativeRisksSection from '../plan/sections/LegislativeRisksSection';
 import EstateHeirsSection from '../plan/sections/EstateHeirsSection';
 import { planVerdict, verdictClass } from '../../utils/planVerdict';
@@ -370,6 +371,7 @@ const InterviewTab = () => {
           <G><ReturnAssumptionsSection /></G>
           <G><GranularInflationSection /></G>
           <G><StateTaxesSection /></G>
+          <G><DeductionsSection /></G>
           <Gate question="Model a future change in the law — a Social Security cut, TCJA rates lapsing, or IRMAA thresholds frozen?" checked={gPolicyRisk} onToggle={setGPolicyRisk}>
             <G><LegislativeRisksSection forceOpen /></G>
           </Gate>

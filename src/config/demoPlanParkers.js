@@ -35,6 +35,14 @@ export function buildParkersInputs() {
     // pictures) is fixed: the plan's own COLA assumption every year, not
     // SSA's announced figures (changelog 410).
     ssColaAnnounced: false,
+    // Likewise pinned: the brokerage yield stays 100% qualified, as the
+    // lessons' pictures were drawn (changelog 414).
+    taxableQualifiedDividendFollowsAllocation: false,
+    // And the pre-65 health cost stays as typed, with no computed credit
+    // (changelog 415 computes one for new plans).
+    acaCreditSource: 'manual',
+    // And the standard deduction every year (changelog 417).
+    itemizeDeductions: 'never',
 
     // -- Who they are ------------------------------------------------------
     spouse1Name: 'Ray',

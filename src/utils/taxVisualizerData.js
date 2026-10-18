@@ -83,6 +83,7 @@ export function buildTaxVisualizerData(years, useRealDollars, { mfsLivedWithSpou
       isRetired: y.isRetired,
       householdStatus: y.householdStatus,
       stdDeduction,
+      deductionUsed: y.deductionUsed || 'standard',
       taxableSalary,
       stockVesting,
       deferredComp,

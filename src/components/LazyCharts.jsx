@@ -616,7 +616,7 @@ export function TaxBracketChart({
                   <span>{currencyFormatter(d.totalOrdinaryGross)}</span>
                 </div>
                 <div style={line}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Less standard deduction (0%)</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>Less {d.deductionUsed === 'itemized' ? 'itemized deductions' : 'standard deduction'} (0%)</span>
                   <span>{currencyFormatter(d.stdDeduction || 0)}</span>
                 </div>
                 <div style={{ ...line, color: 'var(--accent-text)' }}>
@@ -632,7 +632,7 @@ export function TaxBracketChart({
         {TAX_INCOME_SERIES.map((s) => <Bar key={s.key} dataKey={s.key} stackId="income" fill={s.color} name={s.name} />)}
         
         {/* The standard deduction: income below this line is taxed at 0%. */}
-        <Line type="monotone" dataKey="stdDeduction" stroke="var(--text-muted)" strokeDasharray="2 4" dot={false} strokeWidth={1.5} name="Standard deduction" label={endLabel(data, '0%', 'var(--text-muted)')} isAnimationActive={false} />
+        <Line type="monotone" dataKey="stdDeduction" stroke="var(--text-muted)" strokeDasharray="2 4" dot={false} strokeWidth={1.5} name="Deduction" label={endLabel(data, '0%', 'var(--text-muted)')} isAnimationActive={false} />
 
         {/* Bracket thresholds, labeled at the right end so each line says
             which bracket starts above it. */}

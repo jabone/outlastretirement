@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-17T17:50:31.576Z",
+  "timestamp": "2026-10-18T03:05:19.801Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -204,6 +204,11 @@
     "hsaContribution": 8750,
     "hsaFamilyCoverage": true,
     "qcdAnnualAmount": 0,
+    "rmdSpouseSoleBeneficiary": true,
+    "itemizeDeductions": "never",
+    "propertyTaxAnnual": 0,
+    "charitableGivingAnnual": 0,
+    "mortgageIsAcquisitionDebt": true,
     "lifestyleExpense": 96000,
     "lifestyleExpenseInputMode": "annual",
     "lifestyleExpenseMonthly": [
@@ -376,6 +381,7 @@
     "dividendPayoutMode": "reinvest",
     "taxableDividendYieldSource": "manual",
     "taxableQualifiedDividendPct": 100,
+    "taxableQualifiedDividendFollowsAllocation": false,
     "milestones": [
       {
         "id": 1,
@@ -442,6 +448,9 @@
     "acaSubsidyProtectionEnabled": false,
     "acaCliffProtectionEnabled": false,
     "acaSubsidyAnnualValue": 0,
+    "acaCreditSource": "manual",
+    "acaBenchmarkPremiumSource": "state",
+    "acaBenchmarkPremiumAnnual": 0,
     "taxableCapitalGainsRatio": 0.6,
     "taxLossHarvestingEnabled": false,
     "pension1COLA": 0,
@@ -670,6 +679,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 96000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -842,6 +856,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -908,6 +923,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -936,10 +954,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8608771.922995051,
         "successProbability": 100,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.606Z",
+      "savedAt": "2026-10-18T03:05:19.831Z",
       "tag": "demo"
     },
     {
@@ -1146,6 +1164,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 96000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -1318,6 +1341,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -1384,6 +1408,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -1412,10 +1439,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.615Z",
+      "savedAt": "2026-10-18T03:05:19.835Z",
       "tag": "demo"
     },
     {
@@ -1622,6 +1649,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 96000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -1794,6 +1826,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -1860,6 +1893,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -1888,10 +1924,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.624Z",
+      "savedAt": "2026-10-18T03:05:19.847Z",
       "tag": "demo"
     },
     {
@@ -2098,6 +2134,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 96000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -2270,6 +2311,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -2336,6 +2378,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -2364,10 +2409,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.637Z",
+      "savedAt": "2026-10-18T03:05:19.855Z",
       "tag": "demo"
     },
     {
@@ -2574,6 +2619,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 96000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -2746,6 +2796,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -2812,6 +2863,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -2840,10 +2894,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.649Z",
+      "savedAt": "2026-10-18T03:05:19.866Z",
       "tag": "demo"
     },
     {
@@ -3050,6 +3104,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 96000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -3222,6 +3281,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -3288,6 +3348,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -3316,10 +3379,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.664Z",
+      "savedAt": "2026-10-18T03:05:19.870Z",
       "tag": "demo"
     },
     {
@@ -3526,6 +3589,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 96000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -3698,6 +3766,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -3764,6 +3833,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -3792,10 +3864,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.671Z",
+      "savedAt": "2026-10-18T03:05:19.875Z",
       "tag": "demo"
     },
     {
@@ -4002,6 +4074,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 180000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -4174,6 +4251,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -4240,6 +4318,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -4268,10 +4349,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 47.3,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.680Z",
+      "savedAt": "2026-10-18T03:05:19.893Z",
       "tag": "demo"
     },
     {
@@ -4478,6 +4559,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 180000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -4650,6 +4736,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -4716,6 +4803,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -4744,10 +4834,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4723570.591754472,
         "successProbability": 89.8,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.691Z",
+      "savedAt": "2026-10-18T03:05:19.904Z",
       "tag": "demo"
     },
     {
@@ -4954,6 +5044,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 170000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -5126,6 +5221,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -5192,6 +5288,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -5220,10 +5319,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 62.6,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.703Z",
+      "savedAt": "2026-10-18T03:05:19.911Z",
       "tag": "demo"
     },
     {
@@ -5430,6 +5529,11 @@
         "hsaContribution": 8750,
         "hsaFamilyCoverage": true,
         "qcdAnnualAmount": 0,
+        "rmdSpouseSoleBeneficiary": true,
+        "itemizeDeductions": "never",
+        "propertyTaxAnnual": 0,
+        "charitableGivingAnnual": 0,
+        "mortgageIsAcquisitionDebt": true,
         "lifestyleExpense": 170000,
         "lifestyleExpenseInputMode": "annual",
         "lifestyleExpenseMonthly": [
@@ -5602,6 +5706,7 @@
         "dividendPayoutMode": "reinvest",
         "taxableDividendYieldSource": "manual",
         "taxableQualifiedDividendPct": 100,
+        "taxableQualifiedDividendFollowsAllocation": false,
         "milestones": [
           {
             "id": 1,
@@ -5668,6 +5773,9 @@
         "acaSubsidyProtectionEnabled": false,
         "acaCliffProtectionEnabled": false,
         "acaSubsidyAnnualValue": 0,
+        "acaCreditSource": "manual",
+        "acaBenchmarkPremiumSource": "state",
+        "acaBenchmarkPremiumAnnual": 0,
         "taxableCapitalGainsRatio": 0.6,
         "taxLossHarvestingEnabled": false,
         "pension1COLA": 0,
@@ -5696,10 +5804,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.2,
-        "oddsVersion": 412
+        "oddsVersion": 417
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-17T17:50:31.715Z",
+      "savedAt": "2026-10-18T03:05:19.921Z",
       "tag": "demo"
     }
   ],

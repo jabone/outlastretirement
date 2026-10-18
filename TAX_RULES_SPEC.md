@@ -1,6 +1,6 @@
 # OutlastRetirement — Tax Rules Specification for Professional Review
 
-**Version:** 2.10 — 2026-10-17, engine as of changelog 411. *(2.10: SSA's announced 2027 COLA, wage base and earnings-test amounts (Rules 2.11, 3.1); the Survivor Stress Test age is alive-through, like Life Expectancy, so the year of death is a joint return (Q-2).)* v2.9 — 2026-10-17, engine as of changelog 409. *(2.9: the ACA poverty line is the guideline published the year before the coverage year — 2026 coverage on the 2025 table — so the 400% cliff and the coverage-gap floor sit where the marketplace puts them (Rule 2.10).)* v2.8 — 2026-10-17, engine as of changelog 407. *(2.8: two MFS returns each floor their own standard deduction, for the ordinary tax, the gains stack, the NIIT test, the conversion ceiling, the ledger's bracket and a state that starts from the federal deduction (Rule 1.1).)* v2.7 — 2026-10-17, engine as of changelog 406. *(2.7: the max-bracket conversion ceiling and the ledger's marginal bracket read the larger MFS return's share, as the IRMAA cap already did (Rule 1.1); the heir's year-one inherited-IRA draw is priced above the year-one HSA/NQDC lumps on the same return, federal and state; the household effective estate tax rate counts GST and the heirs' state income tax as each heir's rate already did; Today's Dollars deflates the heirs' state income tax (Rule 5.0 and the per-heir rules); a harvested loss covers the solver's draw gains before any of it offsets ordinary income, and the senior-bonus MAGI nets the loss used (Rule 2.8); the draws that fund the ACA boost tax, the subsidy clawback and the IRMAA true-up are taxed and penalized like any other and keep the Roth layer accounting; the boost's tax is split federal/state; the foreign dividend surtax and the §904 re-sourcing follow the split-year and remitted shares and the passive basket needs the country to tax investment income; a QCD comes only from taxable money and leaves the Form 8606 ratio (Rules 2.10, 3.2, the years-abroad section).)* v2.6 — 2026-09-30, engine as of changelog 349. *(2.6: new Rule 4.8 — a Washington jurisdiction with the capital gains excise tax (7% + 2.9% over $1M, RCW 82.87) and, from 2028, the ESSB 6346 income tax (9.9% over a $1,000,000 household deduction, capital gains tax credited); Washington's estate tax runs through its graduated 10%–20% table (Rule 5.5, Q-19 revised); New York's 2026 / 2027–2032 / 2033+ rates re-confirmed against Tax Law §601 (Rule 4.5); Pub. 590-A labelled as the 2025 edition used for rules only, 2026 IRA figures from Notice 2025-67.)* v2.5 — 2026-09-30, engine after the 2026-09 tax review. *(2.5: the senior bonus phases out per person (Rule 2.2); MFS gives each return its own deduction, age add-on, state return and IRMAA test (Rules 1.1, 2.1, 2.2, 2.9, 4.1) and no premium tax credit (Rule 2.10); the survivor keeps their own 65+ deduction whichever spouse survives; provisional income includes every AGI item (§1.2, Rule 2.6); Life-Event Pre-Tax withdrawals before 59½ are penalized (Rule 3.5); Colorado's SS subtraction shares the pension cap and Pennsylvania taxes 401(k) deferrals (Rules 4.2, 4.3, 4.6); NIIT excludes a Pre-Tax-funded annuity (Rule 2.4); the FRA-year earnings test runs for FRA 67 (Rule 2.11); IRMAA's top tier is ≥ and the MFS-together top line is $500,000 less the lower one (Rule 2.9); Auto-Max 401(k) routes the catch-up to Roth over the wage threshold (Rule 3.1); the estate exemption doubles for MFS and the DSUE indexes only to the first death (Rule 5.1); Illinois' 2026 exemption is $2,925; §1.3 corrected.)* v2.4 — 2026-09-24, engine as of changelog 265. *(2.4 replaces the survivor Social Security rule in Rule 3.12: age-60 start, the 71.5%–100% age reduction, RIB-LIM and carried delayed credits, in place of "the greater of the two from 62".)* v2.3 — 2026-09-10, engine as of changelog 165. *(2.3 documents
+**Version:** 2.14 — 2026-10-17, engine as of changelog 417. *(2.14: itemized deductions — SALT under the OBBBA cap, mortgage interest on acquisition debt, cash gifts after the 0.5% floor, medical over 7.5% — taken when larger than the standard deduction, and the non-itemizer charitable deduction from 2026 (Rule 2.2).)* v2.13 — 2026-10-17, engine as of changelog 416. *(2.13: RMDs read the Joint and Last Survivor table when the sole-beneficiary spouse is more than 10 years younger (Rule 3.2).)* v2.12 — 2026-10-17, engine as of changelog 415. *(2.12: the ACA premium tax credit is computed — state benchmark premium by age less the Rev. Proc. 2025-25 applicable percentage of MAGI, capped at the premium, estimated before the year and reconciled on the settled MAGI (Rule 2.10).)* v2.11 — 2026-10-17, engine as of changelog 414. *(2.11: the taxable-brokerage qualified share follows the plan's stock/bond split by default, the bond and cash share being interest; a Detailed Holdings bond or cash holding with no Distribution Character is ordinary (Rules 2.3, 3.9).)* v2.10 — 2026-10-17, engine as of changelog 411. *(2.10: SSA's announced 2027 COLA, wage base and earnings-test amounts (Rules 2.11, 3.1); the Survivor Stress Test age is alive-through, like Life Expectancy, so the year of death is a joint return (Q-2).)* v2.9 — 2026-10-17, engine as of changelog 409. *(2.9: the ACA poverty line is the guideline published the year before the coverage year — 2026 coverage on the 2025 table — so the 400% cliff and the coverage-gap floor sit where the marketplace puts them (Rule 2.10).)* v2.8 — 2026-10-17, engine as of changelog 407. *(2.8: two MFS returns each floor their own standard deduction, for the ordinary tax, the gains stack, the NIIT test, the conversion ceiling, the ledger's bracket and a state that starts from the federal deduction (Rule 1.1).)* v2.7 — 2026-10-17, engine as of changelog 406. *(2.7: the max-bracket conversion ceiling and the ledger's marginal bracket read the larger MFS return's share, as the IRMAA cap already did (Rule 1.1); the heir's year-one inherited-IRA draw is priced above the year-one HSA/NQDC lumps on the same return, federal and state; the household effective estate tax rate counts GST and the heirs' state income tax as each heir's rate already did; Today's Dollars deflates the heirs' state income tax (Rule 5.0 and the per-heir rules); a harvested loss covers the solver's draw gains before any of it offsets ordinary income, and the senior-bonus MAGI nets the loss used (Rule 2.8); the draws that fund the ACA boost tax, the subsidy clawback and the IRMAA true-up are taxed and penalized like any other and keep the Roth layer accounting; the boost's tax is split federal/state; the foreign dividend surtax and the §904 re-sourcing follow the split-year and remitted shares and the passive basket needs the country to tax investment income; a QCD comes only from taxable money and leaves the Form 8606 ratio (Rules 2.10, 3.2, the years-abroad section).)* v2.6 — 2026-09-30, engine as of changelog 349. *(2.6: new Rule 4.8 — a Washington jurisdiction with the capital gains excise tax (7% + 2.9% over $1M, RCW 82.87) and, from 2028, the ESSB 6346 income tax (9.9% over a $1,000,000 household deduction, capital gains tax credited); Washington's estate tax runs through its graduated 10%–20% table (Rule 5.5, Q-19 revised); New York's 2026 / 2027–2032 / 2033+ rates re-confirmed against Tax Law §601 (Rule 4.5); Pub. 590-A labelled as the 2025 edition used for rules only, 2026 IRA figures from Notice 2025-67.)* v2.5 — 2026-09-30, engine after the 2026-09 tax review. *(2.5: the senior bonus phases out per person (Rule 2.2); MFS gives each return its own deduction, age add-on, state return and IRMAA test (Rules 1.1, 2.1, 2.2, 2.9, 4.1) and no premium tax credit (Rule 2.10); the survivor keeps their own 65+ deduction whichever spouse survives; provisional income includes every AGI item (§1.2, Rule 2.6); Life-Event Pre-Tax withdrawals before 59½ are penalized (Rule 3.5); Colorado's SS subtraction shares the pension cap and Pennsylvania taxes 401(k) deferrals (Rules 4.2, 4.3, 4.6); NIIT excludes a Pre-Tax-funded annuity (Rule 2.4); the FRA-year earnings test runs for FRA 67 (Rule 2.11); IRMAA's top tier is ≥ and the MFS-together top line is $500,000 less the lower one (Rule 2.9); Auto-Max 401(k) routes the catch-up to Roth over the wage threshold (Rule 3.1); the estate exemption doubles for MFS and the DSUE indexes only to the first death (Rule 5.1); Illinois' 2026 exemption is $2,925; §1.3 corrected.)* v2.4 — 2026-09-24, engine as of changelog 265. *(2.4 replaces the survivor Social Security rule in Rule 3.12: age-60 start, the 71.5%–100% age reduction, RIB-LIM and carried delayed credits, in place of "the greater of the two from 62".)* v2.3 — 2026-09-10, engine as of changelog 165. *(2.3 documents
 the taxable-account income change already shipped in changelog 161: the
 holdings-linked yield now counts every taxable distribution rather than
 dividends alone. It also adds **Q-24**, which proposes splitting that
@@ -109,7 +109,7 @@ Two conventions to keep in mind throughout:
 |---|---|
 | **Ordinary income base** | Wages (net of pre-tax 401(k), HSA and NQDC deferrals) + pensions + federally taxable Social Security + rental and flat annuity income + the taxable part of RMDs (after any QCD) + the taxable part of Roth conversions + other taxable inflows + taxable annuity-purchase payouts + Pre-Tax milestone withdrawals + NUA cost basis − any harvested-loss ordinary offset. |
 | **Discretionary Pre-Tax draw** | The additional Pre-Tax withdrawal the engine's solver takes to fund spending. Added to the ordinary income base when pricing that year's tax. |
-| **Capital gains** | 2% of the taxable-brokerage balance treated as qualified dividends, plus realized gains on taxable-brokerage withdrawals (the non-basis fraction of each dollar withdrawn). All gains are treated as long-term. |
+| **Capital gains** | The qualified share of the taxable-brokerage yield (2% of the balance by default; the share follows the plan's stock/bond split, Rule 2.3), plus realized gains on taxable-brokerage withdrawals (the non-basis fraction of each dollar withdrawn). All gains are treated as long-term. |
 | **MAGI proxy** | Ordinary income base + discretionary Pre-Tax draw + capital gains. Used for the OBBBA senior-bonus phase-out and NIIT. |
 | **IRMAA MAGI** | Ordinary income base + discretionary Pre-Tax draw + taxable Roth earnings + capital gains — i.e. AGI (tax-exempt interest is not modelled). Social Security enters at its *taxable* amount, as in AGI (since v1.6; Q-4(b)(c)). The figure that sets year N's premium is year N−2's IRMAA MAGI (the two-year lookback, v1.5). |
 | **ACA MAGI** | Ordinary income base + discretionary Pre-Tax draw + capital gains + the non-taxable part of Social Security. |
@@ -213,8 +213,9 @@ hypothetical, since OBBBA made the current rates permanent.
 
 ### Rule 2.2 — Standard deduction, age-65 add-on, OBBBA senior bonus
 
-**What the engine does.** No itemized deductions are modelled. The
-deduction each year is the sum of three parts:
+**What the engine does.** The deduction each year is the larger of the
+standard deduction and the itemized total (below, v2.14), plus the senior
+bonus either way. The standard deduction is the sum of three parts:
 
 1. **Basic standard deduction:** $32,200 MFJ / $16,100 Single / $16,100 MFS,
    indexed. (Pre-TCJA stress toggle: half these amounts, no personal
@@ -236,9 +237,51 @@ deduction each year is the sum of three parts:
    the two together: every tax computation uses the bonus that survives at
    the income it is pricing (MAGI proxy, §1.2).
 
+**Itemized deductions (v2.14, changelog 417).** With `itemizeDeductions:
+'auto'` (the default) each year takes the larger of the standard deduction
+and the sum of four lines (`itemizedDeductionFor`), AGI approximated by the
+MAGI proxy; `'never'` takes the standard deduction, as every plan did
+before 417, and two separate MFS returns always do:
+
+1. *State and local taxes* (§164(b)(6) as amended by P.L. 119-21 §70120):
+   the state income tax the engine settled for the PRIOR year (cash basis:
+   what is paid in a year is largely the prior year's liability; year one
+   counts none) plus `propertyTaxAnnual` (today's dollars, housing-inflated),
+   capped at $40,000 for 2025 rising 1% a year to 2029 ($40,400 for 2026)
+   and $10,000 from 2030, the cap reduced by 30% of MAGI over $500,000
+   (2025, +1%/yr) to a floor of $10,000; MFS half of each (`saltCapFor`).
+2. *Mortgage interest* (§163(h)(3)(F)): the year's interest from the
+   engine's own amortization, when `mortgageIsAcquisitionDebt` (default on),
+   pro-rated to $750,000 of principal ($375,000 MFS) when the balance is
+   higher. Other debt's interest is never deducted.
+3. *Charitable cash gifts* (§170(b)(1)(G), §170(b)(1)(I) as added by
+   §70425): `charitableGivingAnnual` (today's dollars, inflated), at most
+   60% of AGI, less a floor of 0.5% of AGI from 2026. QCDs (Rule 3.3) are
+   excluded from income and never counted here.
+4. *Medical* (§213(a)): the pre-65 Healthcare Bridge net of its premium
+   tax credit, long-term care costs, and Medicare Part B and D premiums
+   including IRMAA, less the HSA's tax-free draw, over 7.5% of AGI. The
+   pre-solver base pricing sees the bridge before its credit and without
+   the Medicare premiums; the solver and the settled year see the full
+   figure.
+
+A standard-deduction year also deducts cash gifts up to $1,000 ($2,000
+MFJ) from 2026 (§170(p), P.L. 119-21 §70424; `nonItemizerCharitableFor`),
+below the line, so no MAGI changes. The rows carry `deductionUsed`,
+`itemizedDeduction` and the four lines. Iowa, Montana and North Dakota
+start from federal taxable income (Rule 4.9) and so inherit whichever
+deduction the federal return used. Not modelled: the 35% ceiling on the
+value of itemized deductions in the 37% bracket (§68 as amended by
+§70111), investment interest, casualty losses, the pre-2018 Pease limit,
+every other state's own itemizing rules, and the AMT treatment of the
+lines (Rule 2.5 keeps AMTI at ordinary income before any deduction, which
+already disallows all of them).
+
 **Authority.** Rev. Proc. 2025-32 (basic and §63(f) amounts); P.L. 119-21
 §70104 as summarised by IRS, H&R Block and the Peter G. Peterson Foundation
 (bonus amount, years, phase-out, MFS exclusion). Verified 2026-08-29.
+P.L. 119-21 §§70111, 70120, 70424, 70425 (itemized changes from 2025/2026);
+IRC §§163(h)(3), 164(b)(6), 170(b), 170(p), 213(a).
 
 **Reviewer:** [ ] Agree  [ ] Correct but incomplete  [ ] Issue: ______________
 
@@ -255,9 +298,21 @@ indexed:
 | 0% band ceiling | $98,900 | $49,450 | $49,450 |
 | 15% band ceiling | $613,700 | $545,500 | $306,850 |
 
-All dividends are treated as qualified; all gains as long-term. There is no
-interest income, no non-qualified dividends and no short-term gains in the
-model.
+All gains are treated as long-term; there are no short-term gains in the
+model. The taxable-brokerage yield is split between qualified and ordinary
+income by a *qualified share* (changelog 208; `taxableQualifiedDividendPct`):
+the qualified share joins the gains stack here, the rest is ordinary income
+in every ordinary-income sum (Rule 2.1, provisional income, ACA and IRMAA
+MAGI, the NIIT base, the state base). **From changelog 414 (v2.11) the
+share by default follows the plan's stock/bond split year by year** —
+the Working or Retired stock allocation, walked down by the glide path
+when rebalancing and the glide are on (`planStockShareForYear`): the stock
+side of a brokerage account pays qualified dividends, the bond and cash
+side pays interest, which is ordinary. A typed share applies only with
+that switch off (`taxableQualifiedDividendFollowsAllocation: false`); a
+plan saved before 414 with a share other than the old 100% default keeps
+its figure. Linked to Detailed Holdings the share comes from each holding's
+Distribution Character (Rule 3.9).
 
 **Unused standard deduction (v1.7, Q-3).** Where ordinary income is below
 the standard deduction, the unused remainder reduces the gains before they
@@ -616,18 +671,67 @@ flags a breach. With "ACA Cliff Protection" on, voluntary Roth
 conversions are capped so estimated MAGI (other ordinary income + all
 Social Security + dividends + the taxable share of the conversion) stays
 at or under 4 × FPL; discretionary Pre-Tax draws the solver later needs
-can still cross the line and are flagged rather than blocked. An optional
-user-entered "Estimated ACA Premium Tax Credit" ($/yr, medical-inflated)
-is netted out of the Healthcare Bridge cost while eligible and repaid in
-full as tax in any year that ends over the cliff or in the coverage gap
-(Form 8962 reconciliation). The credit's *amount* is not computed from
-the benchmark premium and applicable percentage — it is the user's own
-estimate. The FPL vintage is the statutory prior year (above; changelog
-409).
+can still cross the line and are flagged rather than blocked. The FPL
+vintage is the statutory prior year (above; changelog 409).
+
+**The credit itself (v2.12, changelog 415).** By default
+(`acaCreditSource: 'formula'`) the engine computes the premium tax credit
+as §36B(b) does: the benchmark premium less the household's contribution,
+never more than the premium paid.
+
+- *Benchmark* (§36B(b)(3)(C)): the second-lowest-cost silver plan covering
+  the adults on the marketplace that year. The engine has no rating-area
+  data, so it uses the state's 2026 average benchmark for a 40-year-old
+  (KFF, county premiums weighted by plan selections; US average $625 a
+  month, `ACA_BENCHMARK_40_MONTHLY_2026`), one per covered adult, scaled by
+  the federal default age curve (45 CFR 147.102: 40 = 1.278, 64 = 3.000;
+  New York and Vermont community-rated at 1.0, Massachusetts' 2:1 curve as
+  half the federal climb) and the medical inflation factor
+  (`acaBenchmarkPremiumAnnual`). The household's own benchmark from
+  healthcare.gov's tax tool can be typed instead
+  (`acaBenchmarkPremiumSource: 'manual'`, `acaBenchmarkPremiumAnnual`,
+  today's dollars).
+- *Contribution* (§36B(b)(3)(A)): the applicable percentage of ACA MAGI,
+  from the 2026 schedule in Rev. Proc. 2025-25 — 2.10% under 133% of FPL,
+  3.14%→4.19% to 150%, 4.19%→6.60% to 200%, 6.60%→8.44% to 250%,
+  8.44%→9.96% to 300%, 9.96% to 400% — interpolated linearly within a
+  band (`ACA_APPLICABLE_PCT_2026`, `acaApplicablePercent`). Nothing below
+  100% of FPL or above 400%. Later years keep the 2026 schedule (its
+  indexing is a few hundredths of a point a year).
+- *Cap*: the premium share of the Healthcare Bridge cost
+  (`healthcareBridgePremiumPct`, 70% by default), since the credit cannot
+  exceed the premium (§36B(b)(2)(A)).
+
+*Advance and reconciliation.* The year's credit is estimated before the
+withdrawal solver — the way a household projects income to the
+marketplace — from the larger of last year's settled ACA MAGI (when the
+household was on the marketplace then) and this year's known income
+(other ordinary income + all Social Security + dividends + the taxable
+share of the conversion chosen for the year), and netted out of the bridge
+cost (`acaSubsidyApplied`). After the solver the credit is re-figured on
+the settled ACA MAGI (`acaCreditSettled`); the difference is settled on
+the return as Form 8962 does — a shortfall repaid as federal tax
+(`acaSubsidyClawback`, funded Taxable → Roth → Pre-Tax like the boost
+tax), an excess refunded to the taxable account (`acaSubsidyRefund`). A
+year over the cliff or in the coverage gap earns nothing and repays the
+whole advance. The first marketplace year of a household with no income
+before the solver is estimated at zero and settled as a refund.
+
+*Manual* (`acaCreditSource: 'manual'`): the user-entered "Estimated ACA
+Premium Tax Credit" ($/yr, medical-inflated) is netted out of the bridge
+cost while eligible and repaid in full as tax in any year that ends over
+the cliff or in the coverage gap — the pre-415 behavior, kept for a plan
+saved with a typed figure (sanitizeInputs) and for anyone who prefers it.
+Not modelled: Medicaid eligibility below 138% of FPL in expansion states
+(the engine still prices the marketplace credit there), cost-sharing
+reductions, the §36B(c)(1)(E) exception for income under 100% of FPL, and
+employer-coverage affordability.
 
 **Authority.** 90 FR 5917 (HHS poverty guidelines, 17 Jan 2025) and 91 FR
-1797 (15 Jan 2026); 45 CFR 155.300; IRC §36B(c)(1)(A); healthinsurance.org Medicaid expansion tracker (state
-list).
+1797 (15 Jan 2026); 45 CFR 155.300; 45 CFR 147.102 (age curve); IRC §36B(b),
+§36B(c)(1)(A); Rev. Proc. 2025-25 (2026 applicable percentages); KFF
+2026 benchmark premiums by state (via Becker's Payer Issues, 20 Nov 2025);
+healthinsurance.org Medicaid expansion tracker (state list).
 
 **Reviewer:** [ ] Agree  [ ] Correct but incomplete  [ ] Issue: ______________
 
@@ -735,8 +839,22 @@ account. RMDs begin at the owner's start age — **73, or 75 for anyone born
 in 1960 or later** — and are computed as balance ÷ the Uniform Lifetime
 Table divisor for the owner's age. The owner is Spouse 1 while alive, then
 the surviving Spouse 2 (treated as a spousal rollover, on Spouse 2's own
-age and start age). No Joint Life table for a spouse more than ten years
-younger; no first-year April 1 deferral; no still-working exception.
+age and start age). No first-year April 1 deferral; no still-working
+exception.
+
+**Joint-life table (v2.13, changelog 416).** While both spouses are alive,
+Spouse 2 is the sole beneficiary (`rmdSpouseSoleBeneficiary`, default on)
+and more than 10 years younger than Spouse 1 — the ages both attain in
+the distribution year, Reg. §1.401(a)(9)-5(c)(2) — the divisor is
+Publication 590-B Table II (Joint and Last Survivor Life Expectancy) at
+the two ages (`src/config/rmdJointLifeTable.js`, parsed from the
+publication by `scripts/parseJointLifeTable.py`; a 75-year-old with a
+60-year-old spouse divides by 28.3 instead of 24.6). A gap of ten years
+or less, a surviving spouse, or a beneficiary other than the spouse reads
+Table III as before. Because the Pre-Tax balance is pooled under Spouse 1,
+an older Spouse 2 does not stretch anything: a couple where the younger
+spouse owns the larger IRA is understated here. The rows the engine
+carries (`rmdDivisor`, `rmdJointLifeTable`) say which table a year used.
 
 Uniform Lifetime Table (Reg. §1.401(a)(9)-9, 2022 update):
 73: 26.5, 74: 25.5, 75: 24.6, 76: 23.7, 77: 22.9, 78: 22.0, 79: 21.1,
@@ -747,7 +865,7 @@ Uniform Lifetime Table (Reg. §1.401(a)(9)-9, 2022 update):
 109: 3.7, 110: 3.5, 111: 3.4, 112: 3.3, 113: 3.1, 114: 3.0, 115: 2.9,
 116: 2.8, 117: 2.7, 118: 2.5, 119: 2.3, 120+: 2.0.
 
-**Authority.** SECURE 2.0 §107; IRS Publication 590-B.
+**Authority.** SECURE 2.0 §107; IRS Publication 590-B (2025), Appendix B Tables II and III; Reg. §1.401(a)(9)-5(c)(2), §1.401(a)(9)-9.
 
 **Reviewer:** [ ] Agree  [ ] Correct but incomplete  [ ] Issue: ______________
 
@@ -945,16 +1063,22 @@ capital gain distributions. For a portfolio of mutual funds those are
 frequently the largest payment of the year, and the omission understated
 taxable income, IRMAA MAGI and ACA MAGI in every projection year.
 
-**The whole of that income is treated as QUALIFIED** — it is added to the
-capital-gains bucket (`capGains = taxableDividends + realizedGains`) and
-taxed at the 0/15/20% preferential rates of Rule 2.3. That is correct for
-qualified dividends and for capital gain distributions, and **overstates
+**How much of that income is qualified.** Until changelog 208 the whole
+of it was added to the capital-gains bucket (`capGains = taxableDividends
++ realizedGains`) at the 0/15/20% rates of Rule 2.3, which overstated
 after-tax income for a household holding bond funds, REITs or money-market
-funds in a taxable account**, whose distributions are largely ordinary
-income taxed at the marginal rate. See **Q-24**, which proposes a fix and
-asks whether the approach is sound. The design was settled on 2026-09-10;
-what remains there is a short-term-distribution reporting question, the
-§199A limitation, and two state/exempt-interest questions.
+funds in a taxable account. Since 208 the linked figure carries a
+qualified share built from each Taxable holding's Distribution Character:
+Ordinary Dividend and logged interest are ordinary; Qualified Dividend,
+capital gain distributions and Mixed are qualified; Return of Capital is
+not income. **From changelog 414 (v2.11) a holding whose character is Not
+Set is sorted by its effective asset class** (`taxCharacterForHolding`): a
+bond or cash-equivalent holding is ordinary, as its interest is; a stock
+holding stays qualified, as before. A character the user set is always
+used, Mixed included. Without the link, the share follows the plan's
+stock/bond split (Rule 2.3). See **Q-24** for the design history; what
+remains there is a short-term-distribution reporting question, the §199A
+limitation, and two state/exempt-interest questions.
 
 **Reviewer:** [ ] Agree  [ ] Correct but incomplete  [ ] Issue: ______________
 

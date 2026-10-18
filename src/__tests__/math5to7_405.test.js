@@ -35,7 +35,7 @@ describe('[5b] draws that fund the ACA clawback are taxed and penalized like any
     ...quiet, birthYear1: 1968, retireAge1: 57, lifeExpectancy1: 90, claimingAge1: 70,
     stateTaxState: 'none', stateOfResidence: 'CO',
     preTaxInit: 1500000, rothInit: 300000, taxableInit: 0, lifestyleExpense: 40000, healthcareBridgeCost: 18000,
-    withdrawalStrategy: 'RothFirst', rothConversionStrategy: 'fixed', rothConversionAmount: 150000, acaSubsidyAnnualValue: 8000,
+    withdrawalStrategy: 'RothFirst', rothConversionStrategy: 'fixed', rothConversionAmount: 150000, acaCreditSource: 'manual', acaSubsidyAnnualValue: 8000,
   };
   it('a clawback funded from Pre-Tax at 58 costs the clawback plus income tax and the 10% penalty on the draw', () => {
     // Roth and Taxable empty: the clawback can only come from Pre-Tax.
@@ -51,7 +51,7 @@ describe('[5b] draws that fund the ACA clawback are taxed and penalized like any
     // it is called a clawback. So the totals agree once the draw that paid
     // the clawback is taxed -- before changelog 405 this year was cheaper
     // by the tax and penalty on that draw.
-    const none = runProjection({ ...plan, acaSubsidyAnnualValue: 0 }).years[0];
+    const none = runProjection({ ...plan, acaCreditSource: 'manual', acaSubsidyAnnualValue: 0 }).years[0];
     expect(Math.abs(y0.drawPreTax - none.drawPreTax) / none.drawPreTax).toBeLessThan(0.005);
     expect(Math.abs(y0.totalTaxesPaid - (none.totalTaxesPaid + 8000)) / none.totalTaxesPaid).toBeLessThan(0.005);
     expect(y0.federalTax + y0.stateTax + y0.ficaTax).toBeCloseTo(y0.totalTaxesPaid, 6);

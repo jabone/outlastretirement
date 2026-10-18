@@ -39,6 +39,7 @@ import { sampleLtcEpisode } from './utils/ltcRisk';
 import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from './config/historicalReturns';
 import { historicalPortfolioReturn, historicalGeometricMean, historicalMeanInflation, bootstrapPath, recenterReturn } from './utils/bootstrap';
 import { spendingCost } from './utils/spendingCost';
+import { JOINT_LIFE_TABLE_II, JOINT_LIFE_TABLE_II_SPOUSE_MIN_AGE } from './config/rmdJointLifeTable';
 import { LIFE_TABLE_MAX_AGE } from './config/lifeTable';
 import { finalBalanceFactor, yearEndFactor } from './utils/displayDollars';
 import { STATE_TAX_RULES } from './config/stateTaxRules';
@@ -53,6 +54,25 @@ export function derivedVolatility(stockAllocationPct) {
   const stock = Number(stockAllocationPct);
   const s = Number.isFinite(stock) ? Math.min(100, Math.max(0, stock)) : 60;
   return Math.round(((s * STOCK_VOLATILITY_PCT + (100 - s) * BOND_VOLATILITY_PCT) / 100) * 10) / 10;
+}
+
+// The plan's stock share for one projection year, in percent: the Working
+// or Retired allocation, walked down by the glide path once retired when
+// rebalancing and the glide are both on. The one formula the return blend,
+// the historical replay and (changelog 414) the qualified share of the
+// taxable yield all read, so the three can never disagree about what the
+// portfolio is in a given year. Clamped to 0-100 and never NaN: a plan
+// with the allocation fields blank reads as the 80/60 defaults.
+export function planStockShareForYear(inputs, isRetired, year, householdRetirementYear) {
+  const raw = isRetired ? inputs.stockAllocationPost : inputs.stockAllocationPre;
+  const fallback = isRetired ? DEFAULT_INPUTS.stockAllocationPost : DEFAULT_INPUTS.stockAllocationPre;
+  let share = Number.isFinite(Number(raw)) && raw !== '' && raw !== null ? Number(raw) : fallback;
+  if (isRetired && householdRetirementYear !== null && householdRetirementYear !== undefined
+    && inputs.rebalancingEnabled && inputs.glideAllocationEnabled) {
+    const yearsRetired = year - householdRetirementYear;
+    share = Math.max(inputs.glideAllocationFloor, share - (yearsRetired * inputs.glideAllocationRate));
+  }
+  return Math.min(100, Math.max(0, share));
 }
 
 // Deterministic PRNG (mulberry32) so a Monte Carlo run is reproducible for
@@ -1060,6 +1080,25 @@ export const DEFAULT_INPUTS = {
   // household — satisfies the RMD requirement but is excluded from taxable
   // income entirely (unlike a normal RMD). Set to $0 to disable.
   qcdAnnualAmount: 0,
+  // Whether the spouse is the sole beneficiary of the Pre-Tax accounts
+  // (changelog 416). While both are alive and the spouse is more than 10
+  // years younger than the owner, that puts the RMD on the joint-life
+  // table (getRMDDivisor). Off when a trust, a child or several people are
+  // named instead. Nothing else reads it.
+  rmdSpouseSoleBeneficiary: true,
+
+  // Federal deductions (changelog 417). 'auto' takes the larger of the
+  // standard deduction and the itemized total each year (itemizedDeductionFor);
+  // 'never' takes the standard deduction whatever the itemized total, which
+  // is how every plan was taxed before 417. The two dollar inputs are
+  // today's dollars: property tax grows at the housing rate, gifts at the
+  // general rate. The mortgage switch says the mortgage is acquisition
+  // debt (bought or built the home) rather than a cash-out or home-equity
+  // loan, whose interest is not deductible.
+  itemizeDeductions: 'auto',
+  propertyTaxAnnual: 0,
+  charitableGivingAnnual: 0,
+  mortgageIsAcquisitionDebt: true,
 
   // Expenses
   lifestyleExpense: 48000,
@@ -1577,10 +1616,16 @@ export const DEFAULT_INPUTS = {
   taxableDividendYieldSource: 'manual',
   // Share of that yield taxed at qualified-dividend / capital-gains rates,
   // %. The rest -- ordinary dividends, interest, money-market income -- is
-  // ordinary income (changelog 208). 100 (the default) is how every plan
-  // was taxed before; linked to holdings, it follows each holding's
-  // Distribution Character.
+  // ordinary income (changelog 208). Linked to holdings, it follows each
+  // holding's Distribution Character. Otherwise, while the switch below is
+  // on (changelog 414, the default), the figure typed here is ignored and
+  // the share follows the plan's own stock/bond split year by year
+  // (planStockShareForYear): the stock share of the yield is qualified, the
+  // bond/cash share is interest, which is ordinary income. 100 is kept as
+  // the typed figure so a plan that turns the switch off is taxed exactly
+  // as every plan was before 414.
   taxableQualifiedDividendPct: 100,
+  taxableQualifiedDividendFollowsAllocation: true,
 
   // Milestones
   milestones: [],
@@ -1782,7 +1827,24 @@ export const DEFAULT_INPUTS = {
   // in the non-expansion coverage gap) repays the whole credit as tax,
   // which is what Form 8962 does. 0 = not modeled (the bridge cost is
   // then read as already net of any subsidy, exactly as before).
+  // Read only when acaCreditSource is 'manual' (changelog 415).
   acaSubsidyAnnualValue: 0,
+  // 'formula' (default, changelog 415): the credit is computed each year
+  // as IRC 36B does it -- the benchmark premium less the applicable
+  // percentage of ACA MAGI (acaPremiumTaxCredit), estimated before the
+  // withdrawal solver from the income known then and re-figured on the
+  // settled MAGI afterwards, the difference reconciled as tax or refund the
+  // way Form 8962 does. 'manual': the typed figure above, repaid in full
+  // over the cliff, exactly as before 415. A plan saved before 415 with a
+  // typed figure keeps it (sanitizeInputs).
+  acaCreditSource: 'formula',
+  // Where the benchmark premium comes from under 'formula': 'state' uses
+  // the state's average 2026 second-lowest-cost silver premium scaled by
+  // each covered adult's age (acaBenchmarkPremiumAnnual); 'manual' uses
+  // the household figure below, $/yr in today's dollars, as healthcare.gov's
+  // tax tool reports it for the household's own zip code and ages.
+  acaBenchmarkPremiumSource: 'state',
+  acaBenchmarkPremiumAnnual: 0,
 
   // Capital Gains
   taxableCapitalGainsRatio: 0.60, // portion of taxable draws that is realized gains
@@ -2337,6 +2399,73 @@ export function seniorBonusDeduction(magi, status, calendarYear, seniorCount) {
   return seniorCount * Math.max(0, SENIOR_BONUS_DEDUCTION - reduction);
 }
 
+// Itemized deductions (changelog 417). The return takes the larger of the
+// standard deduction and the sum of four lines the engine can see:
+//   SALT      state income tax paid plus property tax, under the OBBBA cap
+//             (s 164(b)(6) as amended by P.L. 119-21 s 70120): $40,000 for
+//             2025, up 1% a year through 2029 ($40,400 for 2026), reduced
+//             by 30% of MAGI over $500,000 (2025, also +1%/yr) but never
+//             below $10,000; $10,000 flat from 2030. MFS: half of each.
+//   Mortgage  the year's interest on acquisition debt, on at most $750,000
+//             of principal (s 163(h)(3)(F); $375,000 MFS), pro-rated when
+//             the balance is higher.
+//   Charity   cash gifts, at most 60% of AGI (s 170(b)(1)(G)), less the
+//             0.5%-of-AGI floor for itemizers from 2026 (s 70425).
+//   Medical   unreimbursed medical costs over 7.5% of AGI (s 213(a)).
+// AGI is approximated by the engine's MAGI (the same figure the senior
+// bonus phases out against). A non-itemizer deducts cash gifts up to
+// $1,000 / $2,000 MFJ from 2026 (s 170(p), P.L. 119-21 s 70424) on top of
+// the standard deduction. Not modeled: the 35% ceiling on the value of
+// itemized deductions in the 37% bracket (s 68 as amended), investment
+// interest, casualty losses, state itemizing rules.
+export const SALT_CAP_BY_YEAR = { 2025: 40000, 2026: 40400, 2027: 40804, 2028: 41212, 2029: 41624 };
+export const SALT_PHASEDOWN_THRESHOLD_BY_YEAR = { 2025: 500000, 2026: 505000, 2027: 510050, 2028: 515151, 2029: 520302 };
+export const SALT_CAP_FLOOR = 10000;
+export const SALT_PHASEDOWN_RATE = 0.30;
+export const MORTGAGE_ACQUISITION_DEBT_LIMIT = 750000;
+export const CHARITABLE_AGI_LIMIT = 0.60;
+export const CHARITABLE_ITEMIZER_FLOOR = 0.005;      // from 2026
+export const CHARITABLE_ITEMIZER_FLOOR_FIRST_YEAR = 2026;
+export const NON_ITEMIZER_CHARITABLE_SINGLE = 1000;  // from 2026
+export const NON_ITEMIZER_CHARITABLE_MFJ = 2000;
+export const NON_ITEMIZER_CHARITABLE_FIRST_YEAR = 2026;
+export const MEDICAL_AGI_FLOOR = 0.075;
+
+// The SALT cap for a year, filing status and MAGI. Statutory dollars: the
+// cap's own 1% steps are the law's, so no inflation factor applies.
+export function saltCapFor(year, status, magi) {
+  const half = status === 'MFS' ? 0.5 : 1;
+  if (year < 2025 || year > 2029) return SALT_CAP_FLOOR * half;
+  const cap = SALT_CAP_BY_YEAR[year];
+  const threshold = SALT_PHASEDOWN_THRESHOLD_BY_YEAR[year] * half;
+  const reduced = cap * half - Math.max(0, (magi || 0) - threshold) * SALT_PHASEDOWN_RATE;
+  return Math.max(SALT_CAP_FLOOR * half, reduced);
+}
+
+// The non-itemizer charitable deduction a year allows.
+export function nonItemizerCharitableFor(year, status, cashGifts) {
+  if (year < NON_ITEMIZER_CHARITABLE_FIRST_YEAR) return 0;
+  if (status === 'MFS') return Math.min(Math.max(0, cashGifts || 0), NON_ITEMIZER_CHARITABLE_SINGLE);
+  const cap = status === 'MFJ' ? NON_ITEMIZER_CHARITABLE_MFJ : NON_ITEMIZER_CHARITABLE_SINGLE;
+  return Math.min(Math.max(0, cashGifts || 0), cap);
+}
+
+// The four lines and their total for one year. Every figure in the year's
+// own dollars. `mortgageBalance` is the balance the interest accrued on.
+export function itemizedDeductionFor({ magi, status, year, stateTax = 0, propertyTax = 0, mortgageInterest = 0, mortgageBalance = 0, mortgageAcquisition = true, charitable = 0, medical = 0 }) {
+  const agi = Math.max(0, magi || 0);
+  const salt = Math.min(Math.max(0, stateTax) + Math.max(0, propertyTax), saltCapFor(year, status, agi));
+  const debtLimit = status === 'MFS' ? MORTGAGE_ACQUISITION_DEBT_LIMIT / 2 : MORTGAGE_ACQUISITION_DEBT_LIMIT;
+  const mortgage = mortgageAcquisition && mortgageInterest > 0
+    ? mortgageInterest * (mortgageBalance > debtLimit ? debtLimit / mortgageBalance : 1)
+    : 0;
+  const gifts = Math.min(Math.max(0, charitable), CHARITABLE_AGI_LIMIT * agi);
+  const giftFloor = year >= CHARITABLE_ITEMIZER_FLOOR_FIRST_YEAR ? CHARITABLE_ITEMIZER_FLOOR * agi : 0;
+  const charity = Math.max(0, gifts - giftFloor);
+  const medicalExcess = Math.max(0, Math.max(0, medical) - MEDICAL_AGI_FLOOR * agi);
+  return { total: salt + mortgage + charity + medicalExcess, salt, mortgage, charitable: charity, medical: medicalExcess };
+}
+
 // Federal Poverty Level guidelines (48 contiguous states + DC) — HHS/ASPE,
 // effective 2026, verified 2026-08-20 against the Federal Register notice
 // itself (91 FR 1797, 15 Jan 2026, "Annual Update of the HHS Poverty
@@ -2390,6 +2519,89 @@ export function getFederalPovertyLevel(householdSize, coverageYear = 2026, infla
   const yearsBeyond = Math.max(0, coverageYear - 1 - FPL_LATEST_TABLE_YEAR);
   const indexed = yearsBeyond > 0 ? Math.pow(1 + (inflationRate || 0) / 100, yearsBeyond) : 1;
   return (base + perPerson * (size - 1)) * indexed;
+}
+
+// The premium tax credit itself (changelog 415). IRC 36B(b): the credit is
+// the benchmark premium (the second-lowest-cost silver plan covering the
+// household) less the household's own contribution, which is the
+// "applicable percentage" of household income, and never more than the
+// premium actually paid. The percentage slides with income as a share of
+// the poverty line; the 2026 table is Rev. Proc. 2025-25 (the original
+// statutory schedule, indexed -- the 2021-2025 enhancement expired).
+// Within a band the percentage moves linearly from `initial` at the
+// band's floor to `final` at its ceiling (36B(b)(3)(A)(i)). Nothing below
+// 100% of FPL (Medicaid or the coverage gap) and nothing above 400%.
+// Later years keep the 2026 schedule: its indexing moves a few hundredths
+// of a point a year and no table is published more than a year ahead.
+export const ACA_APPLICABLE_PCT_2026 = [
+  // [from x FPL, to x FPL, initial %, final %]
+  [1.00, 1.33, 2.10, 2.10],
+  [1.33, 1.50, 3.14, 4.19],
+  [1.50, 2.00, 4.19, 6.60],
+  [2.00, 2.50, 6.60, 8.44],
+  [2.50, 3.00, 8.44, 9.96],
+  [3.00, 4.00, 9.96, 9.96],
+];
+export function acaApplicablePercent(fplRatio) {
+  if (!(fplRatio >= 1) || fplRatio > ACA_SUBSIDY_CLIFF_FPL_MULTIPLE) return null;
+  for (const [from, to, initial, final] of ACA_APPLICABLE_PCT_2026) {
+    if (fplRatio >= from && (fplRatio < to || to === ACA_SUBSIDY_CLIFF_FPL_MULTIPLE)) {
+      return initial + (final - initial) * ((fplRatio - from) / (to - from));
+    }
+  }
+  return null;
+}
+
+// Average 2026 benchmark premium for a 40-year-old, monthly, by state
+// (KFF: second-lowest-cost silver premium per county, weighted by plan
+// selections; via Becker's Payer Issues, 20 Nov 2025). The US average is the
+// fallback for a state not listed. Re-check each autumn when the next
+// year's rates are filed.
+export const ACA_BENCHMARK_40_MONTHLY_2026 = {
+  US: 625,
+  AL: 645, AK: 1032, AZ: 532, AR: 774, CA: 570, CO: 557, CT: 870, DE: 691, DC: 610, FL: 683,
+  GA: 615, HI: 541, ID: 490, IL: 646, IN: 474, IA: 501, KS: 670, KY: 590, LA: 646, ME: 709,
+  MD: 414, MA: 494, MI: 523, MN: 448, MS: 662, MO: 605, MT: 692, NE: 710, NV: 497, NH: 401,
+  NJ: 545, NM: 623, NY: 817, NC: 638, ND: 570, OH: 513, OK: 604, OR: 543, PA: 572, RI: 506,
+  SC: 564, SD: 655, TN: 711, TX: 661, UT: 640, VT: 1299, VA: 455, WA: 612, WV: 1073, WI: 611, WY: 1090,
+};
+// The federal default age curve (45 CFR 147.102), 21-24 = 1.000, 64+ =
+// 3.000; a 40-year-old is 1.278, which is what the table above is quoted
+// at. New York and Vermont are community-rated (every adult pays the same),
+// and Massachusetts compresses the curve to 2:1.
+const ACA_AGE_CURVE = {
+  21: 1.000, 22: 1.000, 23: 1.000, 24: 1.000, 25: 1.004, 26: 1.024, 27: 1.048, 28: 1.087, 29: 1.119,
+  30: 1.135, 31: 1.159, 32: 1.183, 33: 1.198, 34: 1.214, 35: 1.222, 36: 1.230, 37: 1.238, 38: 1.246, 39: 1.262,
+  40: 1.278, 41: 1.302, 42: 1.325, 43: 1.357, 44: 1.397, 45: 1.444, 46: 1.500, 47: 1.563, 48: 1.635, 49: 1.706,
+  50: 1.786, 51: 1.865, 52: 1.952, 53: 2.040, 54: 2.135, 55: 2.230, 56: 2.333, 57: 2.437, 58: 2.548, 59: 2.603,
+  60: 2.714, 61: 2.810, 62: 2.873, 63: 2.952, 64: 3.000,
+};
+export function acaAgeFactor(age, state) {
+  if (state === 'NY' || state === 'VT') return 1;
+  const a = Math.min(64, Math.max(21, Math.round(Number(age) || 21)));
+  const federal = ACA_AGE_CURVE[a];
+  // Massachusetts: the same shape, half the climb.
+  return state === 'MA' ? 1 + (federal - 1) / 2 : federal;
+}
+// The household's benchmark premium for a year, in that year's dollars:
+// one benchmark per covered adult, at the state's 40-year-old rate scaled
+// by the age curve, times the medical inflation factor.
+export function acaBenchmarkPremiumAnnual(state, ages, medicalInflFactor = 1) {
+  const base40 = ACA_BENCHMARK_40_MONTHLY_2026[state] ?? ACA_BENCHMARK_40_MONTHLY_2026.US;
+  const ageScale = acaAgeFactor(40, state);
+  let monthly = 0;
+  for (const age of ages || []) monthly += base40 * (acaAgeFactor(age, state) / ageScale);
+  return monthly * 12 * medicalInflFactor;
+}
+// The credit for a year: benchmark less the contribution, capped at the
+// premium paid. `fplRatio` and `applicablePct` come back for the ledger.
+export function acaPremiumTaxCredit({ benchmark, magi, fpl, premiumPaid }) {
+  const fplRatio = fpl > 0 ? Math.max(0, magi) / fpl : 0;
+  const applicablePct = acaApplicablePercent(fplRatio);
+  if (applicablePct === null) return { credit: 0, fplRatio, applicablePct: null, contribution: 0 };
+  const contribution = Math.max(0, magi) * applicablePct / 100;
+  const credit = Math.max(0, Math.min(premiumPaid, benchmark - contribution));
+  return { credit, fplRatio, applicablePct, contribution };
 }
 
 // States that have not adopted ACA Medicaid expansion, as of 2026. Adults
@@ -4951,8 +5163,21 @@ export function getTaxBracketLimit(status, rate, inflationFactor = 1) {
 // Covers the full table through age 120+ so long-life-expectancy plans (this
 // app allows unbounded lifeExpectancy1/2 inputs) don't silently understate
 // RMDs/taxes in the tail years by flatlining at the age-95 factor.
-export function getRMDDivisor(age) {
+//
+// Changelog 416: given the sole-beneficiary spouse's age as well, an owner
+// whose spouse is more than 10 years younger (the ages both attain in the
+// year, Reg. 1.401(a)(9)-5(c)(2)) reads Table II, the Joint and Last
+// Survivor table, which stretches the divisor and lowers the RMD -- a
+// 75-year-old with a 60-year-old spouse divides by 28.3, not 24.6. A gap
+// of 10 years or less, no spouse, or a spouse who is not the sole
+// beneficiary reads Table III as before.
+export function getRMDDivisor(age, spouseAge = null) {
   if (age < 73) return 0;
+  if (spouseAge !== null && spouseAge !== undefined && Number.isFinite(Number(spouseAge)) && age - spouseAge > 10) {
+    const row = JOINT_LIFE_TABLE_II[Math.min(120, Math.floor(age))];
+    const col = Math.max(JOINT_LIFE_TABLE_II_SPOUSE_MIN_AGE, Math.floor(spouseAge)) - JOINT_LIFE_TABLE_II_SPOUSE_MIN_AGE;
+    if (row && col < row.length) return row[col];
+  }
   const divisorTable = {
     73: 26.5, 74: 25.5, 75: 24.6, 76: 23.7, 77: 22.9, 78: 22.0, 79: 21.1,
     80: 20.2, 81: 19.4, 82: 18.5, 83: 17.7, 84: 16.8, 85: 16.0, 86: 15.2,
@@ -6231,6 +6456,18 @@ export function sanitizeInputs(inputs) {
   // Changelog 208: a plan saved before the qualified share existed was
   // taxed as 100% qualified, and must stay that way -- not become 0%.
   if (inputs.taxableQualifiedDividendPct === undefined || inputs.taxableQualifiedDividendPct === null || inputs.taxableQualifiedDividendPct === '') clean.taxableQualifiedDividendPct = defaults.taxableQualifiedDividendPct;
+  // Changelog 414: a plan saved before the switch existed follows the
+  // stock/bond split only if its qualified share was still the old 100%
+  // default. A figure someone typed is theirs and stays in force.
+  if (typeof inputs.taxableQualifiedDividendFollowsAllocation !== 'boolean') {
+    clean.taxableQualifiedDividendFollowsAllocation = Number(clean.taxableQualifiedDividendPct) === 100;
+  }
+  // Changelog 415: a plan saved before the computed credit existed keeps a
+  // credit it typed; one that typed nothing gets the formula.
+  if (inputs.acaCreditSource !== 'formula' && inputs.acaCreditSource !== 'manual') {
+    clean.acaCreditSource = Number(clean.acaSubsidyAnnualValue) > 0 ? 'manual' : 'formula';
+  }
+  if (inputs.acaBenchmarkPremiumSource !== 'state' && inputs.acaBenchmarkPremiumSource !== 'manual') clean.acaBenchmarkPremiumSource = 'state';
   if (!TAXABLE_ACCOUNT_OWNERS.includes(inputs.taxableAccountOwner)) clean.taxableAccountOwner = 'joint';
   if (clean.cashFloorSource !== 'holdings') clean.cashFloorSource = 'manual';
   if (inputs.dividendGrowthRate === undefined || inputs.dividendGrowthRate === null) clean.dividendGrowthRate = defaults.dividendGrowthRate;
@@ -6666,6 +6903,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
 
   // Track retirement year for glide path
   let householdRetirementYear = null;
+  // Changelog 415: last year's settled ACA MAGI, the figure a household
+  // projects this year's marketplace income from once it is on the
+  // marketplace (null in any year it was not).
+  let prevAcaMagi = null;
 
   // IRMAA two-year lookback (changelog 121). Each year's IRMAA MAGI and
   // filing status are appended here AFTER the year's premium is priced, so
@@ -6886,11 +7127,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // Determine growth and inflation rates
     let baseReturnRate = 0;
     if (inputs.rebalancingEnabled) {
-      let stockAlloc = isRetired ? inputs.stockAllocationPost : inputs.stockAllocationPre;
-      if (inputs.glideAllocationEnabled && isRetired && householdRetirementYear !== null) {
-        const yearsRetired = year - householdRetirementYear;
-        stockAlloc = Math.max(inputs.glideAllocationFloor, stockAlloc - (yearsRetired * inputs.glideAllocationRate));
-      }
+      const stockAlloc = planStockShareForYear(inputs, isRetired, year, householdRetirementYear);
       const bondAlloc = 100 - stockAlloc;
       baseReturnRate = (stockAlloc * inputs.stockReturnRate + bondAlloc * inputs.bondReturnRate) / 100;
     } else {
@@ -6970,10 +7207,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // historical-starts run uses.
         const row = replayYear !== null ? HISTORY_BY_YEAR.get(replayYear) : null;
         if (row) {
-          let stockShare = isRetired ? inputs.stockAllocationPost : inputs.stockAllocationPre;
-          if (isRetired && householdRetirementYear !== null && inputs.rebalancingEnabled && inputs.glideAllocationEnabled) {
-            stockShare = Math.max(inputs.glideAllocationFloor, stockShare - ((year - householdRetirementYear) * inputs.glideAllocationRate));
-          }
+          const stockShare = planStockShareForYear(inputs, isRetired, year, householdRetirementYear);
           returnRate = historicalPortfolioReturn(row, stockShare);
           activeInflationRate = row[3];
           stressInflationOverrideActive = true;
@@ -7055,7 +7289,39 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // income through this, including the withdrawal solver (which accepts
     // a function here) and the max-bracket conversion sizing.
     const seniorBonusFor = (magi) => seniorBonusDeduction(magi, currentStatus, year, seniorCount);
-    const deductionFor = (magi) => stdDeduction + seniorBonusFor(magi);
+    // Changelog 417: the larger of the standard and itemized deductions,
+    // the senior bonus allowed with either. The itemized lines are read
+    // when the function is called, so the figures the year settles later
+    // (mortgage interest, the health costs net of the ACA credit and the
+    // HSA draw) are the ones the solver and the final row see; the SALT
+    // line is last year's settled state tax (what was paid in the year,
+    // cash basis) plus this year's property tax. A plan with the switch
+    // at 'never', or two MFS returns, takes the standard deduction as
+    // before. A non-itemizer still deducts cash gifts up to the s 170(p)
+    // cap from 2026.
+    const itemizing = inputs.itemizeDeductions !== 'never' && !mfsTwoReturns;
+    const charitableGiftsThisYear = Math.max(0, Number(inputs.charitableGivingAnnual) || 0) * Math.pow(1 + inputs.inflationRate / 100, year - startYear);
+    const propertyTaxThisYear = Math.max(0, Number(inputs.propertyTaxAnnual) || 0)
+      * Math.pow(1 + (inputs.housingInflationRate !== undefined ? inputs.housingInflationRate : inputs.inflationRate) / 100, year - startYear);
+    const priorYearStateTax = Math.max(0, prevYearEndingField(years, 'stateTax') || 0);
+    let itemizedMortgageInterest = 0;   // set by the amortization below
+    let itemizedMortgageBalance = 0;
+    let itemizedMedicalCosts = 0;       // set once the year's health costs are known
+    const itemizedFor = (magi) => itemizedDeductionFor({
+      magi, status: currentStatus, year,
+      stateTax: priorYearStateTax, propertyTax: propertyTaxThisYear,
+      mortgageInterest: itemizedMortgageInterest, mortgageBalance: itemizedMortgageBalance,
+      mortgageAcquisition: inputs.mortgageIsAcquisitionDebt !== false,
+      charitable: charitableGiftsThisYear, medical: itemizedMedicalCosts,
+    });
+    const nonItemizerCharitable = nonItemizerCharitableFor(year, currentStatus, charitableGiftsThisYear);
+    const deductionChoice = (magi) => {
+      const standard = stdDeduction + nonItemizerCharitable;
+      if (!itemizing) return { amount: standard, itemized: false };
+      const total = itemizedFor(magi).total;
+      return total > standard ? { amount: total, itemized: true } : { amount: standard, itemized: false };
+    };
+    const deductionFor = (magi) => deductionChoice(magi).amount + seniorBonusFor(magi);
 
     // Hoist inflation factor — used by salary, rental, and any other cost
     // line that hasn't been broken out into its own Granular Inflation
@@ -8009,15 +8275,18 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (spouse1Alive && age1 < 65) healthcareBridge += inputs.healthcareBridgeCost * medicalInflFactor * usShare;
       if (spouse2Alive && age2 < 65) healthcareBridge += inputs.healthcareBridgeCost * medicalInflFactor * usShare;
     }
-    // Estimated premium tax credit, applied provisionally against the
-    // bridge cost. Eligibility is only known once the year's MAGI is
-    // settled after the withdrawal solver, so a year that turns out to be
-    // over the cliff repays this in full further down (acaSubsidyClawback).
+    // The premium tax credit is applied provisionally against the bridge
+    // cost further down, once this year's conversion is chosen (changelog
+    // 415): it is estimated from the income known before the withdrawal
+    // solver and reconciled against the settled MAGI after it.
     let acaSubsidyApplied = 0;
-    if (onMarketplace && inputs.acaSubsidyAnnualValue > 0) {
-      acaSubsidyApplied = Math.min(healthcareBridge, inputs.acaSubsidyAnnualValue * medicalInflFactor);
-      healthcareBridge -= acaSubsidyApplied;
-    }
+    let acaBenchmarkPremium = 0;
+    let acaApplicablePct = null;
+    let acaCreditSettled = 0;
+    let acaSubsidyRefund = 0;
+    // The premium share of the bridge cost: the credit can never exceed the
+    // premium (36B(b)(2)(A)); the out-of-pocket remainder is not insurance.
+    const bridgePremiumShare = Math.min(1, Math.max(0, (inputs.healthcareBridgePremiumPct ?? 70) / 100));
     // Filled in after the solver: the 400% x FPL line for this year, the
     // household's settled ACA MAGI, and whether it crossed.
     const acaCliffThreshold = onMarketplace
@@ -8069,6 +8338,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let mortgagePaymentThisYear = 0;
     if (mortgageBalance > 0 && inputs.mortgagePayment > 0) {
       const interest = mortgageBalance * ((inputs.mortgageRate || 0) / 100);
+      // Changelog 417: the year's interest, for the itemized deduction.
+      itemizedMortgageInterest = interest;
+      itemizedMortgageBalance = mortgageBalance;
       const payment = Math.min(inputs.mortgagePayment, mortgageBalance + interest);
       const principal = payment - interest;
       mortgageBalance = Math.max(0, mortgageBalance - principal);
@@ -8382,7 +8654,15 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const rmdOwnerAge = spouse1Alive || spouse2Alive ? ownerAge : null;
     const rmdAge = rmdStartAge(spouse1Alive ? birthYear1 : birthYear2);
     const rmdApplies = rmdOwnerAge !== null && rmdOwnerAge >= rmdAge;
-    const rmdDivisor = rmdApplies ? getRMDDivisor(rmdOwnerAge) : 0;
+    // Changelog 416: while both spouses are alive and the younger one is
+    // the account's sole beneficiary (the default), a spouse more than 10
+    // years younger than the owner puts the RMD on the joint-life table.
+    // The owner is Spouse 1 while alive; a younger Spouse 2 stretches the
+    // divisor, an older one does not, since the pooled balance is read as
+    // Spouse 1's.
+    const rmdSpouseAge = spouse1Alive && spouse2Alive && inputs.spouse2Enabled && inputs.rmdSpouseSoleBeneficiary !== false ? age2 : null;
+    const rmdDivisor = rmdApplies ? getRMDDivisor(rmdOwnerAge, rmdSpouseAge) : 0;
+    const rmdJointLifeTable = rmdApplies && rmdSpouseAge !== null && rmdOwnerAge - rmdSpouseAge > 10;
     // B3: the RMD is figured on the prior December 31 balance (the plan's
     // opening balance in its first year), not on this year's balance after
     // contributions -- and can never exceed what is there.
@@ -8583,7 +8863,18 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // provisional income, ACA and IRMAA MAGI, the NIIT base, the state
     // base); only the qualified share and realized gains stay on the
     // capital-gains rates. At 100% qualified this is exactly zero.
-    const qualifiedDividendShare = Math.min(100, Math.max(0, Number(inputs.taxableQualifiedDividendPct ?? 100))) / 100;
+    // Changelog 414: unless the yield is linked to Detailed Holdings (which
+    // sets the typed figure from each holding's character) or the switch is
+    // off, the share is the year's stock allocation: a brokerage account
+    // holding the plan's own stock/bond mix earns qualified dividends on
+    // its stock side and interest on its bond and cash side, and interest
+    // is ordinary income. 100% qualified was never true of a 60/40
+    // account; it only understated the tax.
+    const followsAllocation = inputs.taxableQualifiedDividendFollowsAllocation !== false
+      && inputs.taxableDividendYieldSource !== 'holdings';
+    const qualifiedDividendShare = followsAllocation
+      ? planStockShareForYear(inputs, isRetired, year, householdRetirementYear) / 100
+      : Math.min(100, Math.max(0, Number(inputs.taxableQualifiedDividendPct ?? 100))) / 100;
     const ordinaryDividends = qualifiedDividendShare < 1 ? taxableDividendsFromYield * (1 - qualifiedDividendShare) : 0;
     const taxableDividendsGross = (qualifiedDividendShare < 1 ? taxableDividendsFromYield - ordinaryDividends : taxableDividendsFromYield) + forcedRealizedGains;
 
@@ -8945,6 +9236,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let acaSubsidyBoost = 0;
     let inAcaCoverageGap = false;
 
+    // Changelog 417: the medical line the pre-solver pricing can see (the
+    // bridge before its ACA credit, and long-term care); Medicare premiums,
+    // the credit and the HSA draw refine it below before the solver runs.
+    itemizedMedicalCosts = healthcareBridge + ltcCost;
     const baseDeduction = deductionFor(baseOrdinaryTaxableIncome + taxableDividends);
     const ordinaryFedTaxes = calculateTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
     // Q-10(a): rents and annuity income are net investment income for the
@@ -9354,6 +9649,38 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // to the giver and aren't income to the recipient.
     const giftThisYear = giftingForAge(inputs, age1);
 
+    // The premium tax credit, applied provisionally against the bridge
+    // cost. Eligibility and size depend on the year's ACA MAGI, which is
+    // only settled after the withdrawal solver, so this is an estimate
+    // from the income known now -- pensions, Social Security, dividends,
+    // RMDs, the conversion just chosen -- and the settled year reconciles
+    // it below (acaSubsidyClawback / acaSubsidyRefund), as Form 8962 does.
+    // 'manual' is the figure the user typed, repaid in full over the cliff,
+    // exactly as before changelog 415.
+    const acaCreditFormula = inputs.acaCreditSource !== 'manual';
+    const acaPremiumPaid = healthcareBridge * bridgePremiumShare;
+    if (onMarketplace && !acaCreditFormula && inputs.acaSubsidyAnnualValue > 0) {
+      acaSubsidyApplied = Math.min(healthcareBridge, inputs.acaSubsidyAnnualValue * medicalInflFactor);
+      healthcareBridge -= acaSubsidyApplied;
+    } else if (onMarketplace && acaCreditFormula && acaPremiumPaid > 0) {
+      const coveredAges = [];
+      if (spouse1Alive && age1 < 65) coveredAges.push(age1);
+      if (spouse2Alive && age2 < 65) coveredAges.push(age2);
+      acaBenchmarkPremium = inputs.acaBenchmarkPremiumSource === 'manual' && Number(inputs.acaBenchmarkPremiumAnnual) > 0
+        ? Number(inputs.acaBenchmarkPremiumAnnual) * medicalInflFactor
+        : acaBenchmarkPremiumAnnual(residence.stateOfResidence, coveredAges, medicalInflFactor);
+      // What the household would tell the marketplace: last year's settled
+      // MAGI if it was on the marketplace then (the usual projection), or
+      // this year's known income if higher -- a conversion chosen this year
+      // is a plan, not a surprise.
+      const magiEstimate = Math.max(prevAcaMagi ?? 0, otherOrdinaryAgi + ssIncome + taxableDividends + convertAmountTaxable);
+      const fplForCredit = getFederalPovertyLevel(currentStatus === 'MFJ' ? 2 : 1, year, inputs.taxBracketInflationRate);
+      const est = acaPremiumTaxCredit({ benchmark: acaBenchmarkPremium, magi: magiEstimate, fpl: fplForCredit, premiumPaid: acaPremiumPaid });
+      acaSubsidyApplied = est.credit;
+      acaApplicablePct = est.applicablePct;
+      healthcareBridge -= acaSubsidyApplied;
+    }
+
     let expensesExcludingTaxes = (isRetired ? lifestyleCost : currentSpendingCost) + goGoBump + healthcareBridge + ltcCost + irmaaCost + milestoneOutflowGeneral + totalDebtPayment + giftThisYear.gifted;
     // Health cover abroad and any Part B late-enrollment penalty (both zero
     // unless a move abroad is planned).
@@ -9372,7 +9699,6 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // hsaPreMedicarePremiumsQualified toggle covers. Long-term care services
     // and Medicare Part B/D premiums at 65+ are qualified either way, which
     // is why ltcCost and irmaaCost are counted in full.
-    const bridgePremiumShare = Math.min(1, Math.max(0, (inputs.healthcareBridgePremiumPct ?? 70) / 100));
     const bridgeHsaEligible = inputs.hsaPreMedicarePremiumsQualified
       ? healthcareBridge
       : healthcareBridge * (1 - bridgePremiumShare);
@@ -9380,6 +9706,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const hsaMedicalDraw = Math.min(hsa, qualifiedMedicalCosts);
     hsa -= hsaMedicalDraw;
     expensesExcludingTaxes -= hsaMedicalDraw;
+    // Changelog 417: the year's deductible medical costs -- the bridge net
+    // of its ACA credit, long-term care, Part B and D premiums with IRMAA --
+    // less what the HSA paid tax-free, which cannot be deducted twice.
+    itemizedMedicalCosts = Math.max(0, healthcareBridge + ltcCost + irmaaCost - hsaMedicalDraw);
 
     let lifestyleDeficit = 0;
     // Savings already cut up front (E13) count toward the year's shortfall
@@ -9874,13 +10204,38 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // then Pre-Tax, then shortfall. This is the mechanism that makes a
       // cliff-crossing conversion cost what it really costs, so the Roth
       // Ladder Optimizer can see it.
-      if (acaSubsidyApplied > 0 && (acaCliffBreached || inAcaCoverageGap)) {
+      if (acaCreditFormula) {
+        // Changelog 415: the credit the settled year actually earns. Over
+        // the cliff or below the floor that is nothing; in between it is
+        // the benchmark less the applicable percentage of the settled
+        // MAGI, which the solver's draws and realized gains have usually
+        // raised. The difference from the estimate is settled on the
+        // return: a shortfall repaid as tax (funded like the boost tax), an
+        // excess refunded into the taxable account.
+        const fplForCredit = getFederalPovertyLevel(householdSize, year, inputs.taxBracketInflationRate);
+        acaCreditSettled = (acaCliffBreached || inAcaCoverageGap || acaPremiumPaid <= 0)
+          ? 0
+          : acaPremiumTaxCredit({ benchmark: acaBenchmarkPremium, magi: acaMagi, fpl: fplForCredit, premiumPaid: acaPremiumPaid }).credit;
+        const difference = acaSubsidyApplied - acaCreditSettled;
+        if (difference > 0.005) {
+          acaSubsidyClawback = difference;
+          extraTax += acaSubsidyClawback;
+          extraTaxFederal += acaSubsidyClawback;
+          fundAfterSolver(acaSubsidyClawback, ['taxable', 'roth', 'preTax']);
+        } else if (difference < -0.005) {
+          acaSubsidyRefund = -difference;
+          taxable += acaSubsidyRefund;
+        }
+      } else if (acaSubsidyApplied > 0 && (acaCliffBreached || inAcaCoverageGap)) {
         acaSubsidyClawback = acaSubsidyApplied;
         extraTax += acaSubsidyClawback;
         // Repaying the advance premium tax credit on Form 8962 -- federal.
         extraTaxFederal += acaSubsidyClawback;
         fundAfterSolver(acaSubsidyClawback, ['taxable', 'roth', 'preTax']);
       }
+      prevAcaMagi = acaMagi;
+    } else {
+      prevAcaMagi = null;
     }
 
     // Settle the year's IRMAA MAGI now that every income item exists
@@ -10209,7 +10564,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // overstated MAGI for the senior-bonus phase-out shown on the ledger).
     const finalMagi = finalOrdinaryIncome + taxableDividends + solvedRealizedGainsNet;
     const finalDeduction = deductionFor(finalMagi);
-    const seniorBonusDeductionThisYear = finalDeduction - stdDeduction;
+    // Changelog 417: which deduction the settled year took, and its parts.
+    const finalChoice = deductionChoice(finalMagi);
+    const finalItemized = itemizing ? itemizedFor(finalMagi) : { total: 0, salt: 0, mortgage: 0, charitable: 0, medical: 0 };
+    const seniorBonusDeductionThisYear = finalDeduction - finalChoice.amount;
 
     lastYearReturnRate = returnRate;
     years.push({
@@ -10453,6 +10811,20 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       rmdAmount,
       qcdAmount,
       rmdTaxableAmount,
+      // Changelog 416: the divisor the RMD used and whether it came from the
+      // joint-life table (a sole-beneficiary spouse more than 10 years younger).
+      rmdDivisor,
+      rmdJointLifeTable,
+      // Changelog 417: 'itemized' or 'standard', the itemized total the year
+      // could claim (whichever it took) and its four lines, and the
+      // non-itemizer charitable deduction a standard-deduction year added.
+      deductionUsed: finalChoice.itemized ? 'itemized' : 'standard',
+      itemizedDeduction: finalItemized.total,
+      itemizedSalt: finalItemized.salt,
+      itemizedMortgageInterest: finalItemized.mortgage,
+      itemizedCharitable: finalItemized.charitable,
+      itemizedMedical: finalItemized.medical,
+      nonItemizerCharitable: finalChoice.itemized ? 0 : nonItemizerCharitable,
       amtTax,
       nuaOrdinaryIncome,
       mortgageBalance,
@@ -10514,6 +10886,15 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       acaCliffBreached,
       acaSubsidyApplied,
       acaSubsidyClawback,
+      // Changelog 415: the computed credit's parts. acaBenchmarkPremium is
+      // the household's benchmark this year (0 in manual mode or off the
+      // marketplace); acaApplicablePct the income share it was estimated
+      // with (null when ineligible); acaCreditSettled the credit the
+      // settled year earned; acaSubsidyRefund the excess returned at filing.
+      acaBenchmarkPremium,
+      acaApplicablePct,
+      acaCreditSettled,
+      acaSubsidyRefund,
       acaCliffCappedConversion,
       // IRMAA tier cap (changelog 250): conversion held back this year so
       // the MAGI priced two years on stays under the chosen tier, and the
@@ -10576,6 +10957,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       dividendCash,
       // Changelog 208: the part of taxableDividends taxed as ordinary income.
       ordinaryDividends,
+      // Changelog 414: the share of the yield taxed at qualified rates this
+      // year (0-1), and where it came from.
+      qualifiedDividendShare,
+      qualifiedDividendShareSource: inputs.taxableDividendYieldSource === 'holdings' ? 'holdings' : (followsAllocation ? 'allocation' : 'manual'),
       preTaxContribution1,
       rothContribution1,
       preTaxContribution2,

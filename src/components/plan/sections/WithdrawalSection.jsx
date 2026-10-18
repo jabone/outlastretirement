@@ -122,12 +122,27 @@ export default function WithdrawalSection({ forceOpen = false }) {
                   </span>
 
                   <label htmlFor="field-taxableQualifiedDividendPct" style={{ marginTop: '10px', display: 'block' }}>Qualified share of that yield (%)</label>
+                  {inputs.taxableDividendYieldSource !== 'holdings' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <label htmlFor="toggle-taxableQualifiedDividendFollowsAllocation" style={{ fontSize: '13px', cursor: 'pointer' }}>
+                        Follow the plan&rsquo;s stock/bond split ({Number(inputs.stockAllocationPre) || 0}% stock working, {Number(inputs.stockAllocationPost) || 0}% retired): the stock share is qualified, the bond and cash share is interest
+                      </label>
+                      <span className="custom-switch">
+                        <input id="toggle-taxableQualifiedDividendFollowsAllocation" type="checkbox" checked={inputs.taxableQualifiedDividendFollowsAllocation !== false} onChange={(e) => updateInput('taxableQualifiedDividendFollowsAllocation', e.target.checked)} />
+                        <span className="slider-round"></span>
+                      </span>
+                    </div>
+                  )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <NumberInput id="field-taxableQualifiedDividendPct" step="5" min="0" max="100" className="form-input" value={inputs.taxableQualifiedDividendPct} disabled={inputs.taxableDividendYieldSource === 'holdings'} onChange={(e) => updateInput('taxableQualifiedDividendPct', (e.target.value === '' ? '' : Math.min(100, Math.max(0, parseFloat(e.target.value)))))} />
+                    <NumberInput id="field-taxableQualifiedDividendPct" step="5" min="0" max="100" className="form-input" value={inputs.taxableQualifiedDividendPct} disabled={inputs.taxableDividendYieldSource === 'holdings' || inputs.taxableQualifiedDividendFollowsAllocation !== false} onChange={(e) => updateInput('taxableQualifiedDividendPct', (e.target.value === '' ? '' : Math.min(100, Math.max(0, parseFloat(e.target.value)))))} />
                     <span style={{ fontSize: 'var(--fs-body)', opacity: 0.8 }}>%</span>
                   </div>
                   <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                    The part taxed at the lower qualified-dividend and capital-gains rates. The rest &mdash; ordinary dividends, interest, money-market and most bond-fund income &mdash; is taxed as ordinary income. 100% is how the plan taxed it before. {inputs.taxableDividendYieldSource === 'holdings' ? 'Linked: it follows each Taxable holding\u2019s Distribution Character (a holding with none, or Mixed, counts as qualified).' : 'Linking the yield to Detailed Holdings sets this from each holding\u2019s Distribution Character.'}
+                    The part taxed at the lower qualified-dividend and capital-gains rates. The rest &mdash; ordinary dividends, interest, money-market and most bond-fund income &mdash; is taxed as ordinary income. {inputs.taxableDividendYieldSource === 'holdings'
+                      ? 'Linked: it follows each Taxable holding\u2019s Distribution Character (a bond or cash holding with none counts as ordinary; a stock holding with none, or Mixed, counts as qualified).'
+                      : inputs.taxableQualifiedDividendFollowsAllocation !== false
+                        ? 'Following the split: the figure above is not used. Turn the switch off to type a share of your own; 100% treats the whole yield as qualified.'
+                        : 'Linking the yield to Detailed Holdings sets this from each holding\u2019s Distribution Character.'}
                   </span>
                   <label htmlFor="field-dividendPayoutMode" style={{ marginTop: '14px', display: 'block' }}>
                     <Tooltip text="What happens to dividends once you retire. Tax is the same either way; what changes is how much has to be sold to fund the year." more="In retirement, dividends">

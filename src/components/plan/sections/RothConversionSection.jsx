@@ -18,7 +18,7 @@ export default function RothConversionSection({ forceOpen = false }) {
   const { inputs, updateInput, getRMDAge, setActiveTab, setSettingsSubTab } = useSimulation();
   const [showRothConversion, toggleShowRothConversion] = useFoldState('rothConversion', () => (
     inputs.rothConversionStrategy !== 'none' || inputs.backdoorRothEnabled ||
-    inputs.acaSubsidyProtectionEnabled || inputs.acaCliffProtectionEnabled || inputs.acaSubsidyAnnualValue > 0 || inputs.qcdAnnualAmount > 0 || inputs.nuaEnabled
+    inputs.acaSubsidyProtectionEnabled || inputs.acaCliffProtectionEnabled || inputs.acaSubsidyAnnualValue > 0 || inputs.acaCreditSource === 'manual' || inputs.acaBenchmarkPremiumSource === 'manual' || inputs.qcdAnnualAmount > 0 || inputs.nuaEnabled
   ), forceOpen);
   return (
     <>
@@ -181,15 +181,41 @@ export default function RothConversionSection({ forceOpen = false }) {
                   </span>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="field-acaSubsidyAnnualValue">
-                    <Tooltip text="Your yearly marketplace premium tax credit in today's dollars, netted from the healthcare bridge while retired, under 65 and inside the 100-400% FPL band. A year over the cliff repays it as tax. $0 keeps the bridge cost as already net." more="Premium Tax Credit">
-                      Estimated ACA Premium Tax Credit ($/yr, today's dollars)
+                  <label htmlFor="field-acaCreditSource">
+                    <Tooltip text="The marketplace credit on the pre-65 Healthcare Bridge while retired, under 65 and between 100% and 400% of the poverty line. Computed: the benchmark silver premium for your state and ages less 2.1% to 9.96% of income, settled on the return. Typed: your own figure." more="Premium Tax Credit">
+                      ACA Premium Tax Credit
                     </Tooltip>
                   </label>
-                  <NumberInput id="field-acaSubsidyAnnualValue" step="500" min="0" className="form-input" value={inputs.acaSubsidyAnnualValue !== undefined ? inputs.acaSubsidyAnnualValue : 0} onChange={(e) => updateInput('acaSubsidyAnnualValue', (e.target.value === '' ? '' : Math.max(0, parseFloat(e.target.value))))} />
-                  <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                    Grows with your medical inflation rate. Only applies in years someone is retired and under 65; $0 = not modeled.
-                  </span>
+                  <select id="field-acaCreditSource" className="form-input" value={inputs.acaCreditSource === 'manual' ? 'manual' : 'formula'} onChange={(e) => updateInput('acaCreditSource', e.target.value)}>
+                    <option value="formula">Computed from the benchmark premium and your income</option>
+                    <option value="manual">A figure I type</option>
+                  </select>
+                  {inputs.acaCreditSource === 'manual' ? (
+                    <>
+                      <label htmlFor="field-acaSubsidyAnnualValue" style={{ marginTop: '10px', display: 'block' }}>Estimated ACA Premium Tax Credit ($/yr, today&rsquo;s dollars)</label>
+                      <NumberInput id="field-acaSubsidyAnnualValue" step="500" min="0" className="form-input" value={inputs.acaSubsidyAnnualValue !== undefined ? inputs.acaSubsidyAnnualValue : 0} onChange={(e) => updateInput('acaSubsidyAnnualValue', (e.target.value === '' ? '' : Math.max(0, parseFloat(e.target.value))))} />
+                      <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                        Grows with your medical inflation rate. Only applies in years someone is retired and under 65; $0 = not modeled. A year that ends over the 400% line repays the whole credit as tax.
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <label htmlFor="field-acaBenchmarkPremiumSource" style={{ marginTop: '10px', display: 'block' }}>Benchmark premium</label>
+                      <select id="field-acaBenchmarkPremiumSource" className="form-input" value={inputs.acaBenchmarkPremiumSource === 'manual' ? 'manual' : 'state'} onChange={(e) => updateInput('acaBenchmarkPremiumSource', e.target.value)}>
+                        <option value="state">{stateName(inputs.stateOfResidence || 'TX')} average, scaled to each covered adult&rsquo;s age</option>
+                        <option value="manual">My household&rsquo;s own benchmark from healthcare.gov</option>
+                      </select>
+                      {inputs.acaBenchmarkPremiumSource === 'manual' && (
+                        <>
+                          <label htmlFor="field-acaBenchmarkPremiumAnnual" style={{ marginTop: '10px', display: 'block' }}>Household benchmark premium ($/yr, today&rsquo;s dollars)</label>
+                          <NumberInput id="field-acaBenchmarkPremiumAnnual" step="500" min="0" className="form-input" value={inputs.acaBenchmarkPremiumAnnual !== undefined ? inputs.acaBenchmarkPremiumAnnual : 0} onChange={(e) => updateInput('acaBenchmarkPremiumAnnual', (e.target.value === '' ? '' : Math.max(0, parseFloat(e.target.value))))} />
+                        </>
+                      )}
+                      <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                        The second-lowest-cost silver plan for the people on the marketplace that year: a state average for a 40-year-old, scaled by the federal age curve (a 60-year-old pays about 2.1 times a 40-year-old; New York and Vermont charge every age the same), growing with your medical inflation rate. healthcare.gov&rsquo;s tax tool gives the exact figure for your zip code and ages. The credit never exceeds the premium share of your Healthcare Bridge cost, and is nothing above 400% of the poverty line.
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 <div className="form-group" style={{ marginBottom: '16px' }}>
@@ -200,6 +226,23 @@ export default function RothConversionSection({ forceOpen = false }) {
                   </label>
                   <NumberInput id="field-qcdAnnualAmount" step="1000" min="0" className="form-input" value={inputs.qcdAnnualAmount} onChange={(e) => updateInput('qcdAnnualAmount', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
                 </div>
+
+                {inputs.spouse2Enabled && (
+                  <div className="form-group" style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <label htmlFor="toggle-rmdSpouseSoleBeneficiary" style={{ fontSize: '13px', cursor: 'pointer' }}>
+                        <Tooltip text="Required minimum distributions divide the balance by a life-expectancy figure. When the sole beneficiary is a spouse more than 10 years younger, the law uses the joint-life table, which spreads the account over both lives and lowers each year's required draw." more="sole beneficiary of the Pre-Tax">
+                          {inputs.spouse2Name || 'Spouse 2'} is the sole beneficiary of the Pre-Tax accounts
+                        </Tooltip>
+                        {(() => { const gap = (Number(inputs.birthYear2) || 0) - (Number(inputs.birthYear1) || 0); return gap > 10 ? ` (${gap} years younger: RMDs use the joint-life table)` : ' (within 10 years of age: no effect on RMDs)'; })()}
+                      </label>
+                      <span className="custom-switch">
+                        <input id="toggle-rmdSpouseSoleBeneficiary" type="checkbox" checked={inputs.rmdSpouseSoleBeneficiary !== false} onChange={(e) => updateInput('rmdSpouseSoleBeneficiary', e.target.checked)} />
+                        <span className="slider-round"></span>
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* One State of Residence, on Household. This spot used to
                     carry a second copy of the same select; it now shows the

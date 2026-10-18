@@ -96,15 +96,15 @@ describe('ACA 400% FPL subsidy cliff (changelog 119)', () => {
   });
 
   it('nets the estimated premium tax credit out of the healthcare bridge while eligible', () => {
-    const y0 = runProjection({ ...earlyRetiree, acaCliffProtectionEnabled: true, acaSubsidyAnnualValue: 8000 }).years[0];
+    const y0 = runProjection({ ...earlyRetiree, acaCliffProtectionEnabled: true, acaCreditSource: 'manual', acaSubsidyAnnualValue: 8000 }).years[0];
     expect(y0.acaSubsidyApplied).toBe(8000);
     expect(y0.healthcareBridge).toBe(10000);
     expect(y0.acaSubsidyClawback).toBe(0);
   });
 
   it('claws the whole credit back as tax in a year that crosses the cliff', () => {
-    const over = runProjection({ ...earlyRetiree, acaSubsidyAnnualValue: 8000 }).years[0];
-    const under = runProjection({ ...earlyRetiree, acaSubsidyAnnualValue: 8000, acaCliffProtectionEnabled: true }).years[0];
+    const over = runProjection({ ...earlyRetiree, acaCreditSource: 'manual', acaSubsidyAnnualValue: 8000 }).years[0];
+    const under = runProjection({ ...earlyRetiree, acaCreditSource: 'manual', acaSubsidyAnnualValue: 8000, acaCliffProtectionEnabled: true }).years[0];
     expect(over.acaCliffBreached).toBe(true);
     expect(over.acaSubsidyClawback).toBe(8000);
     expect(under.acaSubsidyClawback).toBe(0);
@@ -176,7 +176,7 @@ describe('the cliff sits where the marketplace puts it (changelog 409)', () => {
     ss1: 0, ss2: 0, pension1: 0, pension2: 0, rentalIncome: 0, annuityIncome: 0, salary1: 0, salary2: 0, partTimeIncome1: 0, partTimeIncome2: 0,
     preTaxInit: 2000000, rothInit: 500000, taxableInit: 0, hsaInit: 0, cashFloorEnabled: false,
     preTaxContribution1: 0, preTaxContribution2: 0, rothContribution1: 0, rothContribution2: 0, taxableContribution: 0, hsaContribution: 0,
-    lifestyleExpense: 50000, healthcareBridgeCost: 24000, acaSubsidyAnnualValue: 14000, withdrawalStrategy: 'RothFirst',
+    lifestyleExpense: 50000, healthcareBridgeCost: 24000, acaCreditSource: 'manual', acaSubsidyAnnualValue: 14000, withdrawalStrategy: 'RothFirst',
     stateTaxState: 'none', stateOfResidence: 'CO',
     taxBracketInflationRate: 0, inflationRate: 0, medicalInflationRate: 0,
     rothConversionStrategy: 'fixed', rothConversionAmount: 200000, acaCliffProtectionEnabled: true,

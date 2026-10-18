@@ -305,6 +305,22 @@ export const holdingCharacter = (holding) => (
   isValidDistributionCharacter(holding?.distributionCharacter) ? holding.distributionCharacter : 'unspecified'
 );
 
+// The character the TAX figure uses (computeTaxableDistributionYield), as
+// distinct from the one the distribution matrix displays. A holding whose
+// character was never set is still a bond fund or a money-market fund if
+// its asset class says so, and what those pay is interest -- ordinary
+// income, not a qualified dividend. So Not Set on a bond or cash holding
+// reads as Ordinary here (changelog 414); Not Set on a stock, or anything
+// the user did set (Mixed included), is left exactly as it was. The matrix
+// keeps showing the holding under "Kind not stated": this is a tax
+// default, not a claim about what the fund declared.
+export const ORDINARY_BY_ASSET_CLASS = new Set(['bond', 'cash']);
+export function taxCharacterForHolding(holding) {
+  const character = holdingCharacter(holding);
+  if (character !== 'unspecified') return character;
+  return ORDINARY_BY_ASSET_CLASS.has(getEffectiveAssetClass(holding)) ? 'ordinaryDividend' : character;
+}
+
 // Which matrix row an ACTUAL record belongs in. The event's own type is
 // better evidence than the holding-level character and wins where it says
 // anything specific; where it is merely "a dividend" or "other", the
@@ -543,13 +559,15 @@ export function collectActualDistributions(holding, year = null) {
 // Changelog 208: also returns how much of it is ORDINARY income -- ordinary
 // dividends and interest. Everything else (qualified dividends, capital
 // gain distributions, and anything Mixed or not stated, as the owner chose) is
-// taxed at the qualified / capital-gains rates.
+// taxed at the qualified / capital-gains rates -- except (changelog 414)
+// that "not stated" on a bond or cash holding is ordinary, see
+// taxCharacterForHolding.
 const ORDINARY_ROWS = new Set(['ordinaryDividend', 'interest']);
 function taxableDistributionsInYear(holding, year) {
   return taxableDistributionSplitInYear(holding, year).total;
 }
 function taxableDistributionSplitInYear(holding, year) {
-  const character = holdingCharacter(holding);
+  const character = taxCharacterForHolding(holding);
   let total = 0;
   let ordinary = 0;
   for (const rec of collectActualDistributions(holding, year)) {
@@ -609,7 +627,7 @@ export function computeTaxableDistributionYield(holdings = [], { excludeHoldingI
   const uplifted = [];
   for (const h of taxable) {
     value += computeMarketValue(h);
-    const character = holdingCharacter(h);
+    const character = taxCharacterForHolding(h);
     // A Return of Capital fund's forward estimate is not income either
     // (changelog 208) -- its logged payments were already left out.
     const estimated = character === 'returnOfCapital' ? 0 : computeAnnualDividendIncome(h);

@@ -24,6 +24,9 @@ import { runProjection, getBracketFilling, DEFAULT_INPUTS } from '../calculator'
 // ($200,000 single) so that tax is in play too.
 const GAINS_HEAVY = {
   ...DEFAULT_INPUTS,
+  // Changelog 414 made the brokerage yield's bond share ordinary income;
+  // this file is about something else, so the yield stays all-qualified.
+  taxableQualifiedDividendFollowsAllocation: false,
   planYear: 2026,
   spouse2Enabled: false,
   filingStatus: 'Single',

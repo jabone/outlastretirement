@@ -18,7 +18,7 @@ const SAMPLE = {
   timestamp: '2026-09-08T12:00:00.000Z',
   activeInputs: { salary1: 150000, lifestyleExpense: 96000 },
   savedScenarios: [{ id: 's1', name: 'Base Case' }],
-  portfolioHoldings: [{ id: 'h1', symbol: 'VTI', shares: 1200 }],
+  portfolioHoldings: [{ id: 'h1', symbol: 'VTSAX', shares: 1200 }],
   premiumJwt: 'eyJ.fake.token',
 };
 
@@ -37,9 +37,11 @@ describe('backupCrypto', () => {
     expect(env.cipher.name).toBe('AES-GCM');
     expect(Object.keys(env).sort()).toEqual(['cipher', 'ciphertext', 'kdf', 'timestamp', 'version']);
     // Nothing recognisable from the plan appears in the serialised file:
-    // not the JWT, not a symbol, not a field name.
+    // not the JWT, not a symbol, not a field name. Every needle is five
+    // characters or more: a three-letter one turned up by chance inside the
+    // random base64 of the ciphertext once in a few hundred runs.
     const text = JSON.stringify(env);
-    for (const needle of ['eyJ.fake.token', 'VTI', 'salary1', 'activeInputs', 'Base Case', '150000']) {
+    for (const needle of ['eyJ.fake.token', 'VTSAX', 'salary1', 'activeInputs', 'Base Case', '150000']) {
       expect(text).not.toContain(needle);
     }
   });

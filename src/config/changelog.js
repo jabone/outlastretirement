@@ -29,6 +29,54 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 417,
+    date: '2026-10-17',
+    title: 'The plan itemizes deductions when that beats the standard deduction',
+    summary: 'Each year the federal return now takes the larger of the standard deduction and the itemized total the plan can see: state and property tax, mortgage interest, cash gifts and medical costs.',
+    items: [
+      "**What was wrong.** Every return took the standard deduction. A household in a high-tax state with a mortgage, property tax and the pre-65 health bridge can have deductions well past it, and the plan was taxing them on income the law would not.",
+      "**What changed.** Under Plan \u2192 Taxes & Roth \u2192 Federal Deductions, the plan now takes, each year, the larger of the standard deduction and four lines it can see: state income tax (what it computed for the year before) plus a new Property tax figure, under the $40,400 cap for 2026 (rising 1% a year to 2029, then $10,000, and reduced above $505,000 of income); mortgage interest from your Debt entries on up to $750,000 of principal, with a switch for a loan that did not buy the home; a new Cash gifts to charity figure, after a floor of 0.5% of income; and health costs \u2014 the pre-65 bridge after its ACA credit, long-term care, Medicare premiums with IRMAA, less what an HSA paid \u2014 over 7.5% of income. The two new figures are for the deduction only; the costs themselves stay in your spending as before. A standard-deduction year also deducts up to $1,000 ($2,000 joint) of cash gifts from 2026, as the law now allows.",
+      "**Where to see it.** The Tax & Estate view and the ledger say whether a year took the standard or itemized deduction; the ledger rows carry the four lines. Choose Always the standard deduction to keep the old behavior.",
+      "**Your numbers will change** only where mortgage interest, last year\u2019s state tax and health costs already beat the standard deduction, or once you type property tax or gifts: less federal tax in those years. Plans with none of those are unchanged, and so are the demo households.",
+    ],
+  },
+  {
+    id: 416,
+    date: '2026-10-17',
+    title: 'RMDs use the joint-life table for a spouse more than 10 years younger',
+    summary: 'When the sole beneficiary of the Pre-Tax accounts is a spouse more than 10 years younger, required minimum distributions now use the larger IRS joint-life figure, so the required draw is smaller.',
+    items: [
+      "**What was wrong.** Every required minimum distribution divided the Pre-Tax balance by the Uniform Lifetime figure for the owner\u2019s age. The law gives an owner whose sole beneficiary is a spouse more than 10 years younger a different table, the Joint and Last Survivor table, which spreads the account over both lives: a 75-year-old with a 60-year-old spouse divides by 28.3 rather than 24.6, so the plan was requiring too much to be drawn and taxed each year.",
+      "**What changed.** The plan carries the IRS table and uses it whenever both spouses are living, the second spouse is more than 10 years younger than the first (by the ages they reach that year), and the new switch under Qualified Charitable Distribution, on by default, says the spouse is the sole beneficiary of the Pre-Tax accounts. Turn it off if a trust, a child or several people are named. The ledger\u2019s RMD rows say which table each year used.",
+      "**What did not change.** Couples within 10 years of each other, single filers and a surviving spouse are figured exactly as before. The plan\u2019s Pre-Tax balance is read as the first spouse\u2019s, so only a younger second spouse stretches the figure.",
+      "**Your numbers will change** if your spouse is more than 10 years younger: smaller required draws from 73 (or 75), a little less tax in those years, and a larger balance left to grow or to pass on.",
+    ],
+  },
+  {
+    id: 415,
+    date: '2026-10-17',
+    title: 'The ACA premium tax credit is computed, not typed',
+    summary: 'The pre-65 marketplace credit is now figured each year from the benchmark premium for your state and ages and the share of income the law expects you to pay, and settled on the return.',
+    items: [
+      "**What was wrong.** The credit on the pre-65 Healthcare Bridge was a figure you typed, and most plans typed none, so the bridge cost stood at its full sticker price for a household whose income would have earned a credit. The one typed was lost whole in a year over the 400% line and never changed with income in between, though the real credit shrinks as income rises.",
+      "**What changed.** By default the credit is computed the way the tax law computes it: the benchmark premium (the second-lowest-cost silver plan for the people on the marketplace that year) less the share of your income the law expects you to pay — 2.1% at the poverty line, rising to 9.96% from 300% of it — and never more than the premium share of your bridge cost. The benchmark is your state’s 2026 average for a 40-year-old, scaled by the federal age curve for each covered adult (a 60-year-old pays about 2.1 times a 40-year-old; New York and Vermont charge every age the same) and your medical inflation rate, or the figure healthcare.gov’s tax tool gives for your own zip code and ages, if you type it.",
+      "**Settled on the return.** The year’s credit is estimated from last year’s settled income (or this year’s known income, if higher) and re-figured on the year’s actual income once the withdrawals are known: a shortfall is repaid as tax and an excess is refunded, as Form 8962 does. A year over the 400% line repays the whole advance, as before.",
+      "**Your numbers will change** if your plan has a Healthcare Bridge and years under 65 with income under 400% of the poverty line: the bridge costs less, usually by thousands a year. Choose A figure I type under ACA Premium Tax Credit to keep the old behavior; a plan saved with a typed figure keeps it. The demo households are unchanged.",
+    ],
+  },
+  {
+    id: 414,
+    date: '2026-10-17',
+    title: 'Brokerage income follows your stock/bond split: the bond side is interest',
+    summary: 'By default the brokerage yield’s stock share is qualified and its bond and cash share is interest, taxed as ordinary income; a bond or cash holding with no character set is interest too.',
+    items: [
+      "**What was wrong.** The plan taxed every dollar the Taxable Brokerage balance paid out at the qualified-dividend rate unless you changed the Qualified share figure yourself, and few people had. A brokerage account holding a 60/40 mix does not pay 100% qualified dividends: its bond funds and money-market funds pay interest, which is ordinary income. The 100% default understated the tax, and with it the income Medicare and the ACA look at.",
+      "**What changed.** A new switch under Qualified share of that yield, on by default: Follow the plan’s stock/bond split. Each year the qualified share is that year’s stock allocation — Working or Retired, walked down by the glide path if one is on — and the rest is ordinary income. Turn it off to type a share of your own; a plan saved with a figure of its own keeps it, and 100 is how every plan was taxed before.",
+      "**Detailed Holdings (Premium).** When the yield is linked to your holdings, a bond or cash holding whose Distribution Character is Not Set now counts as ordinary, as its interest is; a stock holding with none, or Mixed, counts as qualified as before, and a character you set is always used. The Distributions matrix still shows such a holding under Kind not stated.",
+      "**Your numbers will change** if your plan has a Taxable Brokerage balance and the share was still 100%: more ordinary income each year, so a little more tax and a little less room under a bracket or an ACA line. The demo households are unchanged; their stories were written with the old figure.",
+    ],
+  },
+  {
     id: 413,
     date: '2026-10-17',
     title: 'The privacy policy says what our host keeps',

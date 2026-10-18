@@ -17,6 +17,7 @@ import CurrentSpendSection from '../plan/sections/CurrentSpendSection';
 import PartTimeSection from '../plan/sections/PartTimeSection';
 import GranularInflationSection from '../plan/sections/GranularInflationSection';
 import StateTaxesSection from '../plan/sections/StateTaxesSection';
+import DeductionsSection from '../plan/sections/DeductionsSection';
 import LegislativeRisksSection from '../plan/sections/LegislativeRisksSection';
 import AnnuitiesPensionsSection from '../plan/sections/AnnuitiesPensionsSection';
 import SocialSecuritySection from '../plan/sections/SocialSecuritySection';
@@ -178,7 +179,7 @@ const SettingsTab = () => {
         {settingsSubTab === 'taxes' && (
           <SettingsPanel maximizedComponent={maximizedComponent} setMaximizedComponent={setMaximizedComponent} id="taxes" title="Taxes & Roth">
             <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
-                <div><StateTaxesSection /></div>
+                <div><StateTaxesSection /><DeductionsSection /></div>
                 <div><RothConversionSection /></div>
                 <div><MedicareIrmaaSection /></div>
             </div>

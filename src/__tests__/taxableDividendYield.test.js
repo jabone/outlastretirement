@@ -65,12 +65,14 @@ describe('taxableQualifiedDividendPct -- the ordinary share of the yield (change
     ...DEFAULT_INPUTS, birthYear1: START - 50, retireAge1: 65, salary1: 90000,
     taxableInit: 500000, taxableDividendYield: 4, stateOfResidence: 'CA', stateTaxState: 'ca',
   };
-  const y0 = (pct) => runProjection({ ...worker, taxableQualifiedDividendPct: pct }).years[0];
+  // The typed share is in force only with the split-following switch off
+  // (changelog 414); these cases are about the typed share.
+  const y0 = (pct) => runProjection({ ...worker, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: pct }).years[0];
 
-  it('defaults to 100% qualified, which is how every plan was taxed before', () => {
+  it('the typed figure defaults to 100% qualified, which is how every plan was taxed before 414', () => {
     expect(DEFAULT_INPUTS.taxableQualifiedDividendPct).toBe(100);
     expect(y0(100).ordinaryDividends).toBe(0);
-    const { taxableQualifiedDividendPct: _drop, ...legacy } = { ...worker, taxableQualifiedDividendPct: 100 };
+    const { taxableQualifiedDividendPct: _drop, ...legacy } = { ...worker, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 100 };
     expect(runProjection(legacy).years[0].ordinaryDividends).toBe(0);
   });
 
@@ -101,8 +103,8 @@ describe('taxableQualifiedDividendPct -- the ordinary share of the yield (change
     // costs 35% - 15% = 20 points -- no more, no less: the 3.8% applies
     // either way.
     const rich = { ...worker, salary1: 400000, taxableInit: 1000000, taxableDividendYield: 5 };
-    const q = runProjection({ ...rich, taxableQualifiedDividendPct: 100 }).years[0];
-    const o = runProjection({ ...rich, taxableQualifiedDividendPct: 0 }).years[0];
+    const q = runProjection({ ...rich, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 100 }).years[0];
+    const o = runProjection({ ...rich, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 0 }).years[0];
     expect((o.federalTax - q.federalTax) / q.taxableDividends).toBeCloseTo(0.20, 2);
   });
 
@@ -112,14 +114,14 @@ describe('taxableQualifiedDividendPct -- the ordinary share of the yield (change
       taxableInit: 600000, taxableDividendYield: 4, preTaxInit: 1500000, rothInit: 0, lifestyleExpense: 50000,
       rothConversionStrategy: 'maxBracket', rothConversionBracket: 0.22,
     };
-    const q = runProjection({ ...retiree, taxableQualifiedDividendPct: 100 }).years[0];
-    const o = runProjection({ ...retiree, taxableQualifiedDividendPct: 0 }).years[0];
+    const q = runProjection({ ...retiree, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 100 }).years[0];
+    const o = runProjection({ ...retiree, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 0 }).years[0];
     expect(o.ordinaryDividends).toBeGreaterThan(20000);
     expect(q.convertAmount - o.convertAmount).toBeCloseTo(o.ordinaryDividends, -1);
     // The ACA cliff cap: MAGI counts every dividend either way.
     const aca = { ...retiree, rothConversionStrategy: 'fixed', rothConversionAmount: 400000, acaCliffProtectionEnabled: true };
-    const aq = runProjection({ ...aca, taxableQualifiedDividendPct: 100 }).years[0];
-    const ao = runProjection({ ...aca, taxableQualifiedDividendPct: 0 }).years[0];
+    const aq = runProjection({ ...aca, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 100 }).years[0];
+    const ao = runProjection({ ...aca, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 0 }).years[0];
     expect(aq.acaCliffCappedConversion).toBeGreaterThan(0);
     expect(ao.convertAmount).toBeCloseTo(aq.convertAmount, 6);
   });
@@ -129,8 +131,8 @@ describe('taxableQualifiedDividendPct -- the ordinary share of the yield (change
       ...worker, residencyTimeline: [{ id: 'f', fromYear: START, kind: 'foreign', countryName: 'X', stateDomicileSevered: true,
         foreign: { ordinaryRate: 10, investmentRate: 30, roth: 'respect', treatyResourcing: true } }],
     };
-    const q = runProjection({ ...away, taxableQualifiedDividendPct: 100 }).years[0];
-    const o = runProjection({ ...away, taxableQualifiedDividendPct: 0 }).years[0];
+    const q = runProjection({ ...away, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 100 }).years[0];
+    const o = runProjection({ ...away, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 0 }).years[0];
     expect(q.foreignLocalTax).toBeGreaterThan(0);
     expect(o.foreignLocalTax).toBeCloseTo(q.foreignLocalTax, 2);
   });
@@ -140,8 +142,8 @@ describe('taxableQualifiedDividendPct -- the ordinary share of the yield (change
       ...DEFAULT_INPUTS, birthYear1: START - 70, retireAge1: 60, claimingAge1: 67, ss1: 30000, salary1: 0,
       taxableInit: 2000000, taxableDividendYield: 5, preTaxInit: 0, rothInit: 0, lifestyleExpense: 40000,
     };
-    const q = runProjection({ ...retiree, taxableQualifiedDividendPct: 100 }).years[0];
-    const o = runProjection({ ...retiree, taxableQualifiedDividendPct: 0 }).years[0];
+    const q = runProjection({ ...retiree, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 100 }).years[0];
+    const o = runProjection({ ...retiree, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 0 }).years[0];
     expect(o.taxableSS).toBeCloseTo(q.taxableSS, 6);
     expect(q.taxableSS).toBeGreaterThan(0);
     expect(o.federalTax).toBeGreaterThan(q.federalTax);

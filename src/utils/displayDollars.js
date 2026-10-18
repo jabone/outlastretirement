@@ -52,7 +52,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'phaseMultiplier', 'essentialShare', 'concentratedStockConcentrationPct',
     'concentratedStock2ConcentrationPct', 'cashReserveMonthsCovered',
     'wrGuardrailRate', 'wrGuardrailMultiplier', 'wrGuardrailPlannedRate',
-    'firstDeathBasisResetShare',
+    'firstDeathBasisResetShare', 'qualifiedDividendShare', 'acaApplicablePct', 'rmdDivisor',
   ]),
   ...byClass(YEAR, [
     // Income and inflows
@@ -98,6 +98,8 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'taxLossHarvestedThisYear', 'harvestedGainsOffset', 'harvestedOrdinaryOffset', 'lossUsedOnDraw',
     'irmaaMagi', 'irmaaBasisMagi', 'irmaaLookbackMagi', 'irmaaCapCeiling', 'irmaaCappedConversion',
     'acaMagi', 'acaCliffThreshold', 'acaSubsidyBoost', 'acaSubsidyApplied', 'acaSubsidyClawback',
+    'acaBenchmarkPremium', 'acaCreditSettled', 'acaSubsidyRefund',
+    'itemizedDeduction', 'itemizedSalt', 'itemizedMortgageInterest', 'itemizedCharitable', 'itemizedMedical', 'nonItemizerCharitable',
     'acaCliffCappedConversion',
     // Start-of-year balances are priced at the year's own level
     'preTaxStart', 'rothStart', 'taxableStart', 'hsaStart',

@@ -159,7 +159,10 @@ describe('Q-9(a): a pension lump sum is ordinary income unless it is rolled over
 
 describe('Q-9(b): the IRC s 72(b) exclusion ratio on a non-qualified annuity', () => {
   const annuityPlan = {
-    ...DEFAULT_INPUTS, spouse2Enabled: false, birthYear1: 2026 - 65, retireAge1: 65,
+    // The excluded slice is inferred from the MAGI of two runs, so the
+    // brokerage yield is held all-qualified (changelog 414) to keep the
+    // runs' ordinary income identical.
+    ...DEFAULT_INPUTS, taxableQualifiedDividendFollowsAllocation: false, spouse2Enabled: false, birthYear1: 2026 - 65, retireAge1: 65,
     lifeExpectancy1: 85, salary1: 0, ss1: 0, ss2: 0, pension1: 0,
     annuityPurchaseAmount: 200000, annuityPurchaseAge: 65, annuityPayoutRate: 6.0,
     annuityIndexation: 0, annuitySourceAccount: 'taxable', annuityIsTaxable: false,

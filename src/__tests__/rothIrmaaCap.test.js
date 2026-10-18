@@ -34,6 +34,9 @@ describe('vacuity guard', () => {
 // bracket alone would convert far past the first IRMAA threshold.
 const couple = {
   ...DEFAULT_INPUTS,
+  // Changelog 414 made the brokerage yield's bond share ordinary income;
+  // this file is about something else, so the yield stays all-qualified.
+  taxableQualifiedDividendFollowsAllocation: false,
   spouse2Enabled: true,
   filingStatus: 'MFJ',
   planYear: 2026, birthYear1: 1963, birthYear2: 1963,

@@ -298,10 +298,10 @@ export const NOT_ASKED_IN_INTERVIEW = [
   {
     id: 'taxableDividendYield',
     title: 'The dividend yield the tax engine assumes on your taxable brokerage',
-    blurb: 'Dividends and fund distributions in a taxable account are taxed every year and count toward the income Medicare (IRMAA) and the ACA look at, even when reinvested. This is the yield the plan assumes on the Taxable Brokerage balance — 2% unless you change it, or link it to the real blended yield of your Detailed Holdings — and how much of it is taxed at qualified-dividend rates rather than as ordinary income.',
+    blurb: 'Dividends and fund distributions in a taxable account are taxed every year and count toward the income Medicare (IRMAA) and the ACA look at, even when reinvested. This is the yield the plan assumes on the Taxable Brokerage balance — 2% unless you change it, or link it to the real blended yield of your Detailed Holdings — and how much of it is taxed at qualified-dividend rates rather than as ordinary income. By default that share follows the plan’s own stock/bond split year by year: the stock side pays qualified dividends, the bond and cash side pays interest.',
     domain: 'balances',
     interviewSection: 'balances',
-    keys: ['taxableDividendYield', 'taxableQualifiedDividendPct'],
+    keys: ['taxableDividendYield', 'taxableQualifiedDividendPct', 'taxableQualifiedDividendFollowsAllocation'],
   },
   {
     id: 'dividendPayoutMode',

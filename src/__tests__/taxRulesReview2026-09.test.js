@@ -247,7 +247,7 @@ describe('B1/B2 estate exemption for a married couple', () => {
 
 describe('B8 MFS gets no premium tax credit', () => {
   it('no credit is applied in an MFS marketplace year', () => {
-    const o = couple({ birthYear1: 1966, birthYear2: 1966, preTaxInit: 1000000, lifestyleExpense: 40000, healthcareBridgeCost: 10000, acaSubsidyAnnualValue: 8000 });
+    const o = couple({ birthYear1: 1966, birthYear2: 1966, preTaxInit: 1000000, lifestyleExpense: 40000, healthcareBridgeCost: 10000, acaCreditSource: 'manual', acaSubsidyAnnualValue: 8000 });
     expect(y0({ ...o, filingStatus: 'MFJ' }).acaSubsidyApplied).toBeGreaterThan(0);
     expect(y0({ ...o, filingStatus: 'MFS' }).acaSubsidyApplied).toBe(0);
   });

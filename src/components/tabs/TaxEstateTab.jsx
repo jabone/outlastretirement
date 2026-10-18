@@ -379,7 +379,7 @@ const TaxEstateTab = () => {
                         {/* Standard Deduction Layer */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)' }}>
-                            <span style={{ fontWeight: '600' }}>Standard Deduction (0%)</span>
+                            <span style={{ fontWeight: '600' }}>{yearData.deductionUsed === 'itemized' ? 'Itemized Deductions' : 'Standard Deduction'} (0%)</span>
                             <span style={{ color: 'var(--text-secondary)' }}>{formatCurrency(yearData.stdDeduction)} (100%)</span>
                           </div>
                           <div style={{ width: '100%', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>

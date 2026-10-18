@@ -23,6 +23,9 @@ import { runProjection, DEFAULT_INPUTS } from '../calculator';
 
 const FUNDED = {
   ...DEFAULT_INPUTS,
+  // Changelog 414 made the brokerage yield's bond share ordinary income;
+  // this file is about something else, so the yield stays all-qualified.
+  taxableQualifiedDividendFollowsAllocation: false,
   planYear: 2026,
   spouse2Enabled: false,
   filingStatus: 'Single',
@@ -43,7 +46,7 @@ const SHAPES = {
   'pre-59.5 bridge, no state tax': { birthYear1: 1975, retireAge1: 52, salary1: 0, preTaxInit: 1500000, withdrawalStrategy: 'PreTaxFirst', lifestyleExpense: 90000, stateTaxState: 'none' },
   'pre-59.5 bridge in California': { birthYear1: 1975, retireAge1: 52, salary1: 0, preTaxInit: 1500000, withdrawalStrategy: 'PreTaxFirst', lifestyleExpense: 90000, stateTaxState: 'ca' },
   'still working, FICA in play': { birthYear1: 1985, retireAge1: 65, salary1: 180000 },
-  'ACA pre-65 with subsidy': { birthYear1: 1968, retireAge1: 58, salary1: 0, stateTaxState: 'none', stateOfResidence: 'TX', acaCliffProtectionEnabled: true, healthcareBridgeCost: 18000, acaSubsidyAnnualValue: 9000 },
+  'ACA pre-65 with subsidy': { birthYear1: 1968, retireAge1: 58, salary1: 0, stateTaxState: 'none', stateOfResidence: 'TX', acaCliffProtectionEnabled: true, healthcareBridgeCost: 18000, acaCreditSource: 'manual', acaSubsidyAnnualValue: 9000 },
 };
 
 describe('the fixtures are real', () => {

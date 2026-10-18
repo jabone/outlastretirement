@@ -11,7 +11,9 @@ const plan = (over) => {
   for (const k of Object.keys(over)) {
     if (!(k in DEFAULT_INPUTS)) throw new Error(`not a real input key: ${k}`);
   }
-  return { ...DEFAULT_INPUTS, ...over };
+  // Changelog 414 made the brokerage yield's bond share ordinary income;
+  // this file is about where money goes, so the yield stays all-qualified.
+  return { ...DEFAULT_INPUTS, taxableQualifiedDividendFollowsAllocation: false, ...over };
 };
 const START = DEFAULT_INPUTS.planYear;
 const worker = {
