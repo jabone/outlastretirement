@@ -54,7 +54,7 @@ export const CHANGELOG = [
     id: 424,
     date: '2026-10-18',
     title: 'A backup with a Premium key restores its Detailed Holdings in one pass',
-    summary: 'On a fresh browser the restore could fail to load its key checker, call the key invalid and skip the holdings, so a backup took two restores. The check now retries; a key it cannot check is checked on reload.',
+    summary: 'On a fresh browser the restore could fail to load its key checker, call the key invalid and skip the holdings, so a backup took two restores. It now retries, and checks the key on reload if it must.',
     items: [
       "**What was wrong.** Restore verifies the Premium Access key in a backup before writing it, using a verifier the app loads on first use. On a browser that had never loaded it, that load could fail or arrive late; the failure was then remembered, the key was reported as invalid, the Detailed Holdings were skipped, and only a second restore brought them back.",
       "**What changed.** The verifier is retried and a failed load is never remembered. When it still cannot be loaded, the restore says the key couldn\u2019t be checked just now, writes it anyway if this browser holds no key of its own, and the app checks it when the page reloads \u2014 exactly as it checks a pasted key. A browser that already has a key keeps it. A key that loads and fails its check is still refused, as before.",
