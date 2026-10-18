@@ -150,7 +150,7 @@ const YearLedgerTab = () => {
                     : 'One path: your plan with average returns every year.'}
                   {' '}
                   {mcRange && mcRange.status === 'fresh' && (!inputs.stressType || inputs.stressType === 'none')
-                    ? <>In 8 of 10 simulated markets the final balance lands between {formatCurrency(mcRange.p10)} and {formatCurrency(mcRange.p90)}.</>
+                    ? <>In <Tooltip text="The Monte Carlo's 10th to 90th percentile of final balances: eight simulated markets in ten ended between these two figures, one in ten below and one in ten above. The typical spread, not the odds of success." more="8 of 10 simulated markets">8 of 10 simulated markets</Tooltip> the final balance lands between {formatCurrency(mcRange.p10)} and {formatCurrency(mcRange.p90)}.</>
                     : (
                       <button type="button" onClick={() => { setActiveTab('risk'); if (setRiskSubTab) setRiskSubTab('montecarlo'); }}
                         style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-text)', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>

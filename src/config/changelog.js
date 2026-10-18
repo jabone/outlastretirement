@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 427,
+    date: '2026-10-18',
+    title: 'The "8 of 10 simulated markets" range explains itself',
+    summary: 'The likely-range band on the Ending Balance card, the Dashboard chart and the Year by Year note now has a help popup saying what the figures are, and the Input Dictionary has a full entry for it.',
+    items: [
+      "**What was wrong.** \u201cRange in 8 of 10 simulated markets\u201d and \u201cP10\u2013P90\u201d named the band without saying what it is, and nothing explained that it is the typical spread rather than the odds of the plan lasting.",
+      "**What changed.** Hover or tab to the phrase on any of the three surfaces for the one-line definition, with a link to the new Input Dictionary entry: the Monte Carlo\u2019s 10th and 90th percentiles, eight trials in ten inside, one in ten either side; why those two rather than the extreme tails; and why a band entirely above zero can still belong to a plan that runs short in some trials, which the Will It Last? card reports separately.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
     id: 426,
     date: '2026-10-18',
     title: 'A Premium key can be canceled on its own',

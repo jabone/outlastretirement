@@ -20,6 +20,7 @@ const DieWithZeroChart = lazyWithRetry(() => import('./components/LazyCharts').t
 const AgeFinderChart = lazyWithRetry(() => import('./components/LazyCharts').then(m => ({ default: m.AgeFinderChart })));
 const EstateLegacyChart = lazyWithRetry(() => import('./components/LazyCharts').then(m => ({ default: m.EstateLegacyChart })));
 const CashFlowSankeyChart = lazyWithRetry(() => import('./components/LazyCharts').then(m => ({ default: m.CashFlowSankeyChart })));
+import Tooltip from './components/Tooltip';
 import ErrorBoundary from './components/ErrorBoundary';
 import ForeignYearsNotice from './components/ForeignYearsNoticeLoader';
 import QuickUpdate from './components/QuickUpdate';
@@ -2215,7 +2216,7 @@ export default function App() {
                 the figure above (see monteCarloRange). */}
             <span className="kpi-subtext" data-testid="ending-range" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.35 }}>
               {mcRange.status === 'fresh' && (
-                <>Likely range {formatEnding(Math.round(mcRange.p10))} &ndash; {formatEnding(Math.round(mcRange.p90))} <span title="The 10th to 90th percentile of the Monte Carlo's ending balances: eight trials in ten landed inside this band.">(P10&ndash;P90)</span></>
+                <>Likely range {formatEnding(Math.round(mcRange.p10))} &ndash; {formatEnding(Math.round(mcRange.p90))} <Tooltip text="The 10th to 90th percentile of the Monte Carlo's ending balances: eight trials in ten ended inside this band, one in ten below it and one in ten above. It is the typical spread, not the odds of success." more="8 of 10 simulated markets">(P10&ndash;P90)</Tooltip></>
               )}
               {mcRange.status === 'stale' && (
                 <button type="button" onClick={() => { setActiveTab('risk'); setRiskSubTab('montecarlo'); }} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--warning)', cursor: 'pointer', font: 'inherit', textAlign: 'left' }}>
