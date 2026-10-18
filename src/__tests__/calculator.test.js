@@ -2235,9 +2235,11 @@ describe('calculator.js core logic', () => {
       expect(withQcd.totalTaxesPaid).toBeLessThan(noQcd.totalTaxesPaid);
     });
 
-    it('caps the QCD at the RMD amount when the requested amount exceeds it', () => {
+    it('caps the QCD at the balance, not the RMD, when the requested amount exceeds both (changelog 418)', () => {
       const y = runProjection({ ...qcdBase, preTaxInit: 50000, qcdAnnualAmount: 500000 }).years[0];
-      expect(y.qcdAmount).toBeCloseTo(y.rmdAmount, 2);
+      expect(y.qcdAmount).toBeGreaterThan(y.rmdAmount);
+      expect(y.qcdAmount).toBeCloseTo(50000, 2);
+      expect(y.rmdTaxableAmount).toBe(0);
     });
 
     it('caps the QCD at the 2026 IRS per-person limit', () => {

@@ -220,7 +220,7 @@ export default function RothConversionSection({ forceOpen = false }) {
 
                 <div className="form-group" style={{ marginBottom: '16px' }}>
                   <label htmlFor="field-qcdAnnualAmount">
-                    <Tooltip text="Once RMDs begin, sends this amount from Pre-Tax straight to charity. It satisfies the RMD but is never taxable income. Capped by the RMD and the IRS limit ($111,000 per person, 2026)." more="Qualified Charitable">
+                    <Tooltip text="From the year the owner turns 71, sends this amount from Pre-Tax straight to charity. It satisfies any RMD due and is never taxable income. Capped by the balance and the IRS limit ($111,000, 2026)." more="Qualified Charitable">
                       Qualified Charitable Distribution ($/yr)
                     </Tooltip>
                   </label>

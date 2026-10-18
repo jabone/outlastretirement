@@ -2336,6 +2336,13 @@ export function getHSAContributionLimit(age, isFamilyCoverage, inflFactor = 1) {
 // IRA, capped at $55,000 for 2026. That is a feature gap rather than an
 // error in this number.
 export const QCD_LIMIT_2026 = 111000;
+// A QCD is allowed from the day the owner reaches 70 1/2 (s 408(d)(8)(B)(ii)).
+// The engine works in whole ages attained in the year, so it allows one
+// from the year the owner turns 71, by which every owner has passed 70 1/2
+// (an owner born January to June could give from the year they turn 70;
+// the engine is a half-year conservative for them). Changelog 418; until
+// then a QCD needed an RMD to ride on, which starts at 73 or 75.
+export const QCD_START_AGE = 71;
 
 // Standard deductions — tax year 2026 (IRS Rev. Proc. 2025-32, reflecting the
 // One Big Beautiful Bill Act). Source: irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026
@@ -2614,7 +2621,11 @@ export function acaPremiumTaxCredit({ benchmark, magi, fpl, premiumPaid }) {
 // Source: healthinsurance.org/medicaid/expansion (state-by-state tracker) —
 // re-check every year, since a state can expand (or a program can lapse)
 // at any time, not just in January like the dollar-figure constants above.
-export const ACA_NON_EXPANSION_STATES = new Set(['AL', 'FL', 'GA', 'KS', 'MS', 'SC', 'TN', 'TX', 'WY', 'WI']);
+// Wisconsin is NOT on the list (changelog 418): it never adopted the
+// expansion, but its BadgerCare Plus waiver covers childless adults up to
+// 100% of FPL, exactly where marketplace subsidies begin, so there is no
+// gap to fall into (KFF, "Status of State Medicaid Expansion Decisions").
+export const ACA_NON_EXPANSION_STATES = new Set(['AL', 'FL', 'GA', 'KS', 'MS', 'SC', 'TN', 'TX', 'WY']);
 
 // ---------------------------------------------------------------------------
 // Residency timeline (changelog 195, RELOCATION_SPEC.md rung 1)
@@ -8674,13 +8685,18 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // it is capped at the balance less basis; and a QCD sits in neither
     // Form 8606's year-end balance nor its distributions, so the pro-rata
     // ratio every OTHER distribution uses is basis over the pool LESS the
-    // QCD. Capped at what the user asked for, the RMD, and the IRS annual
-    // limit; the RMD block below takes the final figure against the RMD
-    // actually taken.
+    // QCD. Capped at what the user asked for, the balance and the IRS
+    // annual limit; the RMD block below takes the final figure. Changelog
+    // 418: allowed from QCD_START_AGE whether or not an RMD is due, and
+    // not capped at the RMD -- the law lets a QCD exceed it (the excess is
+    // simply a further tax-free distribution), and before RMDs begin
+    // there is nothing to cap it at. Until 418 a QCD needed an RMD to
+    // ride on and could not exceed it.
     const qcdLimit = QCD_LIMIT_2026 * inflFactor;
     const qcdTaxableRoom = Math.max(0, preTax - Math.max(0, preTaxBasis));
-    const qcdPlanned = rmdApplies
-      ? Math.max(0, Math.min(inputs.qcdAnnualAmount || 0, Math.min(Math.max(0, preTax), rmdFromPriorBalance), qcdLimit, qcdTaxableRoom))
+    const qcdEligible = rmdOwnerAge !== null && rmdOwnerAge >= QCD_START_AGE;
+    const qcdPlanned = qcdEligible
+      ? Math.max(0, Math.min(inputs.qcdAnnualAmount || 0, Math.max(0, preTax), qcdLimit, qcdTaxableRoom))
       : 0;
 
     // After-tax basis inside the Pre-Tax bucket, as a share of the balance
@@ -8763,16 +8779,19 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // pocket. Capped three ways: can't exceed what the user asked for,
     // can't exceed the RMD itself (a QCD can't manufacture extra
     // distributions beyond what's actually being withdrawn), and can't
-    // exceed the per-person IRS annual QCD limit. Only available once RMDs
-    // have actually begun in this model (a simplification — real QCDs are
-    // allowed from age 70.5, which can be earlier than the 73/75 RMD age).
-    const qcdAmount = Math.min(qcdPlanned, rmdAmount);
+    // exceed the per-person IRS annual QCD limit. Changelog 418: available
+    // from QCD_START_AGE (70 1/2 in the law), with or without an RMD; the
+    // part that exceeds the RMD is a further distribution from Pre-Tax,
+    // tax-free and never in the household's pocket.
+    const qcdAmount = Math.min(qcdPlanned, rmdAmount + Math.max(0, preTax));
+    const qcdBeyondRmd = Math.max(0, qcdAmount - rmdAmount);
+    preTax = Math.max(0, preTax - qcdBeyondRmd);
     // The taxable/spendable portion of the RMD — used everywhere below that
     // rmdAmount previously fed into taxable income or household cash flow.
     // Basis is applied pro-rata to the non-QCD remainder only: a QCD is
     // deemed to come first from otherwise-taxable amounts (s 408(d)(8)(D)),
     // so it never consumes basis. Basis recovered stops being basis.
-    const rmdCashPortion = rmdAmount - qcdAmount;
+    const rmdCashPortion = rmdAmount - Math.min(qcdAmount, rmdAmount);
     const rmdBasisRecovered = rmdCashPortion * preTaxBasisRatioForYear;
     preTaxBasis = Math.max(0, preTaxBasis - rmdBasisRecovered);
     const rmdTaxableAmount = rmdCashPortion - rmdBasisRecovered;
@@ -10122,7 +10141,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     };
 
     // ACA Subsidy Protection / Medicaid non-expansion "coverage gap". In the
-    // ~10 states that didn't expand Medicaid (ACA_NON_EXPANSION_STATES),
+    // nine states with a coverage gap (ACA_NON_EXPANSION_STATES),
     // adults below 100% of the Federal Poverty Level qualify for neither
     // the state's non-expanded Medicaid nor ACA marketplace subsidies
     // (which require >=100% FPL) -- leaving no affordable coverage option.

@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 418,
+    date: '2026-10-17',
+    title: 'Wisconsin has no coverage gap, QCDs from 70\u00bd, and three small site notes',
+    summary: 'Wisconsin leaves the ACA coverage-gap list; a Qualified Charitable Distribution is allowed from the year you turn 71, with or without an RMD; and three small notes on where site figures come from.',
+    items: [
+      "**Wisconsin.** The plan listed Wisconsin among the states with an ACA coverage gap. Wisconsin never adopted the Medicaid expansion, but its BadgerCare program covers adults up to the poverty line, exactly where marketplace credits begin, so there is no gap to fall into. A Wisconsin household retired before 65 with low income was flagged in a gap it was not in and, with ACA Subsidy Protection on, handed a Roth conversion it never needed. The nine states with a gap (AL, FL, GA, KS, MS, SC, TN, TX, WY) are unchanged.",
+      "**Qualified Charitable Distributions.** The plan only allowed a QCD once required minimum distributions had begun (73, or 75), and never more than the RMD. The law allows one from age 70\u00bd, and it may exceed the RMD. The plan now allows it from the year the account owner turns 71 (the first year everyone has passed 70\u00bd), with or without an RMD: it satisfies any RMD due, any amount beyond that is a further distribution, and none of it is taxable income. Your numbers will change if you had typed a QCD and are between 71 and your RMD age, or had asked for more than your RMD.",
+      "**Site notes.** The pricing-script page now says plainly that the script runs under your own Google account, that its Yahoo Finance fallback is a scrape Yahoo\u2019s terms do not permit, and how to remove it. Each country summary\u2019s exchange rate now shows its source and the day it was read. The bare outlastretirement.com address redirects to www with a security header of its own; www carries the fuller one.",
+    ],
+  },
+  {
     id: 417,
     date: '2026-10-17',
     title: 'The plan itemizes deductions when that beats the standard deduction',
