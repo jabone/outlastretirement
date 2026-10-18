@@ -251,5 +251,10 @@ export default defineConfig({
     // including the node-environment ones, since they only touch `document`
     // when a matcher actually runs against a DOM node.
     setupFiles: ['./src/__tests__/setupTests.js'],
+    // A few tests run several full Monte Carlos (1,000 trials each) and
+    // take 3-4 s here; on a loaded CI runner they crossed vitest's 5 s
+    // default and failed a release for nothing. 20 s is still a hang
+    // detector, not a budget.
+    testTimeout: 20000,
   },
 })
