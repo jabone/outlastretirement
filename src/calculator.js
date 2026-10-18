@@ -7001,6 +7001,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // departs from the plan's.
   let priceIndexRaw = 1.0;
   let priceIndexDiverged = false;
+  // Changelog 420: true from the first sampled year whose inflation differed
+  // from the plan's; the indexed factors chain from then on.
+  let mcIndexingDiverged = false;
 
   // Residency timeline (changelog 195): resolved once, looked up per year.
   // With no moves every year gets planResidence, whose fields ARE the
@@ -7173,7 +7176,35 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // (!== undefined/null rather than truthy: a sampled return of exactly
       // 0 is a valid year and must not fall through to the base assumption.)
       // Floor at -100% so no override can turn a balance negative (F-5).
-      returnRate = Math.max(-100, monteCarloReturnOverride[year]);
+      //
+      // Changelog 422: a Monte Carlo trial hands this year its random draw
+      // and the ENGINE turns it into a return, from the base return and
+      // the volatility of the phase the engine itself is in -- so a
+      // Survivor Stress Test death, a long-term-care episode that ends a
+      // life, a glide path, every rule this loop knows, shapes the trial
+      // the way it shapes the plan. The trial loop used to work out the
+      // phase on its own and ignore the stress test, so with it on the
+      // median trial sat far above the plan at zero volatility. A plain
+      // number is still an absolute return (the stress paths and tests).
+      const override = monteCarloReturnOverride[year];
+      if (typeof override === 'number') {
+        returnRate = Math.max(-100, override);
+      } else {
+        const stockShareNow = planStockShareForYear(inputs, isRetired, year, householdRetirementYear);
+        if (override.bootstrapRow !== undefined) {
+          // One real year at the plan's own mix (changelog 267).
+          const row = HISTORICAL_RETURNS[override.bootstrapRow];
+          const raw = historicalPortfolioReturn(row, stockShareNow);
+          returnRate = override.recenter ? recenterReturn(raw, historicalGeometricMean(stockShareNow), baseReturnRate) : raw;
+        } else {
+          const volatility = inputs.rebalancingEnabled
+            ? (stockShareNow * STOCK_VOLATILITY_PCT + (100 - stockShareNow) * BOND_VOLATILITY_PCT) / 100
+            : (isRetired ? inputs.volatilityPost : inputs.volatilityPre);
+          const { m, s: sd } = lognormalReturnParams(baseReturnRate / 100, volatility / 100);
+          returnRate = m > 0 ? (m * Math.exp(sd * override.z) - 1) * 100 : -100;
+        }
+        returnRate = Math.max(-100, returnRate);
+      }
       // Changelog 247: a Monte Carlo trial may also sample this year's
       // inflation. It is applied as a DELTA from the planned rate, added to
       // each compounding lifestyle slice's own rate -- general spending
@@ -7188,6 +7219,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (monteCarloInflationOverride !== null && monteCarloInflationOverride[year] !== undefined && monteCarloInflationOverride[year] !== null) {
         mcInflationDelta = monteCarloInflationOverride[year] - inputs.inflationRate;
         activeInflationRate = inputs.inflationRate + mcInflationDelta;
+        if (mcInflationDelta !== 0) mcIndexingDiverged = true;
       }
     } else {
       // Apply Stress Scenarios
@@ -7249,16 +7281,35 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // outside the record fall back to the plan's own rates, compounding on
     // from wherever the replay left them.
     const historyIndexing = inputs.stressType === 'history' && monteCarloReturnOverride === null;
-    const historyIndexedFactor = (fieldName, planRate) => {
-      if (year === startYear) return 1;
+    // Changelog 419: every statutory dollar figure in this file is the
+    // TAX_YEAR's (brackets, deductions, IRMAA thresholds and premiums,
+    // contribution and QCD limits, the wage base, the estate exemption).
+    // A plan whose first year is not TAX_YEAR must carry those figures
+    // from their own vintage, not from the plan's first year: a 2027 plan
+    // used to price its first year on unindexed 2026 figures, and a 2026
+    // plan opened after the figures roll to 2027 would have priced 2026
+    // on 2027's. `vintageShift` is the one-off step between the two years
+    // at the rate each figure indexes by; the user's own today's-dollar
+    // amounts (spending, benefits, gifts) still index from the plan's
+    // first year, which is their "today".
+    const vintageYears = startYear - TAX_YEAR;
+    const vintageShift = (ratePct) => (vintageYears === 0 ? 1 : Math.pow(1 + (ratePct || 0) / 100, vintageYears));
+    const historyIndexedFactor = (fieldName, planRate, base = 1) => {
+      if (year === startYear) return base;
       const prevRow = years[year - startYear - 1];
-      const prev = prevRow && prevRow[fieldName] !== undefined ? prevRow[fieldName] : 1;
+      const prev = prevRow && prevRow[fieldName] !== undefined ? prevRow[fieldName] : base;
       const rate = stressInflationOverrideActive ? Math.max(0, activeInflationRate) : planRate;
       return prev * (1 + rate / 100);
     };
+    const bracketVintage = vintageShift(inputs.taxBracketInflationRate);
+    // In a Monte Carlo trial that samples inflation the brackets follow
+    // the sampled rate, compounding from the prior year's row (changelog
+    // 420); mcInflationDelta is set above, before this point.
     const taxBracketInflationFactor = historyIndexing
-      ? historyIndexedFactor('taxBracketInflationFactor', inputs.taxBracketInflationRate)
-      : Math.pow(1 + inputs.taxBracketInflationRate / 100, year - startYear);
+      ? historyIndexedFactor('taxBracketInflationFactor', inputs.taxBracketInflationRate, bracketVintage)
+      : (monteCarloInflationOverride !== null && mcIndexingDiverged)
+        ? historyIndexedFactor('taxBracketInflationFactor', inputs.taxBracketInflationRate + mcInflationDelta, bracketVintage)
+        : Math.pow(1 + inputs.taxBracketInflationRate / 100, year - startYear) * bracketVintage;
     // MFS with both spouses alive and the income split between them is TWO
     // returns (see forEachSeparateReturn), and each return carries its own
     // MFS standard deduction and its own spouse's age-65 add-on. The
@@ -7357,17 +7408,39 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // (including when stressType is 'none'), so this produces the exact
     // same numbers as the plain Math.pow formula in every such year.
     const useDeltaShift = inputs.stressInflationStrategy === 'delta';
-    const inflationDelta = stressInflationOverrideActive ? (activeInflationRate - inputs.inflationRate) : 0;
+    // Changelog 420: a Monte Carlo trial that samples inflation moves
+    // every inflation-linked factor by the sampled delta, compounding year
+    // on year -- the brackets and deductions, Social Security's COLA, the
+    // Medicare premiums, the medical and long-term-care costs, and the
+    // statutory limits -- not only the spending slices (changelog 247).
+    // Prices and wages rise together in an inflation shock; a trial that
+    // raised spending but left the brackets and the COLA on the planned
+    // path charged more tax and paid less benefit than such a year would,
+    // and overstated the harm. The chain runs through every year of a
+    // sampled trial so a year sampled at the planned rate stays on the
+    // path the earlier years set; with every delta zero it is the plain
+    // formula.
+    // A trial sampled at the planned rate so far stays on the closed-form
+    // path, bit for bit; chaining starts the first year a sample differs.
+    const mcSampled = monteCarloInflationOverride !== null && mcIndexingDiverged;
+    const chainIndexing = useDeltaShift || mcSampled;
+    const inflationDelta = (stressInflationOverrideActive ? (activeInflationRate - inputs.inflationRate) : 0) + mcInflationDelta;
     const prevGranularFactor = (fieldName) => {
       if (year === startYear) return 1;
       const prevYearData = years[year - startYear - 1];
       return (prevYearData && prevYearData[fieldName] !== undefined) ? prevYearData[fieldName] : 1;
     };
-    const granularFactor = (fieldName, baseRate) => {
-      if (!useDeltaShift) return Math.pow(1 + baseRate / 100, year - startYear);
-      if (year === startYear) return 1; // no compounding yet in the starting year, matching Math.pow's exponent-0 case
+    const granularFactor = (fieldName, baseRate, base = 1) => {
+      if (!chainIndexing) return Math.pow(1 + baseRate / 100, year - startYear) * base;
+      if (year === startYear) return base; // no compounding yet in the starting year, matching Math.pow's exponent-0 case
       return prevGranularFactor(fieldName) * (1 + (baseRate + inflationDelta) / 100);
     };
+    // Changelog 419: the general factor for statutory dollars (contribution
+    // and QCD limits, the wage base), carried from TAX_YEAR; in a sampled
+    // trial it follows the sampled rate (changelog 420).
+    const statutoryInflFactor = mcSampled
+      ? granularFactor('statutoryInflFactor', inputs.inflationRate, vintageShift(inputs.inflationRate))
+      : inflFactor * vintageShift(inputs.inflationRate);
     // Benefit growth: the plan's COLA assumption -- except that, on a plan
     // still using the default assumption, a year SSA has already announced
     // a COLA for (SS_ANNOUNCED: 2027 at 3.6%) uses the announced figure
@@ -7378,13 +7451,23 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // plan opt out -- the demo households do, so the lessons' pictures stay
     // the story they tell.
     const ssColaIsDefault = (inputs.ssCOLA === undefined || inputs.ssCOLA === DEFAULT_INPUTS.ssCOLA) && inputs.ssColaAnnounced !== false;
+    // Changelog 420: in a sampled trial the COLA follows the sampled
+    // inflation (CPI-W is what sets it), except in a year SSA has already
+    // announced, which stays at the announced figure.
+    const announcedCola = ssColaIsDefault && SS_ANNOUNCED[year] && Number.isFinite(SS_ANNOUNCED[year].cola) ? SS_ANNOUNCED[year].cola : null;
     const ssColaFactor = historyIndexing
       ? historyIndexedFactor('ssColaFactor', ssColaRate)
-      : (useDeltaShift || !ssColaIsDefault) ? granularFactor('ssColaFactor', ssColaRate) : ssColaFactorFor(startYear, year, ssColaRate);
+      : mcSampled
+        ? (year === startYear ? 1 : prevGranularFactor('ssColaFactor') * (1 + (announcedCola !== null ? announcedCola : ssColaRate + mcInflationDelta) / 100))
+        : (useDeltaShift || !ssColaIsDefault) ? granularFactor('ssColaFactor', ssColaRate) : ssColaFactorFor(startYear, year, ssColaRate);
     const medicalInflFactor = granularFactor('medicalInflFactor', inputs.medicalInflationRate !== undefined ? inputs.medicalInflationRate : inputs.inflationRate);
     const ltcInflFactor = granularFactor('ltcInflFactor', inputs.ltcInflationRate !== undefined ? inputs.ltcInflationRate : inputs.medicalInflationRate);
-    const partBInflFactor = granularFactor('partBInflFactor', inputs.medicarePartBInflationRate !== undefined ? inputs.medicarePartBInflationRate : inputs.inflationRate);
-    const partDInflFactor = granularFactor('partDInflFactor', inputs.medicarePartDInflationRate !== undefined ? inputs.medicarePartDInflationRate : inputs.inflationRate);
+    // The Part B and D premiums are TAX_YEAR figures: carried from that
+    // vintage (changelog 419), like the brackets above.
+    const partBRate = inputs.medicarePartBInflationRate !== undefined ? inputs.medicarePartBInflationRate : inputs.inflationRate;
+    const partDRate = inputs.medicarePartDInflationRate !== undefined ? inputs.medicarePartDInflationRate : inputs.inflationRate;
+    const partBInflFactor = granularFactor('partBInflFactor', partBRate, vintageShift(partBRate));
+    const partDInflFactor = granularFactor('partDInflFactor', partDRate, vintageShift(partDRate));
     // A life event's Inflation Category (Plan > Life Events). Amounts are
     // entered in plan-start dollars: General grows with inflationRate,
     // Housing with housingInflationRate, Medical with the medical factor
@@ -8144,24 +8227,35 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     //
     // Changelog 335: the rate is SPENDING over the invested portfolio --
     // last year's lifestyle spending, not its total drawdown -- and it is
-    // judged against the rate the plan's own path had in that same year
-    // (plannedSpendingPath above), not against the first retired year. So a
-    // reserve fill, a wedding, conversion tax or Social Security starting
-    // never moves the rule; being behind or ahead of the plan does.
+    // judged against the rate the plan's own path had (plannedSpendingPath
+    // above), not against the first retired year. So a reserve fill, a
+    // wedding, conversion tax or Social Security starting never moves the
+    // rule; being behind or ahead of the plan does.
+    //
+    // Changelog 421: the portfolio in the rate is THIS year's opening
+    // balance (last year's closing one), not last year's opening balance.
+    // Both are closed facts, and this is the rate the household faces
+    // going into the year: last year's spending against what is left to
+    // fund it. Against last year's opening balance a crash in 2028 was
+    // invisible in 2029 (that balance predated it) and first moved the
+    // rule in 2030, a year late. The planned rate is read the same way:
+    // the plan's spending last year over its portfolio at the start of
+    // this year.
     let wrGuardrailRate = null;
     let wrGuardrailPlannedRate = null;
     let wrGuardrailAction = null;
     if (inputs.withdrawalGuardrailsEnabled && isRetired && year > startYear) {
       const prevRow = years[year - startYear - 1];
-      const planned = prevRow && guardrailPlannedPath ? guardrailPlannedPath.get(prevRow.year) : null;
+      const plannedPrev = prevRow && guardrailPlannedPath ? guardrailPlannedPath.get(prevRow.year) : null;
+      const plannedNow = guardrailPlannedPath ? guardrailPlannedPath.get(year) : null;
       if (prevRow && prevRow.isRetired) {
-        const prevStartTotal = investedStart(prevRow);
-        // No planned spending or no planned portfolio for that year means
-        // the plan was not relying on the portfolio then, so there is
-        // nothing to measure against: hold.
-        if (prevStartTotal > 0 && planned && planned.spend > 0 && planned.portfolio > 0) {
-          wrGuardrailRate = (prevRow.lifestyleExpenses || 0) / prevStartTotal;
-          wrGuardrailPlannedRate = planned.spend / planned.portfolio;
+        const openingTotal = investedEnd(prevRow);
+        // No planned spending or no planned portfolio means the plan was
+        // not relying on the portfolio then, so there is nothing to measure
+        // against: hold.
+        if (openingTotal > 0 && plannedPrev && plannedPrev.spend > 0 && plannedNow && plannedNow.portfolio > 0) {
+          wrGuardrailRate = (prevRow.lifestyleExpenses || 0) / openingTotal;
+          wrGuardrailPlannedRate = plannedPrev.spend / plannedNow.portfolio;
           const band = Math.max(0, inputs.wrGuardrailBandPct ?? 20) / 100;
           const upper = wrGuardrailPlannedRate * (1 + band);
           const lower = wrGuardrailPlannedRate * (1 - band);
@@ -8440,14 +8534,14 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (inputs.autoMaxContribution1 === '401k') {
         // SECURE 2.0: above the wage threshold the age-50+ catch-up must go
         // in as Roth, in this mode exactly as in 'max'.
-        const split1k = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, inflFactor);
+        const split1k = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, statutoryInflFactor);
         pretax1 = split1k.preTax;
         roth1 += split1k.roth;
-      } else if (inputs.autoMaxContribution1 === 'ira') pretax1 = getIRAContributionLimit(age1) * inflFactor;
+      } else if (inputs.autoMaxContribution1 === 'ira') pretax1 = getIRAContributionLimit(age1) * statutoryInflFactor;
       else if (inputs.autoMaxContribution1 === 'max') {
         // 'max' overrides BOTH manual fields -- wages include this year's
         // RSU vests since they're FICA wages for the SECURE 2.0 test.
-        const split1 = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, inflFactor);
+        const split1 = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, statutoryInflFactor);
         pretax1 = split1.preTax;
         roth1 = split1.roth;
       }
@@ -8463,12 +8557,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (inputs.autoMaxContribution2 === '401k') {
         // SECURE 2.0: above the wage threshold the age-50+ catch-up must go
         // in as Roth, in this mode exactly as in 'max'.
-        const split2k = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, inflFactor);
+        const split2k = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, statutoryInflFactor);
         pretax2 = split2k.preTax;
         roth2 += split2k.roth;
-      } else if (inputs.autoMaxContribution2 === 'ira') pretax2 = getIRAContributionLimit(age2) * inflFactor;
+      } else if (inputs.autoMaxContribution2 === 'ira') pretax2 = getIRAContributionLimit(age2) * statutoryInflFactor;
       else if (inputs.autoMaxContribution2 === 'max') {
-        const split2 = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, inflFactor);
+        const split2 = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, statutoryInflFactor);
         pretax2 = split2.preTax;
         roth2 = split2.roth;
       }
@@ -8491,7 +8585,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (spouse1Working && inputs.autoMaxContribution1 === 'max' && age1 < 65) hsaMaxAges.push(age1);
       if (spouse2Working && inputs.autoMaxContribution2 === 'max' && age2 < 65) hsaMaxAges.push(age2);
       if (hsaMaxAges.length > 0) {
-        hsaContribution += getHSAContributionLimit(Math.max(...hsaMaxAges), !!inputs.hsaFamilyCoverage, inflFactor);
+        hsaContribution += getHSAContributionLimit(Math.max(...hsaMaxAges), !!inputs.hsaFamilyCoverage, statutoryInflFactor);
       } else {
         hsaContribution += (inputs.hsaContribution || 0);
       }
@@ -8532,8 +8626,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // for the flat-vs-percent formula logic.
     let employerMatchAmount = 0;
     if (spouse1Alive && age1 < inputs.retireAge1) {
-      const deferralLimit1 = getElectiveDeferralLimit(age1) * inflFactor;
-      employerMatchAmount += calculateEmployerMatch(spouse1Deferral, deferralLimit1, inflFactor, {
+      const deferralLimit1 = getElectiveDeferralLimit(age1) * statutoryInflFactor;
+      employerMatchAmount += calculateEmployerMatch(spouse1Deferral, deferralLimit1, statutoryInflFactor, {
         mode: inputs.employerMatchMode1, flatAmount: inputs.employerMatch1,
         rateA: inputs.employerMatchRateA1, capAPct: inputs.employerMatchCapAPct1,
         tierBEnabled: inputs.employerMatchTierBEnabled1, rateB: inputs.employerMatchRateB1, capB: inputs.employerMatchCapB1,
@@ -8541,8 +8635,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       });
     }
     if (inputs.spouse2Enabled && spouse2Alive && age2 < inputs.retireAge2) {
-      const deferralLimit2 = getElectiveDeferralLimit(age2) * inflFactor;
-      employerMatchAmount += calculateEmployerMatch(spouse2Deferral, deferralLimit2, inflFactor, {
+      const deferralLimit2 = getElectiveDeferralLimit(age2) * statutoryInflFactor;
+      employerMatchAmount += calculateEmployerMatch(spouse2Deferral, deferralLimit2, statutoryInflFactor, {
         mode: inputs.employerMatchMode2, flatAmount: inputs.employerMatch2,
         rateA: inputs.employerMatchRateA2, capAPct: inputs.employerMatchCapAPct2,
         tierBEnabled: inputs.employerMatchTierBEnabled2, rateB: inputs.employerMatchRateB2, capB: inputs.employerMatchCapB2,
@@ -8643,11 +8737,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // manual backdoor amounts.
     let backdoorRothContribution = 0;
     if (spouse1Alive && age1 < inputs.retireAge1) {
-      if (inputs.autoMaxContribution1 === 'max') backdoorRothContribution += getIRAContributionLimit(age1) * inflFactor;
+      if (inputs.autoMaxContribution1 === 'max') backdoorRothContribution += getIRAContributionLimit(age1) * statutoryInflFactor;
       else if (inputs.backdoorRothEnabled) backdoorRothContribution += (inputs.backdoorRothAnnualAmount1 || 0);
     }
     if (inputs.spouse2Enabled && spouse2Alive && age2 < inputs.retireAge2) {
-      if (inputs.autoMaxContribution2 === 'max') backdoorRothContribution += getIRAContributionLimit(age2) * inflFactor;
+      if (inputs.autoMaxContribution2 === 'max') backdoorRothContribution += getIRAContributionLimit(age2) * statutoryInflFactor;
       else if (inputs.backdoorRothEnabled) backdoorRothContribution += (inputs.backdoorRothAnnualAmount2 || 0);
     }
 
@@ -8692,7 +8786,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // simply a further tax-free distribution), and before RMDs begin
     // there is nothing to cap it at. Until 418 a QCD needed an RMD to
     // ride on and could not exceed it.
-    const qcdLimit = QCD_LIMIT_2026 * inflFactor;
+    const qcdLimit = QCD_LIMIT_2026 * statutoryInflFactor;
     const qcdTaxableRoom = Math.max(0, preTax - Math.max(0, preTaxBasis));
     const qcdEligible = rmdOwnerAge !== null && rmdOwnerAge >= QCD_START_AGE;
     const qcdPlanned = qcdEligible
@@ -9051,6 +9145,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // Pre-Tax money is mostly 401(k) -- conservative, not optimistic.
     // (preTaxBasisRatioForYear is computed above, before this year's RMD.)
 
+    // Changelog 423: the max-bracket fill's ceiling and taxable-income
+    // rule, kept for the trim after the withdrawal solver has drawn.
+    let maxBracketFill = null;
     if (isConversionYear && inputs.rothConversionStrategy !== 'none' && preTax > 0) {
       if (inputs.rothConversionStrategy === 'fixed') {
         convertAmount = Math.min(preTax, inputs.rothConversionAmount);
@@ -9093,6 +9190,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           const ordinary = otherOrdinary + ss + cTaxable;
           return ordinary - (largerReturnDeduction !== null ? largerReturnDeduction : deductionFor(ordinary + taxableDividends));
         };
+        if (taxableShare > 0) {
+          maxBracketFill = {
+            ceiling,
+            taxableIncomeFor: (ordinary, capGains) => ordinary - (largerReturnDeduction !== null ? largerReturnDeduction : deductionFor(ordinary + capGains)),
+          };
+        }
         if (taxableShare <= 0) {
           // 100% basis: the conversion is tax-free, convert it all (as before).
           convertAmount = preTax;
@@ -9376,7 +9479,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       residence.yonkersResident, { ...stateExtrasForYear, federalAGI: totalIncomeForState, federalDeduction: baseDeduction }
     );
     const baseStateTaxes = baseStateIncomeTaxes + milestoneStateEarlyTax;
-    const ficaTaxes = calculateFICATaxes(ficaWages1, ficaWages2, currentStatus, inflFactor, year, inputs.inflationRate);
+    const ficaTaxes = calculateFICATaxes(ficaWages1, ficaWages2, currentStatus, statutoryInflFactor, year, inputs.inflationRate);
     let baseTaxes = baseFedTaxes + baseStateTaxes + ficaTaxes;
 
     // The foreign layer on this year's income before any withdrawal
@@ -10140,6 +10243,86 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       }
     };
 
+    // Changelog 423: trim the max-bracket conversion to the income the
+    // solver's own draws added. The fill was sized before the withdrawal
+    // solver ran, against the income known then; a plan that then funds
+    // its spending from Pre-Tax (Pre-Tax First, Pro-Rata, or an exhausted
+    // Taxable account) stacks that draw on top of a conversion that had
+    // already filled the bracket, and the year overshoots the target by
+    // the whole draw -- the household converted dollars it then had to
+    // take out again at the next bracket's rate. The remedy a planner
+    // applies is to convert less: here the surplus is unconverted (Pre-Tax
+    // back up, Roth back down, this year's conversion layer and the
+    // Form 8606 basis reversed), the tax it no longer owes is repriced on
+    // the settled year and returned to the Pre-Tax account that funded it,
+    // and the loop repeats until the year's ordinary taxable income sits
+    // on the ceiling to the dollar. Only ever a trim: a conversion the ACA
+    // cliff or IRMAA cap had already held below the bracket is never
+    // enlarged, because re-conversion is limited to what this loop took
+    // off. A fill that the draws did not push over the line is untouched.
+    let conversionTrimmedForDraw = 0;
+    if (maxBracketFill && convertAmount > 0 && cashNeeded > 0) {
+      const taxableShare = 1 - preTaxBasisRatioForYear;
+      const ordinaryTaxableNow = () => {
+        const now = settledIncomeNow();
+        return maxBracketFill.taxableIncomeFor(now.ordinary, now.capGains);
+      };
+      let unconverted = 0;
+      for (let pass = 0; pass < 12; pass++) {
+        const over = ordinaryTaxableNow() - maxBracketFill.ceiling;
+        if (Math.abs(over) < 0.5) break;
+        // Positive: unconvert. Negative: re-convert, but never beyond what
+        // this loop itself took off.
+        const step = over > 0
+          ? Math.min(convertAmount, over / taxableShare)
+          : -Math.min(unconverted, -over / taxableShare);
+        if (Math.abs(step) < 0.005) break;
+        const stepTaxable = step * taxableShare;
+        const before = priceSettledYear(settledIncomeNow(), convertAmountTaxable);
+        convertAmount -= step;
+        preTax += step;
+        roth = Math.max(0, roth - step);
+        preTaxBasis = Math.max(0, preTaxBasis + (step - stepTaxable));
+        convertAmountTaxable -= stepTaxable;
+        baseOrdinaryTaxableIncome -= stepTaxable;
+        unconverted += step;
+        const layer = rothLayers.conversions.find((l) => l.year === year);
+        if (layer) {
+          layer.taxable = Math.max(0, layer.taxable - stepTaxable);
+          layer.nontaxable = Math.max(0, layer.nontaxable - (step - stepTaxable));
+          if (layer.taxable + layer.nontaxable <= 0.005) rothLayers.conversions.splice(rothLayers.conversions.indexOf(layer), 1);
+        }
+        const after = priceSettledYear(settledIncomeNow(), convertAmountTaxable);
+        const dFederal = after.federal - before.federal;
+        const dState = after.state - before.state;
+        extraTax += dFederal + dState;
+        extraTaxFederal += dFederal;
+        extraTaxState += dState;
+        conversionTaxCost = Math.max(0, conversionTaxCost + dFederal + dState);
+        const cash = -(dFederal + dState);
+        if (cash > 0.005) {
+          // Tax the year no longer owes: the solver's Pre-Tax draw had
+          // grossed it up, so it goes back where it came from (as surplus
+          // into Taxable before 59 1/2, when the draw carried a penalty the
+          // solver has already charged).
+          const back = ownerAge >= 59.5 ? Math.min(cash, Math.max(0, drawPreTax - actualMilestonePreTax)) : 0;
+          if (back > 0) {
+            preTax += back;
+            drawPreTax -= back;
+            preTaxBasis += back * preTaxBasisRatioForYear;
+          }
+          if (cash - back > 0.005) {
+            taxable += cash - back;
+            taxableBasis += cash - back;
+          }
+        } else if (cash < -0.005) {
+          // Re-conversion owes tax: funded from Pre-Tax, as the draw was.
+          fundAfterSolver(-cash, ['preTax', 'taxable', 'roth']);
+        }
+      }
+      conversionTrimmedForDraw = Math.max(0, unconverted);
+    }
+
     // ACA Subsidy Protection / Medicaid non-expansion "coverage gap". In the
     // nine states with a coverage gap (ACA_NON_EXPANSION_STATES),
     // adults below 100% of the Federal Poverty Level qualify for neither
@@ -10767,6 +10950,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       medicalInflFactor,
       ltcInflFactor,
       partBInflFactor,
+      statutoryInflFactor,
       partDInflFactor,
       totalExpenses,
       drawdown: totalDiscretionaryDraw + rmdAmount,
@@ -10883,6 +11067,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       convertAmountTaxable,
       convertAmount,
       conversionTaxCost,
+      conversionTrimmedForDraw,
       taxableSS,
       // Net realized capital gains on this year's Taxable draw, after the
       // harvested-loss carryforward. Exposed because it is a component of
@@ -11180,7 +11365,6 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
     rng = mulberry32(trialSeed(t));
     const trialReturns = {};
     const trialInflation = inflationSampled ? {} : null;
-    let householdRetirementYear = null;
     // Bootstrap (changelog 267): this trial's sequence of historical rows,
     // drawn before the year loop so a block spans years the way it did.
     const bootstrapRows = bootstrap ? bootstrapPath(totalYears + 60, bootstrapBlock, rng) : null;
@@ -11200,72 +11384,18 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
     const trialHorizonYear = startYear + Math.max(trialLe1 - age1Init, inputs.spouse2Enabled ? (trialLe2 - age2Init) : 0);
     if (trialHorizonYear > horizonYear) trialsBeyondHorizon++;
 
+    // Changelog 422: the loop no longer works out the phase (who is alive,
+    // who is retired, the glide) -- the engine does that when it prices
+    // each year's draw, so the Survivor Stress Test and every other rule
+    // apply to a trial exactly as to the plan.
     for (let year = startYear; year <= trialHorizonYear; year++) {
-      const age1 = age1Init + (year - startYear);
-      const age2 = age2Init + (year - startYear);
-      const spouse1Alive = age1 <= trialLe1;
-      const spouse2Alive = inputs.spouse2Enabled && (age2 <= trialLe2);
-      const isSpouse1Retired = age1 >= inputs.retireAge1;
-      const isSpouse2Retired = spouse2Alive ? (age2 >= inputs.retireAge2) : true;
-      const isRetired = (spouse1Alive ? isSpouse1Retired : true) && (spouse2Alive ? isSpouse2Retired : true);
-
-      if (isRetired && householdRetirementYear === null) {
-        householdRetirementYear = year;
-      }
-
-      let baseReturn = 0;
-      // Volatility (standard deviation of annual returns) is what turns
-      // this from a single projection into a distribution -- it is the
-      // dominant lever on the reported success probability. Editable in
-      // Plan Settings > Assumptions & Risk > Return Assumptions since
-      // 2026-08-19; before that it had no control anywhere, so every run
-      // silently used the 15%/8% defaults.
-      //
-      // The two branches used to disagree on retired risk (8% flat vs
-      // 11.6% derived at the default 60/40). Changelog 247 moved the flat
-      // default to the derived figure and migrated plans still on 8%, so
-      // toggling rebalancingEnabled no longer changes the assumed
-      // retirement risk by half. The working figures (15% flat vs 13.8%
-      // derived) were left alone.
-      let volatility = isRetired ? inputs.volatilityPost : inputs.volatilityPre;
-      
-      if (inputs.rebalancingEnabled) {
-        let stockAlloc = isRetired ? inputs.stockAllocationPost : inputs.stockAllocationPre;
-        if (inputs.glideAllocationEnabled && isRetired && householdRetirementYear !== null) {
-          const yearsRetired = year - householdRetirementYear;
-          stockAlloc = Math.max(inputs.glideAllocationFloor, stockAlloc - (yearsRetired * inputs.glideAllocationRate));
-        }
-        const bondAlloc = 100 - stockAlloc;
-        baseReturn = (stockAlloc * inputs.stockReturnRate + bondAlloc * inputs.bondReturnRate) / 100;
-        // Volatility scales proportionally between stock volatility (16%)
-        // and bond volatility (5%) -- the same figures derivedVolatility
-        // uses for the flat branch's retired default.
-        volatility = (stockAlloc * STOCK_VOLATILITY_PCT + bondAlloc * BOND_VOLATILITY_PCT) / 100;
-      } else {
-        baseReturn = isRetired ? inputs.postRetireReturn : inputs.preRetireReturn;
-        if (inputs.equityGlidePathEnabled && isRetired && householdRetirementYear !== null) {
-          const yearsRetired = year - householdRetirementYear;
-          baseReturn = Math.max(
-            inputs.equityGlidePathFloor,
-            baseReturn - (yearsRetired * inputs.equityGlidePathRate)
-          );
-        }
-      }
-
       if (bootstrap) {
         // One real year at the plan's own mix, with its own inflation.
-        // The stock share is the plan's allocation for the phase (the
-        // glide path applies when it is on); the flat-return branch has
-        // no allocation of its own, so it uses the same allocation inputs.
-        let stockShare = isRetired ? inputs.stockAllocationPost : inputs.stockAllocationPre;
-        if (inputs.rebalancingEnabled && inputs.glideAllocationEnabled && isRetired && householdRetirementYear !== null) {
-          stockShare = Math.max(inputs.glideAllocationFloor, stockShare - ((year - householdRetirementYear) * inputs.glideAllocationRate));
-        }
+        // Changelog 422: the engine applies the row at its own phase's
+        // mix and recenters on its own base return; the trial passes the
+        // row. Inflation is the row's own either way.
         const row = HISTORICAL_RETURNS[bootstrapRows[year - startYear]];
-        const raw = historicalPortfolioReturn(row, stockShare);
-        trialReturns[year] = bootstrapCenterOnPlan
-          ? recenterReturn(raw, historicalGeometricMean(stockShare), baseReturn)
-          : raw;
+        trialReturns[year] = { bootstrapRow: bootstrapRows[year - startYear], recenter: bootstrapCenterOnPlan };
         trialInflation[year] = bootstrapCenterOnPlan
           ? inputs.inflationRate + (row[3] - historicalMeanInflation())
           : row[3];
@@ -11276,8 +11406,9 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
       // function header). A stated return at or below -100% has no positive
       // median; that year is a wipeout, which is the worst a year can do.
       const zReturn = randomNormal();
-      const { m, s } = lognormalReturnParams(baseReturn / 100, volatility / 100);
-      trialReturns[year] = m > 0 ? (m * Math.exp(s * zReturn) - 1) * 100 : -100;
+      // Changelog 422: the draw alone; the engine prices it in the phase it
+      // is actually in (see the override block in runProjectionCore).
+      trialReturns[year] = { z: zReturn };
 
       if (inflationSampled) {
         // Correlated second draw (one Cholesky step): rho of the return's
@@ -14184,6 +14315,7 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
   // the federal brackets each year. Turning estateIndexingEnabled off
   // restores the old behavior of measuring a 2056 estate against 2026
   // thresholds, which is worth being able to see rather than argue about.
+  const estateVintageYears = (Number(inputs.planYear) || TAX_YEAR) - TAX_YEAR;
   const estateInflationFactor = (() => {
     if (inputs.estateIndexingEnabled === false) return 1;
     const age1Start = inputs.planYear - inputs.birthYear1;
@@ -14195,7 +14327,9 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
         inputs.spouse2Enabled ? inputs.lifeExpectancy2 - age2Start : 0,
       ),
     );
-    return Math.pow(1 + (inputs.taxBracketInflationRate || 0) / 100, years);
+    // Changelog 419: the exemption is the TAX_YEAR's figure, so the years
+    // of indexing run from that vintage, not from the plan's first year.
+    return Math.pow(1 + (inputs.taxBracketInflationRate || 0) / 100, Math.max(0, years + estateVintageYears));
   })();
   // Married for estate purposes whether the couple files jointly or
   // separately -- portability does not depend on filing status.
@@ -14210,7 +14344,7 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
     const age1Start = inputs.planYear - inputs.birthYear1;
     const age2Start = inputs.planYear - inputs.birthYear2;
     const years = Math.max(0, Math.min(inputs.lifeExpectancy1 - age1Start, inputs.lifeExpectancy2 - age2Start));
-    return Math.pow(1 + (inputs.taxBracketInflationRate || 0) / 100, years);
+    return Math.pow(1 + (inputs.taxBracketInflationRate || 0) / 100, Math.max(0, years + estateVintageYears));
   })();
 
   const skipShareOfEstate = rawHeirs.reduce((sum, h) => {

@@ -29,6 +29,61 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 423,
+    date: '2026-10-18',
+    title: 'A max-bracket Roth conversion makes room for the Pre-Tax draw that funds the year',
+    summary: 'The bracket fill was sized before the year\u2019s spending draw was known, so a plan that spends from Pre-Tax overshot the bracket by the draw. The conversion is now trimmed so both land on the ceiling.',
+    items: [
+      "**What was wrong.** Fill to the 22% bracket sized the conversion against the income known at the start of the year, before the withdrawal solver decided how to fund spending. A plan that funds its spending from Pre-Tax \u2014 Pre-Tax First, Pro-Rata, or a Taxable account that has run dry \u2014 then took that draw on top of a conversion that had already filled the bracket, and the year ran into the 24% bracket by the whole draw.",
+      "**What changed.** After the solver has drawn, the conversion is trimmed by the income those draws added, the tax it no longer owes is returned to the account that funded it, and the year\u2019s ordinary taxable income lands on the ceiling to the dollar. A conversion the ACA cliff or an IRMAA cap had already held below the bracket is never enlarged.",
+      "**Your numbers will change** if you use Fill to a bracket and spend from Pre-Tax in a conversion year: less is converted in those years and the tax falls; the remaining Pre-Tax balance is converted in later years. A plan that spends from Taxable or Roth in its conversion years is unchanged.",
+    ],
+  },
+  {
+    id: 422,
+    date: '2026-10-18',
+    title: 'Monte Carlo trials follow the Survivor Stress Test and every other rule of the plan',
+    summary: 'Each Monte Carlo trial hands the plan its random draw; the plan prices it in the phase it is in, so the Survivor Stress Test, a fatal care episode and the glide path shape trials as they do the plan.',
+    items: [
+      "**What was wrong.** The Monte Carlo worked out each year\u2019s expected return and risk on its own \u2014 who was alive, who was retired, where the glide path stood \u2014 and ignored the Survivor Stress Test while doing it. With the stress test on, a trial could use working-years returns in years the plan had retired, and at zero volatility the median trial sat well above the plan\u2019s own line, which should be impossible.",
+      "**What changed.** A trial now passes the plan only its random draw for each year; the plan turns it into a return from the expected return and risk of the phase it is in that year, by its own rules. At zero volatility every trial is now the plan, year for year. The seeded draws are unchanged, so a run with the same seed samples the same market path.",
+      "**Your numbers will change** in the Monte Carlo if the Survivor Stress Test is on, or a sampled long-term-care episode ends a life: the success rate and the range reflect those years correctly now. A plan without them is unchanged except in the last decimal places.",
+    ],
+  },
+  {
+    id: 421,
+    date: '2026-10-18',
+    title: 'Guardrail cuts land the year after a crash, not two years after',
+    summary: 'The guardrail now judges last year\u2019s spending against the portfolio you start this year with, so a bad year moves the rule the very next year instead of one year late.',
+    items: [
+      "**What was wrong.** The withdrawal-rate guardrail measured last year\u2019s spending against last year\u2019s opening balance. A crash in 2028 does not touch the balance 2028 opened with, so the rule saw nothing wrong in 2029 and first cut in 2030, a year after it should have.",
+      "**What changed.** The rate is now last year\u2019s spending over this year\u2019s opening balance (what last year closed with), the rate you actually face going into the year, and it is judged against the plan\u2019s own rate read the same way. Both figures are still settled facts about closed years, so nothing becomes circular. On a smooth path the rule still does nothing.",
+      "**Your numbers will change** if the withdrawal-rate guardrail is on and the plan or a stress run has a down year: the cut (or, after a strong run, the raise) lands a year earlier.",
+    ],
+  },
+  {
+    id: 420,
+    date: '2026-10-18',
+    title: 'In a Monte Carlo trial, sampled inflation moves the brackets and the COLA too',
+    summary: 'When a trial samples a year\u2019s inflation, the tax brackets, Social Security\u2019s COLA, Medicare premiums, health costs and contribution limits now follow it as well, not only your spending.',
+    items: [
+      "**What was wrong.** A Monte Carlo trial that samples inflation raised your spending by the sampled rate but left the tax brackets, the standard deduction, Social Security\u2019s cost-of-living increase, the Medicare premiums and the contribution limits on the planned path. In an inflation shock prices and benefits rise together; the trial charged more tax and paid less benefit than such a year would, and overstated the harm.",
+      "**What changed.** In a sampled year every inflation-linked figure moves by the same sampled amount and keeps that level afterwards, the way a real shock does. A year SSA has already announced keeps its announced increase. A trial sampled at the planned rate is unchanged to the bit, and so is everything outside the Monte Carlo.",
+      "**Your numbers will change** in the Monte Carlo only: inflation-shock trials end a little better, so the success rate and the range may move a little. The deterministic plan is unchanged.",
+    ],
+  },
+  {
+    id: 419,
+    date: '2026-10-18',
+    title: 'Tax figures are carried from the year they belong to, not the plan\u2019s first year',
+    summary: 'A plan starting in a year other than 2026 now carries the brackets, deductions, Medicare premiums and contribution limits from 2026, the year the figures are from, instead of using them unindexed.',
+    items: [
+      "**What was wrong.** Every tax figure in the plan is a 2026 figure \u2014 the brackets, the standard deduction, the IRMAA thresholds and Medicare premiums, the 401(k), IRA, HSA and QCD limits, the Social Security wage base, the estate exemption. The plan applied them unindexed to its first year whatever that year was, so a plan starting in 2027 priced 2027 on 2026\u2019s figures, one year of indexing short, and every later year followed.",
+      "**What changed.** The figures are now carried from 2026 to the plan\u2019s first year at the rate each one indexes by, and from there as before. A plan starting in 2026 is unchanged to the dollar. Amounts you type in today\u2019s dollars \u2014 spending, benefits, property tax, gifts \u2014 still grow from the plan\u2019s first year, which is your today.",
+      "**Your numbers will change** only if your plan\u2019s start year is not 2026: slightly lower tax in each year, since the brackets and deductions are a step larger.",
+    ],
+  },
+  {
     id: 418,
     date: '2026-10-17',
     title: 'Wisconsin has no coverage gap, QCDs from 70\u00bd, and three small site notes',

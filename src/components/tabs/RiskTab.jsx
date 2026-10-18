@@ -459,8 +459,8 @@ const RiskTab = () => {
                       <span id={withdrawalGuardrailsLabelId}>Withdrawal-Rate Guardrails</span>
                     </h3>
                     <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Spend dynamically instead of on autopilot. Each year the plan compares last year&rsquo;s spending
-                      rate (lifestyle spending divided by the portfolio) with the rate your plan expected for that year:
+                      Spend dynamically instead of on autopilot. Each year the plan compares your spending rate going in
+                      (last year&rsquo;s lifestyle spending divided by the portfolio you start the year with) with the rate your plan expected:
                       drift too far above it and lifestyle spending steps down, fall far enough below it and it steps up.
                       Scheduled changes such as Social Security starting or a planned expense never trigger it; only the
                       markets and inflation do. Both directions are capped.

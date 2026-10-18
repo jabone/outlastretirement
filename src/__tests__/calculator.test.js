@@ -3282,6 +3282,10 @@ describe('calculator.js core logic', () => {
         // Roth" test above.
         ...DEFAULT_INPUTS, preTaxInit: 500000, preTaxContribution1: 0, employerMatch1: 0, employerMatchMode1: 'flat', salary1: 0,
         rothConversionStrategy: 'maxBracket', rothConversionBracket: 0.22, rothConversionBuffer: 0, rothConversionDelayUntilRetire: false,
+        // Spending comes from Taxable, so no Pre-Tax draw shares the bracket
+        // (changelog 423 trims the fill by such a draw, whose taxable share
+        // differs between the two plans).
+        taxableInit: 2000000, withdrawalStrategy: 'TaxableFirst',
       };
       const noBasis = runProjection(common);
       const withBasis = runProjection({ ...common, preTaxBasisInit: 250000 }); // 50% basis

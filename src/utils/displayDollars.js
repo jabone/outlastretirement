@@ -46,7 +46,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'ssEarningsTestCreditMonths1', 'ssEarningsTestCreditMonths2',
     // Price levels and inflation factors
     'priceIndex', 'inflFactor', 'ssColaFactor', 'medicalInflFactor', 'ltcInflFactor',
-    'partBInflFactor', 'partDInflFactor', 'irmaaThresholdFactor', 'taxBracketInflationFactor',
+    'partBInflFactor', 'partDInflFactor', 'irmaaThresholdFactor', 'taxBracketInflationFactor', 'statutoryInflFactor',
     // Rates, shares and multipliers
     'growthRate', 'marginalBracket', 'lifestyleMultiplier', 'housingMultiplier', 'medicalMultiplier',
     'phaseMultiplier', 'essentialShare', 'concentratedStockConcentrationPct',
@@ -69,7 +69,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     // Spending, costs and taxes
     'lifestyleExpenses', 'healthcareBridge', 'ltcCost', 'irmaaCost', 'partBCost', 'partDCost',
     'irmaaTrueUp', 'irmaaAppealSavings', 'totalExpenses', 'totalTaxesPaid', 'extraTax', 'amtTax',
-    'conversionTaxCost', 'baseFederalTax', 'baseStateTax', 'ficaTax', 'extraTaxFederal',
+    'conversionTaxCost', 'conversionTrimmedForDraw', 'baseFederalTax', 'baseStateTax', 'ficaTax', 'extraTaxFederal',
     'extraTaxState', 'federalTax', 'stateTax', 'mortgagePaymentThisYear', 'otherDebtPaymentThisYear',
     'milestoneOutflow', 'milestoneOutflowExternal', 'milestoneOutflowGeneral', 'giftsThisYear',
     'surplusReinvested', 'foreignHealthcare', 'medicarePenalty', 'essentialSpending',

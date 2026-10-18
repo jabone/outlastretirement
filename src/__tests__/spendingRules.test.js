@@ -61,8 +61,10 @@ describe('withdrawal-rate guardrail measures against the plan’s own path', () 
     const on = runProjection(busyFirstYear);
     const y = retired(on).find((r) => r.wrGuardrailRate !== null);
     const prev = on.years[on.years.indexOf(y) - 1];
-    const start = prev.preTaxStart + prev.rothStart + prev.taxableStart + prev.hsaStart;
-    expect(y.wrGuardrailRate).toBeCloseTo(prev.lifestyleExpenses / start, 12);
+    // Changelog 421: last year's spending over THIS year's opening balance
+    // (last year's closing one), the rate the household faces going in.
+    const opening = y.preTaxStart + y.rothStart + y.taxableStart + y.hsaStart;
+    expect(y.wrGuardrailRate).toBeCloseTo(prev.lifestyleExpenses / opening, 12);
     // On a smooth path, actual and planned are the same number.
     expect(y.wrGuardrailRate).toBeCloseTo(y.wrGuardrailPlannedRate, 12);
   });
@@ -77,6 +79,20 @@ describe('withdrawal-rate guardrail measures against the plan’s own path', () 
     // bad run is down, never up.
     expect(judged.slice(0, firstCut).every((y) => y.wrGuardrailAction === 'hold')).toBe(true);
     expect(firstCut).toBeLessThanOrEqual(3);
+  });
+
+  it('a crash is acted on the very next year, not the one after (changelog 421)', () => {
+    // One bad year, three years into retirement, on an otherwise planned
+    // path: the portfolio closes that year well below the plan's, and the
+    // rule must cut in the year that opens on that balance.
+    const first = retired(runProjection(busyFirstYear))[0].year;
+    const crashYear = first + 3;
+    const R = { [crashYear]: -30 };
+    const I = { [crashYear]: busyFirstYear.inflationRate };
+    const on = runProjection(busyFirstYear, R, I);
+    const byYear = Object.fromEntries(on.years.map((y) => [y.year, y]));
+    expect(byYear[crashYear].wrGuardrailAction).toBe('hold');
+    expect(byYear[crashYear + 1].wrGuardrailAction).toBe('cut');
   });
 });
 

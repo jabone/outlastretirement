@@ -59,10 +59,12 @@ describe('saved scenarios are displayed in the same units as the active plan', (
     // balance must come in materially BELOW the stored nominal one. If
     // someone reverts to the raw metrics, these become equal and this fails.
     // A scenario that runs out ends at $0 in both units ("Spends $180,000 a
-    // year" does since the cash reserve is spent before a shortfall, E15),
+    // year" does since the cash reserve is spent before a shortfall, E15;
+    // the two $170,000 scenarios spend their last dollar in the final year
+    // since changelog 423 trimmed the bracket fill to the solver's draw),
     // so only the ones with money left can show the conversion.
     const withMoneyLeft = demo.savedScenarios.filter((sc) => sc.metrics.endingBalance > 0);
-    expect(withMoneyLeft.length).toBeGreaterThanOrEqual(demo.savedScenarios.length - 1);
+    expect(withMoneyLeft.length).toBeGreaterThanOrEqual(demo.savedScenarios.length - 3);
     for (const sc of withMoneyLeft) {
       const real = shown(sc.inputs, true).endingBalance;
       expect(real).toBeLessThan(sc.metrics.endingBalance * 0.95);
