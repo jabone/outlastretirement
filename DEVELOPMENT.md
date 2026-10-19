@@ -249,6 +249,7 @@ npm run dev              # vite dev server
 npm test                 # vitest (watch)
 npm run test:regression  # vitest run --coverage
 npm run test:e2e         # playwright, against a production build (E2E_DEV=1: dev server)
+E2E_WEBKIT=1 npx playwright test --project=webkit-iphone   # the four flows on Safari's engine as a phone (needs: npx playwright install webkit)
 npm run lint             # oxlint
 npm run build            # vite build
 ```

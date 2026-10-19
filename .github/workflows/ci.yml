@@ -42,14 +42,54 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:e2e
+      # Safari's engine on a phone, the four flows only. Advisory until it
+      # has been seen green on a release; then drop continue-on-error so a
+      # WebKit-only regression blocks a release like any other.
+      - run: npx playwright test --project=webkit-iphone
+        env:
+          E2E_WEBKIT: '1'
+        continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  deploy:
+    # Public repository, main only: production is deployed from HERE, after
+    # the three checks above pass on the exact commit, by the Vercel CLI
+    # with a token (repository secrets VERCEL_TOKEN, VERCEL_ORG_ID,
+    # VERCEL_PROJECT_ID). The Vercel project's own Git integration keeps
+    # making branch previews from the working repository but its production
+    # branch is set to a name that never exists, so nothing reaches
+    # production without passing this workflow, and the site can never be
+    # ahead of the published source: it IS the published source, built.
+    # `vercel pull` fetches the project's production environment (the
+    # module server origin) and `vercel build` builds with it, so the
+    # upload is a prebuilt output and Vercel does not build again.
+    if: github.repository == 'jabone/outlastretirement' && github.ref == 'refs/heads/main'
+    needs: [check, e2e, provenance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx vercel@latest pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+      - run: npx vercel@latest build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+      - run: npx vercel@latest deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
 
   provenance:
     # Public repository only: every commit in its history is authored AND

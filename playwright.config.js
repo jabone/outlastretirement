@@ -32,6 +32,17 @@ export default defineConfig({
         ...(chromiumPath ? { launchOptions: { executablePath: chromiumPath } } : {}),
       },
     },
+    // Safari's engine, as a phone: the four flows in flows.spec.js (first
+    // visit, backup and restore, the Premium key, Exit Demo) are where a
+    // WebKit-only difference loses someone's plan. The rest of the suite
+    // is Chromium-only; the engine itself has no browser in it. Opt-in
+    // (E2E_WEBKIT=1): WebKit is not installed everywhere, and CI runs it as
+    // its own step.
+    ...(process.env.E2E_WEBKIT === '1' ? [{
+      name: 'webkit-iphone',
+      testMatch: /flows\.spec\.js/,
+      use: { ...devices['iPhone 13'] },
+    }] : []),
   ],
   webServer: {
     command: useDev

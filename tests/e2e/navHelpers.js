@@ -4,6 +4,9 @@
 // 30 s for an element that is not rendered, so open the fold first when the
 // entry is not visible.
 export async function clickNav(page, label) {
+  // On a phone the sidebar is a drawer behind "Open navigation menu".
+  const opener = page.getByRole('button', { name: 'Open navigation menu' });
+  if (await opener.isVisible().catch(() => false)) await opener.click();
   const nav = page.getByRole('navigation');
   const item = nav.getByText(label, { exact: true });
   if (!(await item.isVisible().catch(() => false))) {
