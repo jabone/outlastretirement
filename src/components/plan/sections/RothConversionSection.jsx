@@ -8,7 +8,7 @@ import { getPossessive } from '../getPossessive';
 import { useFoldState } from '../foldState';
 import { Flame, BookOpen } from 'lucide-react';
 import Tooltip from '../../Tooltip';
-import { irmaaThresholdsFor } from '../../../calculator';
+import { irmaaThresholdsFor, DEFAULT_INPUTS } from '../../../calculator';
 import NumberInput from '../../NumberInput';
 import { US_STATES } from '../../../config/usStates';
 
@@ -18,7 +18,10 @@ export default function RothConversionSection({ forceOpen = false }) {
   const { inputs, updateInput, getRMDAge, setActiveTab, setSettingsSubTab } = useSimulation();
   const [showRothConversion, toggleShowRothConversion] = useFoldState('rothConversion', () => (
     inputs.rothConversionStrategy !== 'none' || inputs.backdoorRothEnabled ||
-    inputs.acaSubsidyProtectionEnabled || inputs.acaCliffProtectionEnabled || inputs.acaSubsidyAnnualValue > 0 || inputs.acaCreditSource === 'manual' || inputs.acaBenchmarkPremiumSource === 'manual' || inputs.qcdAnnualAmount > 0 || inputs.nuaEnabled
+    // Open when something here differs from a new plan. Cliff Protection
+    // is on in a new plan (changelog 443), so it counts only when it has
+    // been turned off.
+    inputs.acaSubsidyProtectionEnabled || !!inputs.acaCliffProtectionEnabled !== !!DEFAULT_INPUTS.acaCliffProtectionEnabled || inputs.acaSubsidyAnnualValue > 0 || inputs.acaCreditSource === 'manual' || inputs.acaBenchmarkPremiumSource === 'manual' || inputs.qcdAnnualAmount > 0 || inputs.nuaEnabled
   ), forceOpen);
   return (
     <>

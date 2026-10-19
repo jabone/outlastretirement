@@ -69,6 +69,9 @@ describe('ACA 400% FPL subsidy cliff (changelog 119)', () => {
     ss1: 0, ss2: 0, pension1: 0, pension2: 0, rentalIncome: 0, annuityIncome: 0,
     salary1: 0, partTimeIncome1: 0,
     preTaxInit: 1500000, rothInit: 300000, taxableInit: 0, hsaInit: 0, cashFloorEnabled: false,
+    // Off here so the "protection off" cases below test what they say;
+    // the default has been on since changelog 443.
+    acaCliffProtectionEnabled: false,
     preTaxContribution1: 0, rothContribution1: 0, taxableContribution: 0, hsaContribution: 0,
     lifestyleExpense: 40000, healthcareBridgeCost: 18000, withdrawalStrategy: 'RothFirst',
     stateTaxState: 'none', stateOfResidence: 'CO', // expansion state: no coverage-gap branch
@@ -118,8 +121,10 @@ describe('ACA 400% FPL subsidy cliff (changelog 119)', () => {
     expect(age66.acaCliffThreshold).toBe(0);
     expect(age66.acaMagi).toBe(0);
     expect(age66.acaCliffBreached).toBe(false);
-    // Defaults off/0 leave the historical golden untouched (see calculator.test.js).
-    expect(DEFAULT_INPUTS.acaCliffProtectionEnabled).toBe(false);
+    // Cliff Protection is on by default since 443 but inert without a
+    // marketplace year and a conversion, so the historical golden holds
+    // (see calculator.test.js); the typed credit defaults to 0.
+    expect(DEFAULT_INPUTS.acaCliffProtectionEnabled).toBe(true);
     expect(DEFAULT_INPUTS.acaSubsidyAnnualValue).toBe(0);
   });
 });

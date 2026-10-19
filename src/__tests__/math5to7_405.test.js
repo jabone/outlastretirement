@@ -5,6 +5,7 @@ import { runProjection, DEFAULT_INPUTS, priceForeignYear, readForeignTerms, QCD_
 
 const quiet = {
   ...DEFAULT_INPUTS, planYear: 2026, spouse2Enabled: false, filingStatus: 'Single',
+  acaCliffProtectionEnabled: false, // tests another mechanism; Cliff Protection is on by default since 443
   ss1: 0, ss2: 0, pension1: 0, pension2: 0, rentalIncome: 0, annuityIncome: 0, salary1: 0, partTimeIncome1: 0,
   preTaxContribution1: 0, rothContribution1: 0, taxableContribution: 0, hsaContribution: 0, hsaInit: 0, cashFloorEnabled: false,
   taxBracketInflationRate: 0, inflationRate: 0, medicalInflationRate: 0, preRetireReturn: 0, postRetireReturn: 0,

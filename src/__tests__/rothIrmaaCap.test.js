@@ -34,6 +34,7 @@ describe('vacuity guard', () => {
 // bracket alone would convert far past the first IRMAA threshold.
 const couple = {
   ...DEFAULT_INPUTS,
+  acaCliffProtectionEnabled: false, // tests another mechanism; Cliff Protection is on by default since 443
   // Changelog 414 made the brokerage yield's bond share ordinary income;
   // this file is about something else, so the yield stays all-qualified.
   taxableQualifiedDividendFollowsAllocation: false,

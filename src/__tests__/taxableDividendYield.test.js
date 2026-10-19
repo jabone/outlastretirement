@@ -113,6 +113,7 @@ describe('taxableQualifiedDividendPct -- the ordinary share of the yield (change
       ...DEFAULT_INPUTS, birthYear1: START - 62, retireAge1: 60, claimingAge1: 70, ss1: 30000, salary1: 0,
       taxableInit: 600000, taxableDividendYield: 4, preTaxInit: 1500000, rothInit: 0, lifestyleExpense: 50000,
       rothConversionStrategy: 'maxBracket', rothConversionBracket: 0.22,
+      acaCliffProtectionEnabled: false, // tests another mechanism; Cliff Protection is on by default since 443
     };
     const q = runProjection({ ...retiree, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 100 }).years[0];
     const o = runProjection({ ...retiree, taxableQualifiedDividendFollowsAllocation: false, taxableQualifiedDividendPct: 0 }).years[0];
@@ -217,8 +218,8 @@ describe('computeTaxableDistributionYield', () => {
     const q = fund({ symbol: 'Q', distributionCharacter: 'qualifiedDividend' });
     const o = fund({ symbol: 'O', distributionCharacter: 'ordinaryDividend' });
     const u = fund({ symbol: 'U' }); // Kind not stated: qualified, by choice
-    const m = fund({ symbol: 'M', distributionCharacter: 'mixed' });
-    expect(computeTaxableDistributionYield([q, o, u, m], { asOfDate }).qualifiedShare).toBeCloseTo(0.75, 6);
+    const m = fund({ symbol: 'M', distributionCharacter: 'mixed' }); // counts half (changelog 442)
+    expect(computeTaxableDistributionYield([q, o, u, m], { asOfDate }).qualifiedShare).toBeCloseTo(0.625, 6);
     const i = fund({ symbol: 'I', distributionCharacter: 'qualifiedDividend' });
     i.distributionEvents = [
       createDistributionEvent({ date: '2025-06-15', type: 'interest', grossAmount: 4000 }),

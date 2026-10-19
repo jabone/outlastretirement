@@ -38,6 +38,9 @@ export function buildParkersInputs() {
     // Likewise pinned: the brokerage yield stays 100% qualified, as the
     // lessons' pictures were drawn (changelog 414).
     taxableQualifiedDividendFollowsAllocation: false,
+    // And ACA Cliff Protection stays as it was when the story was written
+    // (changelog 443 turned it on for new plans).
+    acaCliffProtectionEnabled: false,
     // And the pre-65 health cost stays as typed, with no computed credit
     // (changelog 415 computes one for new plans).
     acaCreditSource: 'manual',

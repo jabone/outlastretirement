@@ -39,7 +39,7 @@ describe('statutory figures index from TAX_YEAR', () => {
   it('a plan starting in TAX_YEAR is unchanged, and so is the default plan', () => {
     expect(rowFor(TAX_YEAR, TAX_YEAR).taxBracketInflationFactor).toBe(1);
     expect(rowFor(TAX_YEAR, TAX_YEAR).partBInflFactor).toBe(1);
-    expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(131263.8361, 2);
+    expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(131245.5150, 2);
   });
 
   it('contribution limits, the QCD limit and the wage base follow the same vintage', () => {

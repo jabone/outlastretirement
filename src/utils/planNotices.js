@@ -16,6 +16,11 @@ const WARNING_TEXT = {
     desc: 'Your mortgage payment doesn’t cover the interest, so the balance grows every year. Check that it’s a yearly amount.',
     action: { tab: 'settings', subTab: 'balances', label: 'Open Balances & Debt →' },
   },
+  'aca-premium-below-benchmark': {
+    title: 'Marketplace premium looks low for your ages',
+    desc: 'The premium the plan assumes before 65 is well under the benchmark plan for your ages and state, so the computed credit covers all of it. The Healthcare Bridge default is not age-rated; check it against a quote from healthcare.gov.',
+    action: { tab: 'settings', subTab: 'spending', label: 'Open Spending →' },
+  },
   'debt-payment-below-interest': {
     title: 'Other debt balance grows every year',
     desc: 'Your other debt payment doesn’t cover the interest, so the balance grows every year. Check that it’s a yearly amount.',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSimulation } from '../../context/useSimulation';
+import { DEFAULT_INPUTS } from '../../calculator';
 import { notAskedForSection, notAskedByDomain, SETTINGS_DOMAINS } from '../../config/inputCoverage';
 import {
   Users, DollarSign, Wallet, PiggyBank, Home, HeartPulse, TrendingDown,
@@ -232,7 +233,7 @@ const InterviewTab = () => {
   // plan so returning here after using Plan Settings doesn't hide something
   // already configured. ---------------------------------------------------
   const [gPension, setGPension] = useState(() => inputs.pension1 > 0 || (inputs.spouse2Enabled && inputs.pension2 > 0) || inputs.annuityIncome > 0 || inputs.rentalIncome > 0 || inputs.annuityPurchaseAmount > 0);
-  const [gRoth, setGRoth] = useState(() => inputs.rothConversionStrategy !== 'none' || inputs.backdoorRothEnabled || inputs.qcdAnnualAmount > 0 || !!inputs.acaCliffProtectionEnabled || inputs.acaSubsidyAnnualValue > 0 || !!inputs.acaSubsidyProtectionEnabled);
+  const [gRoth, setGRoth] = useState(() => inputs.rothConversionStrategy !== 'none' || inputs.backdoorRothEnabled || inputs.qcdAnnualAmount > 0 || !!inputs.acaCliffProtectionEnabled !== !!DEFAULT_INPUTS.acaCliffProtectionEnabled || inputs.acaSubsidyAnnualValue > 0 || !!inputs.acaSubsidyProtectionEnabled);
   const [gEquity, setGEquity] = useState(() => (inputs.rsuGrants && inputs.rsuGrants.length > 0) || inputs.rsuRefreshEnabled1 || inputs.rsuRefreshEnabled2 || inputs.nqdcEnabled1 || inputs.nqdcEnabled2 || !!inputs.concentratedStockEnabled);
   const [gMilestones, setGMilestones] = useState(() => !!(inputs.milestones && inputs.milestones.length > 0) || !!inputs.giftingEnabled);
   const [gDebt, setGDebt] = useState(() => inputs.mortgageBalance > 0 || inputs.otherDebtBalance > 0 || !!inputs.reverseMortgageEnabled || !!inputs.homeOwned || inputs.otherEstateAssetsInit > 0 || !!inputs.lifeInsuranceEnabled1 || !!inputs.lifeInsuranceEnabled2);

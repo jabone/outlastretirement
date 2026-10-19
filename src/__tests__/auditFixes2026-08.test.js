@@ -17,6 +17,7 @@ import { buildYearLedgerCsvRows, buildYearLedgerCsv, YEAR_LEDGER_CSV_HEADERS } f
 // single-filer fixtures unless zeroed explicitly).
 const RETIRED_SINGLE = {
   ...DEFAULT_INPUTS,
+  acaCliffProtectionEnabled: false, // tests another mechanism; Cliff Protection is on by default since 443
   spouse2Enabled: false,
   birthYear1: 1966, // age 60: under 65, so no age-65 deductions muddy the arithmetic
   planYear: 2026,

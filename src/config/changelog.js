@@ -29,6 +29,39 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 443,
+    date: '2026-10-19',
+    title: 'ACA Cliff Protection is on for new plans, and a low marketplace premium is flagged',
+    summary: 'A Roth conversion that crosses 400% of the poverty line costs the year’s whole premium credit, so Cliff Protection is now on by default. A premium far under the benchmark for your ages is flagged.',
+    items: [
+      "**What changed.** ACA Cliff Protection, which holds a voluntary Roth conversion before 65 under the 400% line, is on by default for a new plan; a plan you saved keeps the setting it had. It does nothing in a plan with no marketplace year or no conversion. Since the credit has been computed from your income (October 17), one dollar over that line forfeits the whole year’s credit — $17,000 to $25,000 for a couple of 60.",
+      "**And a Plan Feedback card.** The Healthcare Bridge default ($12,000 a person, most of it premium) is not adjusted for age, while the benchmark plan the credit is measured against is. For a couple of 60 the default sat at half the benchmark, so the computed credit covered the whole premium. When the premium the plan assumes is under three-quarters of the benchmark for your ages and state, a card says so and links to the field; check it against a quote from healthcare.gov.",
+      "**Your numbers will change** for a new plan whose conversions would have crossed the line: the conversion stops at it. A saved plan does not change until you turn the protection on.",
+    ],
+  },
+  {
+    id: 442,
+    date: '2026-10-19',
+    title: 'Detailed Holdings: a REIT, covered-call or BDC fund left at Not Set is taxed as ordinary income',
+    summary: 'A holding with no Distribution Character counted as qualified even for REITs, covered-call funds and BDCs, whose payouts are ordinary income. They now count as ordinary; Mixed counts half. (Premium)',
+    items: [
+      "**What changed.** When the taxable account’s yield is linked to Detailed Holdings, each holding’s Distribution Character decides how its payout is taxed. A holding left at Not Set counted as qualified unless it was a bond or cash fund, so a REIT fund like VNQ, a covered-call fund like JEPI, QYLD or a YieldMax fund, or a business development company was taxed at the lower rate its payouts do not get. Those are now recognized by ticker and by name and count as ordinary; Mixed / Fund-Dependent counts half; a character you set always wins.",
+      "**And linking is offered.** Under Taxes & Roth, when you have taxable holdings, the plan shows what they currently distribute and offers to link the yield and its qualified share to them.",
+      "**Your numbers will change** if the yield is linked and you hold any of those funds without a character set: more of the yield is taxed as ordinary income.",
+    ],
+  },
+  {
+    id: 441,
+    date: '2026-10-19',
+    title: 'The default qualified-dividend share is weighted by what stocks and bonds each pay',
+    summary: 'The qualified-dividend share followed the stock/bond split of the balance, but bonds pay about three times what stocks do, so a 60/40 account’s income is only a third qualified. Now weighted by yield.',
+    items: [
+      "**What was wrong.** Since October 17 the taxable brokerage account’s qualified-dividend share has followed its stock/bond split: 60% stocks, 60% qualified. But the share that matters is of the income, and bonds yield far more than stocks — about 4% against about 1.3% — so a 60/40 account earns 0.78% from stocks and 1.60% from bonds, and only a third of that is qualified.",
+      "**What changed.** The qualified share is the stock side’s share of the income, from two new figures under Taxes & Roth — the stock side’s yield (1.3%) and the bond and cash side’s (4.0%) — which you can change. They set only the split; the account’s total yield is still the yield you enter. A plan that sets its own qualified percentage, or links the yield to Detailed Holdings, is unchanged.",
+      "**Your numbers will change** for a plan with a taxable account on the default: more of its yield is taxed as ordinary income, so tax rises a little. The Demo Plan keeps its own setting.",
+    ],
+  },
+  {
     id: 440,
     date: '2026-10-19',
     title: 'A charitable distribution before RMDs begin shows up in the Pre-Tax column',

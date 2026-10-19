@@ -28,8 +28,9 @@ export function isValidTaxTreatment(value) {
 // of these across a single year, which "Mixed / Fund-Dependent" covers
 // rather than forcing a single wrong label. Since changelog 414 the engine
 // reads it: a linked taxable account's qualified share is the share of its
-// dividend income that comes from holdings marked Qualified (a bond or cash
-// holding left at Not set counts as Ordinary); see taxableQualifiedShare.
+// income that is not ordinary -- Not Set on a bond, cash, REIT,
+// option-income or BDC holding counts as Ordinary, Mixed counts half; see
+// ordinaryIncomeShareForHolding and computeTaxableDistributionYield.
 export const DISTRIBUTION_CHARACTERS = [
   { value: 'unspecified', label: 'Not Set / Unspecified' },
   { value: 'qualifiedDividend', label: 'Qualified Dividend' },
@@ -316,10 +317,46 @@ export const holdingCharacter = (holding) => (
 // keeps showing the holding under "Kind not stated": this is a tax
 // default, not a claim about what the fund declared.
 export const ORDINARY_BY_ASSET_CLASS = new Set(['bond', 'cash']);
+
+// Stock-class funds whose distributions are ordinary income all the same
+// (changelog 442): REITs (rent, not qualified dividends), option-income
+// and covered-call funds (option premium), and business development
+// companies. Curated and deliberately not exhaustive, like the asset-class
+// lists above -- the name patterns catch the rest, and a holding's own
+// Distribution Character always wins once set.
+export const ORDINARY_INCOME_TICKERS = new Set([
+  // REITs and REIT funds
+  'VNQ', 'SCHH', 'XLRE', 'IYR', 'RWR', 'USRT', 'FREL', 'REET', 'VNQI', 'O', 'STAG', 'NNN', 'WPC', 'ADC', 'VICI', 'PLD', 'AMT', 'SPG', 'PSA', 'EQIX', 'DLR', 'MPW', 'AGNC', 'NLY',
+  // Option-income / covered-call funds
+  'JEPI', 'JEPQ', 'QYLD', 'XYLD', 'RYLD', 'DIVO', 'SPYI', 'QQQI', 'YMAX', 'XDTE', 'QDTE', 'RDTE', 'CHPY', 'GPIX', 'GPIQ', 'ISPY', 'IQQQ', 'BALI', 'NUSI', 'KNG',
+  // Business development companies
+  'ARCC', 'MAIN', 'OBDC', 'FSK', 'BXSL', 'HTGC', 'TSLX', 'GBDC', 'PSEC', 'BIZD', 'PBDC', 'CSWC', 'TRIN', 'CGBD', 'MFIC', 'NMFC', 'GSBD',
+]);
+const ORDINARY_INCOME_NAME_PATTERN = /\bREITs?\b|real estate|option income|premium income|covered call|buy-?write|yieldmax|\b0dte\b|business development|\bBDC\b/i;
+
+export function isOrdinaryIncomeFund(holding) {
+  const symbol = (holding?.symbol || '').trim().toUpperCase();
+  if (symbol && ORDINARY_INCOME_TICKERS.has(symbol)) return true;
+  return ORDINARY_INCOME_NAME_PATTERN.test(holding?.name || '');
+}
+
 export function taxCharacterForHolding(holding) {
   const character = holdingCharacter(holding);
   if (character !== 'unspecified') return character;
-  return ORDINARY_BY_ASSET_CLASS.has(getEffectiveAssetClass(holding)) ? 'ordinaryDividend' : character;
+  if (ORDINARY_BY_ASSET_CLASS.has(getEffectiveAssetClass(holding))) return 'ordinaryDividend';
+  return isOrdinaryIncomeFund(holding) ? 'ordinaryDividend' : character;
+}
+
+// The share of a holding's ESTIMATED income that is ordinary, 0-1, for the
+// tax figure: Ordinary and interest 1, qualified and gains 0, and Mixed /
+// Fund-Dependent one half (changelog 442; it had counted as fully
+// qualified, which is the one thing "mixed" rules out). Logged actuals
+// carry their own split and do not come through here.
+export function ordinaryIncomeShareForHolding(holding) {
+  const character = taxCharacterForHolding(holding);
+  if (character === 'ordinaryDividend' || character === 'interest') return 1;
+  if (character === 'mixed') return 0.5;
+  return 0;
 }
 
 // Which matrix row an ACTUAL record belongs in. The event's own type is
@@ -637,7 +674,7 @@ export function computeTaxableDistributionYield(holdings = [], { excludeHoldingI
     dividendIncome += estimated;
     income += Math.max(estimated, actual);
     // The ordinary share follows whichever basis was used.
-    ordinaryIncome += actual > estimated ? split.ordinary : (character === 'ordinaryDividend' ? estimated : 0);
+    ordinaryIncome += actual > estimated ? split.ordinary : estimated * ordinaryIncomeShareForHolding(h);
     if (actual > estimated) uplifted.push({ holdingId: h.id, symbol: h.symbol, estimated, actual });
   }
   if (value <= 0) return null;

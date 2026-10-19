@@ -10,6 +10,7 @@ import { CollapsibleHeader } from '../sectionShared';
 import { useFoldState } from '../foldState';
 import { computeTaxableDistributionYield, computeCashReserveFromHoldings } from '../../../utils/holdingsCore';
 import NumberInput from '../../NumberInput';
+import { qualifiedShareFromAllocation } from '../../../calculator';
 
 export default function WithdrawalSection({ forceOpen = false }) {
   const { inputs, updateInput, formatCurrency, setActiveTab, taxableCostBasis, holdings } = useSimulation();
@@ -118,18 +119,35 @@ export default function WithdrawalSection({ forceOpen = false }) {
                   </div>
                   <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
                     Dividends and fund distributions in a taxable account are taxed every year and count toward the income Medicare (IRMAA) and the ACA look at, even when reinvested. The balance&apos;s growth already includes them, so this only changes taxes, not cash flow. 2% is a broad-market default
-                    {(() => { const d = computeTaxableDistributionYield(holdings || []); return d === null ? '' : `; your Taxable holdings currently distribute ${(d.yield * 100).toFixed(2)}% — link it from the Distributions sub-tab of Detailed Holdings`; })()}.
+                    {(() => { const d = computeTaxableDistributionYield(holdings || []); return d === null ? '' : `; your Taxable holdings currently distribute ${(d.yield * 100).toFixed(2)}%, ${Math.round(d.qualifiedShare * 100)}% of it qualified`; })()}.
                   </span>
+                  {inputs.taxableDividendYieldSource !== 'holdings' && computeTaxableDistributionYield(holdings || []) !== null && (
+                    <button type="button" className="btn-outline" style={{ padding: '3px 8px', fontSize: 'var(--fs-xs)', marginTop: '6px' }} onClick={() => updateInput('taxableDividendYieldSource', 'holdings')}>
+                      Link the yield and its qualified share to Detailed Holdings
+                    </button>
+                  )}
 
                   <label htmlFor="field-taxableQualifiedDividendPct" style={{ marginTop: '10px', display: 'block' }}>Qualified share of that yield (%)</label>
                   {inputs.taxableDividendYieldSource !== 'holdings' && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                       <label htmlFor="toggle-taxableQualifiedDividendFollowsAllocation" style={{ fontSize: '13px', cursor: 'pointer' }}>
-                        Follow the plan&rsquo;s stock/bond split ({Number(inputs.stockAllocationPre) || 0}% stock working, {Number(inputs.stockAllocationPost) || 0}% retired): the stock share is qualified, the bond and cash share is interest
+                        Follow the plan&rsquo;s stock/bond split ({Number(inputs.stockAllocationPre) || 0}% stock working, {Number(inputs.stockAllocationPost) || 0}% retired): the stock side&rsquo;s dividends are qualified, the bond and cash side&rsquo;s interest is ordinary income
                       </label>
                       <span className="custom-switch">
                         <input id="toggle-taxableQualifiedDividendFollowsAllocation" type="checkbox" checked={inputs.taxableQualifiedDividendFollowsAllocation !== false} onChange={(e) => updateInput('taxableQualifiedDividendFollowsAllocation', e.target.checked)} />
                         <span className="slider-round"></span>
+                      </span>
+                    </div>
+                  )}
+                  {inputs.taxableDividendYieldSource !== 'holdings' && inputs.taxableQualifiedDividendFollowsAllocation !== false && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 14px', marginBottom: '8px', fontSize: '13px' }}>
+                      <span>Weighted by what each side pays:</span>
+                      <label htmlFor="field-taxableStockYieldPct" style={{ margin: 0 }}>Stock side yield (%)</label>
+                      <NumberInput id="field-taxableStockYieldPct" step="0.1" min="0" max="20" className="form-input" style={{ width: '70px' }} value={inputs.taxableStockYieldPct} onChange={(e) => updateInput('taxableStockYieldPct', (e.target.value === '' ? '' : Math.min(20, Math.max(0, parseFloat(e.target.value)))))} />
+                      <label htmlFor="field-taxableBondYieldPct" style={{ margin: 0 }}>Bond and cash side yield (%)</label>
+                      <NumberInput id="field-taxableBondYieldPct" step="0.1" min="0" max="20" className="form-input" style={{ width: '70px' }} value={inputs.taxableBondYieldPct} onChange={(e) => updateInput('taxableBondYieldPct', (e.target.value === '' ? '' : Math.min(20, Math.max(0, parseFloat(e.target.value)))))} />
+                      <span style={{ color: 'var(--text-muted)' }}>
+                        {'\u2192 '}{Math.round(qualifiedShareFromAllocation(inputs.stockAllocationPre, inputs) * 100)}% qualified working, {Math.round(qualifiedShareFromAllocation(inputs.stockAllocationPost, inputs) * 100)}% retired
                       </span>
                     </div>
                   )}
@@ -139,9 +157,9 @@ export default function WithdrawalSection({ forceOpen = false }) {
                   </div>
                   <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
                     The part taxed at the lower qualified-dividend and capital-gains rates. The rest &mdash; ordinary dividends, interest, money-market and most bond-fund income &mdash; is taxed as ordinary income. {inputs.taxableDividendYieldSource === 'holdings'
-                      ? 'Linked: it follows each Taxable holding\u2019s Distribution Character (a bond or cash holding with none counts as ordinary; a stock holding with none, or Mixed, counts as qualified).'
+                      ? 'Linked: it follows each Taxable holding\u2019s Distribution Character (a bond, cash, REIT, option-income or business-development holding with none counts as ordinary; Mixed counts half; any other stock holding with none counts as qualified).'
                       : inputs.taxableQualifiedDividendFollowsAllocation !== false
-                        ? 'Following the split: the figure above is not used. Turn the switch off to type a share of your own; 100% treats the whole yield as qualified.'
+                        ? 'Following the split, weighted by the two yields: bonds pay more than stocks, so a 60/40 account\u2019s income is about a third qualified, not 60%. The figure above is not used. Turn the switch off to type a share of your own; 100% treats the whole yield as qualified.'
                         : 'Linking the yield to Detailed Holdings sets this from each holding\u2019s Distribution Character.'}
                   </span>
                   <label htmlFor="field-dividendPayoutMode" style={{ marginTop: '14px', display: 'block' }}>

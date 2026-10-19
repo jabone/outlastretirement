@@ -75,6 +75,23 @@ export function planStockShareForYear(inputs, isRetired, year, householdRetireme
   return Math.min(100, Math.max(0, share));
 }
 
+// The qualified share of a taxable account's yield when it follows the
+// stock/bond split (changelog 441): the stock side's share of the INCOME,
+// not of the balance. Bonds yield more than stocks -- about 4% against
+// about 1.3% -- so a 60/40 account earns 0.78% + 1.60% = 2.38%, of which
+// only a third is qualified; the balance split said 60%. The two yields
+// are plan inputs (taxableStockYieldPct, taxableBondYieldPct) used only
+// for this weighting; the account's total yield is still taxableDividendYield.
+export function qualifiedShareFromAllocation(stockSharePct, inputs = DEFAULT_INPUTS) {
+  const s = Math.min(1, Math.max(0, (Number(stockSharePct) || 0) / 100));
+  const num = (v, d) => (Number.isFinite(Number(v)) && v !== '' && v !== null && Number(v) >= 0 ? Number(v) : d);
+  const stockYield = num(inputs.taxableStockYieldPct, DEFAULT_INPUTS.taxableStockYieldPct);
+  const bondYield = num(inputs.taxableBondYieldPct, DEFAULT_INPUTS.taxableBondYieldPct);
+  const income = s * stockYield + (1 - s) * bondYield;
+  if (income <= 0) return s;
+  return Math.min(1, Math.max(0, (s * stockYield) / income));
+}
+
 // Deterministic PRNG (mulberry32) so a Monte Carlo run is reproducible for
 // a given seed. Returns a function yielding uniforms in [0, 1).
 export function mulberry32(seed) {
@@ -1626,6 +1643,12 @@ export const DEFAULT_INPUTS = {
   // as every plan was before 414.
   taxableQualifiedDividendPct: 100,
   taxableQualifiedDividendFollowsAllocation: true,
+  // The yields the split is weighted by while the switch is on (changelog
+  // 441): what the stock side and the bond/cash side of the account each
+  // pay, %. They set only the qualified SHARE -- the income itself is
+  // taxableDividendYield -- and 1.3% / 4% are the broad-market figures.
+  taxableStockYieldPct: 1.3,
+  taxableBondYieldPct: 4.0,
 
   // Milestones
   milestones: [],
@@ -1818,8 +1841,13 @@ export const DEFAULT_INPUTS = {
   // the entire premium tax credit for the year. Roth conversions are the
   // usual culprit for an early retiree. When on, voluntary conversions in
   // pre-Medicare retired years are capped so estimated ACA MAGI stays at
-  // or under ACA_SUBSIDY_CLIFF_FPL_MULTIPLE x FPL.
-  acaCliffProtectionEnabled: false,
+  // or under ACA_SUBSIDY_CLIFF_FPL_MULTIPLE x FPL. On by default since
+  // changelog 443: with the credit computed (415) a conversion that crosses
+  // the line costs the whole year's credit, $17k-$25k for a couple of 60,
+  // and nothing in a new plan should do that unasked. It does nothing in a
+  // plan with no marketplace year or no conversion; a saved plan keeps the
+  // setting it saved.
+  acaCliffProtectionEnabled: true,
   // Your estimated marketplace premium tax credit, $/yr in today's
   // dollars (healthcare.gov quotes it). Reduces the Healthcare Bridge cost
   // in years the household is retired, under 65, and inside the 100%-400%
@@ -6494,6 +6522,12 @@ export function sanitizeInputs(inputs) {
   if (typeof inputs.taxableQualifiedDividendFollowsAllocation !== 'boolean') {
     clean.taxableQualifiedDividendFollowsAllocation = Number(clean.taxableQualifiedDividendPct) === 100;
   }
+  // Changelog 441: a plan saved before the weighting yields existed gets
+  // the defaults; a blank or negative figure does too.
+  for (const k of ['taxableStockYieldPct', 'taxableBondYieldPct']) {
+    const v = Number(inputs[k]);
+    if (inputs[k] === undefined || inputs[k] === null || inputs[k] === '' || !Number.isFinite(v) || v < 0) clean[k] = defaults[k];
+  }
   // Changelog 415: a plan saved before the computed credit existed keeps a
   // credit it typed; one that typed nothing gets the formula.
   if (inputs.acaCreditSource !== 'formula' && inputs.acaCreditSource !== 'manual') {
@@ -6724,6 +6758,7 @@ export function runProjection(rawInputs = DEFAULT_INPUTS, monteCarloReturnOverri
 function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflationOverride, deferralCuts, cutLog) {
   const years = [];
   const planWarnings = [];
+  let acaPremiumWarned = false;
   // A24: a debt payment that does not cover the first year's interest never
   // pays the loan off -- the balance grows every year. The math is left as
   // entered (it may be deliberate); the plan just says so.
@@ -9016,8 +9051,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // account; it only understated the tax.
     const followsAllocation = inputs.taxableQualifiedDividendFollowsAllocation !== false
       && inputs.taxableDividendYieldSource !== 'holdings';
+    // Changelog 441: weighted by what each side yields, not by the balance
+    // split -- see qualifiedShareFromAllocation.
     const qualifiedDividendShare = followsAllocation
-      ? planStockShareForYear(inputs, isRetired, year, householdRetirementYear) / 100
+      ? qualifiedShareFromAllocation(planStockShareForYear(inputs, isRetired, year, householdRetirementYear), inputs)
       : Math.min(100, Math.max(0, Number(inputs.taxableQualifiedDividendPct ?? 100))) / 100;
     const ordinaryDividends = qualifiedDividendShare < 1 ? taxableDividendsFromYield * (1 - qualifiedDividendShare) : 0;
     const taxableDividendsGross = (qualifiedDividendShare < 1 ? taxableDividendsFromYield - ordinaryDividends : taxableDividendsFromYield) + forcedRealizedGains;
@@ -9860,6 +9897,21 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // MAGI if it was on the marketplace then (the usual projection), or
       // this year's known income if higher -- a conversion chosen this year
       // is a plan, not a surprise.
+      // Changelog 443: the default bridge cost ($12,000 a person, 70% of it
+      // premium) is not age-rated while the benchmark is, so for a couple
+      // of 60 the premium typed sits at half the benchmark and the credit
+      // covers all of it -- a plan that never checked the figure gets a
+      // free premium and a $17k-$25k cliff. Say so, once.
+      if (!acaPremiumWarned && acaBenchmarkPremium > 0 && acaPremiumPaid < acaBenchmarkPremium * 0.75) {
+        acaPremiumWarned = true;
+        planWarnings.push({
+          code: 'aca-premium-below-benchmark',
+          message: `The marketplace premium in ${year} (${Math.round(acaPremiumPaid).toLocaleString('en-US')}) is well under the benchmark plan for the household's ages and state (${Math.round(acaBenchmarkPremium).toLocaleString('en-US')}), so the computed credit covers all of it; check the Healthcare Bridge cost against a real quote.`,
+          premium: Math.round(acaPremiumPaid),
+          benchmark: Math.round(acaBenchmarkPremium),
+          year,
+        });
+      }
       const magiEstimate = Math.max(prevAcaMagi ?? 0, otherOrdinaryAgi + ssIncome + taxableDividends + convertAmountTaxable);
       const fplForCredit = getFederalPovertyLevel(currentStatus === 'MFJ' ? 2 : 1, year, inputs.taxBracketInflationRate);
       const est = acaPremiumTaxCredit({ benchmark: acaBenchmarkPremium, magi: magiEstimate, fpl: fplForCredit, premiumPaid: acaPremiumPaid });

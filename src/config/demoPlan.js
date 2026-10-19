@@ -52,6 +52,9 @@ export function buildDemoInputs() {
     // demo's story was written (changelog 414 made the split-following
     // share the default for new plans).
     taxableQualifiedDividendFollowsAllocation: false,
+    // And ACA Cliff Protection stays as it was when the story was written
+    // (changelog 443 turned it on for new plans).
+    acaCliffProtectionEnabled: false,
     // And the pre-65 health cost stays as typed, with no computed credit
     // (changelog 415 computes one for new plans).
     acaCreditSource: 'manual',
