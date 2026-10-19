@@ -29,6 +29,28 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 431,
+    date: '2026-10-18',
+    title: 'Statement import reads a PDF in the background again',
+    summary: 'The PDF reader\u2019s background worker comes from the module server, which a browser will not start a worker from, so it ran on the main thread. It now starts from a copy the App makes on its own origin.',
+    items: [
+      "**What was wrong.** Importing a brokerage statement (Premium) uses a PDF reader that does its parsing in a background worker. The worker\u2019s script lives on the module server, a different origin from the App; browsers will not start a worker from another origin and the App\u2019s Content-Security-Policy says the same, so the reader quietly fell back to parsing on the main thread, freezing the page on a long statement and depending on a fallback path that could itself be blocked.",
+      "**What changed.** The App fetches the worker script from the module server and starts it from a copy on its own origin, which the policy allows (worker-src gains blob:). Nothing else in the policy changes; the statement is still read entirely on your device.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
+    id: 430,
+    date: '2026-10-18',
+    title: 'California\u2019s tax figures now move with inflation instead of standing still',
+    summary: 'California\u2019s brackets, standard deduction and exemption credit were the 2025 figures for every year of a plan. They now grow from 2025 by your Tax Bracket Inflation Rate, as the federal figures do.',
+    items: [
+      "**What was wrong.** California indexes its brackets, standard deduction and exemption credit to inflation every year, and the plan carried the 2025 figures unchanged into every later year. Each year the thresholds stood still, more income was pushed into higher brackets, so California tax was overstated more with every year of a plan.",
+      "**What changed.** The 2025 figures are now a starting point: they grow by your Tax Bracket Inflation Rate to 2026 and by the plan\u2019s indexing from there, exactly as the federal figures grow from 2026. The $1,000,000 Behavioral Health Services surcharge threshold is set by statute and does not move. When the Franchise Tax Board publishes the 2026 schedule in December, the table will be replaced with it.",
+      "**Your numbers will change** if you live in California or move there: state tax falls a little in 2026 and more in each later year.",
+    ],
+  },
+  {
     id: 429,
     date: '2026-10-18',
     title: 'Tax-loss harvesting sells only a loss the account holds, and the sale lowers the basis',

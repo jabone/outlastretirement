@@ -74,6 +74,10 @@ describe('Content-Security-Policy (vercel.json)', () => {
     expect(d['frame-ancestors']).toEqual(["'none'"]);
   });
 
+  it('starts a worker only from this origin or a blob it made (the pdf.js worker, changelog 431)', () => {
+    expect(d['worker-src']).toEqual(["'self'", 'blob:']);
+  });
+
   it('loads images, fonts and workers from no other host', () => {
     for (const name of ['img-src', 'font-src', 'worker-src', 'style-src', 'manifest-src', 'form-action']) {
       expect(d[name], name).toBeTruthy();

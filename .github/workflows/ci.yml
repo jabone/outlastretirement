@@ -1,11 +1,19 @@
 # Backstop for the release gate. The real gate is `predeploy` in
 # package.json, which npm runs before every `npm run deploy` on the machine
 # that ships; this workflow catches anything pushed without deploying.
+#
+# Minutes: Actions on a private repository are metered (2,000 free a month
+# on the Free plan, and the spending limit is kept at $0, so runs simply
+# stop when they are used up), while the public repository's are not. So
+# the browser job, the expensive one, runs on every push only in the public
+# repository, where it gates each release; in the working repository it
+# runs on main alone, since a branch is reviewed on its Vercel preview and
+# the same commit is checked publicly before it ships. `check` runs
+# everywhere.
 name: CI
 
 on:
   push:
-  pull_request:
 
 jobs:
   check:
@@ -24,6 +32,7 @@ jobs:
 
   e2e:
     # Browser tests against the production build. Required, like `check`.
+    if: github.repository == 'jabone/outlastretirement' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

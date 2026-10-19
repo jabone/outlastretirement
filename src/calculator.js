@@ -3778,6 +3778,22 @@ export function stateEarlyDistributionTax(stateType, earlyDistributionAmount, ag
 // consistently OVERSTATED California tax. A single filer with $80,000 of CA
 // taxable income was charged about $217/yr too much, and that gap widens
 // with every year the table is not refreshed.
+// Changelog 430: the 2025 figures are a VINTAGE, not a freeze. California
+// indexes every one of them (brackets, standard deduction, exemption
+// credit and its phase-out) to the California CPI each year, so a plan
+// carries them forward from 2025 by the Tax Bracket Inflation Rate --
+// (1 + r) to reach 2026, then the plan's own indexing factor from there --
+// exactly as the federal figures carry forward from their 2026 vintage
+// (changelog 419). Until 430 every year of a plan used the 2025 figures
+// unindexed, so California tax was overstated more with every year. When
+// FTB publishes the 2026 schedule (late December), replace the table and
+// set CA_VINTAGE_YEAR to 2026.
+export const CA_VINTAGE_YEAR = 2025;
+export function californiaIndexFactor(extras = {}) {
+  const base = Number(extras.inflationFactor) || 1;
+  const rate = Number(extras.taxBracketInflationRate) || 0;
+  return base * Math.pow(1 + rate / 100, TAX_YEAR - CA_VINTAGE_YEAR);
+}
 const BRACKETS_CA_SINGLE = [
   { limit: 11079, rate: 0.01 },
   { limit: 26264, rate: 0.02 },
@@ -4177,15 +4193,17 @@ const CA_EXEMPTION_PHASEOUT = { Single: 252203, MFJ: 504411, MFS: 252203 };
 // passes its best AGI proxy (pre-deduction ordinary income plus capital
 // gains). Since the proxy runs a little low, the phase-out can start a
 // little late -- bounded by the full credit (a few hundred dollars).
-export function californiaExemptionCredits(federalAGI, status, age1 = 65, age2 = 65) {
+export function californiaExemptionCredits(federalAGI, status, age1 = 65, age2 = 65, indexFactor = 1) {
   let credits = (status === 'MFJ') ? 2 : 1;
   if (age1 >= 65) credits += 1;
   if (status === 'MFJ' && age2 >= 65) credits += 1;
-  const threshold = CA_EXEMPTION_PHASEOUT[status] ?? CA_EXEMPTION_PHASEOUT.Single;
+  // The credit and its phase-out threshold are indexed (changelog 430);
+  // the $2,500 step and the $6 reduction are statutory (R&TC s 17054(e)).
+  const threshold = (CA_EXEMPTION_PHASEOUT[status] ?? CA_EXEMPTION_PHASEOUT.Single) * indexFactor;
   const excess = Math.max(0, (federalAGI || 0) - threshold);
   const step = (status === 'MFS') ? 1250 : 2500;
   const perCreditReduction = 6 * Math.ceil(excess / step);
-  return credits * Math.max(0, CA_EXEMPTION_CREDIT - perCreditReduction);
+  return credits * Math.max(0, CA_EXEMPTION_CREDIT * indexFactor - perCreditReduction);
 }
 
 // California military retirement exclusion, verified 2026-08-23 against the
@@ -4827,10 +4845,14 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
     // off after the HSA addback and before the brackets. California has no
     // extra standard deduction at 65 -- age shows up in the exemption
     // credits below instead.
-    const caStd = (status === 'MFJ') ? CA_STD_DEDUCTION_MFJ : CA_STD_DEDUCTION_SINGLE;
+    // Every figure carries forward from its 2025 vintage (changelog 430);
+    // the $1,000,000 surcharge threshold is statutory and does not.
+    const caIndex = californiaIndexFactor(extras);
+    const caStd = ((status === 'MFJ') ? CA_STD_DEDUCTION_MFJ : CA_STD_DEDUCTION_SINGLE) * caIndex;
     const caTaxableIncome = Math.max(0, stateTaxableIncome + Math.max(0, extras.hsaAddback || 0) - caStd);
     if (caTaxableIncome <= 0) return 0;
-    const brackets = (status === 'MFJ') ? BRACKETS_CA_MFJ : BRACKETS_CA_SINGLE;
+    const brackets = ((status === 'MFJ') ? BRACKETS_CA_MFJ : BRACKETS_CA_SINGLE)
+      .map((b) => ({ limit: b.limit === Infinity ? Infinity : b.limit * caIndex, rate: b.rate }));
     // Surcharge added on top of the bracket result, not merged into it --
     // see californiaBehavioralHealthServicesTax for why that distinction
     // matters for joint filers between $1,000,000 and $1,485,906.
@@ -4839,7 +4861,7 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
     // Exemption credits come off the TAX, not the income -- modeling them
     // as deductions is the mistake the KNOWN_ISSUES entry warned against.
     // They cannot drive the liability below zero (nonrefundable).
-    return Math.max(0, beforeCredits - californiaExemptionCredits(federalAGI, status, age1, age2));
+    return Math.max(0, beforeCredits - californiaExemptionCredits(federalAGI, status, age1, age2, caIndex));
   }
 
   if (stateType === 'ny') {
@@ -9489,6 +9511,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // later re-pricings add their own draw's gains on top.
       longTermGains: Math.max(0, forcedRealizedGains - harvestedGainsOffset),
       inflationFactor: taxBracketInflationFactor,
+      // Changelog 430: California's figures carry forward from their 2025
+      // vintage by this rate for the year before the plan's indexing starts.
+      taxBracketInflationRate: inputs.taxBracketInflationRate,
     };
     const baseStateIncomeTaxes = calculateStateTaxes(
       totalIncomeForState, pension, ssIncome, residence.stateTaxState,
