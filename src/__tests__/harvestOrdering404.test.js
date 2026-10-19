@@ -5,16 +5,20 @@
 import { describe, it, expect } from 'vitest';
 import { runProjection, DEFAULT_INPUTS, seniorBonusDeduction } from '../calculator';
 
-const retired = (crashPct, lifestyleExpense = 250000) => ({
+// Changelog 429: a harvest is only the loss the account holds, so the
+// crash is the plan's first year (before any growth) and the basis sits a
+// little under the balance: a small crash dips just below it (a small
+// harvest), a large one far below (a large harvest).
+const retired = (crashPct, lifestyleExpense = 250000, basisShare = 0.9, crashYear = 2026) => ({
   ...DEFAULT_INPUTS, spouse2Enabled: false, birthYear1: 1961, retireAge1: 60, salary1: 0, ss1: 0, ss2: 0, pension1: 0,
-  lifestyleExpense, preTaxInit: 0, rothInit: 0, taxableInit: 3000000, taxableBasisInit: 900000,
+  lifestyleExpense, preTaxInit: 0, rothInit: 0, taxableInit: 3000000, taxableBasisInit: 3000000 * basisShare,
   withdrawalStrategy: 'TaxableFirst', cashFloorEnabled: false, taxLossHarvestingEnabled: true,
-  stressType: 'crashYear', stressCrashReturn: crashPct, stressStartMode: 'specific', stressStartYear: 2027,
+  stressType: 'crashYear', stressCrashReturn: crashPct, stressStartMode: 'specific', stressStartYear: crashYear,
 });
 
 describe('the $3,000 ordinary offset is reclaimed when the year\'s draw realizes more gain than the carryforward covers', () => {
   it('a small harvest is used up by the crash year\'s own draw and none of it offsets ordinary income', () => {
-    const y = runProjection(retired(-2)).years.find((r) => r.year === 2027);
+    const y = runProjection(retired(-16, 500000, 0.85)).years.find((r) => r.year === 2026);
     expect(y.taxLossHarvestedThisYear).toBeGreaterThan(3000);
     // The year's draw realizes far more gain than was harvested...
     expect(y.realizedGains).toBeGreaterThan(0);
@@ -25,7 +29,7 @@ describe('the $3,000 ordinary offset is reclaimed when the year\'s draw realizes
   });
 
   it('a large harvest still takes the $3,000 ordinary offset, since the gains leave loss over', () => {
-    const y = runProjection(retired(-20)).years.find((r) => r.year === 2027);
+    const y = runProjection(retired(-20)).years.find((r) => r.year === 2026);
     expect(y.harvestedOrdinaryOffset).toBeCloseTo(3000, 2);
     // Conservation: what was harvested equals what went to gains, to
     // ordinary income, and what is carried on.
@@ -42,7 +46,9 @@ describe('the ledger\'s MAGI for the senior bonus nets the loss used on the draw
     // the gross-gains figure, which read the bonus thousands lower.
     // ($230,000 of spending: at $250,000 the draws that settle the year's
     // IRMAA true-up, changelog 405, carry the MAGI past the band.)
-    const y = runProjection(retired(-3, 230000)).years.find((r) => r.year === 2027);
+    // A deep 2027 crash on an account at 62% basis: the dip below basis is
+    // the harvest, and the draw's gains (on the 40% that was gain) exceed it.
+    const y = runProjection(retired(-40, 230000, 0.62, 2027)).years.find((r) => r.year === 2027);
     expect(y.lossUsedOnDraw).toBeGreaterThan(0);
     expect(y.seniorCount).toBe(1);
     expect(y.irmaaMagi).toBeGreaterThan(75000);

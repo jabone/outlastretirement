@@ -3688,7 +3688,7 @@ describe('calculator.js core logic', () => {
 
     it('harvests a loss in a down (stress-test) year and carries it forward', () => {
       const stressInputs = {
-        ...DEFAULT_INPUTS, taxableInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
+        ...DEFAULT_INPUTS, taxableInit: 500000, taxableBasisInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
         stressStartMode: 'specific', stressStartYear: 2027, taxLossHarvestingEnabled: true,
       };
       const proj = runProjection(stressInputs);
@@ -3696,17 +3696,21 @@ describe('calculator.js core logic', () => {
       expect(crashYear.growthRate).toBe(-20);
       expect(crashYear.taxLossHarvestedThisYear).toBeGreaterThan(0);
       expect(crashYear.lossCarryforward).toBeGreaterThan(0);
-      // Harvested amount is ~20% of the taxable balance entering the crash
-      // year (last year's ending taxable balance plus this year's own
-      // savings contribution), matching the |returnRate|% approximation.
+      // Changelog 429: the harvest is the loss the account holds after the
+      // decline -- its basis over the crashed value -- never the whole
+      // decline. The account started at its basis and grew 7% in 2026, so
+      // the 20% crash leaves it under basis by roughly 14% of the balance
+      // (plus this year's own contribution, bought at the top).
       const priorYear = proj.years.find(y => y.year === 2026);
-      expect(crashYear.taxLossHarvestedThisYear).toBeGreaterThan(priorYear.taxableEnd * 0.19);
-      expect(crashYear.taxLossHarvestedThisYear).toBeLessThan(priorYear.taxableEnd * 0.21);
+      expect(crashYear.taxLossHarvestedThisYear).toBeLessThan(priorYear.taxableEnd * 0.20);
+      expect(crashYear.taxLossHarvestedThisYear).toBeGreaterThan(priorYear.taxableBasis - priorYear.taxableEnd * 0.8 - 1);
+      // The sale and rebuy reset the basis to the crashed value.
+      expect(crashYear.taxableBasis).toBeCloseTo(crashYear.taxableEnd, 0);
     });
 
     it('spends the carryforward against gains first, then up to the ordinary-income cap, in the following year', () => {
       const base = {
-        ...DEFAULT_INPUTS, taxableInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
+        ...DEFAULT_INPUTS, taxableInit: 500000, taxableBasisInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
         stressStartMode: 'specific', stressStartYear: 2027,
       };
       const on = runProjection({ ...base, taxLossHarvestingEnabled: true });
@@ -3729,7 +3733,7 @@ describe('calculator.js core logic', () => {
 
     it('reduces taxes paid and improves the ending balance relative to an otherwise-identical non-harvesting plan', () => {
       const base = {
-        ...DEFAULT_INPUTS, taxableInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
+        ...DEFAULT_INPUTS, taxableInit: 500000, taxableBasisInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
         stressStartMode: 'specific', stressStartYear: 2027,
       };
       const off = runProjection({ ...base, taxLossHarvestingEnabled: false });
@@ -3742,7 +3746,7 @@ describe('calculator.js core logic', () => {
 
     it('never lets the loss carryforward go negative', () => {
       const stressInputs = {
-        ...DEFAULT_INPUTS, taxableInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
+        ...DEFAULT_INPUTS, taxableInit: 500000, taxableBasisInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
         stressStartMode: 'specific', stressStartYear: 2027, taxLossHarvestingEnabled: true,
       };
       const proj = runProjection(stressInputs);

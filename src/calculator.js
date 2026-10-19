@@ -9007,9 +9007,28 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // against ordinary income, with any remainder carried forward
     // indefinitely to future years -- mirroring the real IRS capital-loss
     // carryforward rule (IRC Sec. 1211-1212).
+    //
+    // Changelog 429: only a loss the account actually holds can be
+    // harvested. A sale realizes basis less value, so the loss available
+    // after this year's decline is the basis over the declined value --
+    // nothing at all while the account sits on gains, as most do after a
+    // few years of growth, and never more than the decline itself. Until
+    // 429 the whole balance's decline was booked as a loss whatever the
+    // basis was, and the basis was never lowered by the sale, so the same
+    // dollar of loss was deducted now AND sheltered gain later. The swap
+    // sells at the declined value and rebuys, so the basis is reset to
+    // that value at the growth step below. One lot the pool cannot see is
+    // this year's own contribution, bought at today's prices and under
+    // water by the whole decline whatever the older lots show, so that
+    // slice is harvestable on its own.
     let taxLossHarvestedThisYear = 0;
     if (inputs.taxLossHarvestingEnabled && returnRate < 0 && taxable > 0) {
-      taxLossHarvestedThisYear = taxable * (Math.abs(returnRate) / 100);
+      const declineShare = Math.abs(returnRate) / 100;
+      const declinedValue = taxable * (1 - declineShare);
+      const decline = taxable - declinedValue;
+      const poolLoss = Math.max(0, Math.min(taxable, taxableBasis) - declinedValue);
+      const newMoneyLoss = Math.max(0, taxableContribution) * declineShare;
+      taxLossHarvestedThisYear = Math.min(decline, Math.max(poolLoss, newMoneyLoss));
       lossCarryforward += taxLossHarvestedThisYear;
     }
     // Audit Q-11 (changelog 124): a capital loss nets against CAPITAL
@@ -10682,7 +10701,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // standing invariant is 0 <= basis <= balance.
     // Only the REINVESTED part is new basis -- a dividend paid out in cash
     // buys nothing, so it changes basis not at all (changelog 231).
-    taxableBasis = Math.min(taxable, taxableBasis + Math.max(0, taxableDividendsFromYield - dividendCash));
+    // A harvested loss was sold and rebought at the declined value: the
+    // basis comes down by the loss realized (changelog 429), before the
+    // clamp -- an account under water carries basis above its balance
+    // until the sale, and the clamp would otherwise take that first.
+    taxableBasis = Math.min(taxable, Math.max(0, taxableBasis + Math.max(0, taxableDividendsFromYield - dividendCash) - taxLossHarvestedThisYear));
     hsa = hsa * (1 + returnRate / 100);
 
     // Concentrated stock, phase B: the sale itself happened before the tax

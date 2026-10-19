@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 429,
+    date: '2026-10-18',
+    title: 'Tax-loss harvesting sells only a loss the account holds, and the sale lowers the basis',
+    summary: 'Harvesting used to book the taxable account\u2019s whole decline as a loss, whatever its cost basis, and never lowered the basis. Now only the loss the account holds is sold, and the sale resets the basis.',
+    items: [
+      "**What was wrong.** With harvesting on, every down year booked the taxable account\u2019s whole decline as a realized loss \u2014 even for an account sitting on large gains, which has no loss to sell \u2014 and left the cost basis where it was, so the dollars deducted against income now still counted as basis when the shares were sold later. One loss, two tax benefits.",
+      "**What changed.** The harvest is the loss the account actually holds after the decline: its cost basis over the declined value, never more than the decline. An account on gains harvests nothing on a dip; a fresh account harvests the dip. This year\u2019s own contribution, bought at the top, is harvestable on its own. The sale and rebuy reset the basis to the declined value, so the later recovery is taxed as the gain it is.",
+      "**Your numbers will change** if Tax-Loss Harvesting is on: most plans harvest less, and a plan whose taxable account carries the default 60% gain harvests only in a deep crash. Enter the account\u2019s cost basis under Initial Balances for the right answer \u2014 the loss available depends on it.",
+    ],
+  },
+  {
     id: 428,
     date: '2026-10-18',
     title: 'The optimizers rank by what your heirs keep after every tax',

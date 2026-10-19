@@ -103,8 +103,11 @@ describe('Q-7: full retirement age by year of birth', () => {
 });
 
 describe('Q-11: capital-loss rules', () => {
+  // Changelog 429: only a loss the account holds is harvested, so the
+  // account starts at its basis (a fresh purchase); the 2026 growth leaves
+  // it with a small gain that the 2027 crash more than wipes out.
   const crash = {
-    ...DEFAULT_INPUTS, taxableInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
+    ...DEFAULT_INPUTS, taxableInit: 500000, taxableBasisInit: 500000, stressType: 'crashYear', stressCrashReturn: -20,
     stressStartMode: 'specific', stressStartYear: 2027, taxLossHarvestingEnabled: true,
   };
   it('the ordinary-income offset is $3,000, $1,500 for MFS, and is not indexed', () => {
@@ -118,19 +121,23 @@ describe('Q-11: capital-loss rules', () => {
     expect(later.harvestedOrdinaryOffset).toBeLessThanOrEqual(3000.01);
   });
   it('a loss never absorbs qualified dividends, but does net against realized gains on a Taxable draw', () => {
-    // Retired, living off Taxable: the 2028 draw realizes gains that the
-    // 2027 harvest offsets before the $3,000 ordinary slice.
+    // Retired, living off Taxable: the 2027 crash takes the account under
+    // its basis (changelog 429: the harvest is that loss, and the basis is
+    // reset to the crashed value, so the 2028 draw has no gain to realize);
+    // the 2029 draw, after a year's recovery, realizes gains that the
+    // carried loss offsets before the $3,000 ordinary slice. The pension
+    // keeps the year's tax above zero so the netting shows.
     const retired = {
-      ...crash, spouse2Enabled: false, birthYear1: 1961, retireAge1: 60, salary1: 0, ss1: 0, ss2: 0, pension1: 0,
-      lifestyleExpense: 250000, preTaxInit: 0, rothInit: 0, taxableInit: 3000000, taxableBasisInit: 900000,
+      ...crash, spouse2Enabled: false, birthYear1: 1961, retireAge1: 60, salary1: 0, ss1: 0, ss2: 0, pension1: 60000,
+      lifestyleExpense: 250000, preTaxInit: 0, rothInit: 0, taxableInit: 3000000, taxableBasisInit: 3000000,
       withdrawalStrategy: 'TaxableFirst', cashFloorEnabled: false,
     };
-    const y = runProjection(retired).years.find(r => r.year === 2028);
+    const y = runProjection(retired).years.find(r => r.year === 2029);
     expect(y.harvestedGainsOffset).toBe(0); // no Life-Event gains, dividends untouched
     expect(y.lossUsedOnDraw).toBeGreaterThan(0);
     expect(y.lossCarryforward).toBeGreaterThanOrEqual(0);
     // Netting lowered tax versus the same plan with harvesting off.
-    const off = runProjection({ ...retired, taxLossHarvestingEnabled: false }).years.find(r => r.year === 2028);
+    const off = runProjection({ ...retired, taxLossHarvestingEnabled: false }).years.find(r => r.year === 2029);
     expect(y.totalTaxesPaid).toBeLessThan(off.totalTaxesPaid);
   });
 });
