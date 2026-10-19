@@ -15,8 +15,9 @@ import HowFigured from '../../components/HowFigured';
 import { checkedOn } from '../../utils/howFiguredFormat';
 import YearLedgerTab from '../../components/tabs/YearLedgerTab';
 import SimulationContext from '../../context/SimulationContext';
-import { HOW_FIGURED_RULES, HOW_FIGURED_GROUPS } from '../../config/howFigured';
+import { FIGURE_VINTAGES, HOW_FIGURED_RULES, HOW_FIGURED_GROUPS } from '../../config/howFigured';
 import { SOURCES } from '../../config/sources';
+import { CA_VINTAGE_YEAR } from '../../utils/copyFigures';
 import { renderWithSimulation } from '../testUtils';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -53,6 +54,22 @@ describe('How the numbers are figured', () => {
     // Every link on the page is one of the sources.
     const urls = new Set(SOURCES.map((s) => s.url));
     for (const a of container.querySelectorAll('a')) expect(urls.has(a.getAttribute('href')), a.getAttribute('href')).toBe(true);
+  });
+
+  it('opens with the table of which year each area\'s figures come from, and hides it while searching', () => {
+    setWidth(false);
+    const { container } = render(<HowFigured />);
+    const table = screen.getByRole('table');
+    expect(screen.getByRole('heading', { level: 2, name: /Which year.s figures this plan uses/ })).toBeInTheDocument();
+    expect(container.querySelectorAll('[data-figure-vintage]').length).toBe(FIGURE_VINTAGES.length);
+    // The California row is the reason the table exists: it says the
+    // figures are older than the tax year and grown forward.
+    const ca = container.querySelector('[data-figure-vintage="California"]');
+    expect(ca.textContent).toMatch(new RegExp(`Tax year ${CA_VINTAGE_YEAR}`));
+    expect(ca.textContent).toMatch(/grown by your Tax Bracket Inflation Rate/);
+    expect(within(table).getByRole('rowheader', { name: 'Federal income tax' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'California' } });
+    expect(screen.queryByRole('table')).toBeNull();
   });
 
   it('formats check dates as Month D, YYYY', () => {

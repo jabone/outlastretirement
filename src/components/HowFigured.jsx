@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Calculator, ExternalLink, Search } from 'lucide-react';
 import SimulationContext from '../context/SimulationContext';
-import { HOW_FIGURED_GROUPS, HOW_FIGURED_RULES } from '../config/howFigured';
+import { FIGURE_VINTAGES, HOW_FIGURED_GROUPS, HOW_FIGURED_RULES } from '../config/howFigured';
 import { SOURCES, SOURCE_VERIFIED_ON } from '../config/sources';
 import { TAX_YEAR } from '../utils/copyFigures';
 import { checkedOn, ruleAnchorId } from '../utils/howFiguredFormat';
@@ -141,6 +141,33 @@ const HowFigured = () => {
           )}
         </div>
       </div>
+
+      {!searching && (
+        <section aria-labelledby="how-figured-vintages-title" style={{ ...styles.card, gap: '10px' }}>
+          <h2 id="how-figured-vintages-title" style={{ fontSize: '16px', fontWeight: 650, margin: 0 }}>Which year&rsquo;s figures this plan uses</h2>
+          <p style={{ ...styles.meta, color: 'var(--text-primary)' }}>
+            Every figure is the newest its agency has published. Where that is older than {TAX_YEAR}, the plan grows it forward and this table says so.
+          </p>
+          <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 'var(--fs-sm)', lineHeight: 1.5 }}>
+            <thead>
+              <tr>
+                <th scope="col" style={{ textAlign: 'left', padding: '4px 10px 4px 0', borderBottom: '1px solid var(--card-border)', whiteSpace: 'nowrap' }}>Area</th>
+                <th scope="col" style={{ textAlign: 'left', padding: '4px 10px 4px 0', borderBottom: '1px solid var(--card-border)', whiteSpace: 'nowrap' }}>Figures from</th>
+                <th scope="col" style={{ textAlign: 'left', padding: '4px 0', borderBottom: '1px solid var(--card-border)' }}>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {FIGURE_VINTAGES.map((row) => (
+                <tr key={row.area} data-figure-vintage={row.area}>
+                  <th scope="row" style={{ textAlign: 'left', fontWeight: 600, padding: '5px 10px 5px 0', verticalAlign: 'top', borderBottom: '1px solid var(--card-border)' }}>{row.area}</th>
+                  <td style={{ padding: '5px 10px 5px 0', verticalAlign: 'top', whiteSpace: 'nowrap', borderBottom: '1px solid var(--card-border)', fontWeight: row.year !== TAX_YEAR ? 600 : 400 }}>Tax year {row.year}</td>
+                  <td style={{ padding: '5px 0', verticalAlign: 'top', color: 'var(--text-secondary)', borderBottom: '1px solid var(--card-border)' }}>{row.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
 
       {HOW_FIGURED_GROUPS.map((group) => {
         const rules = shown.filter((r) => r.group === group);

@@ -15,8 +15,9 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { HOW_FIGURED_RULES, HOW_FIGURED_GROUPS, howFiguredRule } from '../config/howFigured';
+import { FIGURE_VINTAGES, HOW_FIGURED_RULES, HOW_FIGURED_GROUPS, howFiguredRule } from '../config/howFigured';
 import { SOURCES } from '../config/sources';
+import { TAX_YEAR, CA_VINTAGE_YEAR } from '../utils/copyFigures';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(SRC, f), 'utf8');
@@ -57,6 +58,32 @@ describe('how the numbers are figured: rules', () => {
     for (const g of HOW_FIGURED_GROUPS) expect(HOW_FIGURED_RULES.some((r) => r.group === g), g).toBe(true);
     expect(howFiguredRule('rmd').title).toMatch(/minimum distributions/i);
     expect(howFiguredRule('nope')).toBeNull();
+  });
+
+  it('the vintage table has a row per group and names every card whose figures are older than the tax year', () => {
+    const areas = FIGURE_VINTAGES.map((v) => v.area);
+    expect(new Set(areas).size).toBe(areas.length);
+    for (const g of HOW_FIGURED_GROUPS.filter((g) => g !== 'Planning assumptions')) expect(areas, g).toContain(g);
+    for (const v of FIGURE_VINTAGES) {
+      expect(Number.isInteger(v.year) && v.year >= 2024 && v.year <= TAX_YEAR, v.area).toBe(true);
+      expect(v.note.length, v.area).toBeGreaterThan(20);
+      for (const id of v.rules || []) expect(howFiguredRule(id), `${v.area} -> ${id}`).not.toBeNull();
+    }
+    // A card quoting a year other than the tax year must be named by a row
+    // carrying that same year, so the December update cannot refresh one
+    // without the other.
+    const named = Object.fromEntries(FIGURE_VINTAGES.flatMap((v) => (v.rules || []).map((id) => [id, v.year])));
+    for (const r of HOW_FIGURED_RULES) {
+      // A span of years set in law (the senior deduction's 2025-2028) is
+      // not a vintage: nothing there is grown forward.
+      if (/set in law/i.test(String(r.figuresYear))) continue;
+      const years = [...String(r.figuresYear).matchAll(/\b(20\d\d)\b/g)].map((m) => Number(m[1]));
+      const older = years.filter((y) => y < TAX_YEAR && y >= 2024);
+      if (older.length === 0) continue;
+      expect(named[r.id], `${r.id} quotes ${older.join(', ')} but the vintage table does not name it`).toBe(older[0]);
+    }
+    expect(named['state-ca']).toBe(CA_VINTAGE_YEAR);
+    expect(howFiguredRule('state-ca').figuresYear).toContain(String(CA_VINTAGE_YEAR));
   });
 
   it('every rule has at least one source, and every source id exists', () => {

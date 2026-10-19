@@ -4,6 +4,7 @@
 // export is pinned by src/__tests__/copyFigures.test.js instead.
 import {
   TAX_YEAR,
+  CA_VINTAGE_YEAR,
   ACA_SUBSIDY_CLIFF_FPL_MULTIPLE,
   getFederalPovertyLevel,
   BRACKETS_MFS,
@@ -138,6 +139,7 @@ export {
 
 export {
   TAX_YEAR,
+  CA_VINTAGE_YEAR,
   AMT_EXEMPTION_MFS_2026,
   AMT_EXEMPTION_SINGLE_2026,
   SS_EARNINGS_TEST_EXEMPT_UNDER_FRA,

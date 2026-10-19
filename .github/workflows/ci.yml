@@ -44,13 +44,11 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:e2e
-      # Safari's engine on a phone, the four flows only. Advisory until it
-      # has been seen green on a release; then drop continue-on-error so a
-      # WebKit-only regression blocks a release like any other.
+      # Safari's engine on a phone, the four flows only. A WebKit-only
+      # regression blocks a release like any other.
       - run: npx playwright test --project=webkit-iphone
         env:
           E2E_WEBKIT: '1'
-        continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

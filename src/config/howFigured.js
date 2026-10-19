@@ -22,7 +22,7 @@
 // the sources behind it are re-checked every December.
 import { STATE_TAX_RULES } from './stateTaxRules';
 import {
-  usd, usdCents, TAX_YEAR, ACA_CLIFF_COUPLE, ACA_CLIFF_SINGLE, TOP_RATE_START_SINGLE, TEN_PCT_TOP_MFJ,
+  usd, usdCents, TAX_YEAR, CA_VINTAGE_YEAR, ACA_CLIFF_COUPLE, ACA_CLIFF_SINGLE, TOP_RATE_START_SINGLE, TEN_PCT_TOP_MFJ,
   DEDUCTION_MFJ, DEDUCTION_SINGLE, ADDITIONAL_DEDUCTION_AGED_MARRIED_2026, ADDITIONAL_DEDUCTION_AGED_SINGLE_2026,
   SENIOR_BONUS_DEDUCTION, SENIOR_BONUS_FIRST_YEAR, SENIOR_BONUS_LAST_YEAR, SENIOR_BONUS_PHASEOUT_SINGLE,
   SENIOR_BONUS_PHASEOUT_MFJ, SENIOR_BONUS_GONE_MFJ,
@@ -52,6 +52,24 @@ export const HOW_FIGURED_GROUPS = [
   'Estate and inheritance',
   'States',
   'Planning assumptions',
+];
+
+// The "Which year's figures this plan uses" table at the top of the
+// section: one row per group, then a row for each place the figures are
+// older than the tax year, so a California reader learns on the first screen
+// that their brackets are last year's grown forward. howFigured.test.js
+// checks that every rule quoting a year other than the tax year has a row
+// here, so the December update cannot refresh a card and leave the table
+// behind.
+export const FIGURE_VINTAGES = [
+  { area: 'Federal income tax', year: TAX_YEAR, note: 'The IRS figures for the current tax year; later years grow them by your Tax Bracket Inflation Rate.' },
+  { area: 'Social Security', year: TAX_YEAR, note: 'The wage base, the earnings-test amounts and the announced increase; the benefit formula is set in law.' },
+  { area: 'Medicare and health coverage', year: TAX_YEAR, note: 'Part B and Part D premiums, the income-surcharge tiers and the poverty line behind the marketplace credit.' },
+  { area: 'Retirement accounts', year: TAX_YEAR, note: 'Contribution and catch-up limits, the HSA limits and the charitable-distribution limit.' },
+  { area: 'Estate and inheritance', year: TAX_YEAR, note: 'The federal exemption and each state’s own.' },
+  { area: 'States', year: TAX_YEAR, note: 'Every state’s own rules, except the two below.' },
+  { area: 'California', year: CA_VINTAGE_YEAR, note: `The latest California has published, grown by your Tax Bracket Inflation Rate for ${CA_VINTAGE_YEAR + 1} and later. California usually publishes the next year’s figures in December; they replace these when it does.`, rules: ['state-ca'] },
+  { area: 'Washington capital gains deduction', year: 2025, note: 'The latest Washington has published; the law grows it with inflation from there.', rules: ['state-wa'] },
 ];
 
 export const HOW_FIGURED_RULES = [
@@ -357,8 +375,8 @@ export const HOW_FIGURED_RULES = [
     title: 'California',
     group: 'States',
     summary: `California taxes income in nine brackets from 1% to 12.3% after a ${usd(CA_STD_DEDUCTION_SINGLE)} standard deduction (${usd(CA_STD_DEDUCTION_MFJ)} joint), plus 1% on income over ${usd(CA_BHS_TAX_THRESHOLD)}. Social Security is exempt; pensions, IRA withdrawals and conversions are taxed in full, except up to ${usd(CA_MILITARY_EXCLUSION_CAP)} of military retirement pay for moderate incomes. California does not recognize HSAs, so contributions and growth are taxed each year, and early retirement withdrawals carry an extra 2.5%.`,
-    figuresYear: 'Tax year 2025, the latest California has published',
-    simplifies: 'The 2025 brackets and deduction are used for every later year without inflation adjustment, and itemized deductions are not modeled.',
+    figuresYear: `Tax year ${CA_VINTAGE_YEAR}, the latest California has published, grown by your Tax Bracket Inflation Rate for ${CA_VINTAGE_YEAR + 1} and later`,
+    simplifies: `California indexes these figures to its own price index each year; the plan grows them from ${CA_VINTAGE_YEAR} by your Tax Bracket Inflation Rate instead, and replaces them when California publishes the next year's. The 1% tax over ${usd(CA_BHS_TAX_THRESHOLD)} is not indexed. Itemized deductions are not modeled.`,
     sources: ['ca-tax-rates', 'ca-standard-deduction', 'ca-military-exclusion', 'ca-early-distribution'],
   },
   {

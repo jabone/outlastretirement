@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 432,
+    date: '2026-10-18',
+    title: 'Help now says which year’s figures each part of the plan uses',
+    summary: 'A table at the top of How the numbers are figured lists the year each area’s figures come from, and names California’s 2025 figures grown forward until California publishes 2026.',
+    items: [
+      "**What changed.** The Help section How the numbers are figured opens with a short table: federal income tax, Social Security, Medicare, retirement accounts, estate and the states, each with the tax year its figures come from, and a row for each place the figures are older than that and grown forward — California’s brackets, standard deduction and exemption credit (the 2025 figures, the latest California has published, grown by your Tax Bracket Inflation Rate) and Washington’s capital gains deduction. The California card itself now says the same; it had still described the figures as standing still, which stopped being true on October 18.",
+      "**Why.** Every figure in the plan is the newest its agency has published, but agencies publish on different calendars, and a California reader deserved to learn on the first screen that their brackets are last year’s grown forward rather than find it on one card. When California publishes its 2026 figures, usually in December, they replace the 2025 ones and the table says so.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
     id: 431,
     date: '2026-10-18',
     title: 'Statement import reads a PDF in the background again',
