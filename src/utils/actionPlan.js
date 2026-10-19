@@ -9,6 +9,7 @@
 // same narrative.
 //
 import { buildAbroadActionItems } from './abroadActionItems';
+import { legacyAfterTaxes } from '../calculator';
 
 // Returns { headline, sections } where each section is
 // { id, title, items: [{ label, detail }] }. `detail` may be null.
@@ -277,20 +278,30 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
   // silently if not provided (e.g. a caller that hasn't wired it up yet), so
   // this never breaks existing call sites.
   if (Array.isArray(rothLadderHeatmap) && rothLadderHeatmap.length > 0) {
+    // Changelog 428: the grid and this note rank by what the heirs keep
+    // after every tax, not the ending balance (which counts a Pre-Tax
+    // dollar as a Roth dollar). Cells carry both; the current plan's
+    // after-tax figure is priced here the same way, in the grid's dollars.
+    const cellKey = (c) => (c.isSuccessful ? 1 : 0) * 1e15 + (c.afterTaxLegacy ?? c.endingBalance ?? 0);
     const bestCell = rothLadderHeatmap.reduce((best, cell) => (
-      !best || cell.endingBalance > best.endingBalance ? cell : best
+      !best || cellKey(cell) > cellKey(best) ? cell : best
     ), null);
     const isActiveCombo = inputs.rothConversionStrategy === 'maxBracket'
       && inputs.rothConversionBracket === bestCell.bracket
       && inputs.withdrawalStrategy === bestCell.withdrawalStrategy;
+    // App.jsx attaches the plan's figure in display dollars; a bare
+    // projection (tests, the printed report) is priced here, nominal.
+    const currentAfterTax = typeof projection?.afterTaxLegacy === 'number'
+      ? projection.afterTaxLegacy
+      : (projection ? legacyAfterTaxes(inputs, projection) : 0);
     // A small, arbitrary noise floor -- don't recommend switching strategies
     // over a rounding-level difference that isn't worth the hassle.
-    const improvement = bestCell.endingBalance - endingBalance;
+    const improvement = (bestCell.afterTaxLegacy ?? bestCell.endingBalance) - currentAfterTax;
     if (!isActiveCombo && improvement > 1000) {
       const bestPct = Math.round(bestCell.bracket * 100);
       retirementItems.push({
-        label: `Filling the ${bestPct}% bracket with ${WITHDRAWAL_STRATEGY_SHORT_LABELS[bestCell.withdrawalStrategy] || bestCell.withdrawalStrategy} withdrawals projects a larger ending balance`,
-        detail: `Optimizers \u2192 Roth Ladder Optimizer tries every bracket and withdrawal order. It projects ${fc(bestCell.endingBalance)} ending balance for this combination, ${fc(improvement)} more than your current settings. A large gap usually means your current conversion setting is aggressive for your bracket picture.`,
+        label: `Filling the ${bestPct}% bracket with ${WITHDRAWAL_STRATEGY_SHORT_LABELS[bestCell.withdrawalStrategy] || bestCell.withdrawalStrategy} withdrawals leaves your heirs more after every tax`,
+        detail: `Optimizers \u2192 Roth Ladder Optimizer tries every bracket and withdrawal order and ranks them by what your heirs keep after every tax. It projects ${fc(bestCell.afterTaxLegacy ?? bestCell.endingBalance)} for this combination, ${fc(improvement)} more than your current settings. A large gap usually means your current conversion setting is aggressive, or timid, for your bracket picture.`,
       });
     }
   }

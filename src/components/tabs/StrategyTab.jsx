@@ -168,9 +168,10 @@ const StrategyTab = () => {
   // one metric toggle: endingBalance is maximized, totalTaxesPaid minimized
   // -- rothLadderMetricDirection below drives which "optimal" means which.
   const [rothLadderMode, setRothLadderMode] = useState('bracket');
-  const [rothLadderMetric, setRothLadderMetric] = useState('endingBalance');
+  const [rothLadderMetric, setRothLadderMetric] = useState('afterTaxLegacy');
   const [selectedRothLadderCell, setSelectedRothLadderCell] = useState(null);
-  const rothLadderMetricDirection = rothLadderMetric === 'endingBalance' ? 'max' : 'min';
+  const rothLadderMetricDirection = rothLadderMetric === 'totalTaxesPaid' ? 'min' : 'max';
+  const rothLadderMetricName = rothLadderMetric === 'afterTaxLegacy' ? 'net to heirs after every tax' : rothLadderMetric === 'endingBalance' ? 'ending balance' : 'lifetime taxes';
 
   const isApplied = (strat) => {
     return Object.keys(strat.config).every(k => inputs[k] === strat.config[k]);
@@ -271,6 +272,12 @@ const StrategyTab = () => {
                       
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: 'var(--fs-body)', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginBottom: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-muted)' }}><Tooltip text="What your heirs keep after every tax: the Pre-Tax balance at death less the income tax they pay drawing it down, the Roth and taxable accounts, your other estate assets, less estate tax. The cards are ranked on this, since a Pre-Tax dollar is not worth a Roth dollar." more="Net to heirs after every tax">Net to heirs after every tax</Tooltip></span>
+                          <span style={{ fontWeight: '600', color: strat.afterTaxLegacy > 0 ? 'var(--text-primary)' : 'var(--error)' }}>
+                            {formatCurrency(strat.afterTaxLegacy)}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Ending Balance:</span>
                           <span style={{ fontWeight: '600', color: strat.endingBalance > 0 ? 'var(--text-primary)' : 'var(--error)' }}>
                             {formatCurrency(strat.endingBalance)}
@@ -364,17 +371,19 @@ const StrategyTab = () => {
                         <div style={{ padding: '14px', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
                           <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>Current Mix</div>
                           <div style={{ fontSize: 'var(--fs-sm)', fontWeight: '600', marginTop: '4px' }}>{pctLabel(opt.current)}</div>
-                          <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '4px' }}>Ending balance: {formatCurrency(opt.current.endingBalance)}</div>
+                          <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '4px' }}>Net to heirs after every tax: {formatCurrency(opt.current.afterTaxLegacy)}</div>
+                          <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>Ending balance: {formatCurrency(opt.current.endingBalance)}</div>
                         </div>
                         <div style={{ padding: '14px', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: improved ? 'rgba(16,185,129,0.05)' : 'rgba(255,255,255,0.02)' }}>
                           <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>Best Mix Found</div>
                           <div style={{ fontSize: 'var(--fs-sm)', fontWeight: '600', marginTop: '4px', color: improved ? 'var(--success)' : 'var(--text-primary)' }}>{pctLabel(opt.best)}</div>
-                          <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '4px' }}>Ending balance: {formatCurrency(opt.best.endingBalance)}</div>
+                          <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '4px' }}>Net to heirs after every tax: {formatCurrency(opt.best.afterTaxLegacy)}</div>
+                          <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>Ending balance: {formatCurrency(opt.best.endingBalance)}</div>
                         </div>
                       </div>
                       <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.5' }}>
                         {improved
-                          ? `Switching to the Best Mix above is projected to leave about ${formatCurrency(opt.improvement)} more at the end of your plan than your current split, holding your total savings amount unchanged.`
+                          ? `Switching to the Best Mix above is projected to leave your heirs about ${formatCurrency(opt.improvement)} more after every tax than your current split, holding your total savings amount unchanged.`
                           : 'Your current split is already the best (or tied for best) of the splits tested.'}
                         {' '}Searches a 5-point grid (0/25/50/75/100% Roth) per spouse; the true optimum may fall between these points, but this is enough to show whether your plan clearly favors one end over a mix.
                       </div>
@@ -412,14 +421,16 @@ const StrategyTab = () => {
                             <thead>
                               <tr style={{ borderBottom: '1px solid var(--card-border)', textAlign: 'left' }}>
                                 <th style={{ padding: '6px 8px', color: 'var(--text-muted)' }}>Split</th>
+                                <th style={{ padding: '6px 8px', color: 'var(--text-muted)', textAlign: 'right' }}>Net to Heirs After Tax</th>
                                 <th style={{ padding: '6px 8px', color: 'var(--text-muted)', textAlign: 'right' }}>Ending Balance</th>
                                 <th style={{ padding: '6px 8px', color: 'var(--text-muted)', textAlign: 'right' }}>Total Taxes</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {[...opt.results].sort((a, b) => b.endingBalance - a.endingBalance).map((r, i) => (
+                              {[...opt.results].sort((a, b) => b.afterTaxLegacy - a.afterTaxLegacy).map((r, i) => (
                                 <tr key={i} style={{ borderBottom: '1px solid var(--card-border)', backgroundColor: r === opt.best ? 'rgba(16,185,129,0.05)' : 'transparent' }}>
                                   <td style={{ padding: '6px 8px' }}>{pctLabel(r)}{!r.isSuccessful && ' (shortfall)'}</td>
+                                  <td style={{ padding: '6px 8px', textAlign: 'right' }}>{formatCurrency(r.afterTaxLegacy)}</td>
                                   <td style={{ padding: '6px 8px', textAlign: 'right' }}>{formatCurrency(r.endingBalance)}</td>
                                   <td style={{ padding: '6px 8px', textAlign: 'right' }}>{formatCurrency(r.totalTaxes)}</td>
                                 </tr>
@@ -959,7 +970,7 @@ const StrategyTab = () => {
             ? heatmapData.find(c => c.bracket === rowVal && c.withdrawalStrategy === colVal)
             : heatmapData.find(c => c.pct === rowVal && c.durationYears === colVal);
 
-          const cellValue = (cell) => rothLadderMetric === 'endingBalance' ? cell.endingBalance : cell.totalTaxesPaid;
+          const cellValue = (cell) => rothLadderMetric === 'afterTaxLegacy' ? cell.afterTaxLegacy : rothLadderMetric === 'endingBalance' ? cell.endingBalance : cell.totalTaxesPaid;
 
           const isCellCurrent = (cell) => rothLadderMode === 'bracket'
             ? (inputs.rothConversionStrategy === 'maxBracket' && inputs.rothConversionBracket === cell.bracket && inputs.withdrawalStrategy === cell.withdrawalStrategy)
@@ -1051,7 +1062,8 @@ const StrategyTab = () => {
                       onChange={(e) => setRothLadderMetric(e.target.value)}
                       style={{ margin: 0 }}
                     >
-                      <option value="endingBalance">Ending Portfolio Legacy (maximize)</option>
+                      <option value="afterTaxLegacy">Net to Heirs After Every Tax (maximize)</option>
+                      <option value="endingBalance">Ending Portfolio Balance (maximize)</option>
                       <option value="totalTaxesPaid">Lifetime Taxes Paid (minimize)</option>
                     </select>
                   </div>
@@ -1153,7 +1165,7 @@ const StrategyTab = () => {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '4px', backgroundColor: 'rgb(16, 185, 129)' }}><Star size={12} fill="currentColor" style={{ color: '#fff' }} /></span>
-                        <span style={{ color: 'var(--text-secondary)' }}>Optimal ({rothLadderMetricDirection === 'max' ? 'highest' : 'lowest'} {rothLadderMetric === 'endingBalance' ? 'ending balance' : 'lifetime taxes'})</span>
+                        <span style={{ color: 'var(--text-secondary)' }}>Optimal ({rothLadderMetricDirection === 'max' ? 'highest' : 'lowest'} {rothLadderMetricName})</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1195,7 +1207,7 @@ const StrategyTab = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)' }}>
                           <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                            {rothLadderMetric === 'endingBalance' ? 'Projected Ending Balance' : 'Lifetime Taxes Paid'}
+                            {rothLadderMetric === 'afterTaxLegacy' ? 'Net to Heirs After Every Tax' : rothLadderMetric === 'endingBalance' ? 'Projected Ending Balance' : 'Lifetime Taxes Paid'}
                           </div>
                           <div style={{ fontSize: '18px', fontWeight: '700', marginTop: '4px', color: inspectedCell.isSuccessful ? 'var(--text-primary)' : 'var(--error)' }}>
                             {formatCurrency(valInspected)}
@@ -1231,7 +1243,7 @@ const StrategyTab = () => {
                         <div style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(42, 127, 122, 0.2)', backgroundColor: 'rgba(42, 127, 122, 0.03)', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
                           <Lightbulb size={14} style={{ verticalAlign: '-2px', color: 'var(--accent-text)' }} /> <strong>Best result in this grid:</strong> {rothLadderMode === 'bracket'
                             ? `Filling the ${Math.round(optimalCell.bracket * 100)}% bracket with ${withdrawalLabels[optimalCell.withdrawalStrategy]} withdrawals`
-                            : `Converting ${formatCurrency(optimalCell.annualAmount)}/yr for ${optimalCell.durationYears} years`} yields the {rothLadderMetricDirection === 'max' ? 'highest' : 'lowest'} {rothLadderMetric === 'endingBalance' ? 'ending balance' : 'lifetime tax bill'}: <strong>{formatCurrency(cellValue(optimalCell))}</strong>.
+                            : `Converting ${formatCurrency(optimalCell.annualAmount)}/yr for ${optimalCell.durationYears} years`} yields the {rothLadderMetricDirection === 'max' ? 'highest' : 'lowest'} {rothLadderMetric === 'afterTaxLegacy' ? 'net to heirs after every tax' : rothLadderMetric === 'endingBalance' ? 'ending balance' : 'lifetime tax bill'}: <strong>{formatCurrency(cellValue(optimalCell))}</strong>.
                         </div>
                       )}
 

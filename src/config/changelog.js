@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 428,
+    date: '2026-10-18',
+    title: 'The optimizers rank by what your heirs keep after every tax',
+    summary: 'The Tax Optimizer Hub, Roth Ladder Optimizer, Contribution Split Optimizer and Action Plan now rank strategies by net to heirs after every tax, not an ending balance that treats Pre-Tax as Roth.',
+    items: [
+      "**What was wrong.** Every optimizer picked its winner by the ending balance, which adds the Pre-Tax, Roth and taxable accounts as if a dollar in each were worth the same. A strategy that left tax unpaid \u2014 no conversions, Pre-Tax drawn last \u2014 always won on that figure, and a conversion that paid 22% today to spare your heirs 32% later always looked like a loss. For the Carter demo plan, no conversion won; after the heirs\u2019 tax, filling the 22% bracket wins.",
+      "**What changed.** The figure each optimizer ranks on is now **net to heirs after every tax**: the Pre-Tax balance at the end of the plan less the income tax the heirs pay drawing it down at their own rates, the Roth, taxable and stepped-up assets at their value, the home and other estate assets, less estate tax \u2014 the Tax & Estate tab\u2019s own figure, with the Pre-Tax balance taken at death rather than grown through the heirs\u2019 ten years. The ending balance is still shown beside it, and the Roth Ladder Optimizer can be switched back to rank on it. A plan that runs short ranks below any that lasts.",
+      "**Your numbers will change** in the optimizers\u2019 rankings and recommendations, not in your plan: the Hub\u2019s Best card, the ladder grid\u2019s optimal cell, the best contribution split and the Action Plan\u2019s conversion note can all move. Set your heirs\u2019 income and filing status under Tax & Estate \u2014 a high-earning heir makes conversions worth more.",
+    ],
+  },
+  {
     id: 427,
     date: '2026-10-18',
     title: 'The "8 of 10 simulated markets" range explains itself',

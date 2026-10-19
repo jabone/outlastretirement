@@ -166,6 +166,7 @@ import {
   migrateInputs,
   migrateScenarios,
   runProjection,
+  legacyAfterTaxes,
   runOptimizer,
   gridBestExtraStrategy,
   findOptimalRetirementAge,
@@ -1319,8 +1320,18 @@ export default function App() {
   // index; end-of-year balances use the next year's; the lifetime totals
   // are re-derived from the converted rows as a present value.
   const projection = useMemo(
-    () => deflateProjectionForDisplay(rawProjection, useRealDollars),
-    [rawProjection, useRealDollars],
+    () => {
+      const shown = deflateProjectionForDisplay(rawProjection, useRealDollars);
+      // Changelog 428: the plan's net to heirs after every tax, in display
+      // dollars, priced on the NOMINAL projection (the estate thresholds
+      // are indexed to the final year) and deflated by the same factor the
+      // Ending Balance uses. The Action Plan compares it with the Roth
+      // Ladder grid's cells, which carry the same figure in the same dollars.
+      const nominal = legacyAfterTaxes(debouncedInputs, rawProjection);
+      const factor = useRealDollars ? finalBalanceFactor(rawProjection?.years) : 1;
+      return shown === rawProjection ? { ...shown, afterTaxLegacy: nominal } : { ...shown, afterTaxLegacy: nominal / factor };
+    },
+    [rawProjection, useRealDollars, debouncedInputs],
   );
 
   // Stress-scenario comparison, SS claiming heatmap, optimizer, and

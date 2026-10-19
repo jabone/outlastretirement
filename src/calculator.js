@@ -11525,6 +11525,51 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
 }
 
 // Optimization Module
+//
+// Changelog 428: what the optimizers rank. A plan's ending balance adds a
+// Pre-Tax dollar to a Roth dollar as if they were worth the same, so any
+// strategy that leaves tax unpaid -- no conversions, Pre-Tax last -- won on
+// that figure, and a conversion that paid 22% today to spare the heirs 32%
+// later lost. The figure every optimizer ranks on is now the legacy after
+// every tax: the Estate Legacy Planner's net to heirs for the projection's
+// final year (calculateHeirEstateTax, the same call the Tax & Estate tab
+// makes), which prices the inherited Pre-Tax balance at the heirs' own
+// rates over their ten-year draw, the Roth and stepped-up assets at nothing,
+// and the estate taxes. The ending balance is still reported beside it.
+export function legacyAfterTaxes(inputs, proj) {
+  const years = proj?.years || [];
+  if (years.length === 0) return 0;
+  const last = years[years.length - 1];
+  const estate = calculateHeirEstateTax(
+    inputs,
+    last.preTaxEnd || 0, last.rothEnd || 0, last.taxableEnd || 0,
+    last.lifeInsuranceNetDeathBenefit1 || 0, last.lifeInsuranceNetDeathBenefit2 || 0,
+    false, last.hsaEnd || 0,
+    {
+      nqdc: (last.nqdcBalance1 || 0) + (last.nqdcBalance2 || 0),
+      cashReserve: last.cashReserveBalance || 0,
+      concentratedStock: (last.concentratedStockBalance || 0) + (last.concentratedStock2Balance || 0),
+      homeEquity: last.homeEquity || 0,
+      otherAssets: last.otherEstateAssetsValue || 0,
+    }
+  );
+  if (!Number.isFinite(estate?.netInherited)) return 0;
+  // The Legacy Planner draws the inherited Pre-Tax balance down over the
+  // heirs' ten years and nets its growth over those years; the Roth and
+  // the taxable account are taken at their value at death. For ranking,
+  // the Pre-Tax balance is taken at death too, less the heirs' tax at the
+  // effective rate the ten-year draw priced -- otherwise the ten years of
+  // post-death growth would favor whatever left the most in Pre-Tax.
+  const withdrawn = Math.max(0, Number(estate.totalPreTaxWithdrawn) || 0);
+  const heirTax = Math.max(0, Number(estate.totalHeirTax) || 0);
+  const preTaxAtDeath = Math.max(0, last.preTaxEnd || 0);
+  const effectiveRate = withdrawn > 0 ? Math.min(1, heirTax / withdrawn) : 0;
+  return estate.netInherited - Math.max(0, withdrawn - heirTax) + preTaxAtDeath * (1 - effectiveRate);
+}
+// The ranking key: a plan that runs short ranks below any that lasts,
+// whatever its heirs would have kept.
+const rankKey = (r) => (r.isSuccessful ? 1 : 0) * 1e15 + (r.afterTaxLegacy ?? r.endingBalance ?? 0);
+
 // Builds the Tax Optimizer Hub's dynamic card (changelog 110) from the
 // already-computed Roth Ladder grid: the single best
 // {target bracket} x {withdrawal order} combination by ending balance.
@@ -11536,7 +11581,7 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
 // re-running the 28-cell grid.
 export function gridBestExtraStrategy(rothBracketHeatmapData) {
   if (!Array.isArray(rothBracketHeatmapData) || rothBracketHeatmapData.length === 0) return null;
-  const best = rothBracketHeatmapData.reduce((b, c) => (!b || c.endingBalance > b.endingBalance ? c : b), null);
+  const best = rothBracketHeatmapData.reduce((b, c) => (!b || rankKey(c) > rankKey(b) ? c : b), null);
   if (!best) return null;
   if (['TaxableFirst', 'PreTaxFirst', 'ProRata'].includes(best.withdrawalStrategy) && [0.22, 0.24].includes(best.bracket)) return null;
   const orderLabels = { TaxableFirst: 'Taxable First', PreTaxFirst: 'Pre-Tax First', RothFirst: 'Roth First', ProRata: 'Pro-Rata' };
@@ -11648,6 +11693,7 @@ export function runOptimizer(rawInputs = DEFAULT_INPUTS, extraStrategies = []) {
       name: strat.name,
       description: strat.description,
       endingBalance: res.endingBalance,
+      afterTaxLegacy: legacyAfterTaxes(mergedInputs, res),
       totalTaxes: res.totalTaxesPaid,
       totalIRMAA: res.totalIRMAAPaid,
       totalRMDs: res.totalRMDsForced,
@@ -11657,7 +11703,7 @@ export function runOptimizer(rawInputs = DEFAULT_INPUTS, extraStrategies = []) {
     };
   });
 
-  results.sort((a, b) => b.endingBalance - a.endingBalance);
+  results.sort((a, b) => rankKey(b) - rankKey(a));
 
   // Keep the Hub a full 3x3 (changelog 113): when a dynamic extra (the
   // Full-Grid Best card) pushes the count past nine, drop the worst
@@ -11745,14 +11791,15 @@ export function getContributionSplitOptimizer(rawInputs = DEFAULT_INPUTS, { real
   // the final factor would understate them badly, since most of the tax is
   // paid decades before the end. computeOptimizerResultsReal makes the same
   // distinction; this is that logic applied to one projection result.
-  const priceResult = (res) => {
+  const priceResult = (res, usedInputs) => {
+    const afterTax = legacyAfterTaxes(usedInputs, res);
     if (!realDollars || !res.years || res.years.length === 0) {
-      return { endingBalance: res.endingBalance, totalTaxes: res.totalTaxesPaid };
+      return { endingBalance: res.endingBalance, afterTaxLegacy: afterTax, totalTaxes: res.totalTaxesPaid };
     }
     const finalFactor = finalBalanceFactor(res.years);
     let discountedTaxes = 0;
     for (const y of res.years) discountedTaxes += (y.totalTaxesPaid || 0) / (y.inflFactor || 1);
-    return { endingBalance: res.endingBalance / finalFactor, totalTaxes: discountedTaxes };
+    return { endingBalance: res.endingBalance / finalFactor, afterTaxLegacy: afterTax / finalFactor, totalTaxes: discountedTaxes };
   };
 
   const runSplit = (pct1, pct2) => {
@@ -11760,19 +11807,21 @@ export function getContributionSplitOptimizer(rawInputs = DEFAULT_INPUTS, { real
     const preTax1 = searchSpouse1 ? (total1 - roth1) : (inputs.preTaxContribution1 || 0);
     const roth2 = searchSpouse2 ? total2 * (pct2 / 100) : (inputs.rothContribution2 || 0);
     const preTax2 = searchSpouse2 ? (total2 - roth2) : (inputs.preTaxContribution2 || 0);
-    const res = _runProjectionPreSanitized({
+    const splitInputs = {
       ...inputs,
       preTaxContribution1: preTax1,
       rothContribution1: roth1,
       preTaxContribution2: preTax2,
       rothContribution2: roth2,
-    });
-    const priced = priceResult(res);
+    };
+    const res = _runProjectionPreSanitized(splitInputs);
+    const priced = priceResult(res, splitInputs);
     return {
       pct1: searchSpouse1 ? pct1 : null,
       pct2: searchSpouse2 ? pct2 : null,
       preTax1, roth1, preTax2, roth2,
       endingBalance: priced.endingBalance,
+      afterTaxLegacy: priced.afterTaxLegacy,
       totalTaxes: priced.totalTaxes,
       isSuccessful: res.isSuccessful,
     };
@@ -11792,7 +11841,7 @@ export function getContributionSplitOptimizer(rawInputs = DEFAULT_INPUTS, { real
   // reconstructed from a rounded %), so "current" always matches Settings
   // precisely rather than an approximation.
   const currentRes = _runProjectionPreSanitized(inputs);
-  const currentPriced = priceResult(currentRes);
+  const currentPriced = priceResult(currentRes, inputs);
   const current = {
     pct1: total1 > 0 ? Math.round(((inputs.rothContribution1 || 0) / total1) * 100) : null,
     pct2: total2 > 0 ? Math.round(((inputs.rothContribution2 || 0) / total2) * 100) : null,
@@ -11801,16 +11850,19 @@ export function getContributionSplitOptimizer(rawInputs = DEFAULT_INPUTS, { real
     preTax2: inputs.preTaxContribution2 || 0,
     roth2: inputs.rothContribution2 || 0,
     endingBalance: currentPriced.endingBalance,
+    afterTaxLegacy: currentPriced.afterTaxLegacy,
     totalTaxes: currentPriced.totalTaxes,
     isSuccessful: currentRes.isSuccessful,
   };
 
-  // Best = highest ending balance among splits that don't introduce a
-  // shortfall; if every split fails, fall back to the least-bad one so
-  // there's still a recommendation rather than nothing.
+  // Best = largest legacy after every tax (changelog 428; the ending
+  // balance counted a Pre-Tax dollar as a Roth dollar, which favored Pre-Tax
+  // savings whatever the heirs would keep) among splits that don't
+  // introduce a shortfall; if every split fails, fall back to the least-bad
+  // one so there's still a recommendation rather than nothing.
   const successful = results.filter(r => r.isSuccessful);
   const pool = successful.length > 0 ? successful : results;
-  const best = pool.reduce((a, b) => (b.endingBalance > a.endingBalance ? b : a));
+  const best = pool.reduce((a, b) => (b.afterTaxLegacy > a.afterTaxLegacy ? b : a));
 
   return {
     applicable: true,
@@ -11822,7 +11874,7 @@ export function getContributionSplitOptimizer(rawInputs = DEFAULT_INPUTS, { real
     results,
     current,
     best,
-    improvement: best.endingBalance - current.endingBalance,
+    improvement: best.afterTaxLegacy - current.afterTaxLegacy,
   };
 }
 
@@ -12385,6 +12437,7 @@ function extractRothLadderCellMetrics(inputs, proj, realDollars = false) {
       : 0;
     return {
       endingBalance: proj.endingBalance,
+      afterTaxLegacy: legacyAfterTaxes(inputs, proj),
       isSuccessful: proj.isSuccessful,
       totalTaxesPaid: proj.totalTaxesPaid,
       totalIRMAAPaid: proj.totalIRMAAPaid,
@@ -12403,6 +12456,7 @@ function extractRothLadderCellMetrics(inputs, proj, realDollars = false) {
   const lastYearFactor = finalBalanceFactor(proj.years);
   return {
     endingBalance: proj.endingBalance / lastYearFactor,
+    afterTaxLegacy: legacyAfterTaxes(inputs, proj) / lastYearFactor,
     isSuccessful: proj.isSuccessful,
     totalTaxesPaid: discountedTaxes,
     totalIRMAAPaid: discountedIRMAA,
@@ -12858,6 +12912,7 @@ export function computeOptimizerResultsReal(rawInputs, extraStrategies = []) {
     return {
       ...strat,
       endingBalance: strat.endingBalance / lastYearFactor,
+      afterTaxLegacy: (strat.afterTaxLegacy || 0) / lastYearFactor,
       totalTaxes: discountedTaxes,
       totalIRMAA: discountedIRMAA,
       totalRMDs: discountedRMDs,

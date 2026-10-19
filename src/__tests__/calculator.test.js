@@ -5335,10 +5335,11 @@ describe('calculator.js core logic', () => {
         ].sort());
       });
 
-      it('every returned strategy carries its own config used to produce it, and results are sorted highest ending balance first', () => {
+      it('every returned strategy carries its own config used to produce it, and results are sorted highest net to heirs after every tax first (changelog 428)', () => {
         const results = runOptimizer(solventBase);
         for (let i = 1; i < results.length; i++) {
-          expect(results[i - 1].endingBalance).toBeGreaterThanOrEqual(results[i].endingBalance);
+          if (results[i - 1].isSuccessful === results[i].isSuccessful) expect(results[i - 1].afterTaxLegacy).toBeGreaterThanOrEqual(results[i].afterTaxLegacy);
+          else expect(results[i - 1].isSuccessful).toBe(true);
         }
         results.forEach(r => expect(r.config).toBeDefined());
         expect(results[0].ranking).toBe('Best');
