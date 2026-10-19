@@ -73,11 +73,14 @@ describe('DataFreshnessBanner', () => {
   it('"Mark as current" resets the portfolio clock and removes the banner', () => {
     seedOverduePortfolio();
     renderWithSimulation(<DataFreshnessBanner />);
-    // HoverTooltip sets the button's accessible name to its tooltip text
-    // (no explicit aria-label on this one), so query by that.
-    fireEvent.click(screen.getByRole('button', { name: /already up to date/i }));
+    // The button keeps its own words as its name (changelog 437: the
+    // tooltip is `labeled`, so it describes the button instead of renaming
+    // it, as every other tooltip on a labeled control does).
+    const button = screen.getByRole('button', { name: /mark as current/i });
+    expect(button).toHaveAccessibleDescription(/already up to date/i);
+    fireEvent.click(button);
     expect(computeFreshnessStatus().portfolioOverdue).toBe(false);
-    expect(screen.queryByRole('button', { name: /already up to date/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /mark as current/i })).toBeNull();
   });
 
   it('the snooze X quiets the banner for a week', () => {

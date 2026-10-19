@@ -47,6 +47,10 @@
   /* Semantic colors stay semantic -- an error is red whatever the brand is.
      Re-tuned against the navy ground rather than the old near-black. */
   --success: #4ADE80;
+  /* The sidebar plan-status pill's text, on its own tinted ground. The
+     dark pills sit at 6:1 with the plain semantic colors. */
+  --status-success-text: var(--success);
+  --status-danger-text: var(--error);
   /* Lifted from the tailwind-400 reds: those cleared the old near-black
      ground but landed at 3.8:1 on a hovered card here. */
   --error: #FCA5A5;
@@ -146,6 +150,13 @@
   --success: #046B50;
   --error: #B81C1C;
   --danger: #B81C1C;
+  /* The sidebar plan-status pill: its ground is the semantic color at 15%
+     over paper, lighter than paper, so the plain --error sat at 4.4:1 there
+     (changelog 437: axe's one remaining serious contrast failure, "At risk"
+     in the light theme). Deeper shades: 6.2:1 and 5.7:1 on the tinted
+     ground. */
+  --status-success-text: #035C45;
+  --status-danger-text: #8F1414;
   /* Cream on the deep red, 6.4:1. */
   --on-danger: var(--or-cream);
   --warning: #96460A;
@@ -738,13 +749,13 @@ input:checked + .slider-round:before {
 
 .sidebar-status.success {
   background-color: rgba(16, 185, 129, 0.15);
-  color: var(--success);
+  color: var(--status-success-text);
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .sidebar-status.danger {
   background-color: rgba(239, 68, 68, 0.15);
-  color: var(--error);
+  color: var(--status-danger-text);
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 

@@ -122,9 +122,9 @@ export const HOW_FIGURED_RULES = [
     id: 'amt',
     title: 'Alternative minimum tax',
     group: 'Federal income tax',
-    summary: `The app also works out the alternative minimum tax and adds any amount by which it exceeds regular tax. The exemption is ${usd(AMT_EXEMPTION_MFJ_2026)} on a joint return and ${usd(AMT_EXEMPTION_SINGLE_2026)} single, and it phases out at high incomes. Because the app models no itemized deductions or stock options, the minimum tax rarely applies in a projection.`,
+    summary: `The app also works out the alternative minimum tax and adds any amount by which it exceeds regular tax. The exemption is ${usd(AMT_EXEMPTION_MFJ_2026)} on a joint return and ${usd(AMT_EXEMPTION_SINGLE_2026)} single, and it phases out at high incomes. The minimum tax starts from taxable income and adds back what it does not allow: the standard deduction, or in a year that itemizes the state and local tax line, since mortgage interest, gifts and medical costs are deductible under both. It rarely applies to a household that takes the standard deduction.`,
     figuresYear: TAX_YEAR,
-    simplifies: 'The standard deduction is the only item added back for the minimum tax.',
+    simplifies: 'Stock option exercises and private activity bond interest, the other common triggers, are not modeled.',
     sources: ['tax-tables'],
   },
   {

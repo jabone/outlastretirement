@@ -42,8 +42,8 @@ export const CONTACT_EMAIL = 'outlastretirement@gmail.com';
 // One entry per capability area. `tab` is where its CTA lands.
 //
 // The hard rule at the top of this file applies to every `points` line here:
-// it must name something that works in the shipped build today. Both areas
-// below do -- holdings since 2026-08, Retirement Spending as of changelog
+// it must name something that works in the shipped build today. Every area
+// below does -- holdings since 2026-08, Retirement Spending as of changelog
 // 140. Nothing aspirational, nothing "coming soon".
 export const PREMIUM_AREAS = [
   {

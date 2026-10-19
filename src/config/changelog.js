@@ -29,6 +29,61 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 437,
+    date: '2026-10-19',
+    title: 'Status pill readable in the light theme, and a tooltip that no longer renames its button',
+    summary: 'The sidebar’s plan-status pill now meets the contrast standard in the light theme, and the Mark as current button keeps its own name for a screen reader.',
+    items: [
+      "**What changed.** “At risk” and “On track” in the sidebar use deeper shades in the light theme, so the text sits at better than 5.5 to 1 against the pill’s tinted background, which an accessibility scan had flagged at 4.4 to 1. The “Mark as current” button on the data-freshness reminder is now named by its own words to a screen reader, with the hover text as its description, where the hover text had replaced its name; and a control that names itself with a label elsewhere on the page is read correctly again.",
+      "**Also.** The site’s production deployment can no longer be started from a working checkout: only the public repository’s own workflow deploys, after its checks pass, and the tools that workflow runs are pinned to exact versions. The verify page now says plainly that a Premium module’s supporting library files are not themselves signed.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
+    id: 436,
+    date: '2026-10-19',
+    title: 'ACA Subsidy Protection now earns the credit it converts to reach',
+    summary: 'When the plan converted enough to lift a year over the poverty line, the premium credit was still priced on the income before the conversion, so it came out at $0. It is priced on the lifted income.',
+    items: [
+      "**What was wrong.** In a state without expanded Medicaid, ACA Subsidy Protection converts just enough Pre-Tax money to Roth to lift the year’s income to the poverty line, where marketplace credits begin. The credit was then worked out on the income before that conversion, under the line, so the plan recorded no credit at all; and the next year’s estimate started from the same figure, so the gap carried forward.",
+      "**What changed.** The income the credit is priced on is settled again after the conversion, with the tax the conversion owes. The credit the protection was built to earn now appears, and the next year starts from the lifted income. A credit settled in your favor and deposited into the taxable account also raises that account’s cost basis, as any deposit does.",
+      "**Your numbers will change** only if ACA Subsidy Protection is on and a year sat under the poverty line: that year, and the ones after it, now show the credit.",
+    ],
+  },
+  {
+    id: 435,
+    date: '2026-10-19',
+    title: 'A fill-to-bracket conversion no longer pays more tax than the bracket owes',
+    summary: 'A Pre-Tax First plan with a fill-to-bracket conversion landed on the ceiling but was charged up to 40% more federal tax than the ceiling owes. It now pays the ceiling’s tax and converts more.',
+    items: [
+      "**What was wrong.** Since October 18 the fill-to-bracket conversion has been trimmed after the withdrawal solver so that the conversion and the Pre-Tax draw together land on the bracket ceiling. Each trim priced the year before the tax it saved was returned to the Pre-Tax account; that return lowers the draw, and a lower draw is less income, but that second saving was never taken off the year, and the next pass, now under the ceiling, converted a little more and charged the tax a second time. A single retiree converting to the top of the 22% bracket sat on the ceiling to the dollar and paid $25,483 of federal tax where the ceiling owes $17,966.",
+      "**What changed.** Each pass returns the saving, re-prices the smaller draw, returns what that saves too, and only then books the pass. The year owes the tax its income owes, the draw is the spending plus that tax, and the conversion is the room left under the ceiling, about $7,000 more in that example.",
+      "**Your numbers will change** if a plan uses a fill-to-bracket conversion and funds spending from Pre-Tax: less tax, a larger conversion, and a larger ending balance. The Demo Plan’s two highest-spending scenarios no longer come within a year of running out.",
+    ],
+  },
+  {
+    id: 434,
+    date: '2026-10-19',
+    title: 'Itemizing with an HSA, an ACA credit or Medicare premiums is taxed on the right deduction',
+    summary: 'The year’s starting tax used the medical deduction as it stood before the HSA draw, ACA credit and Medicare premiums were known, so the tax was off by the difference. It is priced on the final figure.',
+    items: [
+      "**What was wrong.** Since itemized deductions arrived on October 17, the medical line was refined three times during a year: the bridge premium and long-term care first, then Medicare premiums, the ACA credit against the premium and what the HSA paid tax-free. The tax on the year’s income before any withdrawal was priced on the first figure, the withdrawal solver and everything after it on the last, and the year’s tax was the sum of the two, so the difference between the two medical figures was lost. A household whose HSA paid the whole bridge premium was under-taxed by 70%; one with a marketplace credit by half; one whose Medicare premiums added to the line was over-taxed. A fill-to-bracket conversion was also sized before any medical cost was in the deduction, so it under-filled the bracket.",
+      "**What changed.** Once the medical line is final, the starting tax is priced again on it and the difference carried, federal and state; and the conversion is sized with the bridge and long-term care already in view.",
+      "**Your numbers will change** if a plan itemizes and has an HSA paying medical costs, a computed ACA credit or Medicare premiums: the year’s tax is now the tax on the year’s taxable income.",
+    ],
+  },
+  {
+    id: 433,
+    date: '2026-10-19',
+    title: 'No more phantom alternative minimum tax for households that itemize',
+    summary: 'Since itemized deductions arrived, every household that itemized was charged an alternative minimum tax of $8,000 to $23,000 a year that the law does not impose. It is gone.',
+    items: [
+      "**What was wrong.** The alternative minimum tax starts from taxable income and adds back only what it does not allow. The plan added back the whole itemized total, gifts and mortgage interest included, where the law adds back only the state and local tax line, so the minimum tax was compared against a regular tax that had subtracted $100,000 of gifts and came out higher. A single filer earning $350,000 who gave $90,000 was charged $12,754 of minimum tax on a year that owes none; a couple at $400,000 with $130,000 of deductions, $22,658.",
+      "**What changed.** For a year that itemizes, the minimum tax adds back the state and local tax line and the deduction for people 65 and older, nothing else. A year on the standard deduction is unchanged. The Help card and the specification now say so; both still described the app as not itemizing.",
+      "**Your numbers will change** if a plan itemizes: federal tax falls by the phantom amount, and the optimizers, which rank on these taxes, may change their recommendations.",
+    ],
+  },
+  {
     id: 432,
     date: '2026-10-18',
     title: 'Help now says which year’s figures each part of the plan uses',

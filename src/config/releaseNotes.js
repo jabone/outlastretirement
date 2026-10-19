@@ -23,6 +23,22 @@ export const RELEASE_NOTES_WEEKS = 6;
 
 export const RELEASE_WEEKS = [
   {
+    weekOf: '2026-10-19',
+    headline: 'Four tax corrections from a second outside review',
+    bullets: [
+      { title: 'No more phantom alternative minimum tax for households that itemize', ids: [433],
+        text: 'Since itemized deductions arrived on October 17, every household that itemized was charged an alternative minimum tax the law does not impose — $8,000 to $23,000 a year — because the whole itemized total was added back where the law adds back only the state and local tax line. Your numbers will change if your plan itemizes: federal tax falls by that amount, and the optimizers may change their recommendations.' },
+      { title: 'Itemizing with an HSA, an ACA credit or Medicare premiums', ids: [434],
+        text: 'The year’s starting tax was priced on the medical deduction before the HSA draw, the ACA credit and Medicare premiums were known, and the rest of the year on the final figure, so the difference was lost: a household whose HSA paid the bridge premium was under-taxed by 70%. The base is priced once, on the final figure, and a fill-to-bracket conversion is sized with medical costs in view. Your numbers will change if your plan itemizes and has any of those.' },
+      { title: 'A fill-to-bracket conversion pays the bracket’s tax, not 40% more', ids: [435],
+        text: 'A Pre-Tax First plan converting to the top of a bracket landed on the ceiling to the dollar but paid up to 40% more federal tax than the ceiling owes, because each trim of the conversion was priced before the tax it saved came off the draw. The year now owes the tax its income owes and converts the room that frees. Your numbers will change if your plan does this: less tax, a larger conversion, a larger ending balance.' },
+      { title: 'ACA Subsidy Protection earns the credit it converts to reach', ids: [436],
+        text: 'When the plan converted enough to lift a year over the poverty line, the premium credit was priced on the income before the conversion, so it came out at $0 and the gap carried into later years. It is priced on the lifted income. Your numbers will change if the protection is on and a year sat under the line.' },
+      { title: 'Readable status pill, a tooltip that keeps the button’s name, and no by-hand production deploy', ids: [437],
+        text: 'The sidebar’s plan-status pill meets the contrast standard in the light theme; the Mark as current button is named by its own words to a screen reader; the site is deployed only by the public repository’s workflow after its checks pass; and the verify page says that a Premium module’s supporting library files are not themselves signed.' },
+    ],
+  },
+  {
     weekOf: '2026-10-12',
     headline: 'Premium loads as its own module, and asking for Premium no longer fails silently',
     bullets: [
@@ -128,24 +144,6 @@ export const RELEASE_WEEKS = [
         text: 'Premium keys now last 30 days, with a visible warning a week before one runs out. The app now has Terms of Use.' },
     ],
   },
-  {
-    weekOf: '2026-09-07',
-    headline: 'A new home, privacy by default, and Change one thing',
-    bullets: [
-      { title: 'A new home', ids: [170, 172, 173],
-        text: 'OutlastRetirement has a plain-English home page at outlastretirement.com, with the planner at /app. The home and privacy pages now match the app.' },
-      { title: 'Privacy by default', ids: [143, 148, 149],
-        text: 'Usage analytics are off unless you switch them on, the separate performance beacon was removed, and the app’s fonts are bundled with it instead of loaded from Google. You can also save a password-protected backup.' },
-      { title: 'Change one thing', ids: [174, 175],
-        text: 'Compare your plan with the same plan with one change (Roth conversion amount, claiming age, spending, or withdrawal order) side by side. The Medicare surcharge panel now shows the year Medicare actually reads.' },
-      { title: 'What Will You Do?', ids: [169],
-        text: 'A new tab for the non-financial side of retirement: your week, what work gave you, who you will see, and what needs doing. No dollar figures involved.' },
-      { title: 'Estate', ids: [144, 145, 146],
-        text: 'Your home and other property now count in your estate, and estate tax is no longer understated when figures are shown in today’s dollars.' },
-      { title: 'Detailed Holdings', ids: [147, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 171], premium: true,
-        text: 'The Distributions tab (renamed from Dividends) shows what actually arrived next to the estimate, counts capital gain distributions toward your projected tax, and lets you fix mislabeled lots where you see them. A filtered holdings table now shows totals.' },
-    ],
-  },
 ];
 
 // Older history, a quarter at a time. `through` is the last day the summary
@@ -155,7 +153,7 @@ export const RELEASE_QUARTERS = [
     quarter: '2026-Q3',
     label: 'July – September 2026',
     from: '2026-07-24',
-    through: '2026-09-06',
+    through: '2026-09-13',
     headline: 'The core planner, Detailed Holdings, and a full tax-engine audit',
     ids: [
       ...Array.from({ length: 27 }, (_, i) => i + 1),
@@ -169,6 +167,9 @@ export const RELEASE_QUARTERS = [
       115, 121, 123, 130, 131, 132, 114, 119, 120, 124, 125, 126, 127, 133,
       107, 108, 116, 117, 118, 122, 109, 110, 111, 112, 113,
       134, 135, 136, 137, 138, 139, 140, 141, 128, 129,
+      // Week of September 7
+      170, 172, 173, 143, 148, 149, 174, 175, 169, 144, 145, 146,
+      147, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 171,
     ],
     bullets: [
       { title: 'The core planner',
@@ -189,6 +190,8 @@ export const RELEASE_QUARTERS = [
         text: 'Medicare surcharges use income from two years earlier, measured the way Medicare measures it, with an optional Form SSA-44 appeal. Virginia is fully modeled; Illinois, Pennsylvania and New York no longer tax IRA withdrawals and Roth conversions; Colorado’s retirement-income rules, state standard deductions and estate schedules, exact Social Security taxability, and ACA Cliff Protection for Roth conversions before 65. Contribute the Max fills your 401(k), IRA and HSA to their limits, RSU grants can be entered in units, and backdoor Roth amounts are set per spouse. The Tax Optimizer Hub compares nine strategies and shows the best.' },
       { title: 'Retirement spending',
         text: 'Free: break spending into seven categories and see what you have left to spend today. Retirement Spending (Premium): a worksheet that turns today’s spending into a retirement target, a check of whether guaranteed income covers essential spending, and category import from a bank or card CSV.' },
+      { title: 'A new home, privacy by default, and Change one thing',
+        text: 'A plain-English home page at outlastretirement.com with the planner at /app. Usage analytics are off unless switched on, the performance beacon is gone, fonts are bundled, and a backup can be password-protected. Change one thing compares your plan with the same plan with one change side by side; What Will You Do? covers the non-financial side of retirement; your home and other property count in your estate. Detailed Holdings (Premium): the Distributions tab shows what arrived next to the estimate and counts capital gain distributions toward projected tax.' },
     ],
   },
 ];

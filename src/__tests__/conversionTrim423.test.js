@@ -4,7 +4,7 @@
 // bracket the conversion had already filled and overshot the target by the
 // whole draw.
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS, getTaxBracketLimit } from '../calculator';
+import { runProjection, DEFAULT_INPUTS, getTaxBracketLimit, calculateTaxes } from '../calculator';
 
 const START = DEFAULT_INPUTS.planYear;
 const base = {
@@ -26,7 +26,27 @@ describe('the max-bracket fill is trimmed to the solver\'s draw', () => {
       expect(y.conversionTrimmedForDraw).toBeGreaterThan(1000);
       expect(y.ordinaryTaxableIncome).toBeCloseTo(ceilingFor(y), 0);
       expect(y.federalTax + y.stateTax + y.ficaTax).toBeCloseTo(y.totalTaxesPaid, 6);
+      // Changelog 435: landing on the ceiling is not enough -- the year
+      // must owe the ceiling's tax. The only federal tax beyond the
+      // ordinary brackets is the 15% on the taxable account's dividends.
+      const atCeiling = calculateTaxes(ceilingFor(y), 'Single', y.taxBracketInflationFactor, DEFAULT_INPUTS.tcjaSunsetEnabled);
+      expect(y.federalTax - atCeiling).toBeGreaterThanOrEqual(-1);
+      expect(y.federalTax - atCeiling).toBeLessThanOrEqual(0.15 * y.taxableDividends + 1);
     }
+    // And the first year's draw is the spending plus that tax, nothing more.
+    const y0 = years[0];
+    expect(y0.drawPreTax).toBeCloseTo(60000 + y0.healthcareBridge + y0.federalTax, -1);
+  });
+
+  it('the trimmed fixture no longer pays 40% more than the ceiling owes (435)', () => {
+    // The reviewer's reproducer: before 435 this year sat on the $105,700
+    // ceiling and paid $25,483 of federal tax against $17,966 at the
+    // ceiling, because the trim loop priced each pass before the draw it
+    // returned to Pre-Tax came off the year's income.
+    const y = runProjection(base).years[0];
+    const atCeiling = calculateTaxes(ceilingFor(y), 'Single', y.taxBracketInflationFactor, DEFAULT_INPUTS.tcjaSunsetEnabled);
+    expect(y.federalTax).toBeLessThan(atCeiling + 200);
+    expect(y.convertAmount).toBeGreaterThan(30000);
   });
 
   it('a spending draw that fills the bracket on its own leaves no conversion', () => {

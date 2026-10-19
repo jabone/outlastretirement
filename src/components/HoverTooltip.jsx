@@ -71,7 +71,7 @@ const HoverTooltip = ({ text, children, offsetX = 10, offsetY = -30, labeled = f
     setPos({ x: rect.left, y: rect.top });
   };
 
-  const existingLabel = children.props['aria-label'] || children.props['aria-labeledby'];
+  const existingLabel = children.props['aria-label'] || children.props['aria-labelledby'];
 
   return (
     <>

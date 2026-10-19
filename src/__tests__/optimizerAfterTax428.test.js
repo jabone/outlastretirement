@@ -19,7 +19,11 @@ describe('optimizers rank after every tax', () => {
     }
     const byNominal = [...r].sort((a, b) => b.endingBalance - a.endingBalance)[0];
     expect(byNominal.id).toBe('taxable_first');
-    expect(r[0].id).toBe('roth_conv_22');
+    // A 22%-bracket conversion wins on the demo; which withdrawal order
+    // pairs with it has moved as the engine's tax corrections landed (435
+    // made the Pre-Tax-funded fills cheaper), and the three sit within 1%
+    // of each other, so the order is not pinned.
+    expect(r[0].id).toMatch(/^roth_conv_22/);
     expect(r[0].ranking).toBe('Best');
   });
 

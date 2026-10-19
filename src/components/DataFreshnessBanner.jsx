@@ -115,7 +115,7 @@ const DataFreshnessBanner = () => {
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-xs)', padding: '6px 12px' }}>
                 {status.hasHoldings ? 'Import a statement' : 'Open Quick Update'}
               </button>
-              <HoverTooltip text="Already up to date? Reset the reminder without importing anything.">
+              <HoverTooltip text="Already up to date? Reset the reminder without importing anything." labeled>
                 <button type="button" className="btn-outline" onClick={handleMarkCurrent}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-xs)', padding: '6px 12px' }}>
                   <CheckCircle size={13} /> Mark as current

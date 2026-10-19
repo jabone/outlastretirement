@@ -20,8 +20,7 @@
     "test:regression": "vitest run --coverage",
     "test:e2e": "playwright test",
     "check:sources": "node scripts/checkSources.mjs",
-    "deploy": "vercel --prod",
-    "predeploy": "npm run lint && vitest run && vite build"
+    "deploy": "node -e \"console.error('Production is deployed only by the public repository\\'s workflow after its checks pass (OPERATIONS.md, Ship it). A deploy from this checkout bypasses that gate.'); process.exit(1)\""
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",

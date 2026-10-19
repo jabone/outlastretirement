@@ -26,9 +26,10 @@ export function isValidTaxTreatment(value) {
 // at all this year), while this describes the *character* of a taxable
 // account's distribution (how it's taxed when it does). A fund can pay a mix
 // of these across a single year, which "Mixed / Fund-Dependent" covers
-// rather than forcing a single wrong label. v1 scope: purely informational,
-// same as PTA's own distribution-type dropdown -- not read by calculator.js's
-// tax engine (see computeDividendTotals' note on that same limitation).
+// rather than forcing a single wrong label. Since changelog 414 the engine
+// reads it: a linked taxable account's qualified share is the share of its
+// dividend income that comes from holdings marked Qualified (a bond or cash
+// holding left at Not set counts as Ordinary); see taxableQualifiedShare.
 export const DISTRIBUTION_CHARACTERS = [
   { value: 'unspecified', label: 'Not Set / Unspecified' },
   { value: 'qualifiedDividend', label: 'Qualified Dividend' },

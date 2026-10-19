@@ -3511,28 +3511,27 @@ export function isJointReturn(status) {
 
 // Alternative Minimum Tax — tax year 2026 (post-OBBBA figures). Source:
 // IRS Rev. Proc. 2025-32 AMT exemption/phase-out amounts.
-// This is a SIMPLIFIED AMT model: AMTI is approximated as ordinary taxable
-// income before the standard deduction (since AMT doesn't allow it) — the
-// only AMT add-back this app has data for. It does NOT model the add-backs
-// that actually drive most real-world AMT liability: the state/local tax
-// deduction add-back (this app doesn't itemize deductions at all), incentive
-// stock option exercise spreads, or private activity bond interest.
+// A SIMPLIFIED AMT model. AMTI is the regular taxable income plus the
+// deductions the AMT does not allow: the standard deduction, or for a year
+// that itemizes (changelog 417) the state and local tax line (s 56(b)(1));
+// mortgage interest, charitable gifts and medical costs over the floor are
+// allowed under both systems and stay deducted. The senior deduction is
+// added back. Not modeled: incentive stock option exercise spreads and
+// private activity bond interest, the other two common preference items.
 // Capital gains are taxed identically under AMT and regular tax (same
 // preferential rates), so they're deliberately left out of both sides of
 // the AMT-vs-regular-tax comparison below rather than double counted.
 //
-// Important, verified-empirically consequence of the above: because the
-// 2026 AMT exemption ($90,100 single / $140,200 MFJ) is so much larger than
-// the standard deduction it's compensating for ($16,100 / $32,200), the
-// "erased deduction" is never large enough on its own to make the AMT
-// tentative minimum tax exceed regular tax, at ANY income level, for a
-// standard-deduction-only filer — this was checked from $90k up through
-// $10M+ AMTI and amtTax was $0 throughout. That's actually historically
-// accurate: post-2017 tax law, AMT became rare for taxpayers who don't
-// itemize heavily or exercise ISOs, which is exactly this app's population.
-// This machinery is kept (rather than removed) so it's correctly in place
-// if itemized-deduction or ISO modeling is ever added later — until then,
-// expect amtTax to read $0 for effectively every realistic scenario.
+// For a standard-deduction filer the add-back is never large enough on its
+// own to make the tentative minimum tax exceed regular tax, at any income
+// (checked from $90k through $10M+ of AMTI), which is historically
+// accurate: post-2017, AMT is rare for taxpayers who neither itemize heavily
+// nor exercise ISOs. An itemizer with a large SALT line can still owe it,
+// which is why the machinery is here. Until changelog 433 an itemizer's
+// AMTI was the income before ANY deduction, so gifts and mortgage interest
+// the regular tax had subtracted were compared against a tentative tax that
+// had not, and a phantom AMT of $8k-$23k appeared for the households that
+// itemize.
 export const AMT_EXEMPTION_MFJ_2026 = 140200;
 export const AMT_EXEMPTION_SINGLE_2026 = 90100;
 // Not 90100 -- MFS is half of MFJ here, which is LOWER than Single.
@@ -8453,6 +8452,14 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         ltcCost += inputs.ltcCost2 * ltcInflFactor;
       }
     }
+    // Changelog 434: the medical line the deduction can see from here on,
+    // so a fill-to-bracket conversion is sized against the itemized total
+    // the year will actually claim. Until 434 the sizing saw no medical
+    // costs at all (the line was seeded only after the conversion was
+    // chosen) and under-filled the bracket by the medical deduction. The
+    // ACA credit, Medicare premiums and the HSA draw refine the line before
+    // the solver runs, and the base pricing is redone then.
+    itemizedMedicalCosts = healthcareBridge + ltcCost;
 
     // Debt (mortgage + other, e.g. auto loans/personal loans): simple
     // annual-step amortization — interest accrues once per year on the
@@ -9017,11 +9024,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // treated as an opportunity to realize the taxable account's paper
     // loss by swapping into a similar-but-not-identical fund (avoiding the
     // IRS wash-sale rule) while staying fully invested. This app doesn't
-    // track individual tax lots anywhere, so the harvested loss is
-    // approximated as the taxable balance's proportional decline this year
-    // (balance-before-this-year's-growth * |returnRate|%) -- a
-    // simplification, but one that scales sensibly with both account size
-    // and how bad the down year was. The harvested loss first offsets this
+    // track individual tax lots, so the harvested loss is the loss the
+    // account as a whole holds after the decline (changelog 429, below),
+    // never more than the decline itself. The harvested loss first offsets this
     // year's realized capital gains/dividends dollar-for-dollar, then up
     // to $3,000 (2026; inflated forward for consistency with how every
     // other statutory dollar limit in this model is projected in nominal
@@ -9403,6 +9408,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // bridge before its ACA credit, and long-term care); Medicare premiums,
     // the credit and the HSA draw refine it below before the solver runs.
     itemizedMedicalCosts = healthcareBridge + ltcCost;
+    const medicalLineAtBasePricing = itemizedMedicalCosts;
     const baseDeduction = deductionFor(baseOrdinaryTaxableIncome + taxableDividends);
     const ordinaryFedTaxes = calculateTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
     // Q-10(a): rents and annuity income are net investment income for the
@@ -9446,15 +9452,28 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       harvestTaxSavings = Math.max(0, (refOrdinaryFedTaxes + refCapGainsTaxes) - (ordinaryFedTaxes + baseCapGainsTaxes));
     }
 
-    // Alternative Minimum Tax: AMTI approximated as baseOrdinaryTaxableIncome
-    // itself (i.e. before subtracting the standard deduction, since AMT
-    // doesn't allow it — see calculateAMT's comment for the other
-    // simplifications here). Charge the excess of the AMT "tentative
-    // minimum tax" over the regular ordinary tax, if any; capital gains are
-    // taxed the same under both systems so they're excluded from both sides
-    // of this comparison rather than double counted.
-    const tentativeMinimumTax = calculateAMT(baseOrdinaryTaxableIncome, currentStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs));
-    const amtTax = Math.max(0, tentativeMinimumTax - ordinaryFedTaxes);
+    // Alternative Minimum Tax. AMTI starts from the regular taxable income
+    // and adds back what the AMT does not allow: the standard deduction (so
+    // a standard-deduction year's AMTI is the ordinary income itself, as
+    // before) or, for a year that itemizes (changelog 417), the state and
+    // local tax line only -- mortgage interest, charitable gifts and
+    // medical costs over the floor are deductible under the AMT too
+    // (s 56(b)(1)). The senior deduction is added back either way, as it
+    // was. Until changelog 433 an itemizer's AMTI was still the income
+    // before any deduction, so the tentative minimum tax was compared with
+    // a regular tax that had subtracted $100k of gifts and interest and
+    // "AMT" of $8k-$23k appeared for exactly the households that itemize.
+    // See calculateAMT's comment for the other simplifications. Charge the
+    // excess of the tentative minimum tax over the regular ordinary tax, if
+    // any; capital gains are taxed the same under both systems so they're
+    // excluded from both sides of this comparison rather than double
+    // counted.
+    const baseChoice = deductionChoice(baseOrdinaryTaxableIncome + taxableDividends);
+    const amtAllowedDeduction = baseChoice.itemized
+      ? Math.max(0, baseChoice.amount - itemizedFor(baseOrdinaryTaxableIncome + taxableDividends).salt)
+      : 0;
+    const tentativeMinimumTax = calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowedDeduction), currentStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs));
+    let amtTax = Math.max(0, tentativeMinimumTax - ordinaryFedTaxes);
 
     // A Life-Event Pre-Tax withdrawal before 59 1/2 is an early
     // distribution like any other: the 10% additional tax (s 72(t)) on its
@@ -9463,7 +9482,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // taxed as ordinary income with no penalty at all.
     const milestoneEarlyPenalty = ownerAge < 59.5 ? milestonePreTaxTaxable * 0.10 : 0;
     const milestoneStateEarlyTax = stateEarlyDistributionTax(residence.stateTaxState, milestonePreTaxTaxable, ownerAge);
-    const baseFedTaxes = ordinaryFedTaxes + baseCapGainsTaxes + amtTax + milestoneEarlyPenalty;
+    let baseFedTaxes = ordinaryFedTaxes + baseCapGainsTaxes + amtTax + milestoneEarlyPenalty;
     
     const totalIncomeForState = baseOrdinaryTaxableIncome + taxableDividends;
     // Shared per-year state-tax context (see calculateStateTaxes' extras):
@@ -9522,7 +9541,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       { stateExempt: stateExemptPension, private1: privatePension1, private2: privatePension2, military1: military1Pension, military2: military2Pension },
       residence.yonkersResident, { ...stateExtrasForYear, federalAGI: totalIncomeForState, federalDeduction: baseDeduction }
     );
-    const baseStateTaxes = baseStateIncomeTaxes + milestoneStateEarlyTax;
+    let baseStateTaxes = baseStateIncomeTaxes + milestoneStateEarlyTax;
     const ficaTaxes = calculateFICATaxes(ficaWages1, ficaWages2, currentStatus, statutoryInflFactor, year, inputs.inflationRate);
     let baseTaxes = baseFedTaxes + baseStateTaxes + ficaTaxes;
 
@@ -9876,6 +9895,41 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // of its ACA credit, long-term care, Part B and D premiums with IRMAA --
     // less what the HSA paid tax-free, which cannot be deducted twice.
     itemizedMedicalCosts = Math.max(0, healthcareBridge + ltcCost + irmaaCost - hsaMedicalDraw);
+    // Changelog 434: the base federal and state tax above were priced with
+    // the medical line as it stood before the ACA credit, the Medicare
+    // premiums and the HSA draw were known. The solver and every later
+    // re-pricing read the final line, and each adds its own increase to the
+    // base -- so the base must be priced on the same line, or the year's
+    // tax is off by the whole shift (an HSA that paid the bridge tax-free
+    // left the year under-taxed by 70%; an ACA credit by half). Re-price
+    // the base deduction, ordinary tax, gains tax, AMT and state tax with
+    // the final line and carry the difference. Nothing else in the base
+    // block depends on the medical line (the harvest and concentrated-stock
+    // diagnostics are differences that cancel it; a year abroad keeps its
+    // pre-credit baseline, a small simplification).
+    if (itemizing && Math.abs(itemizedMedicalCosts - medicalLineAtBasePricing) > 0.005) {
+      const magiForBase = baseOrdinaryTaxableIncome + taxableDividends;
+      const deduction2 = deductionFor(magiForBase);
+      const taxable2 = Math.max(0, baseOrdinaryTaxableIncome - deduction2);
+      const ordinary2 = calculateTaxes(taxable2, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
+      const capGains2 = calculateCapitalGainsTaxes(taxable2, taxableDividends, currentStatus, taxBracketInflationFactor, deduction2, Math.max(0, deduction2 - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
+      const choice2 = deductionChoice(magiForBase);
+      const amtAllowed2 = choice2.itemized ? Math.max(0, choice2.amount - itemizedFor(magiForBase).salt) : 0;
+      const amt2 = Math.max(0, calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowed2), currentStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs)) - ordinary2);
+      const state2 = calculateStateTaxes(
+        totalIncomeForState, pension, ssIncome, residence.stateTaxState,
+        residence.stateTaxSocialSecurityTaxable, residence.stateTaxPensionTaxable,
+        currentStatus, ownerAge, age2, residence.stateTaxFlatRate, militaryPension,
+        { stateExempt: stateExemptPension, private1: privatePension1, private2: privatePension2, military1: military1Pension, military2: military2Pension },
+        residence.yonkersResident, { ...stateExtrasForYear, federalAGI: totalIncomeForState, federalDeduction: deduction2 }
+      );
+      const federalShift = (ordinary2 + capGains2 + amt2) - (ordinaryFedTaxes + baseCapGainsTaxes + amtTax);
+      const stateShift = state2 - baseStateIncomeTaxes;
+      amtTax = amt2;
+      baseFedTaxes += federalShift;
+      baseStateTaxes += stateShift;
+      baseTaxes += federalShift + stateShift;
+    }
 
     let lifestyleDeficit = 0;
     // Savings already cut up front (E13) count toward the year's shortfall
@@ -10312,7 +10366,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         return maxBracketFill.taxableIncomeFor(now.ordinary, now.capGains);
       };
       let unconverted = 0;
-      for (let pass = 0; pass < 12; pass++) {
+      for (let pass = 0; pass < 24; pass++) {
         const over = ordinaryTaxableNow() - maxBracketFill.ceiling;
         if (Math.abs(over) < 0.5) break;
         // Positive: unconvert. Negative: re-convert, but never beyond what
@@ -10336,32 +10390,48 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           layer.nontaxable = Math.max(0, layer.nontaxable - (step - stepTaxable));
           if (layer.taxable + layer.nontaxable <= 0.005) rothLayers.conversions.splice(rothLayers.conversions.indexOf(layer), 1);
         }
-        const after = priceSettledYear(settledIncomeNow(), convertAmountTaxable);
+        let after = priceSettledYear(settledIncomeNow(), convertAmountTaxable);
+        if (after.federal + after.state < before.federal + before.state - 0.005) {
+          // Tax the year no longer owes: the solver's Pre-Tax draw had
+          // grossed it up, so it goes back where it came from (as surplus
+          // into Taxable before 59 1/2, when the draw carried a penalty the
+          // solver has already charged). Returning it lowers the draw, and
+          // a lower draw is less income, so the year owes less again; the
+          // inner loop returns that too, until the saving is spent, and
+          // only then is the pass priced. Until changelog 435 the pass was
+          // priced before the draw came back, so the tax the smaller draw
+          // saved was never taken off the year, and the next pass -- now
+          // under the ceiling -- re-converted and charged that tax a second
+          // time: the year sat on the ceiling to the dollar and paid 40%
+          // more federal tax than the ceiling owes.
+          let returned = 0;
+          for (let k = 0; k < 8; k++) {
+            const cash = (before.federal + before.state) - (after.federal + after.state) - returned;
+            if (cash <= 0.005) break;
+            const back = ownerAge >= 59.5 ? Math.min(cash, Math.max(0, drawPreTax - actualMilestonePreTax)) : 0;
+            if (back > 0) {
+              preTax += back;
+              drawPreTax -= back;
+              preTaxBasis += back * preTaxBasisRatioForYear;
+            }
+            if (cash - back > 0.005) {
+              taxable += cash - back;
+              taxableBasis += cash - back;
+            }
+            returned += cash;
+            if (back <= 0.005) break;
+            after = priceSettledYear(settledIncomeNow(), convertAmountTaxable);
+          }
+        }
         const dFederal = after.federal - before.federal;
         const dState = after.state - before.state;
         extraTax += dFederal + dState;
         extraTaxFederal += dFederal;
         extraTaxState += dState;
         conversionTaxCost = Math.max(0, conversionTaxCost + dFederal + dState);
-        const cash = -(dFederal + dState);
-        if (cash > 0.005) {
-          // Tax the year no longer owes: the solver's Pre-Tax draw had
-          // grossed it up, so it goes back where it came from (as surplus
-          // into Taxable before 59 1/2, when the draw carried a penalty the
-          // solver has already charged).
-          const back = ownerAge >= 59.5 ? Math.min(cash, Math.max(0, drawPreTax - actualMilestonePreTax)) : 0;
-          if (back > 0) {
-            preTax += back;
-            drawPreTax -= back;
-            preTaxBasis += back * preTaxBasisRatioForYear;
-          }
-          if (cash - back > 0.005) {
-            taxable += cash - back;
-            taxableBasis += cash - back;
-          }
-        } else if (cash < -0.005) {
+        if (dFederal + dState > 0.005) {
           // Re-conversion owes tax: funded from Pre-Tax, as the draw was.
-          fundAfterSolver(-cash, ['preTax', 'taxable', 'roth']);
+          fundAfterSolver(dFederal + dState, ['preTax', 'taxable', 'roth']);
         }
       }
       conversionTrimmedForDraw = Math.max(0, unconverted);
@@ -10394,11 +10464,17 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // additionally needs the 100% floor.
     if (onMarketplace) {
       const householdSize = currentStatus === 'MFJ' ? 2 : 1;
-      const discretionaryPreTaxDraw = (drawPreTax - actualMilestonePreTax) * (1 - preTaxBasisRatioForYear);
-      const discretionaryTaxableDraw = drawTaxable - actualMilestoneTaxable;
-      const realizedGainsThisYear = Math.max(0, Math.max(0, discretionaryTaxableDraw) * (1 - taxableBasisRatioForYear) - lossUsedOnDraw);
-      const ordinaryIncomeForAca = baseOrdinaryTaxableIncome + Math.max(0, discretionaryPreTaxDraw);
-      acaMagi = ordinaryIncomeForAca + taxableDividends + realizedGainsThisYear + Math.max(0, ssIncome - taxableSS);
+      // Read from the settled draws, so the boost below (a forced
+      // conversion, plus whatever paying its tax draws from Pre-Tax or
+      // Taxable) can re-settle the figure after it runs (changelog 436).
+      const settleAcaMagi = () => {
+        const discretionaryPreTaxDraw = (drawPreTax - actualMilestonePreTax) * (1 - preTaxBasisRatioForYear);
+        const discretionaryTaxableDraw = drawTaxable - actualMilestoneTaxable;
+        const realizedGainsThisYear = Math.max(0, Math.max(0, discretionaryTaxableDraw) * (1 - taxableBasisRatioForYear) - lossUsedOnDraw);
+        const ordinaryIncomeForAca = baseOrdinaryTaxableIncome + Math.max(0, discretionaryPreTaxDraw);
+        return ordinaryIncomeForAca + taxableDividends + realizedGainsThisYear + Math.max(0, ssIncome - taxableSS);
+      };
+      acaMagi = settleAcaMagi();
       acaCliffBreached = acaMagi > acaCliffThreshold + 0.005;
       if (ACA_NON_EXPANSION_STATES.has(residence.stateOfResidence)) {
         const fplFloor = getFederalPovertyLevel(householdSize, year, inputs.taxBracketInflationRate);
@@ -10434,6 +10510,15 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
             // Pay that tax: Taxable first, then Roth, then Pre-Tax -- and the
             // tax the paying itself causes.
             fundAfterSolver(acaBoostTax, ['taxable', 'roth', 'preTax']);
+
+            // The boost is income: the conversion was added to the ordinary
+            // base above and paying its tax may have drawn more. Re-settle
+            // the MAGI the credit and next year's estimate read. Until
+            // changelog 436 it stayed at the pre-boost figure, under the
+            // poverty line, so the credit the boost was made to earn was
+            // priced at $0 and the next year's estimate inherited the gap.
+            acaMagi = settleAcaMagi();
+            acaCliffBreached = acaMagi > acaCliffThreshold + 0.005;
 
             // Not enough remaining pre-tax balance to fully close the gap.
             if (acaSubsidyBoost < gapAmount - 0.005) inAcaCoverageGap = true;
@@ -10471,6 +10556,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         } else if (difference < -0.005) {
           acaSubsidyRefund = -difference;
           taxable += acaSubsidyRefund;
+          // Refund cash is basis, like any other deposit (changelog 436).
+          taxableBasis += acaSubsidyRefund;
         }
       } else if (acaSubsidyApplied > 0 && (acaCliffBreached || inAcaCoverageGap)) {
         acaSubsidyClawback = acaSubsidyApplied;

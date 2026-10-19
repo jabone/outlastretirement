@@ -86,9 +86,11 @@ engine makes knowingly; each is also stated in `TAX_RULES_SPEC.md`.
   interrelated calculation is approximated; no QTIP, marital-deduction or
   apportionment rules; inherited-IRA eligible designated beneficiaries are
   not distinguished.
-- **Deductions (Rule 2.2, Q-17):** no itemized deductions in any
-  jurisdiction, no blindness add-on or IL blindness exemption, no head of
-  household or dependent-filer figures.
+- **Deductions (Rule 2.2, Q-17):** federal itemized deductions cover the
+  four lines of changelog 417 (SALT, acquisition-debt mortgage interest,
+  cash gifts, medical over the floor) and no state itemizes; no blindness
+  add-on or IL blindness exemption, no head of household or dependent-filer
+  figures.
 - **UI, not engine:** the IRMAA tier lines on the Tax & Estate charts
   (`App.jsx` irmaaTier1-5) read the MFJ or Single table only, so an MFS
   plan's chart shows the Single lines; the engine's premiums are right.
