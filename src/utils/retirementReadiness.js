@@ -126,10 +126,18 @@ export const FUNDING_SOURCES = [
   // unless the plan says to take them, and money that arrives without
   // anything being sold -- which is exactly what this column is for.
   { key: 'dividendCash', label: 'Dividends taken as cash', kind: 'income' },
+  // A purchased annuity's payout (changelog 439; the annuity income typed
+  // under Other Income is already inside rentalAnnuity above).
+  { key: 'annuityPayout', label: 'Purchased annuity', kind: 'income' },
   { key: 'drawTaxable', label: 'Taxable brokerage', kind: 'draw' },
   { key: 'drawPreTax', label: 'Pre-Tax (IRA / 401k), RMDs included', kind: 'draw' },
   { key: 'drawRoth', label: 'Roth', kind: 'draw' },
   { key: 'cashReserveDraw', label: 'Cash reserve', kind: 'draw' },
+  // Money the household decided to take that is not a portfolio account:
+  // a reverse mortgage's payout and an HSA draw for non-medical spending
+  // (changelog 439; both used to land in "other", as a negative).
+  { key: 'reverseMortgagePayoutThisYear', label: 'Reverse mortgage', kind: 'draw' },
+  { key: 'hsaGeneralDraw', label: 'HSA, for non-medical spending', kind: 'draw' },
 ];
 
 const money = (row, key) => Math.max(0, Number(row && row[key]) || 0);
@@ -454,8 +462,8 @@ export function crashCompare(inputs, { crashReturn = CRASH_HEADLINE_RETURN, useR
 // two of them, or dividing one by twelve -- and nothing more.
 // A planned concentrated-stock sale's proceeds pay that year's bills before
 // anything is drawn (E25), so the part spent arrives like dividend cash.
-export const PAYCHECK_AUTOMATIC = ['ssIncome', 'pension', 'rentalAnnuity', 'dividendCash', 'concentratedStockProceedsSpent'];
-export const PAYCHECK_TRANSFER = ['drawTaxable', 'drawPreTax', 'drawRoth', 'cashReserveDraw'];
+export const PAYCHECK_AUTOMATIC = ['ssIncome', 'pension', 'rentalAnnuity', 'annuityPayout', 'dividendCash', 'concentratedStockProceedsSpent'];
+export const PAYCHECK_TRANSFER = ['drawTaxable', 'drawPreTax', 'drawRoth', 'cashReserveDraw', 'reverseMortgagePayoutThisYear', 'hsaGeneralDraw'];
 
 // U12: what the year's money is spent ON, so the headline's total can be
 // read as parts that add up. The first version called the whole total "to
@@ -472,6 +480,9 @@ export const PAID_OUT_PARTS = [
   { id: 'oneTime', label: 'one-time life events', text: 'for one-time life events', keys: ['milestoneOutflow'] },
   { id: 'debt', label: 'debt payments', text: 'for debt payments', keys: ['mortgagePaymentThisYear', 'otherDebtPaymentThisYear'] },
   { id: 'gifts', label: 'gifts', text: 'in gifts', keys: ['giftsThisYear'] },
+  // A qualified charitable distribution leaves the IRA inside drawPreTax
+  // but goes to the charity, never through the household (changelog 439).
+  { id: 'qcd', label: 'given to charity from an IRA', text: 'given to charity from an IRA', keys: ['qcdAmount'] },
   { id: 'reinvested', label: 'income beyond spending, reinvested', text: 'of income beyond spending, reinvested', keys: ['surplusReinvested'] },
 ];
 

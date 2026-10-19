@@ -29,6 +29,39 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 440,
+    date: '2026-10-19',
+    title: 'A charitable distribution before RMDs begin shows up in the Pre-Tax column',
+    summary: 'A charitable distribution made at 71 or 72, before required minimum distributions begin, left the Pre-Tax account without appearing in the year\u2019s draw, so the account did not reconcile. It does now.',
+    items: [
+      "**What was wrong.** Since October 17 a qualified charitable distribution can be made from the year you turn 71, with or without a required minimum distribution. The part beyond the RMD left the Pre-Tax account but was not counted in the year\u2019s Pre-Tax draw, so Year by Year showed the balance falling by $25,000 more than the draws explained.",
+      "**What changed.** The whole distribution is inside the year\u2019s Pre-Tax draw, as the part that satisfies an RMD always was, and the Retirement Readiness paycheck names it as money given to charity from an IRA rather than money the household received. A distribution planned for a year with a one-time Pre-Tax withdrawal is capped at what the withdrawal leaves.",
+      "**Your numbers do not change;** the ledger\u2019s columns now add up.",
+    ],
+  },
+  {
+    id: 439,
+    date: '2026-10-19',
+    title: 'Retirement Readiness counts an annuity, a reverse mortgage and HSA draws as money arriving',
+    summary: 'The Readiness cards left out a purchased annuity\u2019s payout, a reverse mortgage\u2019s and an HSA draw for a shortfall, showing a negative \u201cother\u201d line. Named now; a charitable IRA gift is the charity\u2019s.',
+    items: [
+      "**What was wrong.** The cards list where a year\u2019s money comes from, source by source, and what it is paid out on. Three sources were missing \u2014 the payout of an annuity bought inside the plan, a reverse mortgage\u2019s payout, and an HSA draw that covered a shortfall \u2014 so a plan with any of them showed a negative \u201cother\u201d line of the same size. And a qualified charitable distribution was counted as money the household received.",
+      "**What changed.** A purchased annuity arrives on its own alongside Social Security and pensions; a reverse mortgage payout and an HSA draw for spending are listed with the money you decide to take; and a charitable IRA distribution is its own line, given to charity from an IRA.",
+      "**Your numbers do not change;** the cards describe them correctly.",
+    ],
+  },
+  {
+    id: 438,
+    date: '2026-10-19',
+    title: 'The optimizers no longer reward leaving Pre-Tax money to charity',
+    summary: 'Net to heirs after every tax priced the whole Pre-Tax balance, so a $1,000,000 Pre-Tax bequest to charity raised a strategy\u2019s ranking; and it left out the heirs\u2019 state income tax. Both fixed.',
+    items: [
+      "**What was wrong.** Since October 18 the optimizers rank by what your heirs keep after every tax, pricing the Pre-Tax balance at death at the rate the heirs pay drawing it down. Two mistakes: the balance priced was the whole account, not the heirs\u2019 share after a charitable bequest, so giving $1,000,000 of Pre-Tax money to charity made a strategy rank higher; and the rate counted only the heirs\u2019 federal tax on the draw-down, leaving a California heir\u2019s state tax out.",
+      "**What changed.** The heirs\u2019 share is priced, after any bequest, at the federal and state rate their ten-year draw-down pays. A bequest now lowers the key by roughly the after-tax value of what left.",
+      "**Your numbers will change** in the Tax Optimizer Hub, the Roth Ladder, the Contribution Split and the Action Plan if your plan has a charitable bequest from Pre-Tax or heirs in a state with an income tax; your plan itself does not.",
+    ],
+  },
+  {
     id: 437,
     date: '2026-10-19',
     title: 'Status pill readable in the light theme, and a tooltip that no longer renames its button',

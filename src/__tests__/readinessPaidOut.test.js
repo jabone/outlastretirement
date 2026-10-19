@@ -23,6 +23,14 @@ const PLANS = {
   demoDividendsAsCash: { ...demo, dividendPayoutMode: 'cash' },
   defaults: DEFAULT_INPUTS,
   withReserve: plan({ cashFloorEnabled: true, cashFloorInit: 150000 }),
+  // Changelog 439: money that used to land in "other", as a negative -- a
+  // purchased annuity's payout, a reverse mortgage's, an HSA draw for a
+  // shortfall -- and a QCD, which leaves the IRA but never reaches the
+  // household.
+  annuity: plan({ annuityPurchaseAmount: 300000, annuityPurchaseAge: 65 }),
+  reverseMortgage: plan({ reverseMortgageEnabled: true, homeValueInit: 600000, reverseMortgageStartAge: 65 }),
+  hsaShortfall: plan({ birthYear1: DEFAULT_INPUTS.planYear - 62, retireAge1: 60, salary1: 0, ss1: 0, claimingAge1: 70, preTaxInit: 0, rothInit: 0, taxableInit: 0, hsaInit: 400000, cashFloorEnabled: false, lifestyleExpense: 50000 }),
+  qcd: plan({ birthYear1: DEFAULT_INPUTS.planYear - 72, retireAge1: 65, preTaxInit: 1500000, qcdAnnualAmount: 25000 }),
 };
 // Today's dollars the way the app converts rows (utils/displayDollars.js;
 // App.jsx's hand-kept DOLLAR_FIELDS list was replaced by it).

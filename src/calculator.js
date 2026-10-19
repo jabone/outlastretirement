@@ -8818,8 +8818,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const qcdLimit = QCD_LIMIT_2026 * statutoryInflFactor;
     const qcdTaxableRoom = Math.max(0, preTax - Math.max(0, preTaxBasis));
     const qcdEligible = rmdOwnerAge !== null && rmdOwnerAge >= QCD_START_AGE;
+    // Capped at what will still be in the account after this year's
+    // Life-Event Pre-Tax withdrawal, which comes out below (changelog 440).
     const qcdPlanned = qcdEligible
-      ? Math.max(0, Math.min(inputs.qcdAnnualAmount || 0, Math.max(0, preTax), qcdLimit, qcdTaxableRoom))
+      ? Math.max(0, Math.min(inputs.qcdAnnualAmount || 0, Math.max(0, preTax - Math.max(0, milestoneOutflowPreTax || 0)), qcdLimit, qcdTaxableRoom))
       : 0;
 
     // After-tax basis inside the Pre-Tax bucket, as a share of the balance
@@ -11088,8 +11090,14 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       statutoryInflFactor,
       partDInflFactor,
       totalExpenses,
-      drawdown: totalDiscretionaryDraw + rmdAmount,
-      drawPreTax: drawPreTax + rmdAmount,
+      // A QCD beyond the RMD is a further distribution from Pre-Tax
+      // (changelog 418): it is inside the draw figures like the RMD it
+      // rides on, so the ledger's Pre-Tax column reconciles. Until
+      // changelog 440 it left the account without appearing here, a gap of
+      // the whole QCD in the year's reconciliation. The Readiness paycheck
+      // names it as the charity's, never the household's.
+      drawdown: totalDiscretionaryDraw + rmdAmount + qcdBeyondRmd,
+      drawPreTax: drawPreTax + rmdAmount + qcdBeyondRmd,
       drawRoth,
       drawTaxable,
       extraTax,
@@ -11695,9 +11703,25 @@ export function legacyAfterTaxes(inputs, proj) {
   // the Pre-Tax balance is taken at death too, less the heirs' tax at the
   // effective rate the ten-year draw priced -- otherwise the ten years of
   // post-death growth would favor whatever left the most in Pre-Tax.
+  //
+  // Changelog 438: the Pre-Tax balance priced here is the HEIRS' share --
+  // what is left after a charitable bequest funded from Pre-Tax -- not the
+  // whole ending balance, which until 438 handed the charity's share back
+  // to the heirs and made a bequest raise the ranking key. And the heirs'
+  // state income tax on the ten-year draw is part of the rate: the state
+  // part of netInherited was priced on the grown pool, so stripping only
+  // the federal part left the state's growth share deducted against the
+  // ungrown balance (a California heir's key sat ~$175k low on a $1.9M
+  // IRA). The year-one HSA and NQDC lumps share the state figure; their
+  // part is apportioned off by size.
   const withdrawn = Math.max(0, Number(estate.totalPreTaxWithdrawn) || 0);
-  const heirTax = Math.max(0, Number(estate.totalHeirTax) || 0);
-  const preTaxAtDeath = Math.max(0, last.preTaxEnd || 0);
+  const federalHeirTax = Math.max(0, Number(estate.totalHeirTax) || 0);
+  const stateHeirTax = Math.max(0, Number(estate.totalHeirStateIncomeTax) || 0);
+  const composition = estate.composition || {};
+  const lumps = Math.max(0, Number(composition.hsa) || 0) + Math.max(0, Number(composition.nqdc) || 0);
+  const stateOnDraw = withdrawn + lumps > 0 ? stateHeirTax * (withdrawn / (withdrawn + lumps)) : 0;
+  const heirTax = federalHeirTax + stateOnDraw;
+  const preTaxAtDeath = Math.max(0, Number.isFinite(composition.preTaxAtDeath) ? composition.preTaxAtDeath : (last.preTaxEnd || 0));
   const effectiveRate = withdrawn > 0 ? Math.min(1, heirTax / withdrawn) : 0;
   return estate.netInherited - Math.max(0, withdrawn - heirTax) + preTaxAtDeath * (1 - effectiveRate);
 }
