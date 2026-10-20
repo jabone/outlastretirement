@@ -109,7 +109,7 @@ describe('every page carries the same icons and a complete preview image', () =>
   });
 
   it('every static page has the same footer links', () => {
-    const want = ['/privacy', '/terms', '/accessibility', '/verify', '/premium', 'mailto:outlastretirement@gmail.com'];
+    const want = ['/privacy', '/terms', '/accessibility', '/verify', '/premium', 'mailto:hello@outlastretirement.com'];
     for (const file of [...Object.keys(CANONICAL), 'public/404.html']) {
       const footer = /<footer[\s\S]*?<\/footer>/.exec(read(file))[0];
       for (const href of want) expect(footer, `${file} footer lacks ${href}`).toContain(`href="${href}"`);

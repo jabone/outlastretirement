@@ -24,7 +24,7 @@ describe('public/premium.html', () => {
   });
   it('says Premium is free in beta and gives the contact', () => {
     expect(page).toMatch(/invite-only and free while we are in beta/);
-    expect(page).toMatch(/mailto:outlastretirement@gmail\.com/);
+    expect(page).toMatch(/mailto:support@outlastretirement\.com/);
   });
   it('is reachable at /premium and linked from the home page and the app', () => {
     const rewrites = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8')).rewrites;

@@ -15,7 +15,7 @@
 // settled. So these are assertions about the LINKS and the NAMES, the two
 // things that go stale silently.
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -102,7 +102,16 @@ describe('the terms of use are reachable from everywhere they apply', () => {
     const terms = read('public', 'terms.html');
     const mailtos = [...terms.matchAll(/mailto:([^"?]+)/g)].map((m) => m[1]);
     expect(mailtos.length).toBeGreaterThan(0);
-    for (const address of mailtos) expect(address).toBe('outlastretirement@gmail.com');
+    for (const address of mailtos) expect(address).toBe('hello@outlastretirement.com');
+  });
+
+  it('no page offers a Gmail address to write to, and security reports go to security@', () => {
+    // The contact addresses moved to the outlastretirement.com domain
+    // (2026-10-19). The privacy policy still NAMES the old Gmail address,
+    // to say mail to it is forwarded, but nothing links to it.
+    const pages = ['index.html', ...readdirSync(join(ROOT, 'public')).filter((f) => f.endsWith('.html')).map((f) => join('public', f))];
+    for (const f of pages) expect(readFileSync(join(ROOT, f), 'utf8'), f).not.toMatch(/mailto:[^"]*@gmail\.com/i);
+    expect(readFileSync(join(ROOT, 'public', '.well-known', 'security.txt'), 'utf8')).toMatch(/^Contact: mailto:security@outlastretirement\.com$/m);
   });
 
   it('names the company, not just the product', () => {

@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 446,
+    date: '2026-10-19',
+    title: 'Our contact addresses moved to outlastretirement.com',
+    summary: 'Premium access is support@outlastretirement.com, privacy questions privacy@, security reports security@, and everything else hello@. Mail to the old Gmail address is forwarded.',
+    items: [
+      "**New addresses.** Email to us now goes to our own domain: support@outlastretirement.com for Premium access, keys and Live Pricing setup; privacy@outlastretirement.com for the privacy policy; security@outlastretirement.com for security reports (the site\u2019s security.txt names it); and hello@outlastretirement.com for questions and feedback, including the Contact link in every page\u2019s footer and Help \u2192 Contact Us.",
+      "**Privacy policy.** The If You Email Us section said our mail sat in an ordinary Gmail mailbox; it now sits in a Google Workspace mailbox for outlastretirement.com, and the policy says so, with a new effective date. Mail sent to the old address is forwarded, and what was sent there before stays in that mailbox.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
     id: 445,
     date: '2026-10-19',
     title: 'How the math works prints cleanly, and the app\u2019s footer links the privacy policy',

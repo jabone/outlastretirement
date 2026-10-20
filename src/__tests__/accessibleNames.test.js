@@ -145,7 +145,7 @@ describe('the accessibility statement', () => {
     const page = read('public', 'accessibility.html');
     expect(page).toMatch(/<html lang="en">/);
     expect(page).toMatch(/WCAG\) 2\.1, Level AA/);
-    expect(page).toMatch(/href="mailto:outlastretirement@gmail\.com\?subject=Accessibility"/);
+    expect(page).toMatch(/href="mailto:hello@outlastretirement\.com\?subject=Accessibility"/);
     expect(page).toMatch(/Last reviewed: /);
     // It must say what still falls short, not only what works.
     expect(page).toMatch(/What Still Falls Short/);

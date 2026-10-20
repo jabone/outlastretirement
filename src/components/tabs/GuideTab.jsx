@@ -1,7 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import { HelpCircle, AlertTriangle, CheckCircle2, Lightbulb, Trophy } from 'lucide-react';
 import { BRAND_NAME } from '../../config/branding';
-import { CONTACT_EMAIL } from '../../config/premiumOffering';
+import { CONTACT_EMAIL, FEEDBACK_EMAIL } from '../../config/premiumOffering';
 import { useSimulation } from '../../context/useSimulation';
 import InputReference from '../InputReference';
 import WhatsNewHistory from '../WhatsNewHistory';
@@ -1197,8 +1197,8 @@ const GuideTab = () => {
                     </p>
                     <div style={{ padding: '16px', borderRadius: '10px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Contact us</span>
-                      <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: 'var(--accent-text)', textDecoration: 'none', fontWeight: '500', fontSize: '15px' }}>
-                        {CONTACT_EMAIL}
+                      <a href={`mailto:${FEEDBACK_EMAIL}`} style={{ color: 'var(--accent-text)', textDecoration: 'none', fontWeight: '500', fontSize: '15px' }}>
+                        {FEEDBACK_EMAIL}
                       </a>
                     </div>
                   </div>

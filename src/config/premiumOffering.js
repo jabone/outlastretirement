@@ -37,7 +37,11 @@ export const PREMIUM_TAGLINE =
 // app that shows it now reads THIS -- GuideTab and the welcome announcement
 // used to hardcode their own copies, which is how three spellings of the old
 // address ended up in the tree at once.
-export const CONTACT_EMAIL = 'outlastretirement@gmail.com';
+export const CONTACT_EMAIL = 'support@outlastretirement.com';
+
+// General questions and feedback (Help -> Contact Us, the site footer).
+// Premium access, keys and Live Pricing setup go to CONTACT_EMAIL above.
+export const FEEDBACK_EMAIL = 'hello@outlastretirement.com';
 
 // One entry per capability area. `tab` is where its CTA lands.
 //

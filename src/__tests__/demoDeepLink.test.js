@@ -330,19 +330,24 @@ describe('OutlastRetirement brand assets', () => {
     }
   });
 
-  it('carries the real contact address, and only that one', () => {
+  it('carries the real contact addresses, and only those', () => {
     // The mailbox moved to outlastretirement@gmail.com with the rename
-    // (2026-09-12). The old one had three spellings in the tree at once, so
-    // this checks the whole page rather than a single occurrence: a missed
-    // link here is a Premium request that reaches nobody.
-    expect(landing).toContain('outlastretirement@gmail.com');
-    expect(landing).not.toMatch(/cashflowengine[._]?app@gmail\.com/i);
-    // The app reads it from one constant; the landing page is static HTML and
-    // carries the literal, so this is the only place the two can drift.
+    // (2026-09-12), then to the outlastretirement.com domain (2026-10-19):
+    // support@ for Premium access, hello@ for everything else. The old one
+    // had three spellings in the tree at once, so this checks the whole page
+    // rather than a single occurrence: a missed link here is a Premium
+    // request that reaches nobody.
+    expect(landing).toContain('support@outlastretirement.com');
+    expect(landing).not.toMatch(/mailto:[^"]*@gmail\.com/i);
+    // The app reads Premium's from one constant; the landing page is static
+    // HTML and carries the literal, so this is the only place the two can drift.
     const offering = readFileSync(join(SRC, 'config', 'premiumOffering.js'), 'utf8');
     const constant = /CONTACT_EMAIL = '([^']+)'/.exec(offering)[1];
-    expect(constant).toBe('outlastretirement@gmail.com');
-    for (const m of landing.matchAll(/mailto:([^"?]+)/g)) expect(m[1]).toBe(constant);
+    const feedback = /FEEDBACK_EMAIL = '([^']+)'/.exec(offering)[1];
+    expect(constant).toBe('support@outlastretirement.com');
+    expect(feedback).toBe('hello@outlastretirement.com');
+    for (const m of landing.matchAll(/mailto:([^"?]+)\?subject=Premium/g)) expect(m[1]).toBe(constant);
+    for (const m of landing.matchAll(/mailto:([^"?]+)/g)) expect([constant, feedback]).toContain(m[1]);
   });
 
   it('keeps the app reading the address from one constant', () => {
@@ -507,9 +512,12 @@ describe('privacy policy', () => {
   const privacy = readFileSync(join(SRC, '..', 'public', 'privacy.html'), 'utf8');
 
   it('can actually be replied to', () => {
-    const mailtos = [...privacy.matchAll(/mailto:([^"?]+)/g)].map((m) => m[1]);
+    // The policy's own contact is privacy@; the site footer's general
+    // Contact link (hello@) sits outside <main>.
+    const main = /<main[\s\S]*?<\/main>/.exec(privacy)[0];
+    const mailtos = [...main.matchAll(/mailto:([^"?]+)/g)].map((m) => m[1]);
     expect(mailtos.length).toBeGreaterThan(0);
-    for (const a of mailtos) expect(a).toBe('outlastretirement@gmail.com');
+    for (const a of mailtos) expect(a).toBe('privacy@outlastretirement.com');
   });
 
   it('names no domain this project does not own', () => {
@@ -533,7 +541,10 @@ describe('privacy policy', () => {
     // And on 2026-10-18: the demo delivery key the Demo Plan sends the
     // module server, and the supporting files a module fetches without a
     // key (changelog 425).
-    expect(privacy).toMatch(/Effective Date: October 18, 2026/);
+    // And on 2026-10-19 (changelog 446): the mailbox that holds email to us moved from
+    // Gmail to Google Workspace on our own domain.
+    expect(privacy).toMatch(/Effective Date: October 19, 2026/);
+    expect(privacy).toMatch(/Update, October 19, 2026: Our contact addresses/);
     expect(privacy).toMatch(/Update, October 18, 2026/);
     expect(privacy).toMatch(/demo delivery key/);
     expect(privacy).toMatch(/Update, October 17, 2026/);
