@@ -17,6 +17,7 @@ import React from 'react';
 import { Lock, History, Loader2 } from 'lucide-react';
 import { RULE_LABELS, historicalHeadline, safeMaxHeadline, safeMaxMoney, safeMaxPct, SAFEMAX_CEILING } from '../utils/historicalStarts';
 import PremiumMount from '../premium/PremiumMount';
+import { floorPhrase } from '../utils/planVerdict';
 
 const pct = (x) => `${Math.round(x * 100)}%`;
 
@@ -33,10 +34,10 @@ function SafeMaxLine({ data, guarded }) {
     const diff = sm.amount - sm.planned;
     body = (
       <>
-        The most you could spend and still last through <strong>every one</strong> of those {sm.count} starts:{' '}
+        The most you could spend and still last through <strong>every one</strong> of those {sm.count} starts{floorPhrase(sm.floor)}:{' '}
         <strong>{safeMaxMoney(sm.amount)} a year</strong> in today&rsquo;s dollars{withRule}
         {rate ? <>, about {rate} of your portfolio when you retire</> : null}.{' '}
-        {sm.limitingStart ? <>Spend more and the {sm.limitingStart} start runs out first. </> : null}
+        {sm.limitingStart ? <>Spend more and the {sm.limitingStart} start {sm.floor > 0 ? 'falls short' : 'runs out'} first. </> : null}
         {Math.abs(diff) >= 100
           ? <>Your plan spends {safeMaxMoney(sm.planned)}, {safeMaxMoney(Math.abs(diff))} {diff > 0 ? 'less than that' : 'more than that'}.</>
           : <>That is what your plan spends now.</>}
@@ -102,10 +103,12 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
         replay a few crash years, while this replays whole retirements.
       </p>
       <p style={{ fontSize: 'var(--fs-body)', margin: 0 }} data-testid="historical-headline">
-        Your plan lasted in <strong>{h.lasted} of {h.count}</strong> real retirements.{' '}
-        {h.worstRunsOutYear
-          ? <>The hardest start was <strong>{h.worstStart}</strong>, which runs out in {h.worstRunsOutYear}.</>
-          : <>The hardest start was <strong>{h.worstStart}</strong>, which leaves the least behind.</>}
+        Your plan lasted in <strong>{h.lasted} of {h.count}</strong> real retirements{floorPhrase(h.floor)}.{' '}
+        {h.worstFloorBreachYear && (!h.worstRunsOutYear || h.worstFloorBreachYear < h.worstRunsOutYear)
+          ? <>The hardest start was <strong>{h.worstStart}</strong>, which dips below {safeMaxMoney(h.floor)} in {h.worstFloorBreachYear}.</>
+          : h.worstRunsOutYear
+            ? <>The hardest start was <strong>{h.worstStart}</strong>, which runs out in {h.worstRunsOutYear}.</>
+            : <>The hardest start was <strong>{h.worstStart}</strong>, which leaves the least behind.</>}
         {onReplay && (
           <>
             {' '}

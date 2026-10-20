@@ -56,27 +56,40 @@ export function firstShortfallRow(years) {
 }
 
 // "84 of 98 real retirements since 1928" -- the shared wording.
-function historyPhrase(h) {
-  return `${h.lasted} of ${h.count} real retirements since ${h.firstStart}`;
+function historyPhrase(h, keep = '') {
+  return `${h.lasted} of ${h.count} real retirements since ${h.firstStart}${keep}`;
 }
 
-export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' }, mcPending = false, history = null }) {
+// ", keeping at least $200,000" when the plan has a "keep at least" floor
+// (changelog 448): the Monte Carlo and historical counts include it.
+export function floorPhrase(floor) {
+  const f = Math.max(0, Number(floor) || 0);
+  return f > 0 ? `, keeping at least $${Math.round(f).toLocaleString('en-US')}` : '';
+}
+
+export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' }, mcPending = false, history = null, floor = 0, floorBreachYear = null }) {
+  const keep = floorPhrase(floor);
+  // With average returns the money lasts, but it may still dip below the
+  // floor; say so rather than let "Lasts" stand alone (changelog 448).
+  const lastsAvg = keep && floorBreachYear
+    ? `Lasts with average returns, though it dips below $${Math.round(floor).toLocaleString('en-US')} in ${floorBreachYear}`
+    : 'Lasts with average returns';
   const fresh = mc && mc.status === 'fresh' && Number.isFinite(mc.successProbability);
   const histOk = history && history.count > 0 && Number.isFinite(history.lasted) ? history : null;
   const hist = !fresh ? histOk : null;
   // Changelog 364: with a fresh Monte Carlo deciding the label, the real
   // retirements since 1928 still appear as a second line of evidence.
-  const alsoHist = fresh && histOk ? ` It also lasted through ${historyPhrase(histOk)}.` : '';
+  const alsoHist = fresh && histOk ? ` It also lasted through ${historyPhrase(histOk, keep)}.` : '';
   const pct = fresh ? verdictPct(mc.successProbability) : null;
   const band = fresh ? verdictBand(mc.successProbability) : null;
   const trials = fresh ? (mc.trials || 1000).toLocaleString('en-US') : null;
-  const horizon = fresh && mc.longevitySampled ? 'as long as you do' : 'to the end of the plan';
+  const horizon = `${fresh && mc.longevitySampled ? 'as long as you do' : 'to the end of the plan'}${keep}`;
 
   if (!isSuccessful) {
     const short = firstShortfallRow(years);
     const when = short ? ` starting in ${short.year}` : '';
     const odds = fresh ? ` ${pct}% of ${trials} simulated markets last ${horizon}.${alsoHist}`
-      : hist ? ` It lasted through ${historyPhrase(hist)}.` : '';
+      : hist ? ` It lasted through ${historyPhrase(hist, keep)}.` : '';
     return {
       tone: 'risk',
       label: 'Runs short',
@@ -89,20 +102,20 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
       return {
         tone: 'good',
         label: 'On track',
-        detail: `Lasts with average returns, and ${pct}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
+        detail: `${lastsAvg}, and ${pct}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
       };
     }
     if (band === 'caution') {
       return {
         tone: 'caution',
         label: 'Mostly on track',
-        detail: `Lasts with average returns, and ${pct}% of ${trials} simulated markets last ${horizon}; a poor run of markets could fall short.${alsoHist}`,
+        detail: `${lastsAvg}, and ${pct}% of ${trials} simulated markets last ${horizon}; a poor run of markets could fall short.${alsoHist}`,
       };
     }
     return {
       tone: 'risk',
       label: 'At risk',
-      detail: `Lasts with average returns, but only ${pct}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
+      detail: `${lastsAvg}, but only ${pct}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
     };
   }
 
@@ -111,8 +124,8 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
       tone: 'pending',
       label: 'Checking markets',
       detail: hist
-        ? `Lasts with average returns and through ${historyPhrase(hist)}. Checking simulated markets too…`
-        : 'Lasts with average returns. Checking how it holds up across simulated good and bad markets…',
+        ? `${lastsAvg} and through ${historyPhrase(hist, keep)}. Checking simulated markets too…`
+        : `${lastsAvg}. Checking how it holds up across simulated good and bad markets…`,
     };
   }
 
@@ -123,18 +136,18 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
     const hBand = verdictBand(hPct);
     const tail = 'Run the Monte Carlo for the simulated-market check.';
     if (hBand === 'good') {
-      return { tone: 'good', label: 'On track', detail: `Lasts with average returns, and through ${historyPhrase(hist)}. ${tail}` };
+      return { tone: 'good', label: 'On track', detail: `${lastsAvg}, and through ${historyPhrase(hist, keep)}. ${tail}` };
     }
     if (hBand === 'caution') {
-      return { tone: 'caution', label: 'Mostly on track', detail: `Lasts with average returns, and through ${historyPhrase(hist)}; a poor run of markets could fall short. ${tail}` };
+      return { tone: 'caution', label: 'Mostly on track', detail: `${lastsAvg}, and through ${historyPhrase(hist, keep)}; a poor run of markets could fall short. ${tail}` };
     }
-    return { tone: 'risk', label: 'At risk', detail: `Lasts with average returns, but through only ${historyPhrase(hist)}. ${tail}` };
+    return { tone: 'risk', label: 'At risk', detail: `${lastsAvg}, but through only ${historyPhrase(hist, keep)}. ${tail}` };
   }
 
   return {
     tone: 'neutral',
     label: 'Lasts on average',
-    detail: 'Lasts with average returns. Run the Monte Carlo to see how often it lasts in good and bad markets.',
+    detail: `${lastsAvg}. Run the Monte Carlo to see how often it lasts in good and bad markets.`,
   };
 }
 

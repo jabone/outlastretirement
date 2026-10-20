@@ -16,6 +16,8 @@ export function historicalHeadline(data) {
     count: data.count,
     worstStart: mine.worstStart,
     worstRunsOutYear: mine.worstRunsOutYear,
+    worstFloorBreachYear: mine.worstFloorBreachYear ?? null,
+    floor: Number(data.floor) || 0,
   };
 }
 
@@ -35,7 +37,7 @@ export function safeMaxHeadline(data) {
   const sm = data && data.safeMax;
   if (!sm || !Array.isArray(sm.bars) || sm.bars.length === 0) return null;
   const all = sm.bars.find((b) => b.share === 1) || sm.bars[0];
-  return { ...all, rule: sm.rule, count: sm.count, planned: sm.planned };
+  return { ...all, rule: sm.rule, count: sm.count, planned: sm.planned, floor: Number(sm.floor) || 0 };
 }
 
 // "for 95% of them" -- the plain-words label for a bar.

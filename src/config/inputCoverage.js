@@ -212,6 +212,14 @@ export const NOT_ASKED_IN_INTERVIEW = [
            'medicarePartBInflationRate', 'medicarePartDInflationRate', 'taxBracketInflationRate'],
   },
   {
+    id: 'portfolioFloor',
+    title: 'Keep at least',
+    blurb: 'A balance you never want to go below once retired. With it set, the Monte Carlo and the historical starts count a run as lasting only if it never dips under it.',
+    domain: 'assumptions',
+    interviewSection: 'risk',
+    keys: ['portfolioFloorReal'],
+  },
+  {
     id: 'safeWithdrawalRate',
     title: 'Safe Withdrawal Rate',
     blurb: 'The withdrawal rate behind the FI / CoastFIRE crossover target. 4% (the "25x expenses" rule) unless you change it.',

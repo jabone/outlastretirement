@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 448,
+    date: '2026-10-20',
+    title: 'Keep at least: set a balance your plan should never dip below',
+    summary: 'A new setting, Keep at Least, makes the Monte Carlo, the historical starts and the most you could spend count a run as lasting only if your accounts never fall below it.',
+    items: [
+      "**The setting.** Plan \u2192 Assumptions & Risk \u2192 Keep at Least: a balance, in today\u2019s dollars, you never want to go below once retired, such as a reserve or money set aside for heirs. It starts at 0, which changes nothing.",
+      "**What it changes.** With it set, a simulated market or a historical start counts as lasting only if your Pre-Tax, Roth, Taxable and HSA accounts plus the cash reserve never end a retired year below it. The Monte Carlo success rate, the historical starts, the most you could spend and still last through every start, and the What fees cost you card all use that test, and say so. A start that dips below it shows the year (the start-by-start table is Premium).",
+      "**What it does not change.** It is a test, not a spending rule: the plan spends the same. The verdict says when even average returns would dip below your floor. Help \u2192 Guide walks through an example.",
+      "**Your numbers do not change** unless you set it.",
+    ],
+  },
+  {
     id: 447,
     date: '2026-10-20',
     title: 'Investment fees, and what a 1% advisor fee would cost you',

@@ -1935,6 +1935,14 @@ export const DEFAULT_INPUTS = {
   // How the numbers are figured -> Investment fees.
   fundExpenseRatioPct: 0.10,
   advisorFeePct: 0,
+  // "Keep at least" (changelog 448): a balance, in today's dollars, the
+  // household wants never to dip below once retired -- a reserve or a
+  // legacy floor. A TEST, not a spending rule: the plan does not cut
+  // spending to defend it. A retired year whose invested accounts plus the
+  // cash reserve end below it (deflated to today's dollars) is a breach;
+  // Monte Carlo, the historical starts and the safe-spending search count
+  // a run as lasting only if it never breaches. 0 = off.
+  portfolioFloorReal: 0,
   glideAllocationEnabled: false,
   glideAllocationRate: 1.0, // reduction in stock % per year retired
   glideAllocationFloor: 30.0,
@@ -6651,6 +6659,7 @@ export function sanitizeInputs(inputs) {
     'preTaxContribution1', 'preTaxContribution2', 'rothContribution1', 'rothContribution2', 'taxableContribution', 'hsaContribution',
     'currentHouseholdSpendingCustom', 'healthcareBridgeCost', 'partTimeIncome1', 'partTimeIncome2',
     'annuityPurchaseAmount', 'annuityIncome', 'rentalIncome',
+    'portfolioFloorReal',
   ];
   for (const key of nonNegative) {
     if (key in defaults) clampKey(key, 0, Infinity);
@@ -11473,6 +11482,23 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     isSuccessful = false;
   }
 
+  // "Keep at least" (changelog 448): the first retired year that ends below
+  // the floor, in today's dollars. meetsFloor is the success test Monte
+  // Carlo, the historical starts and the safe-spending search use: the
+  // money lasted AND never dipped below the floor. With no floor it is
+  // isSuccessful exactly.
+  const floor = Math.max(0, Number(inputs.portfolioFloorReal) || 0);
+  let floorBreachYear = null;
+  if (floor > 0) {
+    for (let i = 0; i < years.length; i += 1) {
+      const row = years[i];
+      if (!row.isRetired) continue;
+      const real = ((row.totalPortfolioEnding || 0) + (row.cashReserveBalance || 0)) / (yearEndFactor(years, i) || 1);
+      if (real < floor - 0.5) { floorBreachYear = row.year; break; }
+    }
+  }
+  const meetsFloor = isSuccessful && floorBreachYear === null;
+
   return {
     years,
     peakPortfolioWorth,
@@ -11481,6 +11507,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     totalIRMAAPaid: totalIRMAAPaidSum,
     totalRMDsForced: totalRMDsForcedSum,
     isSuccessful,
+    floorBreachYear,
+    meetsFloor,
     householdRetirementYear,
     // E28: inputs the plan could not run as entered, each
     // { key, value, reason, usedValue }. Empty for a well-formed plan.
@@ -11691,7 +11719,9 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
     }
     const result = runProjection(trialInputs, trialReturns, trialInflation, planDeferralCuts);
     
-    if (result.isSuccessful) {
+    // Changelog 448: a trial lasts only if it also keeps the "keep at
+    // least" floor (meetsFloor is isSuccessful when there is none).
+    if (result.meetsFloor) {
       successfulTrials++;
     }
     // Changelog 335: with a guardrail on, the success rate is partly bought
@@ -12968,14 +12998,17 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
       const proj = _runProjectionPreSanitized({ ...inputs, ...rule.patch, ...path.patch });
       if (rule.key === 'fixed') fixedRuns[i] = proj;
       const out = runsOutYear(proj);
-      const ok = !!proj.isSuccessful;
+      // Changelog 448: lasting means keeping the "keep at least" floor too.
+      const ok = !!proj.meetsFloor;
+      const breach = proj.floorBreachYear ?? null;
       if (ok) lasted += 1;
       const realEnd = (Number(proj.endingBalance) || 0) / finalBalanceFactor(proj.years);
-      // The worst start: the earliest run-out, else the smallest real
-      // balance left.
-      const rank = out !== null ? out - 1e9 : realEnd;
-      if (worst === null || rank < worst.rank) worst = { rank, start: path.start, runsOutYear: out };
-      const entry = { ok, runsOutYear: out, realEnd };
+      // The worst start: the earliest run-out (or dip below the floor),
+      // else the smallest real balance left.
+      const failYear = out !== null && breach !== null ? Math.min(out, breach) : (out ?? breach);
+      const rank = failYear !== null ? failYear - 1e9 : realEnd;
+      if (worst === null || rank < worst.rank) worst = { rank, start: path.start, runsOutYear: out, floorBreachYear: breach };
+      const entry = { ok, runsOutYear: out, floorBreachYear: breach, realEnd };
       if (rule.key !== 'fixed') {
         const cost = spendingCost(proj, fixedRuns[i]);
         if (cost) {
@@ -13000,6 +13033,7 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
       count: paths.length,
       worstStart: worst ? worst.start : null,
       worstRunsOutYear: worst ? worst.runsOutYear : null,
+      worstFloorBreachYear: worst ? worst.floorBreachYear : null,
       medianLifetimeShare: rule.key === 'fixed' ? 1 : median(lifetime),
       deepestCut: rule.key === 'fixed' ? 0 : deepest.cut,
       deepestCutStart: rule.key === 'fixed' ? null : deepest.start,
@@ -13014,6 +13048,9 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
     lastStart: paths.length ? paths[paths.length - 1].start : null,
     count: paths.length,
     inPlan,
+    // Changelog 448: the "keep at least" floor these counts respect, in
+    // today's dollars (0 = none).
+    floor: Math.max(0, Number(inputs.portfolioFloorReal) || 0),
     rules: summaries,
     starts,
   };
@@ -13072,7 +13109,7 @@ export function findHistoricalSafeMax(rawInputs = DEFAULT_INPUTS, { shares = SAF
     const allowed = count - need;
     let failures = 0;
     for (const start of orderedStarts()) {
-      if (!runStart(spend, start).isSuccessful) {
+      if (!runStart(spend, start).meetsFloor) {
         markFailed(start);
         failures += 1;
         if (failures > allowed) return false;
@@ -13086,9 +13123,9 @@ export function findHistoricalSafeMax(rawInputs = DEFAULT_INPUTS, { shares = SAF
     let worst = null;
     for (const start of orderedStarts()) {
       const proj = runStart(spend, start);
-      if (proj.isSuccessful) continue;
+      if (proj.meetsFloor) continue;
       const row = proj.years.find((y) => (y.shortfall || 0) > 0.01);
-      const out = row ? row.year : Infinity;
+      const out = Math.min(row ? row.year : Infinity, proj.floorBreachYear ?? Infinity);
       if (worst === null || out < worst.out) worst = { start, out };
     }
     return worst ? worst.start : null;
@@ -13146,6 +13183,7 @@ export function findHistoricalSafeMax(rawInputs = DEFAULT_INPUTS, { shares = SAF
     firstStart: startYears[0],
     lastStart: startYears[startYears.length - 1],
     planned,
+    floor: Math.max(0, Number(inputs.portfolioFloorReal) || 0),
     bars,
   };
 }
@@ -13205,7 +13243,7 @@ export function historicalLastedCount(rawInputs) {
     const proj = _runProjectionPreSanitized({
       ...inputs, stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: start,
     });
-    if (proj.isSuccessful) lasted += 1;
+    if (proj.meetsFloor) lasted += 1;
   }
   return { lasted, count: startYears.length, firstStart: startYears[0] };
 }

@@ -588,6 +588,11 @@ const RiskTab = () => {
                           seed {monteCarlo.seed}{monteCarlo.seed !== inputs.monteCarloSeed ? ' (run again for the current seed)' : ''}
                         </div>
                       )}
+                      {Number(inputs.portfolioFloorReal) > 0 && (
+                        <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-secondary)', marginTop: '4px' }} data-testid="mc-floor-note">
+                          Lasting means keeping at least ${Math.round(Number(inputs.portfolioFloorReal)).toLocaleString('en-US')} (Keep at Least)
+                        </div>
+                      )}
                       {mcRange && mcRange.status === 'stale' && (
                         <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--warning)', marginTop: '4px' }}>
                           The plan has changed since this ran &mdash; run again

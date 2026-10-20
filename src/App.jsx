@@ -1971,12 +1971,12 @@ export default function App() {
     return h ? { lasted: h.lasted, count: h.count, firstStart: historicalStartsData.firstStart } : null;
   }, [heavyResultsLoading, debouncedInputs, inputs, historicalStartsData]);
   const verdict = useMemo(() => {
-    const args = { isSuccessful: kpis.isSuccessful, years: projection.years, mc: mcRange, history: verdictHistory };
+    const args = { isSuccessful: kpis.isSuccessful, years: projection.years, mc: mcRange, history: verdictHistory, floor: inputs.portfolioFloorReal, floorBreachYear: projection.floorBreachYear ?? null };
     const v = planVerdict({ ...args, mcPending: mcLoading || (mcAutoRun && mcRange.status !== 'fresh') });
     if (v.tone !== 'pending') return v;
     const settled = planVerdict({ ...args, mcPending: false });
     return { ...v, tone: settled.tone, label: settled.label, checking: true };
-  }, [kpis.isSuccessful, projection.years, mcRange, mcLoading, mcAutoRun, verdictHistory]);
+  }, [kpis.isSuccessful, projection.years, projection.floorBreachYear, inputs.portfolioFloorReal, mcRange, mcLoading, mcAutoRun, verdictHistory]);
 
   // The Monte Carlo in the display basis (utils/displayDollars.js). The
   // engine's percentiles are future dollars; every screen and the print

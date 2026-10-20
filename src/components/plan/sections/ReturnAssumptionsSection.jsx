@@ -69,6 +69,34 @@ export default function ReturnAssumptionsSection() {
                 </p>
               </div>
 
+              {/* Keep at least (changelog 448): a floor the Monte Carlo, the
+                  historical starts and the safe-spending search hold the
+                  plan to. A test, not a spending rule. */}
+              <div style={{ marginBottom: '24px', gridColumn: '1 / -1' }} data-testid="portfolio-floor">
+                <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', borderBottom: '1px solid var(--card-border)', paddingBottom: '8px' }}>
+                  Keep at Least
+                </h3>
+                <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '-8px', marginBottom: '16px' }}>
+                  A balance you never want to go below once you retire: a reserve, or money set aside for heirs. With it
+                  set, a simulated market or a historical start only counts as lasting if your accounts never dip under
+                  it, and the most-you-could-spend figure keeps it intact. It does not change your spending; it changes
+                  what counts as success. Leave at 0 to count only whether the money lasts.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="field-portfolioFloorReal">Keep at Least ($, today&rsquo;s dollars)</label>
+                    <NumberInput
+                      id="field-portfolioFloorReal" min="0"
+                      step="10000"
+                      className="form-input"
+                      value={inputs.portfolioFloorReal}
+                      onChange={(e) => updateInput('portfolioFloorReal', (e.target.value === '' ? '' : parseFloat(e.target.value)))}
+                    />
+                    <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>Your Pre-Tax, Roth, Taxable and HSA accounts plus the cash reserve, at the end of each retired year. Grows with inflation.</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Flat Return Assumptions -- preRetireReturn /
                   postRetireReturn. Added 2026-08-19 (IA Phase 2, see
                   IA_REVIEW.md): these two drive every projected dollar in

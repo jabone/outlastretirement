@@ -72,3 +72,13 @@ describe('the Investment Fees fields', () => {
     expect(setActiveTab).toHaveBeenCalledWith('risk');
   });
 });
+
+describe('the Keep at Least field', () => {
+  it('sits under the fees in Assumptions, at 0 by default', () => {
+    renderWithSimulation(<ReturnAssumptionsSection />);
+    const block = screen.getByTestId('portfolio-floor');
+    expect(within(block).getByRole('heading', { name: 'Keep at Least' })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Keep at Least \(\$, today/)).toHaveValue('0');
+    expect(block.textContent).toMatch(/does not change your spending; it changes what counts as success/);
+  });
+});

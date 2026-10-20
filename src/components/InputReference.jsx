@@ -681,6 +681,15 @@ const InputReference = () => {
             <tr>
               <td style={sectionStyles.td}>
                 <span style={sectionStyles.badge}>Number Input</span><br/>
+                <strong>Keep at Least</strong><br/>
+                <em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Assumptions &amp; Risk &rarr; Keep at Least</em>
+              </td>
+              <td style={sectionStyles.td}>A balance, in today&rsquo;s dollars, you never want to go below once retired. With it set, the Monte Carlo success rate, the historical starts and the most you could spend and still last through every start count a run as lasting only if your Pre-Tax, Roth, Taxable and HSA accounts plus the cash reserve never end a retired year below it. It does not change your spending; it changes what counts as success. The verdict says when even average returns would dip below it.</td>
+              <td style={sectionStyles.td}>Dollars, today&rsquo;s. Default 0 (off). Grows with inflation.</td>
+            </tr>
+            <tr>
+              <td style={sectionStyles.td}>
+                <span style={sectionStyles.badge}>Number Input</span><br/>
                 <strong>Investment Return &mdash; Working / Retired</strong><br/>
                 <em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Assumptions &amp; Risk &rarr; Return Assumptions</em>
               </td>
