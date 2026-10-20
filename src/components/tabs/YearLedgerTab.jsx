@@ -18,6 +18,7 @@ import Tooltip from '../Tooltip';
 import HowFiguredLink from '../HowFiguredLink';
 import { ACA_NON_EXPANSION_STATES } from '../../calculator';
 import { buildYearLedgerCsv } from '../../utils/yearLedgerCsv';
+import { csvPreamble, downloadCsv } from '../../utils/csvPreamble';
 import ForeignYearsNotice from '../ForeignYearsNoticeLoader';
 
 // Changelog 203: a move after January shares its year; the ledger says from when.
@@ -54,7 +55,7 @@ const LEDGER_VIEWS = [
 const STATE_RULE = { state_rules: 'state-own-rules', ca: 'state-ca', ny: 'state-ny', il: 'state-il', co: 'state-co', pa: 'state-pa', va: 'state-va', wa: 'state-wa' };
 
 const YearLedgerTab = () => {
-  const { inputs, formatCurrency, projection, setActiveTab, yearledgerSubTab, setYearledgerSubTab, setMaximizedComponent, mcRange, setRiskSubTab } = useSimulation();
+  const { inputs, formatCurrency, projection, setActiveTab, yearledgerSubTab, setYearledgerSubTab, setMaximizedComponent, mcRange, setRiskSubTab, useRealDollars } = useSimulation();
   const { isPremium } = useEntitlement();
   // The view is shared state (App.jsx) so the address bar can name it
   // (#/yearledger/cashflow) and it survives leaving the tab.
@@ -122,17 +123,12 @@ const YearLedgerTab = () => {
     if (!projection || !projection.years) return;
     // Column mapping lives in utils/yearLedgerCsv.js (pure, unit-tested).
     // `projection` here is already Real- or Nominal-dollar adjusted by
-    // App.jsx, so the export matches whatever the table is showing.
-    // The export follows the view on screen.
+    // App.jsx, so the export matches whatever the table is showing, and
+    // the preamble (changelog 450) says which.
     const body = view === 'uses' ? buildMoneyGoesCsv(projection, { split: isPremium }) : buildYearLedgerCsv(projection);
-    const csvContent = "data:text/csv;charset=utf-8," + body;
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${view === 'uses' ? 'where_the_money_goes' : 'retirement_projection'}_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const title = view === 'uses' ? 'Year by Year, where the money goes' : 'Year by Year ledger';
+    const name = `${view === 'uses' ? 'where_the_money_goes' : 'retirement_projection'}_${new Date().toISOString().slice(0, 10)}.csv`;
+    downloadCsv(name, csvPreamble({ title, inputs, useRealDollars }) + body);
   };
 
   return (

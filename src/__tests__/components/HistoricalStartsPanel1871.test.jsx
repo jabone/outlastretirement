@@ -31,3 +31,13 @@ describe('<HistoricalStartsPanel /> market record', () => {
     expect(screen.getByTestId('historical-headline').textContent).toMatch(/109 of 132/);
   });
 });
+
+describe('<HistoricalStartsPanel /> check it year by year (changelog 450)', () => {
+  it('opens the hardest start in Year by Year', () => {
+    const onReplayInLedger = vi.fn();
+    render(<HistoricalStartsPanel data={data(1928, 75)} onReplay={vi.fn()} onReplayInLedger={onReplayInLedger} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Check it year by year' }));
+    expect(onReplayInLedger).toHaveBeenCalledWith(1965);
+  });
+});
+

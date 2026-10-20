@@ -21,7 +21,9 @@ function historyPreview(inputs, start = Number(inputs.stressHistoryStartYear) ||
     .map((r) => ({ year: r[0], ret: historicalPortfolioReturn(r, inputs.stockAllocationPost), infl: r[3] }));
 }
 import { getMinimumRequiredReturn, NAMED_STRESS_SCENARIOS } from '../../calculator';
-import { ShieldAlert, CheckCircle, Scale, Loader2, Wind, Trophy, Lightbulb } from 'lucide-react';
+import { ShieldAlert, CheckCircle, Scale, Loader2, Wind, Trophy, Lightbulb, Download } from 'lucide-react';
+import { csvPreamble, downloadCsv } from '../../utils/csvPreamble';
+import { buildMonteCarloCsv, monteCarloPreambleLines } from '../../utils/monteCarloCsv';
 import HoverTooltip from '../HoverTooltip';
 import Tooltip from '../Tooltip';
 import MaximizeButton from '../MaximizeButton';
@@ -527,6 +529,14 @@ const RiskTab = () => {
               loading={heavyResultsLoading}
               onOpenPremium={() => setActiveTab('premium')}
               replayingStart={inputs.stressType === 'history' && inputs.stressStartMode === 'retirement' ? inputs.stressHistoryStartYear : null}
+              onReplayInLedger={(start) => {
+                updateInput('stressHistoryStartYear', start);
+                updateInput('stressStartMode', 'retirement');
+                updateInput('stressType', 'history');
+                setActiveTab('yearledger');
+                if (typeof window !== 'undefined' && window.scrollTo) window.scrollTo({ top: 0 });
+              }}
+              csvPreamble={(title, extra) => csvPreamble({ title, inputs, useRealDollars: true, extra })}
               historyFrom={Number(inputs.historyFromYear) || 1928}
               onHistoryFrom={(y) => updateInput('historyFromYear', y)}
               onReplay={(start) => {
@@ -655,7 +665,21 @@ const RiskTab = () => {
                   <div className="glass-panel" style={{ padding: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                       <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Percentile Horizon Curves <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 400, color: 'var(--text-muted)' }}>{basisLabel(useRealDollars)}</span></h3>
-                      <MaximizeButton target="monteCarlo" current={maximizedComponent} setMaximizedComponent={setMaximizedComponent} label="Maximize chart" />
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        {/* Changelog 450: the numbers behind this chart. */}
+                        <button
+                          type="button"
+                          className="btn-outline"
+                          style={{ padding: '6px 10px', fontSize: 'var(--fs-xs)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                          onClick={() => downloadCsv(
+                            `monte_carlo_range_${new Date().toISOString().slice(0, 10)}.csv`,
+                            csvPreamble({ title: 'Monte Carlo range by year', inputs, useRealDollars, extra: monteCarloPreambleLines(monteCarlo) }) + buildMonteCarloCsv(monteCarlo),
+                          )}
+                        >
+                          <Download size={14} /> Download the range (CSV)
+                        </button>
+                        <MaximizeButton target="monteCarlo" current={maximizedComponent} setMaximizedComponent={setMaximizedComponent} label="Maximize chart" />
+                      </div>
                     </div>
                     <ChartFigure summary={monteCarloSummary(monteCarlo.growthCurves, monteCarlo.successProbability)} testId="montecarlo-figure">
                     <div style={{ width: '100%', height: '350px' }}>

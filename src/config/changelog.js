@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 450,
+    date: '2026-10-20',
+    title: 'Exports explain themselves, the Monte Carlo range downloads, and any historical start opens year by year',
+    summary: 'Every CSV now opens with what it is, the date, its dollars and the assumptions behind it. The Monte Carlo range downloads as CSV, and a historical start opens in Year by Year.',
+    items: [
+      "**A preamble on every CSV.** The Year by Year exports, the new Monte Carlo download and Premium\u2019s every-start table open with a few lines: what the file is, the date and app version, whether its dollars are today\u2019s or each year\u2019s own, the scenario, returns, inflation and fees behind it, and Keep at Least if set. No names or labels from your plan.",
+      "**Download the range (CSV)** on Risk \u2192 Monte Carlo: each year\u2019s worst-tenth, quartile, median and best-tenth balance, and the share of markets with money left, in the dollars on screen.",
+      "**Check it year by year.** Beside the hardest historical start, a link replays it and opens Year by Year, so the ledger and its CSV are that real retirement. In Premium, every start in the start-by-start table has its own link, and **Download every start (CSV)** saves the table with run-out years, below-floor years and what was left (Premium).",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
     id: 449,
     date: '2026-10-20',
     title: 'Every retirement since 1871: Robert Shiller\u2019s market record',

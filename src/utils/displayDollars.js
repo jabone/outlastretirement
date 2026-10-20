@@ -204,7 +204,8 @@ export function monteCarloForDisplay(monteCarlo, rawProjection, useRealDollars) 
   const curves = Array.isArray(monteCarlo.growthCurves)
     ? monteCarlo.growthCurves.map((c) => {
       const f = byYear.get(c.year) || finalF;
-      return { ...c, p10: Math.round(c.p10 / f), p50: Math.round(c.p50 / f), p90: Math.round(c.p90 / f) };
+      const d = (v) => (typeof v === 'number' ? Math.round(v / f) : v);
+      return { ...c, p10: d(c.p10), p25: d(c.p25), p50: d(c.p50), p75: d(c.p75), p90: d(c.p90) };
     })
     : monteCarlo.growthCurves;
   const div = (v) => (typeof v === 'number' ? v / finalF : v);

@@ -11777,15 +11777,18 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
     yearBal.sort((a, b) => a - b);
     const year = startYear + idx;
     
-    const p10Val = yearBal[Math.floor(yearBal.length * 0.10)] || 0;
-    const p50Val = yearBal[Math.floor(yearBal.length * 0.50)] || 0;
-    const p90Val = yearBal[Math.floor(yearBal.length * 0.90)] || 0;
-
+    const at = (q) => yearBal[Math.floor(yearBal.length * q)] || 0;
+    // p25/p75 (changelog 450) for the Monte Carlo CSV; the chart draws
+    // p10-p90 around the median.
     growthCurves.push({
       year,
-      p10: Math.round(p10Val),
-      p50: Math.round(p50Val),
-      p90: Math.round(p90Val),
+      p10: Math.round(at(0.10)),
+      p25: Math.round(at(0.25)),
+      p50: Math.round(at(0.50)),
+      p75: Math.round(at(0.75)),
+      p90: Math.round(at(0.90)),
+      // Share of trials with money left at the end of this year (changelog 450).
+      fundedPct: yearBal.length ? (yearBal.filter((b) => b > 0.5).length / yearBal.length) * 100 : 0,
     });
   }
 

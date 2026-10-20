@@ -66,7 +66,9 @@ function SafeMaxLine({ data, guarded }) {
 // Changelog 449: `historyFrom` is the plan's choice of record, 1928 or 1871,
 // and `onHistoryFrom` changes it. The years before 1928 are Robert
 // Shiller's, and say so wherever they are in use.
-export default function HistoricalStartsPanel({ data, loading, onOpenPremium, onReplay = null, replayingStart = null, historyFrom = 1928, onHistoryFrom = null }) {
+// Changelog 450: `onReplayInLedger` replays a start and opens Year by Year,
+// where the ledger (and its CSV) is that start, year by year.
+export default function HistoricalStartsPanel({ data, loading, onOpenPremium, onReplay = null, replayingStart = null, historyFrom = 1928, onHistoryFrom = null, onReplayInLedger = null, csvPreamble = null }) {
   const from = data && data.firstStart ? data.firstStart : historyFrom;
   const head = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
@@ -146,6 +148,12 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
               : <button type="button" style={linkButton} onClick={() => onReplay(h.worstStart)}>Replay it on the chart</button>}
           </>
         )}
+        {onReplayInLedger && (
+          <>
+            {' '}
+            <button type="button" style={linkButton} onClick={() => onReplayInLedger(h.worstStart)}>Check it year by year</button>
+          </>
+        )}
       </p>
       {guarded && (
         <p style={{ fontSize: 'var(--fs-body)', margin: 0 }} data-testid="historical-cost">
@@ -161,6 +169,7 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
       <PremiumMount
         id="historicalStarts"
         data={data}
+        csvPreamble={csvPreamble}
         onReplay={onReplay}
         replayingStart={replayingStart}
         locked={(
