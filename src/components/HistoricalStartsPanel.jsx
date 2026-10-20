@@ -63,13 +63,42 @@ function SafeMaxLine({ data, guarded }) {
 
 // Changelog 336: any start can be replayed as the 'history' stress scenario
 // (onReplay), which puts that whole retirement on the stress chart above.
-export default function HistoricalStartsPanel({ data, loading, onOpenPremium, onReplay = null, replayingStart = null }) {
+// Changelog 449: `historyFrom` is the plan's choice of record, 1928 or 1871,
+// and `onHistoryFrom` changes it. The years before 1928 are Robert
+// Shiller's, and say so wherever they are in use.
+export default function HistoricalStartsPanel({ data, loading, onOpenPremium, onReplay = null, replayingStart = null, historyFrom = 1928, onHistoryFrom = null }) {
+  const from = data && data.firstStart ? data.firstStart : historyFrom;
   const head = (
-    <h3 style={{ fontSize: '16px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-      <History size={18} style={{ color: 'var(--accent-text)' }} />
-      <span>Every retirement since 1928</span>
-    </h3>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+      <h3 style={{ fontSize: '16px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+        <History size={18} style={{ color: 'var(--accent-text)' }} />
+        <span>Every retirement since {from}</span>
+      </h3>
+      {onHistoryFrom && (
+        <label style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          Market record from
+          <select
+            className="form-input form-input-select"
+            aria-label="Market record from"
+            value={historyFrom}
+            onChange={(e) => onHistoryFrom(Number(e.target.value))}
+            style={{ margin: 0, width: 'auto' }}
+          >
+            <option value={1928}>1928</option>
+            <option value={1871}>1871</option>
+          </select>
+        </label>
+      )}
+    </div>
   );
+  const credit = from < 1928 ? (
+    <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: 0 }} data-testid="shiller-credit">
+      Stock, bond and inflation history before 1928: Robert J. Shiller, Yale University (the data behind{' '}
+      <em>Irrational Exuberance</em>). From 1928: Aswath Damodaran, NYU Stern, and the Federal Reserve Bank of
+      Minneapolis. Bond returns before 1928 are rebuilt from yields, and price records before 1913 are less complete,
+      so the early starts are a rougher guide than the later ones.
+    </p>
+  ) : null;
   if (!data) {
     return (
       <div className="glass-panel" style={{ padding: '24px' }} data-testid="historical-starts">
@@ -128,6 +157,7 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
         </p>
       )}
       <SafeMaxLine data={data} guarded={guarded} />
+      {credit}
       <PremiumMount
         id="historicalStarts"
         data={data}

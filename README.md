@@ -111,6 +111,21 @@ deployment; there is no server component in this repository.
 - `RELOCATION_SPEC.md` — moves between states and abroad: the design of the Premium country data, kept with that data rather than published here.
 - `docs/brand/README.md` — the brand marks and how to use them.
 
+## Data sources
+
+The tax, Social Security and Medicare figures cite their agencies in
+`src/config/sources.js`. The market history behind the historical starts,
+the stress tests and the Monte Carlo's bootstrap comes from:
+
+- **1928 on:** Aswath Damodaran, NYU Stern, "Historical Returns on Stocks,
+  Bonds and Bills" (S&P 500 and 10-year Treasury total returns), and the
+  Federal Reserve Bank of Minneapolis's annual CPI (`src/config/historicalReturns.js`).
+- **1871 to 1927:** Robert J. Shiller, Yale University, "U.S. Stock Markets
+  1871-Present and CAPE Ratio," the data behind *Irrational Exuberance*
+  (`src/config/historicalReturnsPre1928.js`, built by
+  `scripts/buildPre1928History.mjs`). Used when a plan sets its market record
+  to start in 1871.
+
 ## Privacy
 
 The app sends nothing about a plan anywhere. The one connection the free app

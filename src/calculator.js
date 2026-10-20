@@ -37,6 +37,7 @@ export const TAX_YEAR = 2026;
 import { sampleDeathAge, survivalCurve } from './utils/mortality';
 import { sampleLtcEpisode } from './utils/ltcRisk';
 import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from './config/historicalReturns';
+import { HISTORICAL_RETURNS_PRE1928, PRE1928_FIRST_YEAR } from './config/historicalReturnsPre1928';
 import { historicalPortfolioReturn, historicalGeometricMean, historicalMeanInflation, bootstrapPath, recenterReturn } from './utils/bootstrap';
 import { spendingCost } from './utils/spendingCost';
 import { JOINT_LIFE_TABLE_II, JOINT_LIFE_TABLE_II_SPOUSE_MIN_AGE } from './config/rmdJointLifeTable';
@@ -1943,6 +1944,10 @@ export const DEFAULT_INPUTS = {
   // Monte Carlo, the historical starts and the safe-spending search count
   // a run as lasting only if it never breaches. 0 = off.
   portfolioFloorReal: 0,
+  // Where the historical starts begin (changelog 449): 1928 (Aswath
+  // Damodaran's annual table, the default) or 1871 (adds Robert Shiller's
+  // record of the years before). The Monte Carlo's bootstrap is unaffected.
+  historyFromYear: 1928,
   glideAllocationEnabled: false,
   glideAllocationRate: 1.0, // reduction in stock % per year retired
   glideAllocationFloor: 30.0,
@@ -6588,9 +6593,11 @@ export function sanitizeInputs(inputs) {
   {
     const raw = Number(inputs.stressHistoryStartYear);
     clean.stressHistoryStartYear = Number.isFinite(raw) && raw > 0
-      ? Math.min(HISTORY_LAST_YEAR, Math.max(HISTORY_FIRST_YEAR, Math.round(raw)))
+      ? Math.min(HISTORY_LAST_YEAR, Math.max(PRE1928_FIRST_YEAR, Math.round(raw)))
       : defaults.stressHistoryStartYear;
   }
+  // Changelog 449: the historical starts begin in 1928 or 1871, nothing else.
+  clean.historyFromYear = historyFirstYear(inputs);
   // Changelog 247: the Monte Carlo's seed and inflation-uncertainty
   // settings. A missing seed must not become 0 (mulberry32 would treat it
   // as 1 anyway, but the Risk panel shows the figure), a missing inflation
@@ -6706,7 +6713,18 @@ function parseMoneyString(str) {
 
 // Changelog 336: the history table by calendar year, for the 'history'
 // stress type.
-const HISTORY_BY_YEAR = new Map(HISTORICAL_RETURNS.map((r) => [r[0], r]));
+// Changelog 449: with the pre-1928 years (Robert Shiller's data) in the
+// same map, a real start year from 1871 on can be replayed. The Monte
+// Carlo's bootstrap still draws from HISTORICAL_RETURNS (1928 on) only.
+const HISTORY_BY_YEAR = new Map([...HISTORICAL_RETURNS_PRE1928, ...HISTORICAL_RETURNS].map((r) => [r[0], r]));
+
+// Where the historical starts begin (changelog 449): 1928 by default
+// (Damodaran's table), or 1871 when the plan asks for Robert Shiller's
+// longer record.
+export const HISTORY_FROM_CHOICES = Object.freeze([HISTORY_FIRST_YEAR, PRE1928_FIRST_YEAR]);
+export function historyFirstYear(inputs) {
+  return Number(inputs?.historyFromYear) === PRE1928_FIRST_YEAR ? PRE1928_FIRST_YEAR : HISTORY_FIRST_YEAR;
+}
 
 // The named Historical Stress Tests: each is a window of real calendar
 // years replayed from HISTORICAL_RETURNS (A30). Exported so the Risk tab
@@ -12946,9 +12964,9 @@ export const HISTORICAL_START_RULES = [
 ];
 
 // The start years with a full retirement's worth of history behind them.
-export function historicalStartYears(horizonYears) {
+export function historicalStartYears(horizonYears, firstYear = HISTORY_FIRST_YEAR) {
   const years = [];
-  for (let start = HISTORY_FIRST_YEAR; start + horizonYears - 1 <= HISTORY_LAST_YEAR; start += 1) years.push(start);
+  for (let start = firstYear; start + horizonYears - 1 <= HISTORY_LAST_YEAR; start += 1) years.push(start);
   return years;
 }
 
@@ -12968,7 +12986,7 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
   // Changelog 336: each start is the 'history' stress scenario at that
   // year, so the Risk tab can replay any row of this table and show
   // exactly the run the row describes.
-  const paths = historicalStartYears(horizonYears).map((start) => ({
+  const paths = historicalStartYears(horizonYears, historyFirstYear(inputs)).map((start) => ({
     start,
     patch: { stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: start },
   }));
@@ -13087,7 +13105,7 @@ export function findHistoricalSafeMax(rawInputs = DEFAULT_INPUTS, { shares = SAF
   const firstRetired = base.years.find((y) => y.isRetired);
   if (!firstRetired) return null;
   const horizonYears = base.years[base.years.length - 1].year - firstRetired.year + 1;
-  const startYears = historicalStartYears(horizonYears);
+  const startYears = historicalStartYears(horizonYears, historyFirstYear(inputs));
   if (startYears.length === 0) return null;
   const inPlan = inputs.spendingGuardrails && inputs.withdrawalGuardrailsEnabled ? 'both'
     : inputs.spendingGuardrails ? 'crash'
@@ -13236,7 +13254,7 @@ export function historicalLastedCount(rawInputs) {
   const firstRetired = base.years.find((y) => y.isRetired);
   if (!firstRetired) return null;
   const horizonYears = base.years[base.years.length - 1].year - firstRetired.year + 1;
-  const startYears = historicalStartYears(horizonYears);
+  const startYears = historicalStartYears(horizonYears, historyFirstYear(inputs));
   if (startYears.length === 0) return null;
   let lasted = 0;
   for (const start of startYears) {

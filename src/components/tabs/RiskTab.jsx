@@ -6,15 +6,18 @@ import { useSimulation } from '../../context/useSimulation';
 import FeeCostCard from '../FeeCostCard';
 import HistoricalStartsPanel from '../HistoricalStartsPanel';
 import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from '../../config/historicalReturns';
+import { HISTORICAL_RETURNS_PRE1928, PRE1928_FIRST_YEAR } from '../../config/historicalReturnsPre1928';
 import { historicalPortfolioReturn } from '../../utils/bootstrap';
 
 // Changelog 336: the 'A real start year' card.
-const HISTORY_YEARS = Array.from({ length: HISTORY_LAST_YEAR - HISTORY_FIRST_YEAR + 1 }, (_, i) => HISTORY_FIRST_YEAR + i);
+// Changelog 449: from 1871 when the plan uses Robert Shiller's longer record.
+const historyYears = (from) => Array.from({ length: HISTORY_LAST_YEAR - from + 1 }, (_, i) => from + i);
+const ALL_HISTORY_ROWS = [...HISTORICAL_RETURNS_PRE1928, ...HISTORICAL_RETURNS];
 // The replayed years, as the engine will apply them (same table, same
 // stock share): the first four of a real start year, or a named crisis's
 // whole window (NAMED_STRESS_SCENARIOS).
 function historyPreview(inputs, start = Number(inputs.stressHistoryStartYear) || 1966, count = 4) {
-  return HISTORICAL_RETURNS.filter((r) => r[0] >= start).slice(0, count)
+  return ALL_HISTORY_ROWS.filter((r) => r[0] >= start).slice(0, count)
     .map((r) => ({ year: r[0], ret: historicalPortfolioReturn(r, inputs.stockAllocationPost), infl: r[3] }));
 }
 import { getMinimumRequiredReturn, NAMED_STRESS_SCENARIOS } from '../../calculator';
@@ -291,8 +294,13 @@ const RiskTab = () => {
                     onChange={(e) => { updateInput('stressHistoryStartYear', Number(e.target.value)); updateInput('stressType', 'history'); }}
                     style={{ marginTop: '8px', marginBottom: 0 }}
                   >
-                    {HISTORY_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+                    {historyYears(Number(inputs.historyFromYear) === PRE1928_FIRST_YEAR || Number(inputs.stressHistoryStartYear) < HISTORY_FIRST_YEAR ? PRE1928_FIRST_YEAR : HISTORY_FIRST_YEAR).map((y) => <option key={y} value={y}>{y}</option>)}
                   </select>
+                  {Number(inputs.stressHistoryStartYear) < HISTORY_FIRST_YEAR && (
+                    <p style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '6px', marginBottom: 0 }}>
+                      Years before 1928: Robert J. Shiller&rsquo;s data, Yale University.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -519,6 +527,8 @@ const RiskTab = () => {
               loading={heavyResultsLoading}
               onOpenPremium={() => setActiveTab('premium')}
               replayingStart={inputs.stressType === 'history' && inputs.stressStartMode === 'retirement' ? inputs.stressHistoryStartYear : null}
+              historyFrom={Number(inputs.historyFromYear) || 1928}
+              onHistoryFrom={(y) => updateInput('historyFromYear', y)}
               onReplay={(start) => {
                 updateInput('stressHistoryStartYear', start);
                 updateInput('stressStartMode', 'retirement');

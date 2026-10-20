@@ -76,7 +76,7 @@ import { fileURLToPath } from 'node:url';
 describe('SAFEMAX is credited and findable', () => {
   const src = (f) => readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', f), 'utf8');
   it('the Input Dictionary row answers SAFEMAX, safe max and Bengen', () => {
-    const row = src('components/InputReference.jsx').split('<tr>').find((r) => r.includes('Every retirement since 1928 (Risk &amp; Stress tab)'));
+    const row = src('components/InputReference.jsx').split('<tr>').find((r) => r.includes('Every retirement since 1928 or 1871 (Risk &amp; Stress tab)'));
     const text = row.replace(/<[^>]+>/g, ' ').replace(/&ldquo;|&rdquo;/g, '"').replace(/&rsquo;/g, '’').toLowerCase();
     for (const q of ['safemax', 'safe max', 'bengen']) expect(text, q).toContain(q);
   });

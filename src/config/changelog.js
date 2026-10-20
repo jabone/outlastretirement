@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 449,
+    date: '2026-10-20',
+    title: 'Every retirement since 1871: Robert Shiller\u2019s market record',
+    summary: 'The historical starts can now begin in 1871 instead of 1928, adding 57 earlier start years from Robert Shiller\u2019s data. Choose Market record from on the Risk tab. 1928 stays the default.',
+    items: [
+      "**The choice.** Risk \u2192 Historical Stress Tests \u2192 Every retirement: **Market record from** 1928 (the default) or 1871. From 1871, your plan runs through 57 more real retirements, including the poor stretches of the 1900s and 1910s, and the count, the hardest start, the most you could spend and still last through every start, and the verdict\u2019s history line all include them. Any year from 1871 can be replayed on the chart.",
+      "**Credit.** The years before 1928 are Robert J. Shiller\u2019s (Yale University), the data behind Irrational Exuberance: stock prices and dividends, his long-term interest rate, from which the bond return is rebuilt, and his price index, which before 1913 is an older reconstruction. The panel names him whenever those years are in use, as do the Guide, the methodology and the public repository\u2019s Data sources.",
+      "**Checked.** Over 1928 to 2022, where both records exist, Shiller\u2019s figures and the table the app already used average within a tenth of a point a year of each other.",
+      "**Your numbers do not change** unless you choose 1871. The Monte Carlo is unaffected.",
+    ],
+  },
+  {
     id: 448,
     date: '2026-10-20',
     title: 'Keep at least: set a balance your plan should never dip below',

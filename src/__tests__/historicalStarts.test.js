@@ -92,7 +92,8 @@ describe('the history stress type (replay one real start)', () => {
 
   it('keeps a saved plan’s start year on the record', () => {
     expect(sanitizeInputs({}).stressHistoryStartYear).toBe(DEFAULT_INPUTS.stressHistoryStartYear);
-    expect(sanitizeInputs({ stressHistoryStartYear: 1800 }).stressHistoryStartYear).toBe(HISTORY_FIRST_YEAR);
+    // Changelog 449: the record reaches back to 1871 (Shiller's data).
+    expect(sanitizeInputs({ stressHistoryStartYear: 1800 }).stressHistoryStartYear).toBe(1871);
     expect(sanitizeInputs({ stressHistoryStartYear: 3000 }).stressHistoryStartYear).toBe(HISTORY_LAST_YEAR);
     expect(sanitizeInputs({ stressHistoryStartYear: '1973' }).stressHistoryStartYear).toBe(1973);
   });

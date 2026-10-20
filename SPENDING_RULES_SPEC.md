@@ -248,3 +248,8 @@ Loading one start's whole sequence into the stress chart shipped as
 changelog 336: a `history` stress type with a start-year input, and the
 historical-starts run now uses it, so a replayed row is exactly the run the
 table describes.
+
+## Later: history from 1871 (changelog 449, 2026-10-20)
+
+A plan can set **Market record from** (on the historical panel; input `historyFromYear`) to 1871. The starts then run from 1871: the years 1871-1927 come from Robert J. Shiller's monthly data (Yale), annualized January to January by `scripts/buildPre1928History.mjs` into `src/config/historicalReturnsPre1928.js`; from 1928 the Damodaran / Minneapolis Fed table is unchanged. Over 1928-2022 the Shiller-built series and the Damodaran table differ in geometric mean by +0.01 (stocks), +0.07 (bonds) and +0.03 (inflation) points a year, correlation 0.97 / 0.96 / 0.84 (`historicalReturnsPre1928.test.js`). Default stays 1928; the Monte Carlo bootstrap stays on 1928 onward. The SAFEMAX search, the counts, the verdict's history line and the replay all follow the setting; any year from 1871 can be replayed.
+
