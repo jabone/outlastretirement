@@ -54,7 +54,7 @@ import PrintFrame from './components/PrintFrame';
 import { printInputsFor, heirLabel } from './utils/printNames';
 import BrandMark from './components/BrandMark';
 import MigrationNotice from './components/MigrationNotice';
-import { BRAND_NAME, BRAND_DOMAIN, COPYRIGHT_NOTICE, PRIVACY_PROMISE, TERMS_URL, ACCESSIBILITY_URL } from './config/branding';
+import { BRAND_NAME, BRAND_DOMAIN, COPYRIGHT_NOTICE, PRIVACY_PROMISE, PRIVACY_URL, TERMS_URL, ACCESSIBILITY_URL } from './config/branding';
 import { growthSummary, monteCarloSummary, taxBracketSummary, estateSummary } from './utils/chartSummaries';
 import { planVerdict, verdictColor, verdictClass } from './utils/planVerdict';
 import { safeSetItem, safeRemoveItem } from './utils/safeStorage';
@@ -2391,6 +2391,11 @@ export default function App() {
                 capped what we are answerable for if a projection is wrong.
                 A plain href for the same reason as the link above it: these
                 are static documents outside the SPA. */}
+            {/* The privacy policy: what the line below promises, in full.
+                Every public page's footer has linked it; the app's did not. */}
+            <a href={PRIVACY_URL} className="app-disclaimer-footer-link">
+              Privacy
+            </a>
             <a href={TERMS_URL} className="app-disclaimer-footer-link">
               Terms
             </a>

@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 445,
+    date: '2026-10-19',
+    title: 'How the math works prints cleanly, and the app\u2019s footer links the privacy policy',
+    summary: 'How the math works has a Print button and prints black on white with each rule whole and every source\u2019s web address written out, about 17 pages. The app\u2019s footer now links the privacy policy.',
+    items: [
+      "**Printing the math.** The public How the math works page has a Print this page button, and Help \u2192 How the numbers are figured has a Print these rules link that opens it. The printout drops the site\u2019s navigation, keeps each rule on one page, and writes out every official source\u2019s web address so a paper copy can be followed back to the IRS, SSA or state page. The page also now shows the table of which year each area\u2019s figures come from, as the app does.",
+      "**Footer.** The app\u2019s footer linked the terms, the accessibility statement and the verify page but not the privacy policy; it does now.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
     id: 444,
     date: '2026-10-19',
     title: 'Premium\u2019s supporting library files are checked before they run',

@@ -122,6 +122,37 @@
     .rule .meta { color: var(--muted); font-size: 13px; }
     .rule ul { margin: 2px 0 0; padding-left: 18px; font-size: 13px; }
     h3.group { font-size: 16px; margin: 28px 0 4px; }
+    .print-row { margin: 16px 0 0; }
+    .print-button { font: inherit; font-weight: 600; cursor: pointer; color: var(--bg); background: var(--accent-text); border: 0; border-radius: 10px; padding: 8px 16px; }
+    .print-button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+    table.vintages { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0 4px; }
+    table.vintages th, table.vintages td { text-align: left; vertical-align: top; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--border); }
+    table.vintages td.year { white-space: nowrap; }
+    table.vintages tr.older td.year { font-weight: 700; }
+    .print-only { display: none; }
+    /* Printed: black on white, no site navigation, each rule kept whole,
+       and every source's address written out so a paper copy can be
+       followed back to the agency's page. */
+    @media print {
+      :root { color-scheme: light; }
+      body { background: #fff !important; color: #000 !important; font-size: 9.5pt; line-height: 1.4; }
+      p { margin: 0 0 6px; }
+      main h2 { margin: 14px 0 6px; }
+      header.nav, footer, .toc, .print-row, .page-cta { display: none !important; }
+      .container { max-width: none; padding: 0; }
+      .print-only { display: block; font-size: 9pt; color: #333; border-bottom: 1px solid #999; padding-bottom: 6px; margin-bottom: 12px; }
+      h1 { font-size: 20pt; margin-top: 0; }
+      h2 { font-size: 14pt; break-after: avoid; page-break-after: avoid; }
+      h3.group { break-after: avoid; page-break-after: avoid; }
+      .highlight { background: none !important; border: 1px solid #999 !important; }
+      .rule { background: none !important; border: 1px solid #bbb !important; break-inside: avoid; page-break-inside: avoid; padding: 6px 9px; margin-top: 6px; }
+      .rule p { margin: 0 0 3px; } .rule .meta { font-size: 8.5pt; } .rule ul { font-size: 8.5pt; }
+      @page { margin: 0.55in; }
+      .rule .meta, table.vintages { color: #222 !important; }
+      a { color: #000 !important; text-decoration: none; }
+      .rule a[href^="http"]::after { content: " \2014 " attr(href); font-size: 8pt; word-break: break-all; color: #333; }
+      table.vintages { break-inside: avoid; page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
@@ -147,9 +178,11 @@
     </div>
 
     <main>
+    <p class="print-only">Printed from www.outlastretirement.com/how-the-math-works. Figures are the tax year 2026 amounts unless a rule says otherwise. This is education about how the app works, not tax, legal or financial advice.</p>
     <div class="highlight">
       <p>OutlastRetirement answers one question: does your money outlast you? It works it out on your own device, one year at a time, from the plan you enter. This page explains how: what happens in each projected year, how the plan is stress-tested, and every tax and benefit rule it applies, with a link to the official source for each.</p>
     </div>
+    <p class="print-row"><button type="button" class="print-button" data-print-page hidden>Print this page</button></p>
     <ul class="toc">
       <li><a href="#one-year">One year at a time</a></li>
       <li><a href="#taxes">Taxes, worked out every year</a></li>
@@ -201,6 +234,21 @@
 
     <h2 id="rules">Every rule, with its official source</h2>
     <p>The same list the app shows under Help &rarr; How the numbers are figured: 41 rules, the figures each uses, what the app simplifies, and the official page behind it.</p>
+    <h3 class="group" id="vintages">Which year&rsquo;s figures this plan uses</h3>
+    <p>Every figure is the newest its agency has published. Where that is older than 2026, the plan grows it forward and this table says so.</p>
+    <table class="vintages">
+      <thead><tr><th scope="col">Area</th><th scope="col">Figures from</th><th scope="col">Note</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Federal income tax</th><td class="year">Tax year 2026</td><td>The IRS figures for the current tax year; later years grow them by your Tax Bracket Inflation Rate.</td></tr>
+        <tr><th scope="row">Social Security</th><td class="year">Tax year 2026</td><td>The wage base, the earnings-test amounts and the announced increase; the benefit formula is set in law.</td></tr>
+        <tr><th scope="row">Medicare and health coverage</th><td class="year">Tax year 2026</td><td>Part B and Part D premiums, the income-surcharge tiers and the poverty line behind the marketplace credit.</td></tr>
+        <tr><th scope="row">Retirement accounts</th><td class="year">Tax year 2026</td><td>Contribution and catch-up limits, the HSA limits and the charitable-distribution limit.</td></tr>
+        <tr><th scope="row">Estate and inheritance</th><td class="year">Tax year 2026</td><td>The federal exemption and each state’s own.</td></tr>
+        <tr><th scope="row">States</th><td class="year">Tax year 2026</td><td>Every state’s own rules, except the two below.</td></tr>
+        <tr class="older"><th scope="row">California</th><td class="year">Tax year 2025</td><td>The latest California has published, grown by your Tax Bracket Inflation Rate for 2026 and later. California usually publishes the next year’s figures in December; they replace these when it does.</td></tr>
+        <tr class="older"><th scope="row">Washington capital gains deduction</th><td class="year">Tax year 2025</td><td>The latest Washington has published; the law grows it with inflation from there.</td></tr>
+      </tbody>
+    </table>
     <h3 class="group" id="rules-federal-income-tax">Federal income tax</h3>
     <div class="rule" id="rule-federal-brackets">
       <h4>Federal income tax brackets</h4>
@@ -663,7 +711,8 @@
       </ul>
     </div>
 
-    <p style="margin-top:32px;"><a href="/app/?demo=1">Try the demo plan</a> to see all of this on a fictional household, or read the <a href="/changelog">release notes</a> for what changed recently.</p>
+    <p class="page-cta" style="margin-top:32px;"><a href="/app/?demo=1">Try the demo plan</a> to see all of this on a fictional household, or read the <a href="/changelog">release notes</a> for what changed recently.</p>
+    <script src="/print-page.js" defer></script>
     </main>
 
     <footer>

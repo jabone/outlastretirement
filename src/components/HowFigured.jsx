@@ -113,6 +113,15 @@ const HowFigured = () => {
         <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', maxWidth: '800px', lineHeight: 1.55, margin: 0 }}>
           This is education about how the app works, not tax, legal or financial advice. For your own return, check with a tax professional.
         </p>
+        {/* The same rules as a printable page: the public How the math works
+            page, which prints black on white with every source's address
+            written out. ?print=1 opens the print dialog once it loads. */}
+        <p style={{ fontSize: 'var(--fs-sm)', margin: '8px 0 0' }}>
+          <a href="/how-the-math-works?print=1#rules" target="_blank" rel="noopener" style={{ color: 'var(--accent-text)' }}>
+            Print these rules
+          </a>
+          <span style={{ color: 'var(--text-muted)' }}> (opens the printable page, with every source&rsquo;s web address written out)</span>
+        </p>
         <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: '1 1 320px', maxWidth: '480px' }}>
             <Search size={15} aria-hidden="true" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />

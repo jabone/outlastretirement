@@ -1,24 +1,22 @@
-// Google Apps Script source for cashflowengine's per-user Live Pricing
-// Sheet -- see README.md's "Live Pricing" section for the full setup.
+// Google Apps Script for OutlastRetirement's Live Pricing: a script you
+// paste into your own copy of the pricing Sheet (Extensions > Apps Script)
+// so the app can read prices and dividends for your holdings. Install and
+// update steps: https://www.outlastretirement.com/pricing-script
 //
-// THIS FILE IS NOT PART OF THE NODE/VITE BUILD. It never runs in this
-// repo, isn't imported by anything here, and doesn't ship in the deployed
-// app. It's a version-controlled reference copy of the script every user
-// pastes into their own Google Sheet's Extensions > Apps Script editor,
-// so there's one canonical, reviewable source of truth for it instead of
-// it living only as a chat transcript or a hand-me-down copy/paste.
+// The canonical copy lives in the app's public repository
+// (github.com/jabone/outlastretirement, scripts/pricing-sheet-apps-script.gs);
+// the app's "Copy the script" button and the page above serve this file.
+// It is not part of the app's build and never runs on our servers.
 //
-// Architecture recap (see INTEGRATION_STRATEGY.md Section 1 for the full
-// discussion of why this replaced the earlier api/quote.js Vercel proxy):
-// each user makes their own copy of the template Sheet and pastes this
-// script into it. doGet() is published as a Web App and serves three jobs:
+// How it works: doGet() is published as a Web App on your own account and
+// answers three requests from the app:
 //   ?action=quotes        -> the whole Securities table as JSON, read LIVE
 //                            from the Sheet (no publish-to-web lag)
 //   ?tickers=A,B,C        -> batch-register several tickers in one call
 //   ?ticker=A             -> legacy single-ticker registration (kept so an
 //                            older app build still works against this script)
-// Publishing the Sheet as CSV is now an optional FALLBACK read path -- the
-// app prefers ?action=quotes when a Web App URL is connected.
+// Publishing the Sheet as CSV is an optional FALLBACK read path -- the app
+// prefers ?action=quotes when a Web App URL is connected.
 // Everything runs on the user's own free Google account -- no shared API
 // key, no per-app-owner cost, no shared rate limit across every user, and
 // every cache below (CacheService) is private to this script project on

@@ -45,7 +45,8 @@ const load = (p) => import(pathToFileURL(join(root, p)).href);
 const { RELEASE_WEEKS, RELEASE_QUARTERS, RELEASE_NOTES_WEEKS } = await load('src/config/releaseNotes.js');
 const { layoutReleaseNotes, addDays, shortDate, longDate } = await load('src/utils/releaseNotesLayout.js');
 const { METHODOLOGY_INTRO, METHODOLOGY_SECTIONS } = await load('src/config/methodology.js');
-const { HOW_FIGURED_GROUPS, HOW_FIGURED_RULES } = await load('src/config/howFigured.js');
+const { HOW_FIGURED_GROUPS, HOW_FIGURED_RULES, FIGURE_VINTAGES } = await load('src/config/howFigured.js');
+const { TAX_YEAR } = await load('src/utils/copyFigures.js');
 const { SOURCES, SOURCE_VERIFIED_ON } = await load('src/config/sources.js');
 const { checkedOn } = await load('src/utils/howFiguredFormat.js');
 const { SITE_NAV } = await load('src/config/siteNav.js');
@@ -167,7 +168,38 @@ const MATH_CSS = `    .toc { margin: 18px 0 0; padding-left: 20px; columns: 2 22
     .rule p { margin: 0 0 6px; }
     .rule .meta { color: var(--muted); font-size: 13px; }
     .rule ul { margin: 2px 0 0; padding-left: 18px; font-size: 13px; }
-    h3.group { font-size: 16px; margin: 28px 0 4px; }`;
+    h3.group { font-size: 16px; margin: 28px 0 4px; }
+    .print-row { margin: 16px 0 0; }
+    .print-button { font: inherit; font-weight: 600; cursor: pointer; color: var(--bg); background: var(--accent-text); border: 0; border-radius: 10px; padding: 8px 16px; }
+    .print-button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+    table.vintages { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0 4px; }
+    table.vintages th, table.vintages td { text-align: left; vertical-align: top; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--border); }
+    table.vintages td.year { white-space: nowrap; }
+    table.vintages tr.older td.year { font-weight: 700; }
+    .print-only { display: none; }
+    /* Printed: black on white, no site navigation, each rule kept whole,
+       and every source's address written out so a paper copy can be
+       followed back to the agency's page. */
+    @media print {
+      :root { color-scheme: light; }
+      body { background: #fff !important; color: #000 !important; font-size: 9.5pt; line-height: 1.4; }
+      p { margin: 0 0 6px; }
+      main h2 { margin: 14px 0 6px; }
+      header.nav, footer, .toc, .print-row, .page-cta { display: none !important; }
+      .container { max-width: none; padding: 0; }
+      .print-only { display: block; font-size: 9pt; color: #333; border-bottom: 1px solid #999; padding-bottom: 6px; margin-bottom: 12px; }
+      h1 { font-size: 20pt; margin-top: 0; }
+      h2 { font-size: 14pt; break-after: avoid; page-break-after: avoid; }
+      h3.group { break-after: avoid; page-break-after: avoid; }
+      .highlight { background: none !important; border: 1px solid #999 !important; }
+      .rule { background: none !important; border: 1px solid #bbb !important; break-inside: avoid; page-break-inside: avoid; padding: 6px 9px; margin-top: 6px; }
+      .rule p { margin: 0 0 3px; } .rule .meta { font-size: 8.5pt; } .rule ul { font-size: 8.5pt; }
+      @page { margin: 0.55in; }
+      .rule .meta, table.vintages { color: #222 !important; }
+      a { color: #000 !important; text-decoration: none; }
+      .rule a[href^="http"]::after { content: " \\2014 " attr(href); font-size: 8pt; word-break: break-all; color: #333; }
+      table.vintages { break-inside: avoid; page-break-inside: avoid; }
+    }`;
 
 const SOURCE_BY_ID = Object.fromEntries(SOURCES.map((s) => [s.id, s]));
 
@@ -188,9 +220,12 @@ ${r.sources.map((id) => SOURCE_BY_ID[id]).filter(Boolean).map((src) => `        
       </ul>
 ${r.sourceNote ? `      <p class="meta"><em>${esc(r.sourceNote)}</em></p>\n` : ''}    </div>`).join('\n')}`;
   }).filter(Boolean).join('\n');
-  const body = `    <div class="highlight">
+  const vintages = FIGURE_VINTAGES.map((v) => `        <tr${v.year !== TAX_YEAR ? ' class="older"' : ''}><th scope="row">${esc(v.area)}</th><td class="year">Tax year ${v.year}</td><td>${esc(v.note)}</td></tr>`).join('\n');
+  const body = `    <p class="print-only">Printed from www.outlastretirement.com/how-the-math-works. Figures are the tax year ${TAX_YEAR} amounts unless a rule says otherwise. This is education about how the app works, not tax, legal or financial advice.</p>
+    <div class="highlight">
       <p>${esc(METHODOLOGY_INTRO)}</p>
     </div>
+    <p class="print-row"><button type="button" class="print-button" data-print-page hidden>Print this page</button></p>
     <ul class="toc">
 ${METHODOLOGY_SECTIONS.map((s) => `      <li><a href="#${s.id}">${esc(s.title)}</a></li>`).join('\n')}
       <li><a href="#rules">Every rule, with its official source</a></li>
@@ -200,9 +235,18 @@ ${sections}
 
     <h2 id="rules">Every rule, with its official source</h2>
     <p>The same list the app shows under Help &rarr; How the numbers are figured: ${HOW_FIGURED_RULES.length} rules, the figures each uses, what the app simplifies, and the official page behind it.</p>
+    <h3 class="group" id="vintages">Which year&rsquo;s figures this plan uses</h3>
+    <p>Every figure is the newest its agency has published. Where that is older than ${TAX_YEAR}, the plan grows it forward and this table says so.</p>
+    <table class="vintages">
+      <thead><tr><th scope="col">Area</th><th scope="col">Figures from</th><th scope="col">Note</th></tr></thead>
+      <tbody>
+${vintages}
+      </tbody>
+    </table>
 ${rules}
 
-    <p style="margin-top:32px;"><a href="/app/?demo=1">Try the demo plan</a> to see all of this on a fictional household, or read the <a href="/changelog">release notes</a> for what changed recently.</p>`;
+    <p class="page-cta" style="margin-top:32px;"><a href="/app/?demo=1">Try the demo plan</a> to see all of this on a fictional household, or read the <a href="/changelog">release notes</a> for what changed recently.</p>
+    <script src="/print-page.js" defer></script>`;
   return page({
     path: '/how-the-math-works',
     title: 'How the math works',

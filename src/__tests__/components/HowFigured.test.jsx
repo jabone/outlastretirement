@@ -51,9 +51,15 @@ describe('How the numbers are figured', () => {
     expect(link.getAttribute('href')).toBe(SOURCES.find((s) => s.id === 'rmd').url);
     expect(rmd.textContent).toMatch(/checked September 30, 2026/);
 
-    // Every link on the page is one of the sources.
+    // Every link on the page is one of the sources, except the one that
+    // opens the printable version of these same rules (changelog 445).
     const urls = new Set(SOURCES.map((s) => s.url));
-    for (const a of container.querySelectorAll('a')) expect(urls.has(a.getAttribute('href')), a.getAttribute('href')).toBe(true);
+    const print = screen.getByRole('link', { name: /print these rules/i });
+    expect(print.getAttribute('href')).toBe('/how-the-math-works?print=1#rules');
+    for (const a of container.querySelectorAll('a')) {
+      if (a === print) continue;
+      expect(urls.has(a.getAttribute('href')), a.getAttribute('href')).toBe(true);
+    }
   });
 
   it('opens with the table of which year each area\'s figures come from, and hides it while searching', () => {
