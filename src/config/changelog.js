@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 444,
+    date: '2026-10-19',
+    title: 'Premium\u2019s supporting library files are checked before they run',
+    summary: 'A signed Premium module now carries a fingerprint of each library file it loads later, such as the PDF reader, and the App runs a file only if it matches. (Premium)',
+    items: [
+      "**What changed.** A Premium module is signed, and the App has always checked that signature before running it. The supporting files a module loads afterwards \u2014 the PDF reader for statement import, and the small files that look up the chart and pricing-script components in the App \u2014 were not: the App ran whatever the module server sent. Now the signed module carries a SHA-256 fingerprint of each of those files, and the App fetches the file, checks it against the fingerprint, and runs it only if it matches. An altered file is refused.",
+      "**And the page\u2019s security policy is tighter.** Because nothing from the module server is run directly any more, the server is no longer allowed to run scripts on the page; it stays on the list of places the page may fetch from. The verify page and the privacy policy say so. The PDF reader also starts its background worker from the checked code again, which it had not managed since October 18, so a long statement no longer slows the page.",
+      "**Your numbers do not change.**",
+    ],
+  },
+  {
     id: 443,
     date: '2026-10-19',
     title: 'ACA Cliff Protection is on for new plans, and a low marketplace premium is flagged',

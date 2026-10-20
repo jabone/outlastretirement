@@ -52,6 +52,12 @@ describe('privacy tenet: the app sends nothing on its own', () => {
       'bearer header, never in the URL -- OPEN_CORE_PLAN.md decision 2. Nothing the user typed ' +
       'about their plan or holdings is sent. Gated by assertNetworkAllowed; the chunk is executed ' +
       'only after its Ed25519 signature verifies. Described in public/privacy.html ("Premium modules").',
+    'premium/vendorImport.js':
+      'A library file a verified Premium module asks for (pdf.js, two host-lookup stubs), fetched ' +
+      'from the module server\'s /modules/vendor/ with no key and no credentials, and run only after ' +
+      'its SHA-256 matches the fingerprint inside the signed chunk (changelog 444). Sends nothing but ' +
+      'the request for the file. Gated by assertNetworkAllowed. Described in public/privacy.html ' +
+      '("Premium modules": supporting files fetched without a key, checked against a fingerprint).',
   };
 
   it('makes no network call outside the allowlist', () => {

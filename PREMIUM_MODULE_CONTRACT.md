@@ -1,6 +1,6 @@
 # Premium module contract
 
-Version 1.2 (2026-10-15). Companion to `OPEN_CORE_PLAN.md` step 1.
+Version 1.3 (2026-10-19). Companion to `OPEN_CORE_PLAN.md` step 1.
 
 This is the interface between the open app (the **host**) and a Premium
 **module** — a JavaScript chunk that lives in the private Premium repo, is
@@ -131,6 +131,22 @@ the Premium repo the same specifier is rewritten at build time to a lookup
 on `window.__OR_HOST__`, published by the host loader before a chunk runs.
 Adding an entry to `hostLib.js` is a minor contract bump; removing one is
 major.
+
+### 2.9 Library files a module loads later (`importVerified`, since 1.3)
+
+Third-party code a module loads lazily (pdf.js and its worker) and the
+one-line `@host` lookup stubs the build splits out are served from the
+module server's `/modules/vendor/` without a key, and are not signed
+themselves. A module does not `import()` them. The Premium build records
+each file's SHA-256 in the signed chunk and rewrites every such import to
+`window.__OR_HOST__.importVerified(url, "sha256-<base64>")`; the host
+fetches the file, checks the hash, and runs it from a `blob:` URL. A file
+that does not match is never run, and the module sees the import reject.
+Only URLs under the module server's `/modules/vendor/` are accepted. The
+app's CSP does not let the module server's origin run scripts directly
+(it is in `connect-src` only), so a plain `import()` of a vendor file
+fails. A worker a library starts must be started from a `blob:` URL made
+from verified bytes, never fetched by URL.
 
 ## 3. What the host does not provide
 

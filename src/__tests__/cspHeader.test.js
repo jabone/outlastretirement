@@ -6,14 +6,14 @@
 //     Google hosts Live Pricing talks to (the user's own Sheet and Apps
 //     Script, which Google serves from googleusercontent.com after a
 //     redirect). Adding any other host has to be a deliberate edit here.
-//   - script-src 'self' plus blob: plus the Premium module server -- no
-//     inline scripts, no eval. blob: exists for exactly one caller, the
-//     Premium module loader (src/premium/registry.js), which only ever runs
-//     a chunk after verifying its Ed25519 signature against the public key
-//     built into the app. The module server is listed because a verified
-//     chunk lazily imports third-party library code (pdf.js) and tiny
-//     host-lookup stubs served statically from that origin; nothing from
-//     it runs before the signed chunk that asks for it has been verified.
+//   - script-src 'self' plus blob: -- no inline scripts, no eval, no other
+//     origin. blob: is for the Premium loader (src/premium/registry.js),
+//     which runs a chunk only after verifying its Ed25519 signature
+//     against the public key built into the app, and for the library files
+//     a verified chunk loads (src/premium/vendorImport.js), which run only
+//     after their bytes match the SHA-256 the signed chunk carries. Until
+//     changelog 444 the module server was listed here so a chunk could
+//     import those files directly, unchecked.
 //   - connect-src also names the Premium module server, which receives the
 //     Premium Access key (as a header) and nothing else; see
 //     public/privacy.html, "Premium Modules".
@@ -65,9 +65,9 @@ describe('Content-Security-Policy (vercel.json)', () => {
     expect([...d['connect-src']].sort()).toEqual(["'self'", ...LIVE_PRICING_HOSTS, PREMIUM_MODULE_SERVER].sort());
   });
 
-  it('runs only the site’s own script files, plus signature-verified Premium chunks', () => {
+  it('runs only the site’s own script files, plus verified Premium chunks and library files', () => {
     expect(d['default-src']).toEqual(["'self'"]);
-    expect(d['script-src']).toEqual(["'self'", 'blob:', PREMIUM_MODULE_SERVER]);
+    expect(d['script-src']).toEqual(["'self'", 'blob:']);
     expect(csp).not.toMatch(/unsafe-eval/);
     expect(d['object-src']).toEqual(["'none'"]);
     expect(d['base-uri']).toEqual(["'self'"]);

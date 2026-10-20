@@ -48,6 +48,7 @@ import * as bigExpenses from '../utils/bigExpenses';
 import * as historicalStarts from '../utils/historicalStarts';
 import * as relocationCompare from '../utils/relocationCompare';
 import * as jurisdictionCatalog from '../config/jurisdictionCatalog';
+import { importVerified } from './vendorImport';
 
 export const HOST_PACKAGES = Object.freeze({
   react: React,
@@ -109,6 +110,10 @@ export function publishHostLib() {
       packages: HOST_PACKAGES,
       static: HOST_STATIC,
       lazy: HOST_LAZY,
+      // Loads a library file from the module server only after its bytes
+      // match the SHA-256 the signed chunk carries (changelog 444,
+      // contract 2.9).
+      importVerified,
       // A chunk registers its factory here under its area id.
       modules: {},
     });
