@@ -31,6 +31,12 @@ const FindSetting = ({ onPick, placeholder = 'Find a setting', style }) => {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState('');
   const inputRef = useRef(null);
+  // The list closes a beat after the field loses focus, so a click on a
+  // result lands first. The timer is cleared if the box goes away before
+  // it fires; a stray one used to set state on an unmounted component (and
+  // crash a test run whose page had already been torn down).
+  const blurTimer = useRef(null);
+  useEffect(() => () => clearTimeout(blurTimer.current), []);
   const results = useMemo(() => searchIndex(query), [query]);
   const rows = query.trim() ? [...results, { dictionary: true, id: 'dictionary', label: `Search the Input Dictionary for "${query.trim()}"` }] : [];
 
@@ -80,7 +86,7 @@ const FindSetting = ({ onPick, placeholder = 'Find a setting', style }) => {
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); setStatus(''); }}
           onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onBlur={() => { clearTimeout(blurTimer.current); blurTimer.current = setTimeout(() => setOpen(false), 150); }}
           onKeyDown={onKeyDown}
           style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', color: 'var(--text-primary)', fontSize: 'var(--fs-sm)', outline: 'none' }}
         />
