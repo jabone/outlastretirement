@@ -117,6 +117,19 @@ export function mulberry32(seed) {
 // iteration, and s -> 0 as sigma -> 0 so a zero-volatility trial is the
 // deterministic plan exactly. A stated rate at or below -100% has no
 // positive median gross return; the caller treats that year as a wipeout.
+// Investment fees (changelog 447): the plan's total yearly fee, as a
+// fraction (0.0010 = 0.10%), and a before-fees return expressed after
+// them. The engine charges the fee on the year-end balance, so a year
+// grows by (1 + r)(1 - f); netReturnPct says the same as a rate.
+export function totalFeeFraction(inputs) {
+  const f = (Number(inputs?.fundExpenseRatioPct) || 0) + (Number(inputs?.advisorFeePct) || 0);
+  return Math.min(0.1, Math.max(0, f / 100));
+}
+export function netReturnPct(grossPct, inputs) {
+  const f = totalFeeFraction(inputs);
+  return ((1 + (Number(grossPct) || 0) / 100) * (1 - f) - 1) * 100;
+}
+
 export function lognormalReturnParams(g, sigma) {
   const m = 1 + g;
   if (!(m > 0)) return { m: 0, mu: -Infinity, s: 0, mean: -1 };
@@ -1907,6 +1920,21 @@ export const DEFAULT_INPUTS = {
   stockAllocationSource: 'manual',
   stockReturnRate: 8.0,
   bondReturnRate: 4.0,
+  // Investment fees (changelog 447), charged on the invested accounts --
+  // Pre-Tax, Roth, Taxable and HSA -- every year, after the year's return:
+  // growth is (1 + return) x (1 - fees). Two settings so an advisor's fee is
+  // its own visible line. Every return above (and every Monte Carlo draw,
+  // stress year and historical start) is BEFORE fees.
+  //   fundExpenseRatioPct: what the funds themselves charge (their expense
+  //     ratios). 0.10% is a broad index-fund portfolio.
+  //   advisorFeePct: a percent-of-assets fee to an advisor or managed
+  //     account. 0 by default: the app is built for people who invest
+  //     themselves, and the Fees card shows what a 1% fee would cost them.
+  // Not charged on the cash reserve (its yield is already net), the home,
+  // other property or a concentrated-stock position. Not deductible: see
+  // How the numbers are figured -> Investment fees.
+  fundExpenseRatioPct: 0.10,
+  advisorFeePct: 0,
   glideAllocationEnabled: false,
   glideAllocationRate: 1.0, // reduction in stock % per year retired
   glideAllocationFloor: 30.0,
@@ -6612,6 +6640,10 @@ export function sanitizeInputs(inputs) {
   for (const key of ['preRetireReturn', 'postRetireReturn', 'stockReturnRate', 'bondReturnRate', 'cashFloorReturnRate', 'stressCrashReturn']) {
     clampKey(key, -99, 100);
   }
+  // Fees (changelog 447): 0 to 5% a year each.
+  for (const key of ['fundExpenseRatioPct', 'advisorFeePct']) {
+    clampKey(key, 0, 5);
+  }
   const nonNegative = [
     'preTaxInit', 'rothInit', 'taxableInit', 'hsaInit', 'concentratedStockInit', 'concentratedStock2Init', 'cashFloorInit',
     'homeValueInit', 'otherEstateAssetsInit', 'preTaxBasisInit', 'rothBasisInit', 'rothRecentConversionsInit', 'taxableBasisInit',
@@ -7031,6 +7063,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // after them), so every decision that reacts to "a down market" reacts
   // to the year that has already finished, never the one still under way.
   let lastYearReturnRate = null;
+  // Running total of investment fees paid (changelog 447), nominal dollars.
+  let feesPaidCumulative = 0;
   let lifestyleSpendingCutMultiplier = 1.0;
   // Withdrawal-rate guardrails (changelog 216). Persistent across years:
   // each trigger moves the multiplier and it stays moved until the next one.
@@ -10847,10 +10881,25 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const totalExpenses = expensesExcludingTaxes + totalTaxesPaid;
     const totalDiscretionaryDraw = drawPreTax + drawRoth + drawTaxable;
     
-    // Growth calculation
-    preTax = preTax * (1 + returnRate / 100);
-    roth = roth * (1 + returnRate / 100);
-    taxable = taxable * (1 + returnRate / 100);
+    // Growth calculation. Investment fees (changelog 447) come off after
+    // the year's return, on the four invested accounts: growth is
+    // (1 + r)(1 - f). returnRate stays the before-fees market return --
+    // guardrails, tax-loss harvesting and the ledger's growthRate read the
+    // market, not the household's costs.
+    const feeFraction = totalFeeFraction(inputs);
+    const keepAfterFees = 1 - feeFraction;
+    const grossOf = (b) => b * (1 + returnRate / 100);
+    const feeOn = (b) => Math.max(0, grossOf(b)) * feeFraction;
+    const feesPaidThisYear = feeOn(preTax) + feeOn(roth) + feeOn(taxable) + feeOn(hsa);
+    const feeShare = feeFraction > 0
+      ? ((Number(inputs.advisorFeePct) || 0) / 100) / feeFraction
+      : 0;
+    const advisorFeesPaidThisYear = feesPaidThisYear * Math.min(1, feeShare);
+    const fundExpensesPaidThisYear = feesPaidThisYear - advisorFeesPaidThisYear;
+    feesPaidCumulative += feesPaidThisYear;
+    preTax = grossOf(preTax) * keepAfterFees;
+    roth = grossOf(roth) * keepAfterFees;
+    taxable = grossOf(taxable) * keepAfterFees;
     // Reinvested dividends are NEW BASIS (changelog 230). They were taxed
     // as income the year they arrived, so taxing them again as capital
     // gain when the shares are eventually sold charges the same dollar
@@ -10872,7 +10921,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // clamp -- an account under water carries basis above its balance
     // until the sale, and the clamp would otherwise take that first.
     taxableBasis = Math.min(taxable, Math.max(0, taxableBasis + Math.max(0, taxableDividendsFromYield - dividendCash) - taxLossHarvestedThisYear));
-    hsa = hsa * (1 + returnRate / 100);
+    hsa = grossOf(hsa) * keepAfterFees;
 
     // Concentrated stock, phase B: the sale itself happened before the tax
     // engine (see phase A above). What is left is settlement -- the
@@ -10934,7 +10983,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (!isRetired) {
       const yearsToRetire = Math.max(0, inputs.retireAge1 - age1);
       const stockAlloc = inputs.stockAllocationPre !== undefined ? inputs.stockAllocationPre : 80;
-      const nominalReturn = ((stockAlloc / 100) * (inputs.stockReturnRate || 8)) + (((100 - stockAlloc) / 100) * (inputs.bondReturnRate || 4));
+      // After investment fees (changelog 447), as the projection grows it.
+      const nominalReturn = netReturnPct(((stockAlloc / 100) * (inputs.stockReturnRate || 8)) + (((100 - stockAlloc) / 100) * (inputs.bondReturnRate || 4)), inputs);
       const realGrowth = (nominalReturn - (inputs.inflationRate || 3)) / 100;
       if (realGrowth > 0) {
         coastFireNumber = fiNumber / Math.pow(1 + realGrowth, yearsToRetire);
@@ -11314,6 +11364,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       shortfall,
       netChange,
       growthRate: returnRate,
+      // Investment fees this year (changelog 447), nominal dollars, and the
+      // running total. growthRate above is before fees.
+      feeRatePct: feeFraction * 100,
+      feesPaid: feesPaidThisYear,
+      fundExpensesPaid: fundExpensesPaidThisYear,
+      advisorFeesPaid: advisorFeesPaidThisYear,
+      feesPaidCumulative,
       lifestyleMultiplier: currentLifestyleMultiplier,
       housingMultiplier: currentHousingMultiplier,
       // Read back as prevMedicalMultiplier next year, the same way the other
@@ -13093,6 +13150,85 @@ export function findHistoricalSafeMax(rawInputs = DEFAULT_INPUTS, { shares = SAF
   };
 }
 
+// ---------------------------------------------------------------------------
+// What fees cost you (changelog 447). The plan as set beside one other fee
+// setting: with no advisor fee, a 1% advisor fee (what doing it yourself
+// saves); with one, the same plan without it. Fund expenses stay as set in
+// both. Dollars are today's: each year's fee over that year-end's price
+// level, the ending balance over the last year's.
+export const FEE_COMPARE_ADVISOR_PCT = 1;
+
+export function feeComparisonVariant(inputs) {
+  const advisor = Number(inputs?.advisorFeePct) || 0;
+  return advisor > 0
+    ? { kind: 'withoutAdvisor', advisorFeePct: 0 }
+    : { kind: 'withAdvisor', advisorFeePct: FEE_COMPARE_ADVISOR_PCT };
+}
+
+function feeRunSummary(proj, inputs) {
+  const years = proj.years || [];
+  let fees = 0;
+  let fund = 0;
+  let advisor = 0;
+  years.forEach((y, i) => {
+    const f = yearEndFactor(years, i) || 1;
+    fees += (y.feesPaid || 0) / f;
+    fund += (y.fundExpensesPaid || 0) / f;
+    advisor += (y.advisorFeesPaid || 0) / f;
+  });
+  const out = years.find((y) => (y.shortfall || 0) > 0.01);
+  return {
+    fundExpenseRatioPct: Number(inputs.fundExpenseRatioPct) || 0,
+    advisorFeePct: Number(inputs.advisorFeePct) || 0,
+    lifetimeFees: fees,
+    lifetimeFundExpenses: fund,
+    lifetimeAdvisorFees: advisor,
+    endingBalance: (Number(proj.endingBalance) || 0) / finalBalanceFactor(years),
+    runsOutYear: out ? out.year : null,
+    isSuccessful: !!proj.isSuccessful,
+  };
+}
+
+// How many historical starts the plan lasts through under its own
+// spending rule -- runHistoricalStarts' headline count, without the other
+// rules' runs.
+export function historicalLastedCount(rawInputs) {
+  const inputs = sanitizeInputs({ ...rawInputs, stressType: 'none' });
+  const base = _runProjectionPreSanitized(inputs);
+  const firstRetired = base.years.find((y) => y.isRetired);
+  if (!firstRetired) return null;
+  const horizonYears = base.years[base.years.length - 1].year - firstRetired.year + 1;
+  const startYears = historicalStartYears(horizonYears);
+  if (startYears.length === 0) return null;
+  let lasted = 0;
+  for (const start of startYears) {
+    const proj = _runProjectionPreSanitized({
+      ...inputs, stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: start,
+    });
+    if (proj.isSuccessful) lasted += 1;
+  }
+  return { lasted, count: startYears.length, firstStart: startYears[0] };
+}
+
+// The deterministic part is cheap (two projections); `historical: true`
+// adds each side's historical count and every-start SAFEMAX, a few hundred
+// projections, so the worker runs it as its own step.
+export function computeFeeComparison(rawInputs = DEFAULT_INPUTS, { historical = false } = {}) {
+  const mineInputs = sanitizeInputs(rawInputs);
+  const variant = feeComparisonVariant(mineInputs);
+  const otherInputs = sanitizeInputs({ ...rawInputs, advisorFeePct: variant.advisorFeePct });
+  const mine = feeRunSummary(_runProjectionPreSanitized(mineInputs), mineInputs);
+  const other = feeRunSummary(_runProjectionPreSanitized(otherInputs), otherInputs);
+  if (historical) {
+    for (const [side, inp] of [[mine, mineInputs], [other, otherInputs]]) {
+      side.historical = historicalLastedCount(inp);
+      const sm = findHistoricalSafeMax(inp, { shares: [1] });
+      side.safeMax = sm && sm.bars[0] && sm.bars[0].status === 'ok' ? sm.bars[0].amount : null;
+    }
+  }
+  return { kind: variant.kind, mine, other };
+}
+
 // Re-prices runOptimizer's strategy list into today's dollars when the
 // real-dollars toggle is on (runOptimizer itself always returns nominal
 // figures).
@@ -13193,13 +13329,15 @@ function getHeirBracketTax(taxableIncome, status, inflationFactor = 1) {
 // app has no visibility into what they do with it (reinvest, spend, pay off
 // debt) -- assuming a specific return on it would imply a certainty the tool
 // doesn't have.
+// After investment fees (changelog 447): an heir's inherited account pays
+// fees too, and the plan's own accounts grow net of them.
 function getEffectivePostRetireReturn(inputs) {
   if (inputs.rebalancingEnabled) {
     const stockAlloc = inputs.stockAllocationPost;
     const bondAlloc = 100 - stockAlloc;
-    return (stockAlloc * inputs.stockReturnRate + bondAlloc * inputs.bondReturnRate) / 100;
+    return netReturnPct((stockAlloc * inputs.stockReturnRate + bondAlloc * inputs.bondReturnRate) / 100, inputs);
   }
-  return inputs.postRetireReturn;
+  return netReturnPct(inputs.postRetireReturn, inputs);
 }
 
 // Single Life Table, Reg. s.1.401(a)(9)-9(b) (2022 tables; ecfr.gov,

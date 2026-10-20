@@ -17,7 +17,7 @@ export const METHODOLOGY_SECTIONS = [
     title: 'One year at a time',
     paragraphs: [
       'The projection starts in your plan year and runs to the end of the plan, the last Life Expectancy you entered. Each year it works out what comes in (salary, Social Security, pensions, annuities, rental income), what you spend (your lifestyle spending, health coverage, Medicare premiums, debts and life events), and what the shortfall between them is.',
-      'The shortfall is drawn from your accounts in the order your withdrawal strategy sets: Taxable First, Pre-Tax First, Roth First or Pro-Rata. Withdrawals are sized so they also pay the tax they cause, because a withdrawal from a Pre-Tax account is itself income. Required minimum distributions, Roth conversions and your saving while you work happen in the same year, and the accounts then grow at the returns you assumed.',
+      'The shortfall is drawn from your accounts in the order your withdrawal strategy sets: Taxable First, Pre-Tax First, Roth First or Pro-Rata. Withdrawals are sized so they also pay the tax they cause, because a withdrawal from a Pre-Tax account is itself income. Required minimum distributions, Roth conversions and your saving while you work happen in the same year, and the accounts then grow at the returns you assumed, less your investment fees (fund expenses and any advisor fee), which come off the invested accounts each year.',
       'Your plan, and every calculation on it, stays in your browser. Nothing is sent to us to be worked out.',
     ],
   },

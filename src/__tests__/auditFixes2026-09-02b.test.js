@@ -6,7 +6,7 @@
 // military exclusion is per return) was confirmed as-is.
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, calculateHeirEstateTax, DEFAULT_INPUTS,
+  runProjection, calculateHeirEstateTax, DEFAULT_INPUTS, netReturnPct,
   calculateCapitalGainsTaxes, calculateStateTaxes,
   SINGLE_LIFE_TABLE, singleLifeExpectancy, heirInheritanceContext, coloradoMilitarySubtraction,
 } from '../calculator';
@@ -41,7 +41,8 @@ describe('Q-21: inherited IRA annual RMDs (Reg. 1.401(a)(9)-5(d))', () => {
     const w = h.annualWithdrawals.map(r => r.withdrawal);
     // Year 1: balance grown one year / greater of heir LE (65 -> 22.9) and
     // decedent LE (90 -> 5.7).
-    const g = 1 + DEFAULT_INPUTS.postRetireReturn / 100;
+    // The heir's account grows net of the plan's fees (changelog 447).
+    const g = 1 + netReturnPct(DEFAULT_INPUTS.postRetireReturn, DEFAULT_INPUTS) / 100;
     expect(w[0]).toBeCloseTo(1000000 * g / 22.9, 2);
     // Denominator shrinks by one each year: year 2 uses 21.9.
     const bal1 = 1000000 * g - w[0];

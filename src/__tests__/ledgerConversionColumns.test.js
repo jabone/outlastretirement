@@ -118,10 +118,12 @@ describe('ledger CSV splits pay, stock vesting and deferred comp', () => {
   const proj = runProjection(buildDemoInputs());
   const rows = buildYearLedgerCsvRows(proj);
   const col = (name) => YEAR_LEDGER_CSV_HEADERS.indexOf(name);
-  it('has the two columns after the older ones, HSA general spending last, 43 in all', () => {
-    expect(YEAR_LEDGER_CSV_HEADERS).toHaveLength(43);
-    expect(YEAR_LEDGER_CSV_HEADERS.slice(-4, -2)).toEqual(['Stock vesting', 'Deferred comp payout']);
-    expect(YEAR_LEDGER_CSV_HEADERS.slice(-2)).toEqual(['HSA for general spending', 'HSA general spending tax']);
+  it('has the two columns after the older ones, then HSA general spending, then fees last, 45 in all', () => {
+    expect(YEAR_LEDGER_CSV_HEADERS).toHaveLength(45);
+    expect(YEAR_LEDGER_CSV_HEADERS.slice(-6, -4)).toEqual(['Stock vesting', 'Deferred comp payout']);
+    expect(YEAR_LEDGER_CSV_HEADERS.slice(-4, -2)).toEqual(['HSA for general spending', 'HSA general spending tax']);
+    // Investment fees (changelog 447).
+    expect(YEAR_LEDGER_CSV_HEADERS.slice(-2)).toEqual(['Fund expenses', 'Advisor fee']);
   });
   it('Salary + Stock vesting + Deferred comp payout = the engine\'s salary, and a payout year is not salary', () => {
     const payoutYears = proj.years.filter((y) => (y.nqdcDistribution1 || 0) + (y.nqdcDistribution2 || 0) > 0);

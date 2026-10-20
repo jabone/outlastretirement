@@ -444,6 +444,15 @@ export const HOW_FIGURED_RULES = [
 
   // --- Planning assumptions -------------------------------------------
   {
+    id: 'investment-fees',
+    title: 'Investment fees',
+    group: 'Planning assumptions',
+    summary: 'Every return in the plan is before fees. Each year, after the year\'s return, the plan takes your fund expenses and any advisor fee off your Pre-Tax, Roth, Taxable and HSA balances, so a year grows by the return times one minus the fee. The default is 0.10% for fund expenses, about what a portfolio of broad index funds costs, and no advisor fee. The fees are not deductible, and the same fees apply to an heir\'s inherited accounts. Risk → What fees cost you shows your plan beside the same plan with a 1% advisor fee (or without the one you pay).',
+    figuresYear: 'Your own figures; not deductible under current law',
+    simplifies: 'Fees come off once a year at year end, not daily. A fund\'s expense ratio also lowers what it pays out, so the taxable account\'s dividends are slightly overstated, which errs toward more tax. The cash reserve, the home and a concentrated stock position pay no fee.',
+    sources: ['investment-expenses'],
+  },
+  {
     id: 'ss-trust-fund',
     title: 'Social Security trust fund stress test',
     group: 'Planning assumptions',

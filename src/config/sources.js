@@ -42,6 +42,16 @@ export const SOURCES = [
     expect: ['age 73'],
   },
   {
+    id: 'investment-expenses',
+    label: 'Investment fees are not deductible',
+    drives: 'Why the plan takes investment fees off your balances and allows no deduction for them.',
+    publisher: 'IRS (Publication 529, Miscellaneous Deductions)',
+    url: 'https://www.irs.gov/publications/p529',
+    verified: '2026-10-20',
+    note: 'Fetched and confirmed 2026-10-20: "Investment fees, custodial fees, trust administration fees" are "miscellaneous itemized deductions and are no longer deductible." The suspension (IRC 67(g), 2018-2025) was made permanent by the 2025 tax law (Pub. L. 119-21).',
+    expect: ['no longer deductible'],
+  },
+  {
     id: 'basis-at-death',
     label: 'Basis of inherited property, and the surviving spouse',
     drives: 'The cost basis reset at the first death in a couple: half of jointly held taxable money, or all of it in a community-property state, takes its market value as its new basis.',

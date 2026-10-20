@@ -7,12 +7,68 @@ import { useSimulation } from '../../../context/useSimulation';
 import { HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from '../../../config/historicalReturns';
 import { derivedVolatility, lognormalReturnParams } from '../../../calculator';
 import NumberInput from '../../NumberInput';
+import { feePct } from '../../../utils/feeCardLabels';
 import SwitchRow from '../../SwitchRow';
 
 export default function ReturnAssumptionsSection() {
-  const { inputs, updateInput } = useSimulation();
+  const { inputs, updateInput, setActiveTab, setRiskSubTab } = useSimulation();
+  const fund = Number(inputs.fundExpenseRatioPct) || 0;
+  const advisor = Number(inputs.advisorFeePct) || 0;
+  const totalFees = feePct(fund + advisor);
   return (
     <>
+              {/* Investment Fees (changelog 447). First in the section and
+                  never folded away: every return below is before fees, and
+                  what a household pays for its investments is one of the few
+                  numbers in a plan it controls outright. Two fields so an
+                  advisor's fee is its own visible line. */}
+              <div style={{ marginBottom: '24px', gridColumn: '1 / -1' }} data-testid="investment-fees">
+                <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', borderBottom: '1px solid var(--card-border)', paddingBottom: '8px' }}>
+                  Investment Fees
+                </h3>
+                <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '-8px', marginBottom: '16px' }}>
+                  What your investments cost each year, as a percent of what you hold. The plan takes them off your
+                  Pre-Tax, Roth, Taxable and HSA balances every year, after that year&rsquo;s return. Every return on
+                  this page is <strong>before</strong> fees.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="field-fundExpenseRatioPct">Fund Expenses (%/yr)</label>
+                    <NumberInput
+                      id="field-fundExpenseRatioPct" min="0" max="5"
+                      step="0.01"
+                      className="form-input"
+                      value={inputs.fundExpenseRatioPct}
+                      onChange={(e) => updateInput('fundExpenseRatioPct', (e.target.value === '' ? '' : parseFloat(e.target.value)))}
+                    />
+                    <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>Your funds&rsquo; expense ratios, averaged. Broad index funds run about 0.03%&ndash;0.20%.</span>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="field-advisorFeePct">Advisor Fee (%/yr)</label>
+                    <NumberInput
+                      id="field-advisorFeePct" min="0" max="5"
+                      step="0.05"
+                      className="form-input"
+                      value={inputs.advisorFeePct}
+                      onChange={(e) => updateInput('advisorFeePct', (e.target.value === '' ? '' : parseFloat(e.target.value)))}
+                    />
+                    <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>A percent-of-assets fee to an advisor or managed account. Leave at 0 if you invest yourself.</span>
+                  </div>
+                </div>
+                <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '10px', marginBottom: 0 }}>
+                  Total: <strong>{totalFees} a year</strong>.{' '}
+                  {setActiveTab && (
+                    <button
+                      type="button"
+                      onClick={() => { if (setRiskSubTab) setRiskSubTab('stress'); setActiveTab('risk'); }}
+                      style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-text)', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}
+                    >
+                      {advisor > 0 ? 'See what the advisor fee costs your plan' : 'See what a 1% advisor fee would cost your plan'}
+                    </button>
+                  )}
+                </p>
+              </div>
+
               {/* Flat Return Assumptions -- preRetireReturn /
                   postRetireReturn. Added 2026-08-19 (IA Phase 2, see
                   IA_REVIEW.md): these two drive every projected dollar in

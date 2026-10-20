@@ -3,6 +3,7 @@ import { gridCompactDollars } from '../../utils/compactDollars';
 import { basisLabel } from '../../utils/displayDollars';
 import { heatCellBg } from '../../utils/heatCell';
 import { useSimulation } from '../../context/useSimulation';
+import FeeCostCard from '../FeeCostCard';
 import HistoricalStartsPanel from '../HistoricalStartsPanel';
 import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from '../../config/historicalReturns';
 import { historicalPortfolioReturn } from '../../utils/bootstrap';
@@ -36,7 +37,7 @@ const ChartFallback = () => (
 
 
 const RiskTab = () => {
-  const { inputs, updateInput, formatCurrency, useRealDollars, projection, maximizedComponent, setMaximizedComponent, handleRunMonteCarlo, mcLoading, monteCarlo, mcRange, riskSubTab, setRiskSubTab, stressChartView, setStressChartView, stressComparisonData, heavyResultsLoading, sensitivityResults, guardrailsComparisonData, historicalStartsData, setActiveTab } = useSimulation();
+  const { inputs, updateInput, formatCurrency, useRealDollars, projection, maximizedComponent, setMaximizedComponent, handleRunMonteCarlo, mcLoading, monteCarlo, mcRange, riskSubTab, setRiskSubTab, stressChartView, setStressChartView, stressComparisonData, heavyResultsLoading, sensitivityResults, guardrailsComparisonData, historicalStartsData, feeComparisonData, setSettingsSubTab, setActiveTab } = useSimulation();
   const [taxesOverlay, setTaxesOverlay] = useState(false);
   // KNOWN_ISSUES.md issue #1 fix: pairs each custom-switch's visible label
   // text with its checkbox via htmlFor/id (Overlay Taxes) or
@@ -499,6 +500,19 @@ const RiskTab = () => {
                 )}
               </div>
             </div>
+
+            <FeeCostCard
+              data={feeComparisonData}
+              loading={heavyResultsLoading}
+              onChangeFees={() => {
+                if (setSettingsSubTab) setSettingsSubTab('assumptions');
+                setActiveTab('settings');
+                setTimeout(() => {
+                  const el = typeof document !== 'undefined' ? document.getElementById('field-fundExpenseRatioPct') : null;
+                  if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); }
+                }, 50);
+              }}
+            />
 
             <HistoricalStartsPanel
               data={historicalStartsData}

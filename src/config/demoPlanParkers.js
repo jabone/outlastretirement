@@ -41,6 +41,11 @@ export function buildParkersInputs() {
     // And ACA Cliff Protection stays as it was when the story was written
     // (changelog 443 turned it on for new plans).
     acaCliffProtectionEnabled: false,
+    // And no investment fees, as the story was written (changelog 447
+    // charges 0.10% fund expenses by default). Re-tune before the lessons'
+    // pictures are next re-recorded.
+    fundExpenseRatioPct: 0,
+    advisorFeePct: 0,
     // And the pre-65 health cost stays as typed, with no computed credit
     // (changelog 415 computes one for new plans).
     acaCreditSource: 'manual',

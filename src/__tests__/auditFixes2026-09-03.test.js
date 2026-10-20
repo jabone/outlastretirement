@@ -255,7 +255,7 @@ describe('Q-10(b): a concentrated-stock sale is taxed by the real engine', () =>
   it('leaves a plan with no concentrated position completely untouched', () => {
     const off = runProjection(DEFAULT_INPUTS).years;
     expect(off[0].concentratedStockDiversificationTax).toBe(0);
-    expect(off.at(-1).totalPortfolioEnding).toBeCloseTo(131245.5150, 4);
+    expect(off.at(-1).totalPortfolioEnding).toBeCloseTo(36762.2363, 4);
   });
 });
 

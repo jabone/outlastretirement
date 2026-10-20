@@ -16,7 +16,7 @@ const blank = (over = {}) => ({
   planYear: 2026, birthYear1: 1956, retireAge1: 65, lifeExpectancy1: 90, claimingAge1: 70,
   spouse2Enabled: false, filingStatus: 'Single',
   preTaxInit: 0, rothInit: 0, taxableInit: 0, hsaInit: 0,
-  preRetireReturn: 0, postRetireReturn: 0, inflationRate: 0, taxBracketInflationRate: 0,
+  preRetireReturn: 0, postRetireReturn: 0, fundExpenseRatioPct: 0, inflationRate: 0, taxBracketInflationRate: 0,
   ssCOLA: 0, medicalInflationRate: 0, medicarePartBInflationRate: 0, medicarePartDInflationRate: 0, ltcInflationRate: 0,
   housingInflationRate: 0, housingExpensePct: 0,
   salary1: 0, salary2: 0, ss1: 0, ss2: 0,

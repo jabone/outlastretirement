@@ -186,6 +186,7 @@ import {
   getRothLadderScheduleHeatmap,
   runHistoricalStarts,
   findHistoricalSafeMax,
+  computeFeeComparison,
   getMinimumRequiredReturn,
   stateTaxJurisdictionFor,
   readResidencyTimeline,
@@ -943,6 +944,7 @@ export default function App() {
     rothLadderScheduleHeatmapData: [],
     guardrailsComparisonData: [],
     historicalStartsData: null,
+    feeComparisonData: null,
   });
   const [heavyResultsLoading, setHeavyResultsLoading] = useState(true);
   const heavyWorkerRef = useRef(null);
@@ -1380,6 +1382,7 @@ export default function App() {
   const guardrailsComparisonData = heavyResults.guardrailsComparisonData;
   const dieWithZeroLongevityData = heavyResults.dieWithZeroLongevityData;
   const historicalStartsData = heavyResults.historicalStartsData;
+  const feeComparisonData = heavyResults.feeComparisonData;
 
   // Compute Die with Zero optimization
   // findDieWithZeroSpending now returns its finalProjection, so we don't need a second runProjection call
@@ -1696,6 +1699,7 @@ export default function App() {
             const h = runHistoricalStarts(debouncedInputs);
             return h ? { ...h, safeMax: findHistoricalSafeMax(debouncedInputs) } : h;
           })(),
+          feeComparisonData: computeFeeComparison(debouncedInputs, { historical: true }),
         };
         if (requestId === heavyRequestIdRef.current) setHeavyResults(result);
       } catch (err) {
@@ -1739,6 +1743,7 @@ export default function App() {
             guardrailsComparisonData: data.guardrailsComparisonData,
             dieWithZeroLongevityData: data.dieWithZeroLongevityData || null,
             historicalStartsData: data.historicalStartsData || null,
+            feeComparisonData: data.feeComparisonData || null,
           });
         } else {
           // The calculation itself threw; the same code would throw on the
@@ -2005,7 +2010,7 @@ export default function App() {
     heirTaxResults, estateChartData,
     taxVisualizerData, selectedTaxYear, setSelectedTaxYear, showIrmaa, setShowIrmaa, enabledTaxBrackets, setEnabledTaxBrackets: setEnabledTaxBracketsManual, enabledIrmaaTiers, resetLinePrefsToAuto, userChoseLinePrefs: userChoseBrackets,
     optimizerResults, ageFinderResults, sensitivityResults, dieWithZeroResults, dieWithZeroLongevityData, targetPortfolioResults, ssClaimingHeatmapData, stressComparisonData, heavyResultsLoading,
-    rothBracketHeatmapData, rothLadderScheduleHeatmapData, guardrailsComparisonData, historicalStartsData,
+    rothBracketHeatmapData, rothLadderScheduleHeatmapData, guardrailsComparisonData, historicalStartsData, feeComparisonData,
     whatIfRetireAge, setWhatIfRetireAge, whatIfSpend, setWhatIfSpend, whatIfFundingMethod, setWhatIfFundingMethod,
     calibrationResults, setCalibrationResults, calibrationUndo, undoCalibration,
     holdings, addHolding, updateHolding, removeHolding, addHoldings, replaceHoldings, bucketTotals, taxableCostBasis, assetClassMix, balanceGap,
@@ -2033,7 +2038,7 @@ export default function App() {
     heirTaxResults, estateChartData,
     taxVisualizerData, selectedTaxYear, setSelectedTaxYear, showIrmaa, setShowIrmaa, enabledTaxBrackets, setEnabledTaxBracketsManual, enabledIrmaaTiers, resetLinePrefsToAuto,
     optimizerResults, ageFinderResults, sensitivityResults, dieWithZeroResults, dieWithZeroLongevityData, targetPortfolioResults, ssClaimingHeatmapData, stressComparisonData, heavyResultsLoading,
-    rothBracketHeatmapData, rothLadderScheduleHeatmapData, guardrailsComparisonData, historicalStartsData,
+    rothBracketHeatmapData, rothLadderScheduleHeatmapData, guardrailsComparisonData, historicalStartsData, feeComparisonData,
     whatIfRetireAge, setWhatIfRetireAge, whatIfSpend, setWhatIfSpend, whatIfFundingMethod, setWhatIfFundingMethod,
     calibrationResults, setCalibrationResults, calibrationUndo, undoCalibration,
     holdings, addHolding, updateHolding, removeHolding, addHoldings, replaceHoldings, bucketTotals, taxableCostBasis, assetClassMix, balanceGap,

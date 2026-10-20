@@ -48,7 +48,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'priceIndex', 'inflFactor', 'ssColaFactor', 'medicalInflFactor', 'ltcInflFactor',
     'partBInflFactor', 'partDInflFactor', 'irmaaThresholdFactor', 'taxBracketInflationFactor', 'statutoryInflFactor',
     // Rates, shares and multipliers
-    'growthRate', 'marginalBracket', 'lifestyleMultiplier', 'housingMultiplier', 'medicalMultiplier',
+    'growthRate', 'feeRatePct', 'marginalBracket', 'lifestyleMultiplier', 'housingMultiplier', 'medicalMultiplier',
     'phaseMultiplier', 'essentialShare', 'concentratedStockConcentrationPct',
     'concentratedStock2ConcentrationPct', 'cashReserveMonthsCovered',
     'wrGuardrailRate', 'wrGuardrailMultiplier', 'wrGuardrailPlannedRate',
@@ -106,6 +106,11 @@ export const ROW_FIELD_CLASS = Object.freeze({
   ]),
   ...byClass(YEAR_END, [
     'preTaxEnd', 'rothEnd', 'taxableEnd', 'hsaEnd', 'totalPortfolioEnding',
+    // Investment fees (changelog 447) come off the year-end balance, so they
+    // are priced at the year's end. The running total is a sum of nominal
+    // fees shown at that year's level -- an approximation; the Fees card
+    // sums each year's fee in today's dollars itself.
+    'feesPaid', 'fundExpensesPaid', 'advisorFeesPaid', 'feesPaidCumulative',
     'cashReserveBalance', 'nqdcBalance1', 'nqdcBalance2',
     'concentratedStockBalance', 'concentratedStock2Balance',
     'mortgageBalance', 'otherDebtBalance', 'homeValue', 'reverseMortgageBalance', 'homeEquity',

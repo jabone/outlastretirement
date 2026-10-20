@@ -13,7 +13,7 @@ const plan = (over) => {
   }
   // Changelog 414 made the brokerage yield's bond share ordinary income;
   // this file is about where money goes, so the yield stays all-qualified.
-  return { ...DEFAULT_INPUTS, taxableQualifiedDividendFollowsAllocation: false, ...over };
+  return { ...DEFAULT_INPUTS, taxableQualifiedDividendFollowsAllocation: false, fundExpenseRatioPct: 0, ...over };
 };
 const START = DEFAULT_INPUTS.planYear;
 const worker = {

@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-19T22:33:05.201Z",
+  "timestamp": "2026-10-20T13:43:32.629Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -471,6 +471,8 @@
     "stockAllocationSource": "manual",
     "stockReturnRate": 8,
     "bondReturnRate": 4,
+    "fundExpenseRatioPct": 0,
+    "advisorFeePct": 0,
     "glideAllocationEnabled": false,
     "glideAllocationRate": 1,
     "glideAllocationFloor": 30,
@@ -948,6 +950,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -958,10 +962,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.223Z",
+      "savedAt": "2026-10-20T13:43:32.667Z",
       "tag": "demo"
     },
     {
@@ -1435,6 +1439,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -1445,10 +1451,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.231Z",
+      "savedAt": "2026-10-20T13:43:32.670Z",
       "tag": "demo"
     },
     {
@@ -1922,6 +1928,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -1932,10 +1940,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.245Z",
+      "savedAt": "2026-10-20T13:43:32.677Z",
       "tag": "demo"
     },
     {
@@ -2409,6 +2417,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -2419,10 +2429,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.252Z",
+      "savedAt": "2026-10-20T13:43:32.693Z",
       "tag": "demo"
     },
     {
@@ -2896,6 +2906,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -2906,10 +2918,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.263Z",
+      "savedAt": "2026-10-20T13:43:32.711Z",
       "tag": "demo"
     },
     {
@@ -3383,6 +3395,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -3393,10 +3407,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.269Z",
+      "savedAt": "2026-10-20T13:43:32.718Z",
       "tag": "demo"
     },
     {
@@ -3870,6 +3884,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -3880,10 +3896,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.273Z",
+      "savedAt": "2026-10-20T13:43:32.721Z",
       "tag": "demo"
     },
     {
@@ -4357,6 +4373,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -4367,10 +4385,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.283Z",
+      "savedAt": "2026-10-20T13:43:32.729Z",
       "tag": "demo"
     },
     {
@@ -4844,6 +4862,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -4854,10 +4874,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.292Z",
+      "savedAt": "2026-10-20T13:43:32.738Z",
       "tag": "demo"
     },
     {
@@ -5331,6 +5351,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -5341,10 +5363,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.308Z",
+      "savedAt": "2026-10-20T13:43:32.748Z",
       "tag": "demo"
     },
     {
@@ -5818,6 +5840,8 @@
         "stockAllocationSource": "manual",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
+        "fundExpenseRatioPct": 0,
+        "advisorFeePct": 0,
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -5828,10 +5852,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 443
+        "oddsVersion": 447
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-19T22:33:05.333Z",
+      "savedAt": "2026-10-20T13:43:32.763Z",
       "tag": "demo"
     }
   ],

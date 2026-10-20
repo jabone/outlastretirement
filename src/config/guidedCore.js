@@ -34,7 +34,7 @@ export const GUIDED_CORE_KEYS = new Set([
   'partTimeIncomeEndAge', 'pension', 'pension1COLA', 'pension1LumpSum', 'pension1LumpSumRollover',
   'pension1LumpSumValue', 'pension1SurvivorBenefit', 'pension2COLA', 'pension2LumpSum', 'pension2LumpSumRollover',
   'pension2LumpSumValue', 'pension2SurvivorBenefit', 'pensionStartAge', 'planYear', 'postRetireReturn',
-  'preRetireReturn', 'preTaxBasisInit', 'preTaxContribution', 'preTaxInit', 'qcdAnnualAmount',
+  'preRetireReturn', 'fundExpenseRatioPct', 'advisorFeePct', 'preTaxBasisInit', 'preTaxContribution', 'preTaxInit', 'qcdAnnualAmount',
   'rentalIncome', 'retireAge', 'reverseMortgageEnabled', 'reverseMortgageMonthlyPayout',
   'reverseMortgagePayoutType', 'reverseMortgageStartAge', 'rothBasisInit', 'rothContribution',
   'rothConversionAmount', 'rothConversionBracket', 'rothConversionBuffer', 'rothConversionDelayUntilRetire',

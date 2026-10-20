@@ -13,6 +13,7 @@ import {
   dieWithZeroByLongevity,
   runHistoricalStarts,
   findHistoricalSafeMax,
+  computeFeeComparison,
 } from './calculator.js';
 import { guardrailsComparisonForDisplay } from './utils/guardrailsDisplay.js';
 
@@ -72,6 +73,9 @@ export async function runHeavyAnalyses({ requestId, inputs, useRealDollars }, { 
     () => {
       if (out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, safeMax: findHistoricalSafeMax(inputs) };
     },
+    // Changelog 447: what fees cost -- the plan beside the same plan with
+    // (or without) an advisor fee, through the historical starts too.
+    () => { out.feeComparisonData = computeFeeComparison(inputs, { historical: true }); },
   ];
   for (const step of steps) {
     if (!isCurrent()) return { requestId, superseded: true };

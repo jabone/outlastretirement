@@ -8,7 +8,7 @@ import { runProjection, DEFAULT_INPUTS, getTaxBracketLimit, calculateTaxes } fro
 
 const START = DEFAULT_INPUTS.planYear;
 const base = {
-  ...DEFAULT_INPUTS, spouse2Enabled: false, filingStatus: 'Single', birthYear1: START - 62, retireAge1: 60,
+  ...DEFAULT_INPUTS, fundExpenseRatioPct: 0, spouse2Enabled: false, filingStatus: 'Single', birthYear1: START - 62, retireAge1: 60,
   salary1: 0, ss1: 0, claimingAge1: 70, preTaxInit: 2000000, taxableInit: 50000, rothInit: 100000,
   lifestyleExpense: 60000, withdrawalStrategy: 'PreTaxFirst',
   rothConversionStrategy: 'maxBracket', rothConversionBracket: 0.22, rothConversionBuffer: 0,

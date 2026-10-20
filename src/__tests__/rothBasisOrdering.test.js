@@ -146,7 +146,7 @@ describe('runProjection pre-59.5 Roth draws', () => {
   });
   it('leaves DEFAULT_INPUTS unchanged (no pre-59.5 Roth draws there)', () => {
     const p = runProjection(DEFAULT_INPUTS);
-    expect(p.years[p.years.length - 1].totalPortfolioEnding).toBeCloseTo(131245.5150, 1);
+    expect(p.years[p.years.length - 1].totalPortfolioEnding).toBeCloseTo(36762.2363, 1);
     expect(DEFAULT_INPUTS.rothBasisInit).toBe(0);
     expect(DEFAULT_INPUTS.rothRecentConversionsInit).toBe(0);
   });

@@ -50,6 +50,9 @@ export const YEAR_LEDGER_CSV_HEADERS = [
   // The HSA paying a shortfall nothing else could, and its tax (already in
   // Taxes Paid). Not in Total Draw. Appended for the same reason.
   'HSA for general spending', 'HSA general spending tax',
+  // Investment fees paid that year (changelog 447), appended for the same
+  // reason. Investment Growth (derived) is after them.
+  'Fund expenses', 'Advisor fee',
 ];
 
 export function buildYearLedgerCsvRows(projection) {
@@ -102,6 +105,8 @@ export function buildYearLedgerCsvRows(projection) {
     round(deferredCompPayout(y)),
     round(y.hsaGeneralDraw || 0),
     round(y.hsaGeneralDrawTax || 0),
+    round(y.fundExpensesPaid || 0),
+    round(y.advisorFeesPaid || 0),
   ]);
 }
 

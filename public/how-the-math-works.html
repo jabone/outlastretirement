@@ -198,7 +198,7 @@
 
     <h2 id="one-year">One year at a time</h2>
     <p>The projection starts in your plan year and runs to the end of the plan, the last Life Expectancy you entered. Each year it works out what comes in (salary, Social Security, pensions, annuities, rental income), what you spend (your lifestyle spending, health coverage, Medicare premiums, debts and life events), and what the shortfall between them is.</p>
-    <p>The shortfall is drawn from your accounts in the order your withdrawal strategy sets: Taxable First, Pre-Tax First, Roth First or Pro-Rata. Withdrawals are sized so they also pay the tax they cause, because a withdrawal from a Pre-Tax account is itself income. Required minimum distributions, Roth conversions and your saving while you work happen in the same year, and the accounts then grow at the returns you assumed.</p>
+    <p>The shortfall is drawn from your accounts in the order your withdrawal strategy sets: Taxable First, Pre-Tax First, Roth First or Pro-Rata. Withdrawals are sized so they also pay the tax they cause, because a withdrawal from a Pre-Tax account is itself income. Required minimum distributions, Roth conversions and your saving while you work happen in the same year, and the accounts then grow at the returns you assumed, less your investment fees (fund expenses and any advisor fee), which come off the invested accounts each year.</p>
     <p>Your plan, and every calculation on it, stays in your browser. Nothing is sent to us to be worked out.</p>
 
     <h2 id="taxes">Taxes, worked out every year</h2>
@@ -233,7 +233,7 @@
     <p>OutlastRetirement is educational software, not financial, tax or legal advice. It models the rules listed below as written for the current tax year, carried forward with your inflation assumption; it cannot know future law. Where a rule is simplified, the list says how. Your own figures, and an advisor who knows your situation, are the final check.</p>
 
     <h2 id="rules">Every rule, with its official source</h2>
-    <p>The same list the app shows under Help &rarr; How the numbers are figured: 41 rules, the figures each uses, what the app simplifies, and the official page behind it.</p>
+    <p>The same list the app shows under Help &rarr; How the numbers are figured: 42 rules, the figures each uses, what the app simplifies, and the official page behind it.</p>
     <h3 class="group" id="vintages">Which year&rsquo;s figures this plan uses</h3>
     <p>Every figure is the newest its agency has published. Where that is older than 2026, the plan grows it forward and this table says so.</p>
     <table class="vintages">
@@ -701,6 +701,16 @@
       </ul>
     </div>
     <h3 class="group" id="rules-planning-assumptions">Planning assumptions</h3>
+    <div class="rule" id="rule-investment-fees">
+      <h4>Investment fees</h4>
+      <p>Every return in the plan is before fees. Each year, after the year's return, the plan takes your fund expenses and any advisor fee off your Pre-Tax, Roth, Taxable and HSA balances, so a year grows by the return times one minus the fee. The default is 0.10% for fund expenses, about what a portfolio of broad index funds costs, and no advisor fee. The fees are not deductible, and the same fees apply to an heir's inherited accounts. Risk → What fees cost you shows your plan beside the same plan with a 1% advisor fee (or without the one you pay).</p>
+      <p class="meta"><strong>Figures from:</strong> Your own figures; not deductible under current law</p>
+      <p class="meta"><strong>What the app simplifies:</strong> Fees come off once a year at year end, not daily. A fund's expense ratio also lowers what it pays out, so the taxable account's dividends are slightly overstated, which errs toward more tax. The cash reserve, the home and a concentrated stock position pay no fee.</p>
+      <p class="meta"><strong>Official source:</strong></p>
+      <ul>
+        <li><a href="https://www.irs.gov/publications/p529" target="_blank" rel="noopener noreferrer">IRS (Publication 529, Miscellaneous Deductions)</a> — checked October 20, 2026</li>
+      </ul>
+    </div>
     <div class="rule" id="rule-ss-trust-fund">
       <h4>Social Security trust fund stress test</h4>
       <p>An optional stress test cuts every Social Security benefit from a chosen year onward, to show what happens if the trust fund runs out before Congress acts. Its defaults, a 22% cut from 2032, come from the Trustees' latest projection that the retirement trust fund is depleted in 2032 and that income then pays 78% of scheduled benefits. It is off unless you turn it on.</p>

@@ -24,16 +24,16 @@ export const RELEASE_NOTES_WEEKS = 6;
 export const RELEASE_WEEKS = [
   {
     weekOf: '2026-10-19',
-    headline: 'Four tax corrections from a second outside review',
+    headline: 'Investment fees in every plan, and tax corrections from a second outside review',
     bullets: [
+      { title: 'Investment fees, and what a 1% advisor fee would cost you', ids: [447],
+        text: 'Plans now pay investment fees: fund expenses, 0.10% a year by default, and an advisor fee, 0 by default, both at the top of Assumptions. They come off your balances each year after the return, as real fees do. Risk → What fees cost you shows your plan beside the same plan with a 1% advisor fee: the fees paid, what is left, how many historical starts last and the most you could safely spend. Your numbers will change: slightly lower, by the 0.10%.' },
       { title: 'No more phantom alternative minimum tax for households that itemize', ids: [433],
         text: 'Since itemized deductions arrived on October 17, every household that itemized was charged an alternative minimum tax the law does not impose — $8,000 to $23,000 a year — because the whole itemized total was added back where the law adds back only the state and local tax line. Your numbers will change if your plan itemizes: federal tax falls by that amount, and the optimizers may change their recommendations.' },
       { title: 'Itemizing with an HSA, an ACA credit or Medicare premiums', ids: [434],
         text: 'The year’s starting tax was priced on the medical deduction before the HSA draw, the ACA credit and Medicare premiums were known, and the rest of the year on the final figure, so the difference was lost: a household whose HSA paid the bridge premium was under-taxed by 70%. The base is priced once, on the final figure, and a fill-to-bracket conversion is sized with medical costs in view. Your numbers will change if your plan itemizes and has any of those.' },
-      { title: 'A fill-to-bracket conversion pays the bracket’s tax, not 40% more', ids: [435],
-        text: 'A Pre-Tax First plan converting to the top of a bracket landed on the ceiling to the dollar but paid up to 40% more federal tax than the ceiling owes, because each trim of the conversion was priced before the tax it saved came off the draw. The year now owes the tax its income owes and converts the room that frees. Your numbers will change if your plan does this: less tax, a larger conversion, a larger ending balance.' },
-      { title: 'ACA Subsidy Protection earns the credit it converts to reach', ids: [436],
-        text: 'When the plan converted enough to lift a year over the poverty line, the premium credit was priced on the income before the conversion, so it came out at $0 and the gap carried into later years. It is priced on the lifted income. Your numbers will change if the protection is on and a year sat under the line.' },
+      { title: 'Roth conversions pay the bracket’s tax, and earn the ACA credit they reach', ids: [435, 436],
+        text: 'A Pre-Tax First plan converting to the top of a bracket paid up to 40% more federal tax than the ceiling owes, because each trim of the conversion was priced before the tax it saved came off the draw; it now pays what the income owes and converts the room that frees. And when ACA Subsidy Protection converted enough to lift a year over the poverty line, the premium credit was priced on the income before the conversion, so it came out at $0; it is priced on the lifted income. Your numbers will change if your plan does either.' },
       { title: 'The optimizers no longer reward a Pre-Tax bequest to charity', ids: [438],
         text: 'Net to heirs after every tax priced the whole Pre-Tax balance rather than the heirs’ share after a charitable bequest, so giving $1,000,000 of Pre-Tax money to charity made a strategy rank higher; and it left out the heirs’ state income tax. Rankings will change if your plan has a Pre-Tax bequest or heirs in a state with an income tax; your plan does not.' },
       { title: 'Readiness cards count an annuity, a reverse mortgage and HSA draws; a charitable IRA distribution adds up', ids: [439, 440],

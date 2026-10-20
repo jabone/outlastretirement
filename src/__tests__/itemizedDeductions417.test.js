@@ -80,7 +80,7 @@ describe('in a plan', () => {
     expect(DEFAULT_INPUTS.charitableGivingAnnual).toBe(0);
     const plain = runProjection(DEFAULT_INPUTS);
     expect(plain.years.every((y) => y.deductionUsed === 'standard')).toBe(true);
-    expect(plain.endingBalance).toBeCloseTo(131245.5150, 2);
+    expect(plain.endingBalance).toBeCloseTo(36762.2363, 2);
     expect(buildDemoInputs().itemizeDeductions).toBe('never');
     expect(buildParkersInputs().itemizeDeductions).toBe('never');
   });

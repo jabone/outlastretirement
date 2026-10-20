@@ -671,6 +671,15 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}>
+                <span style={sectionStyles.badge}>2 Numbers</span><br/>
+                <strong>Investment Fees &mdash; Fund Expenses / Advisor Fee</strong><br/>
+                <em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Assumptions &amp; Risk &rarr; Investment Fees</em>
+              </td>
+              <td style={sectionStyles.td}>What your investments cost each year, as a percent of what you hold: your funds&rsquo; expense ratios, and any percent-of-assets fee to an advisor or managed account. Every return in the plan is <strong>before</strong> fees; each year, after the year&rsquo;s return, the plan takes both off your Pre-Tax, Roth, Taxable and HSA balances (not the cash reserve, the home or a concentrated stock position), and the same fees apply to an heir&rsquo;s inherited accounts. They are not deductible. Risk &rarr; <strong>What fees cost you</strong> shows your plan beside the same plan with a 1% advisor fee, or without the one you pay: fees paid, what is left, historical starts lasted, and the most you could safely spend.</td>
+              <td style={sectionStyles.td}>Percentages, 0 to 5. Fund expenses default to 0.10% (broad index funds); the advisor fee defaults to 0. The Year by Year CSV has a column for each.</td>
+            </tr>
+            <tr>
+              <td style={sectionStyles.td}>
                 <span style={sectionStyles.badge}>Number Input</span><br/>
                 <strong>Investment Return &mdash; Working / Retired</strong><br/>
                 <em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Assumptions &amp; Risk &rarr; Return Assumptions</em>

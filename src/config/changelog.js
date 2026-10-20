@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 447,
+    date: '2026-10-20',
+    title: 'Investment fees, and what a 1% advisor fee would cost you',
+    summary: 'Plans now pay fund expenses (0.10% a year by default) and any advisor fee you enter. Risk shows what fees cost your plan, and what a 1% advisor fee would. Your numbers will change, slightly lower.',
+    items: [
+      "**Two new settings, first in Plan \u2192 Assumptions & Risk.** Fund Expenses is what your funds charge, their expense ratios averaged; it starts at 0.10%, about what a portfolio of broad index funds costs. Advisor Fee is a percent-of-assets fee to an advisor or managed account; it starts at 0. The Interview asks both. Every return you enter is before fees: each year, after the return, the plan takes the fees off your Pre-Tax, Roth, Taxable and HSA balances (not the cash reserve, the home or a concentrated stock position). They are not deductible. An heir\u2019s inherited accounts pay the same fees.",
+      "**What fees cost you.** A new card on Risk \u2192 Historical Stress Tests shows your plan beside the same plan with a 1% advisor fee added, or without the advisor fee if you pay one: the fees paid over the plan in today\u2019s dollars, what is left at the end, how many historical starts last, and the most you could spend a year and last through every one.",
+      "**Year by Year.** The CSV export has two new columns, the fund expenses and advisor fee paid each year.",
+      "**Your numbers will change**, slightly lower, by the 0.10% fund expenses now charged. The demo households are unchanged: their stories were written without fees.",
+    ],
+  },
+  {
     id: 446,
     date: '2026-10-19',
     title: 'Our contact addresses moved to outlastretirement.com',
