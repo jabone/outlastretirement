@@ -178,8 +178,8 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
             <div>
               <div style={{ fontSize: 'var(--fs-sm)' }}>
                 Every spending rule side by side over the same {data.count} starts &mdash; how often each lasts, its deepest cut,
-                and what it spends over a lifetime &mdash; the most you could spend and last in 95% or 90% of them, and every
-                start year, one row each.
+                and what it spends over a lifetime &mdash; the most you could spend and last in 95% or 90% of them, how your plan
+                does with 40% to 80% in stocks, and every start year, one row each.
               </div>
               <button type="button" className="btn-outline" style={{ marginTop: '8px', padding: '4px 10px', fontSize: 'var(--fs-xs)' }} onClick={onOpenPremium}>
                 Part of Premium &mdash; see what it includes

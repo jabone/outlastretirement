@@ -1948,6 +1948,14 @@ export const DEFAULT_INPUTS = {
   // Damodaran's annual table, the default) or 1871 (adds Robert Shiller's
   // record of the years before). The Monte Carlo's bootstrap is unaffected.
   historyFromYear: 1928,
+  // A spending rule only the historical comparison uses (changelog 451):
+  // 'none' (the plan's own spending, with any guardrails it has on),
+  // 'pctPortfolio' (spend the same share of the portfolio every retired
+  // year, so spending rises and falls with it) or 'clyatt95' (Bob Clyatt's
+  // 95% rule: the larger of that share of the portfolio and 95% of last
+  // year's spending). Both start from the plan's own first retired year's
+  // spending and its share of the portfolio then. Not a plan setting.
+  spendingRule: 'none',
   glideAllocationEnabled: false,
   glideAllocationRate: 1.0, // reduction in stock % per year retired
   glideAllocationFloor: 30.0,
@@ -7096,6 +7104,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // Withdrawal-rate guardrails (changelog 216). Persistent across years:
   // each trigger moves the multiplier and it stays moved until the next one.
   let wrGuardrailMultiplier = 1.0;
+  // Changelog 451: the comparison-only spending rules. ruleRate is the
+  // plan's first retired year's lifestyle spending over the portfolio it
+  // started that year with; rulePrevSpend is last year's ruled spending.
+  const spendingRule = inputs.spendingRule === 'pctPortfolio' || inputs.spendingRule === 'clyatt95' ? inputs.spendingRule : null;
+  let ruleRate = null;
+  let rulePrevSpend = null;
   // The plan's own path, which both guardrails measure against (changelog
   // 335). Only built when one of them is on.
   const guardrailPlannedPath = (inputs.withdrawalGuardrailsEnabled || inputs.spendingGuardrails)
@@ -8456,6 +8470,24 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         }
       }
     }
+    // Changelog 451: the comparison-only spending rules replace the year's
+    // lifestyle spending once retired. The first retired year spends what
+    // the plan spends and sets the rate; after that the portfolio sets it.
+    if (spendingRule && isRetired) {
+      const prevRow = year > startYear ? years[year - startYear - 1] : null;
+      const opening = prevRow ? investedEnd(prevRow)
+        : (inputs.preTaxInit || 0) + (inputs.rothInit || 0) + (inputs.taxableInit || 0) + (inputs.hsaInit || 0);
+      if (ruleRate === null) {
+        ruleRate = opening > 0 ? lifestyleCost / opening : 0;
+      } else {
+        const byPortfolio = ruleRate * Math.max(0, opening);
+        lifestyleCost = spendingRule === 'clyatt95'
+          ? Math.max(byPortfolio, 0.95 * (rulePrevSpend || 0))
+          : byPortfolio;
+      }
+      rulePrevSpend = lifestyleCost;
+    }
+
     // Constant across years for now -- categories do not vary by year yet.
     // Computed here so the row can report the floor against the SETTLED
     // lifestyleCost rather than the raw input.
@@ -12960,10 +12992,14 @@ export function getGuardrailsComparisonHeatmap(rawInputs = DEFAULT_INPUTS) {
 // against fixed spending in the SAME start, so the comparison isolates the
 // rule from the market.
 export const HISTORICAL_START_RULES = [
-  { key: 'fixed', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false } },
-  { key: 'crash', patch: { spendingGuardrails: true, withdrawalGuardrailsEnabled: false } },
-  { key: 'wr', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: true } },
-  { key: 'both', patch: { spendingGuardrails: true, withdrawalGuardrailsEnabled: true } },
+  { key: 'fixed', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'none' } },
+  { key: 'crash', patch: { spendingGuardrails: true, withdrawalGuardrailsEnabled: false, spendingRule: 'none' } },
+  { key: 'wr', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: true, spendingRule: 'none' } },
+  { key: 'both', patch: { spendingGuardrails: true, withdrawalGuardrailsEnabled: true, spendingRule: 'none' } },
+  // Changelog 451: two rules from the safe-withdrawal literature, compared
+  // over the same starts. Never the plan's own rule.
+  { key: 'pct', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'pctPortfolio' } },
+  { key: 'clyatt', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'clyatt95' } },
 ];
 
 // The start years with a full retirement's worth of history behind them.
@@ -13074,6 +13110,51 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
     floor: Math.max(0, Number(inputs.portfolioFloorReal) || 0),
     rules: summaries,
     starts,
+  };
+}
+
+// Success by stock share (changelog 452): the plan, under its own spending
+// rule, through the same historical starts at several retired stock
+// shares, held steady (no glide). Premium shows the table; the engine is
+// open like the rest. Each row: how many starts lasted, the hardest start,
+// and the median balance left in today's dollars.
+export const STOCK_SHARE_STEPS = [40, 50, 60, 70, 80];
+
+export function historicalByStockShare(rawInputs = DEFAULT_INPUTS, { shares = STOCK_SHARE_STEPS } = {}) {
+  const inputs = sanitizeInputs({ ...rawInputs, stressType: 'none' });
+  const base = _runProjectionPreSanitized(inputs);
+  const firstRetired = base.years.find((y) => y.isRetired);
+  if (!firstRetired) return null;
+  const horizonYears = base.years[base.years.length - 1].year - firstRetired.year + 1;
+  const startYears = historicalStartYears(horizonYears, historyFirstYear(inputs));
+  if (startYears.length === 0) return null;
+  const own = Math.round(Math.min(100, Math.max(0, Number(inputs.stockAllocationPost) || 0)));
+  const list = [...new Set([...shares, own])].sort((a, b) => a - b);
+  const rows = list.map((share) => {
+    let lasted = 0;
+    let worst = null;
+    const ends = [];
+    for (const start of startYears) {
+      const proj = _runProjectionPreSanitized({
+        ...inputs, stockAllocationPost: share, glideAllocationEnabled: false,
+        stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: start,
+      });
+      if (proj.meetsFloor) lasted += 1;
+      const realEnd = (Number(proj.endingBalance) || 0) / finalBalanceFactor(proj.years);
+      ends.push(realEnd);
+      const out = proj.years.find((y) => (y.shortfall || 0) > 0.01);
+      const failYear = out ? out.year : proj.floorBreachYear;
+      const rank = failYear ? failYear - 1e9 : realEnd;
+      if (worst === null || rank < worst.rank) worst = { rank, start };
+    }
+    return { share, isPlan: share === own, lasted, count: startYears.length, worstStart: worst ? worst.start : null, medianRealEnd: median(ends) };
+  });
+  return {
+    firstStart: startYears[0],
+    count: startYears.length,
+    planShare: own,
+    rebalancing: !!inputs.rebalancingEnabled,
+    rows,
   };
 }
 

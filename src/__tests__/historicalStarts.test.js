@@ -135,10 +135,10 @@ describe('runHistoricalStarts', () => {
 
   it('names the plan’s own rule, and adds "both" only when the plan uses both', () => {
     expect(data.inPlan).toBe('fixed');
-    expect(data.rules.map((r) => r.key)).toEqual(['fixed', 'crash', 'wr']);
+    expect(data.rules.map((r) => r.key)).toEqual(['fixed', 'crash', 'wr', 'pct', 'clyatt']);
     const both = runHistoricalStarts({ ...p, spendingGuardrails: true, withdrawalGuardrailsEnabled: true });
     expect(both.inPlan).toBe('both');
-    expect(both.rules.map((r) => r.key)).toEqual(['fixed', 'crash', 'wr', 'both']);
+    expect(both.rules.map((r) => r.key)).toEqual(['fixed', 'crash', 'wr', 'both', 'pct', 'clyatt']);
     expect(both.rules.filter((r) => r.inPlan).map((r) => r.key)).toEqual(['both']);
   });
 

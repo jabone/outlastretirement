@@ -187,6 +187,7 @@ import {
   runHistoricalStarts,
   findHistoricalSafeMax,
   computeFeeComparison,
+  historicalByStockShare,
   getMinimumRequiredReturn,
   stateTaxJurisdictionFor,
   readResidencyTimeline,
@@ -1697,7 +1698,7 @@ export default function App() {
           dieWithZeroLongevityData: dieWithZeroByLongevity(debouncedInputs),
           historicalStartsData: (() => {
             const h = runHistoricalStarts(debouncedInputs);
-            return h ? { ...h, safeMax: findHistoricalSafeMax(debouncedInputs) } : h;
+            return h ? { ...h, safeMax: findHistoricalSafeMax(debouncedInputs), byStockShare: historicalByStockShare(debouncedInputs) } : h;
           })(),
           feeComparisonData: computeFeeComparison(debouncedInputs, { historical: true }),
         };

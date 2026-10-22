@@ -37,6 +37,7 @@
     "recharts": "^3.9.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
     "@capacitor/cli": "^8.5.3",
     "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^7.0.1",

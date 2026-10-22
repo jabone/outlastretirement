@@ -14,6 +14,7 @@ import {
   runHistoricalStarts,
   findHistoricalSafeMax,
   computeFeeComparison,
+  historicalByStockShare,
 } from './calculator.js';
 import { guardrailsComparisonForDisplay } from './utils/guardrailsDisplay.js';
 
@@ -72,6 +73,10 @@ export async function runHeavyAnalyses({ requestId, inputs, useRealDollars }, { 
     // can supersede it.
     () => {
       if (out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, safeMax: findHistoricalSafeMax(inputs) };
+    },
+    // Changelog 452: the same starts at several stock shares (Premium table).
+    () => {
+      if (out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, byStockShare: historicalByStockShare(inputs) };
     },
     // Changelog 447: what fees cost -- the plan beside the same plan with
     // (or without) an advisor fee, through the historical starts too.

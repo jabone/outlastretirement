@@ -29,6 +29,27 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 452,
+    date: '2026-10-21',
+    title: 'Every historical start at 40% to 80% in stocks',
+    summary: 'The historical comparison now runs your plan through the same starts with 40%, 50%, 60%, 70% and 80% in stocks once retired, and shows how often each lasts and what it typically leaves. (Premium)',
+    items: [
+      "**What it shows.** Risk \u2192 Every retirement \u2192 the Premium comparison has a new table: your plan, with its own spending rule and Keep at Least, through the same starts at each stock share, held steady once retired. Each row says how many starts lasted, which start was hardest, and the typical amount left in today\u2019s dollars. Your own share is marked, and added if it is not one of the five.",
+      "**What it does not change.** Your plan keeps the mix you set. Free plans see the same count for their own mix, as before.",
+    ],
+  },
+  {
+    id: 451,
+    date: '2026-10-21',
+    title: 'Two more spending rules compared: percent of portfolio, and the 95% rule',
+    summary: 'The historical comparison adds spending a fixed percent of the portfolio every year, and Bob Clyatt\u2019s 95% rule, beside fixed spending and the guardrails. (Premium)',
+    items: [
+      "**Percent of portfolio.** Spend the same share of what is left every retired year, starting from your plan\u2019s own first-year spending. It never runs out on paper, and the comparison shows how far spending falls in a bad stretch.",
+      "**The 95% rule.** Bob Clyatt\u2019s rule from Work Less, Live More: that same share, or 95% of last year\u2019s spending, whichever is more, so one bad year cuts spending by at most 5%.",
+      "**Where.** Both appear in the Premium comparison under Every retirement, priced against fixed spending in the same start like the guardrails: how often each lasts, its deepest cut, and what it spends over a lifetime. They are not settings for your plan.",
+    ],
+  },
+  {
     id: 450,
     date: '2026-10-20',
     title: 'Exports explain themselves, the Monte Carlo range downloads, and any historical start opens year by year',

@@ -213,9 +213,10 @@ export const PREMIUM_AREAS = [
         blurb:
           'The free tab says how many real retirements since 1928 your plan lasted in. This compares every way of spending through them.',
         points: [
-          'Fixed spending and each guardrail side by side over the same starts: how often each lasts, its deepest cut, and what it spends over a lifetime',
+          'Fixed spending, each guardrail, percent of portfolio and the 95% rule side by side over the same starts: how often each lasts, its deepest cut, and what it spends over a lifetime',
           'The most you could spend and still last in 95% or 90% of starts, beside the free figure for every start',
-          'Every start year, one row each, with whether the money lasts and how deep any cut went',
+          'The same starts with 40% to 80% in stocks once retired: how often each lasts and what it typically leaves',
+          'Every start year, one row each, with whether the money lasts and how deep any cut went, opened in Year by Year or saved as a spreadsheet',
         ],
       },
     ],

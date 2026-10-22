@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-20T20:33:16.226Z",
+  "timestamp": "2026-10-22T00:05:47.508Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -475,6 +475,7 @@
     "advisorFeePct": 0,
     "portfolioFloorReal": 0,
     "historyFromYear": 1928,
+    "spendingRule": "none",
     "glideAllocationEnabled": false,
     "glideAllocationRate": 1,
     "glideAllocationFloor": 30,
@@ -956,6 +957,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -966,10 +968,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.268Z",
+      "savedAt": "2026-10-22T00:05:47.536Z",
       "tag": "demo"
     },
     {
@@ -1447,6 +1449,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -1457,10 +1460,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.275Z",
+      "savedAt": "2026-10-22T00:05:47.539Z",
       "tag": "demo"
     },
     {
@@ -1938,6 +1941,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -1948,10 +1952,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.310Z",
+      "savedAt": "2026-10-22T00:05:47.544Z",
       "tag": "demo"
     },
     {
@@ -2429,6 +2433,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -2439,10 +2444,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.332Z",
+      "savedAt": "2026-10-22T00:05:47.554Z",
       "tag": "demo"
     },
     {
@@ -2920,6 +2925,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -2930,10 +2936,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.363Z",
+      "savedAt": "2026-10-22T00:05:47.561Z",
       "tag": "demo"
     },
     {
@@ -3411,6 +3417,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -3421,10 +3428,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.372Z",
+      "savedAt": "2026-10-22T00:05:47.565Z",
       "tag": "demo"
     },
     {
@@ -3902,6 +3909,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -3912,10 +3920,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.380Z",
+      "savedAt": "2026-10-22T00:05:47.573Z",
       "tag": "demo"
     },
     {
@@ -4393,6 +4401,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -4403,10 +4412,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.391Z",
+      "savedAt": "2026-10-22T00:05:47.592Z",
       "tag": "demo"
     },
     {
@@ -4884,6 +4893,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -4894,10 +4904,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.409Z",
+      "savedAt": "2026-10-22T00:05:47.600Z",
       "tag": "demo"
     },
     {
@@ -5375,6 +5385,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -5385,10 +5396,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.425Z",
+      "savedAt": "2026-10-22T00:05:47.614Z",
       "tag": "demo"
     },
     {
@@ -5866,6 +5877,7 @@
         "advisorFeePct": 0,
         "portfolioFloorReal": 0,
         "historyFromYear": 1928,
+        "spendingRule": "none",
         "glideAllocationEnabled": false,
         "glideAllocationRate": 1,
         "glideAllocationFloor": 30,
@@ -5876,10 +5888,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 450
+        "oddsVersion": 452
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-20T20:33:16.450Z",
+      "savedAt": "2026-10-22T00:05:47.628Z",
       "tag": "demo"
     }
   ],
