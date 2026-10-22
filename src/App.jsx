@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef, useId } from 'react';
 import { flushSync } from 'react-dom';
+import { PLAN_ANSWERS_KEY, ANSWER_FIELDS, readPlanAnswers, sanitizeAnswers, sanitizeAnswersForEditing, answersSummary } from './utils/planAnswers';
 import { readinessSummary } from './utils/readinessSummary';
 import { planHorizon } from './utils/retirementReadiness';
 import { monteCarloRange } from './utils/monteCarloRange';
@@ -51,7 +52,7 @@ import { FOCUS_EVENT as FIND_SETTING_FOCUS } from './components/findSettingEvent
 import { compactDollars } from './utils/compactDollars';
 import PrintPacketLoader from './components/PrintPacketLoader';
 import PrintFrame from './components/PrintFrame';
-import { printInputsFor, heirLabel } from './utils/printNames';
+import { printInputsFor, heirLabel, maskNamesInText } from './utils/printNames';
 import BrandMark from './components/BrandMark';
 import MigrationNotice from './components/MigrationNotice';
 import { BRAND_NAME, BRAND_DOMAIN, COPYRIGHT_NOTICE, PRIVACY_PROMISE, PRIVACY_URL, TERMS_URL, ACCESSIBILITY_URL } from './config/branding';
@@ -973,6 +974,16 @@ export default function App() {
     }
   });
 
+  // The current plan's "three answers" (changelog 453). Their own key, not
+  // part of `inputs`: typing one never re-runs a projection.
+  const [planAnswers, setPlanAnswersState] = useState(() => readPlanAnswers());
+  const setPlanAnswers = useCallback((next) => {
+    setPlanAnswersState((prev) => sanitizeAnswersForEditing(typeof next === 'function' ? next(prev) : next));
+  }, []);
+  useEffect(() => {
+    safeSetItem(PLAN_ANSWERS_KEY, JSON.stringify(sanitizeAnswers(planAnswers)));
+  }, [planAnswers]);
+
   useEffect(() => {
     safeSetItem('retire_plan_scenarios', JSON.stringify({
       schemaVersion: INPUTS_SCHEMA_VERSION,
@@ -1815,12 +1826,15 @@ export default function App() {
       savedAt: new Date().toISOString(),
       tag: options.tag || null
     };
+    // The plan's three answers travel with it; blank ones are left off.
+    const answers = sanitizeAnswers(planAnswers);
+    if (Object.keys(answers).length > 0) newScenario.answers = answers;
 
     setScenarios(prev => {
       const filtered = prev.filter(sc => sc.name.toLowerCase() !== name.toLowerCase());
       return [...filtered, newScenario];
     });
-  }, [inputs]);
+  }, [inputs, planAnswers]);
 
   // Accept Disclaimer
   const acceptDisclaimer = () => {
@@ -1995,7 +2009,7 @@ export default function App() {
     roundFarDollars, setRoundFarDollars,
     projection, formatCurrency, getRMDAge,
     maximizedComponent, setMaximizedComponent,
-    scenarios, setScenarios,
+    scenarios, setScenarios, planAnswers, setPlanAnswers,
     handleRunMonteCarlo, mcLoading, monteCarlo: monteCarloShown, mcRange, verdict,
     riskSubTab, setRiskSubTab, settingsSubTab, setSettingsSubTab, strategySubTab, setStrategySubTab,
     pricingSource, setPricingSource, pricingScriptOutOfDate, scriptAckVersion, acknowledgeScriptUpdate,
@@ -2023,7 +2037,7 @@ export default function App() {
     roundFarDollars, setRoundFarDollars,
     projection, formatCurrency,
     maximizedComponent, setMaximizedComponent,
-    scenarios, setScenarios,
+    scenarios, setScenarios, planAnswers, setPlanAnswers,
     handleRunMonteCarlo, mcLoading, monteCarloShown, mcRange, verdict,
     riskSubTab, setRiskSubTab, settingsSubTab, setSettingsSubTab, strategySubTab, setStrategySubTab,
     pricingSource, setPricingSource, pricingScriptOutOfDate, scriptAckVersion, acknowledgeScriptUpdate,
@@ -3649,6 +3663,51 @@ export default function App() {
             })()}
           </div>
         )}
+
+        {/* The household's three answers (changelog 453): the current plan's,
+            then any saved scenario's. Nothing when none are written. Names
+            are masked like everywhere else when "Leave out names" is on. */}
+        {(() => {
+          const mask = (t) => maskNamesInText(t, inputs, printHideNames);
+          const own = sanitizeAnswers(planAnswers);
+          const ownFields = ANSWER_FIELDS.filter((f) => own[f.key]);
+          const others = scenarios.filter((sc) => answersSummary(sc.answers));
+          if (ownFields.length === 0 && others.length === 0) return null;
+          return (
+            <div className="print-section" data-testid="print-answers">
+              <h3>Your three answers</h3>
+              {ownFields.length > 0 && (
+                <table className="print-table">
+                  <tbody>
+                    {ownFields.map((f, idx) => (
+                      <tr key={f.key} className={idx % 2 === 0 ? 'print-row-even' : ''}>
+                        <td style={{ width: '38%', fontWeight: '600' }}>{f.question}</td>
+                        <td>{mask(own[f.key])}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {others.length > 0 && (
+                <>
+                  <div className="print-subhead" style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '10px 0 4px', color: '#333' }}>
+                    Saved scenarios
+                  </div>
+                  <table className="print-table">
+                    <tbody>
+                      {others.map((sc, idx) => (
+                        <tr key={sc.id} className={idx % 2 === 0 ? 'print-row-even' : ''}>
+                          <td style={{ width: '38%', fontWeight: '600' }}>{mask(sc.name)}</td>
+                          <td>{mask(answersSummary(sc.answers))}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Action Plan: shares its content with the always-visible
             ActionPlanCard on the Dashboard (via buildActionPlan) so the

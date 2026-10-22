@@ -38,6 +38,7 @@ function buildDemoScenarioDrafts(demoInputs, defs = DEMO_SCENARIO_DEFS) {
       planYearAtSave: inputs.planYear,
       savedAt: new Date().toISOString(),
       tag: 'demo',
+      ...(def.answers ? { answers: def.answers } : {}),
     };
   });
 }

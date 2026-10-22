@@ -17,6 +17,81 @@ import { diffPlans, diffCells, samePlan } from '../../utils/planDiff';
 import ChartFigure from '../ChartFigure';
 import { scenarioSummary } from '../../utils/chartSummaries';
 import { scenarioVerdict, verdictBand, verdictPct, verdictColor } from '../../utils/planVerdict';
+import { ANSWER_FIELDS, ANSWER_MAX_LENGTH, sanitizeAnswers, answersSummary, hasAnswers } from '../../utils/planAnswers';
+import { CollapsibleHeader } from '../plan/sectionShared';
+import { useFoldState } from '../plan/foldState';
+
+// A saved scenario's three answers, question by question; nothing when all
+// three are blank.
+function ScenarioAnswers({ answers }) {
+  const a = sanitizeAnswers(answers);
+  const shown = ANSWER_FIELDS.filter((f) => a[f.key]);
+  if (shown.length === 0) return null;
+  return (
+    <dl data-testid="scenario-answers" style={{ margin: '6px 0 0', fontSize: 'var(--fs-xs)', fontWeight: 400, color: 'var(--text-secondary)', maxWidth: '420px' }}>
+      {shown.map((f) => (
+        <div key={f.key} style={{ marginTop: '2px' }}>
+          <dt style={{ display: 'inline', color: 'var(--text-muted)' }}>{f.question} </dt>
+          <dd style={{ display: 'inline', margin: 0 }}>{a[f.key]}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+// The current plan's three answers, edited in place (changelog 453).
+// Collapsible like the Plan Settings sections: open by default once there
+// are answers, and an open or close by hand is remembered in this browser.
+// Closed, it still shows the answers as one line.
+function PlanAnswersEditor({ planAnswers, setPlanAnswers }) {
+  const baseId = React.useId();
+  const [open, toggle] = useFoldState('scenarios-three-answers', () => hasAnswers(planAnswers));
+  const summary = answersSummary(planAnswers);
+  return (
+    <div className="glass-panel" style={{ padding: '20px' }} data-testid="plan-answers">
+      <CollapsibleHeader title="Your three answers" isOpen={open} onToggle={toggle} style={{ margin: 0, borderBottom: 'none', paddingBottom: 0 }} />
+      {!open && (
+        <p data-testid="plan-answers-summary" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: '6px 0 0' }}>
+          {summary || 'Optional: what this plan should maximize, what you won’t risk and what you would give up.'}
+        </p>
+      )}
+      {open && (<>
+      <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: '10px 0 14px' }}>
+        A few words on what this plan is for, so you can tell later why you chose it. Saving a scenario
+        keeps a copy of them with it. They stay in this browser and in your backup, and are never sent anywhere.
+      </p>
+      <div style={{ display: 'grid', gap: '12px' }}>
+        {ANSWER_FIELDS.map((f) => {
+          const id = `${baseId}-${f.key}`;
+          const value = planAnswers?.[f.key] || '';
+          return (
+            <div key={f.key}>
+              <label htmlFor={id} style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 500, marginBottom: '4px' }}>{f.question}</label>
+              <input
+                id={id}
+                type="text"
+                className="form-input"
+                maxLength={ANSWER_MAX_LENGTH}
+                value={value}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setPlanAnswers((prev) => ({ ...prev, [f.key]: next }));
+                }}
+                style={{ width: '100%' }}
+              />
+              {value.length > ANSWER_MAX_LENGTH - 20 && (
+                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  {ANSWER_MAX_LENGTH - value.length} characters left
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      </>)}
+    </div>
+  );
+}
 
 // Monte Carlo cell color on the same whole-percent bands as the verdict.
 function successColor(p) {
@@ -38,7 +113,7 @@ const ScenariosTab = () => {
   const {
     inputs, setInputs, formatCurrency, projection, scenarios, setScenarios, showAlert, showConfirm,
     scenarioChartData, scenarioProjections, handleSaveScenario: contextSaveScenario, isSavingScenario,
-    mcRange, setActiveTab,
+    mcRange, setActiveTab, planAnswers, setPlanAnswers,
   } = useSimulation();
 
 
@@ -115,6 +190,7 @@ const ScenariosTab = () => {
       id: '__current__',
       name: savedAs ? `Current Plan (saved as ${savedAs.name})` : 'Current Plan (Unsaved)',
       isCurrent: true,
+      answers: planAnswers,
       retireAge1: inputs.retireAge1,
       retireAge2: inputs.retireAge2,
       spouse2Enabled: inputs.spouse2Enabled,
@@ -136,6 +212,7 @@ const ScenariosTab = () => {
         tag: sc.tag,
         isCurrent: false,
         isCurrentSaved: !!savedAs && savedAs.id === sc.id,
+        answers: sc.answers,
         retireAge1: sc.inputs.retireAge1,
         retireAge2: sc.inputs.retireAge2,
         spouse2Enabled: sc.inputs.spouse2Enabled,
@@ -286,6 +363,8 @@ const ScenariosTab = () => {
               </div>
             </div>
 
+            {setPlanAnswers && <PlanAnswersEditor planAnswers={planAnswers} setPlanAnswers={setPlanAnswers} />}
+
             {/* One-lever compare (CFE-COMPARE-01, changelog 174).
                 Placed ABOVE the saved-scenario comparison on purpose: it
                 needs nothing saved, so it is the first thing that works on
@@ -359,6 +438,7 @@ const ScenariosTab = () => {
                                   Plan year {sc.planYearAtSave} at save
                                 </div>
                               )}
+                              <ScenarioAnswers answers={sc.answers} />
                             </td>
                             <td style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>
                               Age {sc.inputs.retireAge1} {sc.inputs.spouse2Enabled ? `/ ${sc.inputs.retireAge2}` : ''}
@@ -378,6 +458,8 @@ const ScenariosTab = () => {
                                   // Merge with DEFAULT_INPUTS in case this scenario was saved under an
                                   // older schema and is missing fields added since (see INPUTS_SCHEMA_VERSION).
                                   setInputs({ ...DEFAULT_INPUTS, ...sc.inputs });
+                                  // The answers describe the plan, so they come with it.
+                                  if (setPlanAnswers) setPlanAnswers(sanitizeAnswers(sc.answers));
                                   showAlert(`Plan "${sc.name}" successfully loaded into active inputs!`, 'Plan Loaded');
                                 }}
                               >
@@ -439,8 +521,15 @@ const ScenariosTab = () => {
                           <tr style={{ borderBottom: '2px solid var(--card-border)', textAlign: 'left' }}>
                             <th style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>Metric</th>
                             {comparisonItems.map(item => (
-                              <th key={item.id} style={{ padding: '12px 10px', color: (item.isCurrent || item.isCurrentSaved) ? 'var(--accent-text)' : 'var(--text-primary)', fontWeight: '600' }}>
+                              <th key={item.id} style={{ padding: '12px 10px', color: (item.isCurrent || item.isCurrentSaved) ? 'var(--accent-text)' : 'var(--text-primary)', fontWeight: '600', verticalAlign: 'top' }}>
                                 {item.name}
+                                {answersSummary(item.answers) && (
+                                  // One line, cut short with an ellipsis; the full answers are
+                                  // in the saved list above and in the hover text.
+                                  <div data-testid="compare-answers" title={answersSummary(item.answers)} style={{ fontSize: 'var(--fs-xs)', fontWeight: 400, color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {answersSummary(item.answers)}
+                                  </div>
+                                )}
                               </th>
                             ))}
                           </tr>

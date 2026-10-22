@@ -509,5 +509,7 @@ export function buildDemoBackupPayload() {
     portfolioHoldings: buildDemoHoldings(),
     liquidations: buildDemoLiquidations(),
     estateChecklist: buildDemoEstateChecklist(),
+    // Blank, so a visitor's own three answers never show on the Carters.
+    planAnswers: {},
   };
 }

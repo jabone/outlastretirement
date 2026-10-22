@@ -41,6 +41,7 @@ import { encryptBackupPayload, isEncryptedBackup } from './backupCrypto';
 import { LIFE_PLAN_STORAGE_KEY, readLifePlan } from '../config/lifePlan';
 import { REVIEW_KEY } from './annualReview';
 import { RECONCILIATION_KEY, sanitizeReconciliations } from './reconciliationLog';
+import { PLAN_ANSWERS_KEY, sanitizeAnswers, hasAnswers } from './planAnswers';
 
 // Every localStorage key this backup covers, and why each one does or does
 // not belong in "everything necessary to get back to a normal state":
@@ -135,6 +136,9 @@ const KEYS = {
   // The non-financial "what will you do" page. Same reasoning as the
   // estate checklist: real thinking the user did, not a plan assumption.
   lifePlan: LIFE_PLAN_STORAGE_KEY,
+  // The current plan's "three answers" (planAnswers.js, changelog 453):
+  // words the household wrote, so they travel like the Life Plan.
+  planAnswers: PLAN_ANSWERS_KEY,
   // The annual review's per-plan-year "done" ticks (annualReview.js).
   annualReview: REVIEW_KEY,
   // Which accounts the person marked reconciled, for which periods
@@ -205,6 +209,7 @@ export function buildFullBackupPayload(options = {}) {
     interviewProgress: readJSON(KEYS.interviewProgress, null),
     estateChecklist: readJSON(KEYS.estateChecklist, null),
     lifePlan: readJSON(KEYS.lifePlan, null),
+    planAnswers: readJSON(KEYS.planAnswers, null),
     annualReview: readJSON(KEYS.annualReview, null),
     reconciliations: readJSON(KEYS.reconciliations, null),
     pricingSource: loadPricingSource(),
@@ -243,6 +248,7 @@ export function summarizeBackupPayload(payload) {
   if (checklistTicks > 0) parts.push(`${checklistTicks} estate checklist item${checklistTicks === 1 ? '' : 's'}`);
   const lifePlanAnswers = Object.values(sanitizeLifePlan(payload.lifePlan)).filter((e) => e.text).length;
   if (lifePlanAnswers > 0) parts.push(`${lifePlanAnswers} Life Plan answer${lifePlanAnswers === 1 ? '' : 's'}`);
+  if (hasAnswers(payload.planAnswers)) parts.push('your three answers');
   if (Object.keys(sanitizeAnnualReview(payload.annualReview)).length > 0) parts.push('your annual review record');
   if (Object.keys(sanitizeReconciliations(payload.reconciliations)).length > 0) parts.push('your statement reconciliation record');
   // Always named explicitly, never folded silently into "your active plan"
@@ -508,6 +514,10 @@ function coerceScenario(sc) {
   if (sc.tag !== undefined) { if (typeof sc.tag === 'string') out.tag = sc.tag; else delete out.tag; }
   if (sc.planYearAtSave !== undefined) { const y = finiteOr(sc.planYearAtSave, null); if (y === null) delete out.planYearAtSave; else out.planYearAtSave = y; }
   if (sc.savedAt !== undefined && typeof sc.savedAt !== 'string') delete out.savedAt;
+  if (sc.answers !== undefined) {
+    const answers = sanitizeAnswers(sc.answers);
+    if (Object.keys(answers).length > 0) out.answers = answers; else delete out.answers;
+  }
   return out;
 }
 
@@ -665,6 +675,13 @@ export function stageFullBackup(parsed, options = {}) {
     if (isPlainObject(parsed.lifePlan)) {
       writes.push([KEYS.lifePlan, JSON.stringify(sanitizeLifePlan(parsed.lifePlan))]);
       restored.push('your Life Plan');
+    }
+    // A backup from before changelog 453 has no planAnswers: this browser's
+    // answers are left as they are, like every other optional section.
+    if (isPlainObject(parsed.planAnswers)) {
+      const answers = sanitizeAnswers(parsed.planAnswers);
+      writes.push([KEYS.planAnswers, JSON.stringify(answers)]);
+      if (Object.keys(answers).length > 0) restored.push('your three answers');
     }
     if (isPlainObject(parsed.annualReview)) {
       writes.push([KEYS.annualReview, JSON.stringify(sanitizeAnnualReview(parsed.annualReview))]);

@@ -68,7 +68,7 @@ describe('storage key inventory', () => {
 // itself would have written. Restoring it must give back the same bytes.
 function seedEveryPlanKey() {
   const holding = sanitizeImportedHoldings([createHolding({ symbol: 'VTI', shares: 10, currentPrice: 250 })])[0];
-  const scenarios = migrateScenarios([{ id: 's1', name: 'Retire at 60', inputs: { ...DEFAULT_INPUTS, retireAge1: 60 }, metrics: { endingBalance: 1, isSuccessful: true, peakPortfolioWorth: 2, successProbability: 81 }, tag: 'mine', planYearAtSave: 2026, savedAt: '2026-09-01T00:00:00.000Z' }]);
+  const scenarios = migrateScenarios([{ id: 's1', name: 'Retire at 60', inputs: { ...DEFAULT_INPUTS, retireAge1: 60 }, metrics: { endingBalance: 1, isSuccessful: true, peakPortfolioWorth: 2, successProbability: 81 }, tag: 'mine', planYearAtSave: 2026, savedAt: '2026-09-01T00:00:00.000Z', answers: { protect: 'Working past 62' } }]);
   const values = {
     retire_plan_inputs: { schemaVersion: INPUTS_SCHEMA_VERSION, inputs: { ...DEFAULT_INPUTS, lifestyleExpense: 61234 } },
     retire_plan_scenarios: { schemaVersion: INPUTS_SCHEMA_VERSION, scenarios: scenarios },
@@ -76,6 +76,7 @@ function seedEveryPlanKey() {
     cfe_premium_liquidations_v1: [{ id: 'l1', symbol: 'VTI', date: '2026-01-02', shares: 1, proceeds: 250 }],
     retire_plan_interview_progress: { current: 'income', visited: ['household', 'income'] },
     cfe_estate_checklist_v1: { will: { done: true, completedAt: '2026-03-01' } },
+    retire_plan_answers_v1: { maximize: 'Time with the grandkids', protect: 'The house', giveUp: 'A second car' },
     cfe_life_plan_v1: { ordinaryTuesday: { text: 'Walk the dog, then the workshop.', updatedAt: '2026-09-01', history: [{ text: 'Sleep in.', date: '2026-08-01' }] } },
     retire_plan_annual_review_v1: { 2026: { done: { balances: '2026-01-10T00:00:00.000Z' }, completedAt: null } },
     cfe_reconciliations_v1: { '2026-Q3': { Brokerage: { at: '2026-10-05T15:00:00.000Z' } } },

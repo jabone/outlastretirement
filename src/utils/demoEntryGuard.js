@@ -18,7 +18,8 @@ function readJson(storage, key) {
 }
 
 // True when this browser holds anything the user made: a plan that differs
-// from the defaults, a saved scenario, a holding or a Life Plan answer.
+// from the defaults, a saved scenario, a holding, a Life Plan answer or one of the plan's
+// three answers.
 // A first-time visitor (nothing stored) and someone who opened the app but
 // changed nothing (the defaults, as saved on first load) both get false.
 export function hasOwnPlanData(storage = globalThis.localStorage) {
@@ -30,6 +31,8 @@ export function hasOwnPlanData(storage = globalThis.localStorage) {
   if (Array.isArray(holdings) && holdings.length > 0) return true;
   const lifePlan = readJson(storage, 'cfe_life_plan_v1');
   if (lifePlan && typeof lifePlan === 'object' && Object.keys(lifePlan).length > 0) return true;
+  const answers = readJson(storage, 'retire_plan_answers_v1');
+  if (answers && typeof answers === 'object' && Object.values(answers).some((v) => typeof v === 'string' && v.trim())) return true;
   const stored = readJson(storage, 'retire_plan_inputs');
   if (!stored || typeof stored !== 'object') return false;
   let inputs;

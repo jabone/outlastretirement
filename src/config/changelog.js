@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 453,
+    date: '2026-10-22',
+    title: 'Your three answers: what a plan is for, saved with it',
+    summary: 'Write what your plan should maximize, what you will not risk and what you would give up. Saved scenarios keep a copy, the comparison shows them, and the printed report includes them.',
+    items: [
+      "**Where.** Scenarios has a new Your three answers card for the plan you are working on: What do you want to maximize? What are you unwilling to risk? What would you give up? Each is optional and up to 140 characters.",
+      "**With your scenarios.** Saving a scenario keeps a copy of the answers, the saved list shows them under its name, and Side-by-Side Comparison puts a one-line summary under each plan, including your current one. Loading a scenario brings its answers back with it.",
+      "**Printed and backed up.** The printed report has a Your three answers section, with Leave out names masking names inside them. Backup Everything carries them; an older backup without them restores as before.",
+      "**Private.** They stay in this browser and your backups and are never sent anywhere. The privacy policy now names them.",
+      "**In the Parkers demo.** Two new scenarios, Ray\u2019s priorities and Angie\u2019s, show two different plans with about the same odds, each with its answers.",
+    ],
+  },
+  {
     id: 452,
     date: '2026-10-21',
     title: 'Every historical start at 40% to 80% in stocks',

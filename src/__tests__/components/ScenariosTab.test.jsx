@@ -225,4 +225,24 @@ describe('ScenariosTab — Scenario Profile Manager', () => {
     expect(screen.queryByText('Lifestyle Exp')).not.toBeInTheDocument();
     expect(screen.queryByText('Ending Portfolio')).not.toBeInTheDocument();
   });
+
+  it('the three answers fold: closed and showing the summary, open to edit', async () => {
+    localStorage.removeItem('retire_plan_folds_v1');
+    const setPlanAnswers = vi.fn();
+    renderWithSimulation(<ScenariosTab />, { scenarios: [], planAnswers: { protect: 'The house' }, setPlanAnswers });
+    const header = screen.getByRole('button', { name: /Your three answers/ });
+    // Answers exist, so it opens by default.
+    expect(header).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByLabelText('What are you unwilling to risk?')).toHaveValue('The house');
+    await userEvent.click(header);
+    expect(header).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByLabelText('What are you unwilling to risk?')).not.toBeInTheDocument();
+    expect(screen.getByTestId('plan-answers-summary').textContent).toBe('Won’t risk: The house');
+  });
+
+  it('with no answers yet the fold starts closed', () => {
+    localStorage.removeItem('retire_plan_folds_v1');
+    renderWithSimulation(<ScenariosTab />, { scenarios: [], planAnswers: {}, setPlanAnswers: vi.fn() });
+    expect(screen.getByRole('button', { name: /Your three answers/ })).toHaveAttribute('aria-expanded', 'false');
+  });
 });

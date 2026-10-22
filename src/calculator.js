@@ -44,6 +44,7 @@ import { JOINT_LIFE_TABLE_II, JOINT_LIFE_TABLE_II_SPOUSE_MIN_AGE } from './confi
 import { LIFE_TABLE_MAX_AGE } from './config/lifeTable';
 import { finalBalanceFactor, yearEndFactor } from './utils/displayDollars';
 import { STATE_TAX_RULES } from './config/stateTaxRules';
+import { sanitizeAnswers } from './utils/planAnswers';
 
 // Volatility the Monte Carlo derives from a stock/bond mix (16% stock /
 // 5% bond -- long-run US annual figures), used by the Dynamic Asset
@@ -416,6 +417,8 @@ export function migrateScenarios(persisted) {
       // would.
       inputs: migratedInputs,
       metrics,
+      // "Your three answers" (changelog 453): cleaned, and dropped when blank.
+      ...(sc.answers !== undefined ? { answers: sanitizeAnswers(sc.answers) } : {}),
     };
   });
 }

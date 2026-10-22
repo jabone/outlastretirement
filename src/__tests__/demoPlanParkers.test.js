@@ -64,6 +64,38 @@ describe('the Parkers: the story the lessons tell', () => {
     expect(runsOut(scenario('Demo: Stop working at 62 instead'))).toMatchObject({ lasts: false, rayAge: 67 });
   });
 
+  it("Ray's and Angie's priorities both last, at about the same odds, by different roads", () => {
+    const ray = scenario("Demo: Ray's priorities: stop at 65, spend less");
+    const angie = scenario("Demo: Angie's priorities: work two more years, keep spending");
+    expect(runsOut(ray).lasts).toBe(true);
+    expect(runsOut(angie).lasts).toBe(true);
+    const r = runMonteCarlo(ray).successProbability;
+    const a = runMonteCarlo(angie).successProbability;
+    expect(Math.abs(r - a)).toBeLessThan(5);
+    // Year for year the same until Ray stops working, then apart.
+    const pr = runProjection(ray).years;
+    const pa = runProjection(angie).years;
+    const stop = pr.findIndex((y) => y.isRetired);
+    expect(stop).toBeGreaterThan(5);
+    for (let n = 0; n < stop; n += 1) expect(pr[n].totalPortfolioEnding).toBeCloseTo(pa[n].totalPortfolioEnding, 2);
+    expect(pr[stop + 2].totalPortfolioEnding).not.toBeCloseTo(pa[stop + 2].totalPortfolioEnding, 0);
+  });
+
+  it('the two priorities scenarios carry their answers; the others carry none', () => {
+    const withAnswers = PARKERS_SCENARIO_DEFS.filter((d) => d.answers).map((d) => d.name);
+    expect(withAnswers).toEqual([
+      "Demo: Ray's priorities: stop at 65, spend less",
+      "Demo: Angie's priorities: work two more years, keep spending",
+    ]);
+    for (const d of PARKERS_SCENARIO_DEFS.filter((x) => x.answers)) {
+      expect(Object.keys(d.answers)).toEqual(['maximize', 'protect', 'giveUp']);
+      for (const v of Object.values(d.answers)) expect(v.length).toBeLessThanOrEqual(140);
+    }
+    const payload = buildQuickDemoPayload('parkers');
+    expect(payload.planAnswers).toEqual({});
+    expect(payload.savedScenarios.filter((s) => s.answers).length).toBe(2);
+  });
+
   it('every scenario differs from the plan only by what its name says', () => {
     const allowed = new Set(['retireAge1', 'retireAge2', 'claimingAge1', 'claimingAge2', 'lifestyleExpense', 'preTaxContribution1']);
     for (const def of PARKERS_SCENARIO_DEFS) {
