@@ -24,11 +24,24 @@ export const LEARN_PARKERS_HREF = '/app/?demo=parkers';
 // The page then shows one plain link that opens YouTube in a new tab. It is
 // never embedded, so reading a lesson contacts no other site.
 //
-// The Start Here path, in order. A lesson without `slides` is announced on
-// the hub as coming soon and has no page yet.
+// A lesson is written out either as `slides` (pictures with the narration
+// beneath) or, until its slides and narration exist, as `text`: sections of
+// plain paragraphs, with an optional list. A lesson with neither is
+// announced on the hub as coming soon and has no page yet.
+//
+// `group` places it on the hub (LEARN_GROUPS, in order); the lessons run in
+// this list's order within and across groups.
+export const LEARN_GROUPS = [
+  { id: 'start', title: 'Start here' },
+  { id: 'basics', title: 'The basics', intro: 'Read them in order. Each one builds on the last.' },
+  { id: 'decisions', title: 'Big decisions', intro: 'For when you have more than one plan that works, and have to choose.' },
+];
+
 export const LEARN_LESSONS = [
   {
     slug: 'site-tour',
+    video: 'https://www.youtube.com/watch?v=oeWbBKSPU1s',
+    group: 'start',
     label: 'Site tour',
     title: 'A two-minute tour of OutlastRetirement',
     h1: 'A two-minute tour',
@@ -49,6 +62,8 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'will-my-money-last',
+    video: 'https://www.youtube.com/watch?v=yQ0UeDhok-A',
+    group: 'basics',
     label: 'Lesson 1',
     title: 'Will my money last?',
     description: 'How a retirement plan follows your savings year by year and arrives at one answer, shown with Ray and Angie Parker, a fictional couple nearing retirement.',
@@ -71,6 +86,8 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'who-pays-me-when-i-stop-working',
+    video: 'https://www.youtube.com/watch?v=5BgymcX7s2s',
+    group: 'basics',
     label: 'Lesson 2',
     title: 'Who pays me when I stop working?',
     description: 'The three places retirement money comes from, Social Security, your savings and everything else, and the yearly gap your savings have to fill.',
@@ -93,6 +110,8 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'what-will-retirement-cost-me',
+    video: 'https://www.youtube.com/watch?v=AbugIL7MEkU',
+    group: 'basics',
     label: 'Lesson 3',
     title: 'What will retirement cost me?',
     description: 'How to work out what you spend today without a budget, which costs stop and which grow in retirement, and why spending is the number you control most.',
@@ -114,6 +133,8 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'build-my-own-plan',
+    video: 'https://www.youtube.com/watch?v=tMNii4HGtLM',
+    group: 'basics',
     label: 'Lesson 4',
     title: 'Can I build my own plan in ten minutes?',
     description: 'What to have ready and how to get a first retirement answer with Quick Setup: six short steps and a handful of rough numbers.',
@@ -138,6 +159,8 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'how-do-i-read-my-answer',
+    video: 'https://www.youtube.com/watch?v=IK_pxQBcm7w',
+    group: 'basics',
     label: 'Lesson 5',
     title: 'How do I read my answer?',
     description: 'How to read a retirement plan’s answer three ways: the verdict in words, the chart of your savings, and the year the money runs out.',
@@ -159,6 +182,8 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'my-plan-runs-short',
+    video: 'https://www.youtube.com/watch?v=Rfddafcw5M8',
+    group: 'basics',
     label: 'Lesson 6',
     title: 'My plan runs short. Now what?',
     description: 'Three ordinary changes, working longer, spending less and saving more, and how many years each one buys for a plan that runs short.',
@@ -181,7 +206,33 @@ export const LEARN_LESSONS = [
       { title: 'Pull one lever in your own plan', alt: 'Three steps: open the Parkers’ Scenarios page and compare each one, open your own plan, and change one thing, such as retiring a year later or spending $100 less. Below, the link to Ray and Angie’s Scenarios page.', say: 'Your turn. Open the Scenarios page for Ray and Angie and look at each saved scenario next to their plan. Then open your own plan and pull one lever. Change your retirement age by one year, or your spending by a hundred dollars a month, and watch your answer move. That is the end of Start Here. You know what a plan is, where the money comes from, what it costs, how to build one, how to read it, and how to fix it. Next: the big decisions. This is education, not financial advice.' },
     ],
   },
+  {
+    slug: 'three-questions',
+    video: 'https://www.youtube.com/watch?v=VyhB2jxfQQw',
+    group: 'decisions',
+    label: 'Lesson 7',
+    eyebrow: 'Big decisions',
+    title: 'What do you want your retirement to do?',
+    description: 'When a retirement plan can go more than one way, three questions choose: what you want to maximize, what you will not risk, and what you would give up.',
+    summary: 'Three questions that choose between plans, and Ray’s and Angie’s different answers.',
+    minutes: 3,
+    tryHref: '/app/?demo=parkers&tab=scenarios',
+    tryLabel: 'Open Ray and Angie’s Scenarios',
+    tryNote: 'Ray’s plan and Angie’s plan are saved there with their answers under each name. Nothing you change there is saved, and it does not touch a plan of your own.',
+    // The deck is lesson7.html in the business repo's LEARN/decks; every
+    // figure is the app's for the two plan scenarios (demoPlanParkers.test.js).
+    slides: [
+      { title: 'What are you planning for?', alt: 'Title slide: “Will my money last?” leads by an arrow to “It depends on what you’re planning for.” The answer is not a formula; it starts with what matters most to you. With portraits of Ray, 54, and Angie, 52.', say: 'In Lesson 1 we asked one question: will my money last? By now you’ve seen that the answer depends on something only you can decide, which is what you’re actually planning for. As always: this is an educational walkthrough using a fictional family. It isn’t financial advice.' },
+      { title: 'What we’ve covered', alt: 'What we’ve covered in the first six lessons: will the money last (lessons 1 to 3: the answer, the gap and what retirement costs); build it and read it (lessons 4 and 5); and three levers (lesson 6: work longer, spend less, save more). Every lever moves something. So which ones should you pull?', say: 'Over the last six lessons, you asked whether the money lasts, found the gap, and saw what retirement costs. You built a plan of your own and learned to read its answer. And in lesson six, three levers fixed Ray and Angie’s plan: work longer, spend less, save more. Every lever moves something. So which ones should you pull?' },
+      { title: 'Three questions', alt: 'Three questions in three boxes: 1, maximize, what outcome am I trying to maximize, such as lifestyle, legacy or early retirement; 2, protect, what outcome am I unwilling to risk, such as running out of cash or large medical bills; 3, trade off, what am I willing to give up to protect it, such as working longer or trimming expenses.', say: 'It comes down to three questions. First, what outcome are you trying to maximize? Second, what outcome are you unwilling to risk? And third, what are you willing to give up to protect it? Your answers shape your plan more than any formula.' },
+      { title: 'Same household, different answers', alt: 'Ray’s and Angie’s answers side by side. Maximize: Ray, keep spending what we spend now; Angie, leave the house to the kids. Unwilling to risk: Ray, running out in our 80s; Angie, a care bill wiping us out. Willing to give up: Ray, work two more years; Angie, trim travel, not the house.', say: 'Ray and Angie answered separately. Ray wants to keep their lifestyle. Angie wants to leave the house to the kids. Ray’s biggest fear is running out in their eighties. Angie’s is a care bill that wipes them out. And what they’d give up is different too. Ray would work two more years. Angie would trim travel but keep the house.' },
+      { title: 'Two scenarios: Ray’s plan and Angie’s plan', alt: 'Two scenario cards. Ray’s plan: priority, the current lifestyle of $46,000 a year; biggest risk, running out of cash in his 80s; lever, both work to 67, with spending kept and $500 a month more saved. Angie’s plan: priority, protect the home and a legacy for the kids; biggest risk, long-term care wiping out savings; lever, trim travel by $750 a month, with Ray still stopping at 65 and $500 a month more saved.', say: 'So they saved each set of answers as its own scenario. Same savings, same house, two plans. In Ray’s plan, they both work two more years and keep spending what they spend now. In Angie’s, they stop on time and spend seven hundred fifty dollars a month less, mostly on travel. Both start saving five hundred dollars a month more, the lever from lesson six. For the first several years the two paths look the same, then they drift apart. That gives them time to decide.' },
+      { title: 'Neither plan is wrong', alt: 'Neither plan is wrong: the app doesn’t pick one for you. You decide what matters most and the app shows the cost and the reward. Tradeoffs, not formulas; your household’s values; private on your device.', say: 'Neither plan is wrong. OutlastRetirement shows you the tradeoff each answer makes. It doesn’t pick one for you. This is education, not financial advice.' },
+      { title: 'Your turn: three steps for your plan', alt: 'Three steps: open your plan or Ray and Angie’s demo; enter your three answers, what to maximize, what to protect and what to give up; save scenarios and compare two or three side by side. Below, the link to Ray and Angie’s Scenarios page.', say: 'Now it’s your turn. Open your plan. Enter your own three answers in the app. And save it as a scenario, or a few, to compare. Your plan data and calculations stay on your device. Your answers, your plan. This is education, not financial advice.' },
+    ],
+  },
 ];
 
 export const learnHref = (lesson) => `/learn/${lesson.slug}`;
-export const learnHasPage = (lesson) => Array.isArray(lesson.slides) && lesson.slides.length > 0;
+export const learnHasPage = (lesson) => (Array.isArray(lesson.slides) && lesson.slides.length > 0)
+  || (Array.isArray(lesson.text) && lesson.text.length > 0);

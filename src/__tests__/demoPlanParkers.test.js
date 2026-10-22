@@ -64,33 +64,33 @@ describe('the Parkers: the story the lessons tell', () => {
     expect(runsOut(scenario('Demo: Stop working at 62 instead'))).toMatchObject({ lasts: false, rayAge: 67 });
   });
 
-  it("Ray's and Angie's priorities both last, at about the same odds, by different roads", () => {
-    const ray = scenario("Demo: Ray's priorities: stop at 65, spend less");
-    const angie = scenario("Demo: Angie's priorities: work two more years, keep spending");
+  it("lesson 7: Ray's plan and Angie's plan both last, identical until Ray turns 65, then apart", () => {
+    const ray = scenario("Demo: Ray's plan: keep spending, work to 67");
+    const angie = scenario("Demo: Angie's plan: protect the house, trim travel");
+    expect(ray).toMatchObject({ retireAge1: 67, retireAge2: 65, lifestyleExpense: 46000, preTaxContribution1: 9700 });
+    expect(angie).toMatchObject({ retireAge1: 65, retireAge2: 63, lifestyleExpense: 37000, preTaxContribution1: 9700 });
     expect(runsOut(ray).lasts).toBe(true);
     expect(runsOut(angie).lasts).toBe(true);
-    const r = runMonteCarlo(ray).successProbability;
-    const a = runMonteCarlo(angie).successProbability;
-    expect(Math.abs(r - a)).toBeLessThan(5);
-    // Year for year the same until Ray stops working, then apart.
+    expect(verdictBand(runMonteCarlo(ray).successProbability)).toBe('risk');
+    expect(verdictBand(runMonteCarlo(angie).successProbability)).toBe('risk');
     const pr = runProjection(ray).years;
     const pa = runProjection(angie).years;
-    const stop = pr.findIndex((y) => y.isRetired);
+    const stop = pa.findIndex((y) => y.isRetired);
     expect(stop).toBeGreaterThan(5);
     for (let n = 0; n < stop; n += 1) expect(pr[n].totalPortfolioEnding).toBeCloseTo(pa[n].totalPortfolioEnding, 2);
     expect(pr[stop + 2].totalPortfolioEnding).not.toBeCloseTo(pa[stop + 2].totalPortfolioEnding, 0);
   });
 
-  it('the two priorities scenarios carry their answers; the others carry none', () => {
-    const withAnswers = PARKERS_SCENARIO_DEFS.filter((d) => d.answers).map((d) => d.name);
-    expect(withAnswers).toEqual([
-      "Demo: Ray's priorities: stop at 65, spend less",
-      "Demo: Angie's priorities: work two more years, keep spending",
+  it("the two lesson 7 plans carry the answers from the lesson's slides; the others carry none", () => {
+    const withAnswers = PARKERS_SCENARIO_DEFS.filter((d) => d.answers);
+    expect(withAnswers.map((d) => d.name)).toEqual([
+      "Demo: Ray's plan: keep spending, work to 67",
+      "Demo: Angie's plan: protect the house, trim travel",
     ]);
-    for (const d of PARKERS_SCENARIO_DEFS.filter((x) => x.answers)) {
-      expect(Object.keys(d.answers)).toEqual(['maximize', 'protect', 'giveUp']);
-      for (const v of Object.values(d.answers)) expect(v.length).toBeLessThanOrEqual(140);
-    }
+    expect(withAnswers.map((d) => d.answers)).toEqual([
+      { maximize: 'Keep spending what we spend now', protect: 'Running out in our 80s', giveUp: 'Work two more years' },
+      { maximize: 'Leave the house to the kids', protect: 'A care bill wiping us out', giveUp: 'Trim travel, not the house' },
+    ]);
     const payload = buildQuickDemoPayload('parkers');
     expect(payload.planAnswers).toEqual({});
     expect(payload.savedScenarios.filter((s) => s.answers).length).toBe(2);

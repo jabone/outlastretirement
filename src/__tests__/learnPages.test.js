@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { LEARN_LESSONS, LEARN_STANDING_LINE, LEARN_PARKERS_HREF, learnHasPage } from '../config/learnLessons';
+import { LEARN_LESSONS, LEARN_GROUPS, LEARN_STANDING_LINE, LEARN_PARKERS_HREF, learnHasPage } from '../config/learnLessons';
 
 const ROOT = join(__dirname, '..', '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -20,7 +20,7 @@ describe('Learn pages', () => {
       const html = read(`public/learn/${lesson.slug}.html`);
 
       it('writes every slide out as text, with its picture and a description of it', () => {
-        lesson.slides.forEach((s, k) => {
+        (lesson.slides || []).forEach((s, k) => {
           const n = String(k + 1).padStart(2, '0');
           expect(html, `slide ${n} narration`).toContain(`<p>${esc(s.say)}</p>`);
           expect(html, `slide ${n} alt`).toContain(`alt="${esc(s.alt)}"`);
@@ -31,6 +31,21 @@ describe('Learn pages', () => {
             expect(existsSync(join(ROOT, 'public/learn/img', lesson.slug, f)), `${lesson.slug}/${f}`).toBe(true);
           }
         });
+      });
+
+      it('a text-only lesson writes out every paragraph and list item, with no pictures', () => {
+        if (lesson.slides) return;
+        expect(lesson.text.length).toBeGreaterThan(0);
+        for (const t of lesson.text) {
+          expect(html).toContain(`<h2>${esc(t.title)}</h2>`);
+          for (const para of t.paras) expect(html).toContain(`<p>${esc(para)}</p>`);
+          for (const x of t.list || []) expect(html).toContain(`<li>${esc(x)}</li>`);
+        }
+        expect(html).not.toContain('/learn/img/');
+      });
+
+      it('is in the sitemap', () => {
+        expect(read('public/sitemap.xml')).toContain(`<loc>https://www.outlastretirement.com/learn/${lesson.slug}</loc>`);
       });
 
       it('says it is education, not advice, and links into the planner', () => {
@@ -60,6 +75,38 @@ describe('Learn pages', () => {
       else expect(hub).not.toContain(`href="/learn/${l.slug}"`);
       expect(hub).toContain(esc(l.title));
     }
+  });
+
+  it('the hub groups the lessons: the tour under Start here, then each group with its count', () => {
+    const hub = read('public/learn.html');
+    expect(LEARN_GROUPS.map((g) => g.id)).toEqual(['start', 'basics', 'decisions']);
+    for (const l of LEARN_LESSONS) expect(LEARN_GROUPS.map((g) => g.id), l.slug).toContain(l.group);
+    expect(LEARN_LESSONS.filter((l) => l.group === 'start').map((l) => l.slug)).toEqual(['site-tour']);
+    expect(hub).toContain('<h2>Start here</h2>');
+    expect(hub).toContain('<h2>The basics · 6 lessons</h2>');
+    expect(hub).toContain('<h2>Big decisions · 1 lesson</h2>');
+    // The groups appear in order, and no "X of N" anywhere.
+    expect(hub.indexOf('Start here</h2>')).toBeLessThan(hub.indexOf('The basics ·'));
+    expect(hub.indexOf('The basics ·')).toBeLessThan(hub.indexOf('Big decisions ·'));
+    expect(hub).not.toMatch(/\b\d+ of \d+\b/);
+    // Lessons 1-6 under the basics, lesson 7 under big decisions.
+    const basics = hub.slice(hub.indexOf('The basics ·'), hub.indexOf('Big decisions ·'));
+    for (let n = 1; n <= 6; n += 1) expect(basics).toContain(`Lesson ${n} ·`);
+    expect(hub.slice(hub.indexOf('Big decisions ·'))).toContain('Lesson 7 ·');
+  });
+
+  it('lesson 7 sits under Big decisions and links back to lesson 6, which points ahead to it', () => {
+    const l7 = read('public/learn/three-questions.html');
+    const title = 'What do you want your retirement to do? (Lesson 7) — OutlastRetirement';
+    expect(l7).toContain(`<title>${title}</title>`);
+    expect(l7).toContain(`property="og:title" content="${title}"`);
+    expect(l7).toContain(`name="twitter:title" content="${title}"`);
+    expect(l7).toContain('<p class="eyebrow">Learn · Big decisions</p>');
+    expect(l7).toContain('<p class="meta">Lesson 7 · about 3 minutes · 7 pictures</p>');
+    expect(l7).toContain('<a href="/learn/my-plan-runs-short">← Lesson 6</a>');
+    expect(read('public/learn/my-plan-runs-short.html')).toContain('<a href="/learn/three-questions">Next: What do you want your retirement to do? →</a>');
+    // Lesson 1 still names the tour it follows.
+    expect(read('public/learn/will-my-money-last.html')).toContain('← Site tour: A two-minute tour of OutlastRetirement</a>');
   });
 
   it('each address is rewritten to its page', () => {

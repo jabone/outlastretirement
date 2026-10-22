@@ -22,9 +22,9 @@
 //     five simulated markets ("Mostly on track").
 //   - Waiting longer for Social Security on top of that reaches "On track".
 //   - Stopping at 62 instead runs out when Ray is 67.
-//   - Ray's priorities (stop at 65, spend $750 a month less) and Angie's
-//     (work two more years, keep spending, Ray claims at 70) both last on
-//     average, with simulated odds within a few points of each other.
+//   - Lesson 7: Ray's plan (keep spending, both work two more years) and
+//     Angie's (stop on time, $750 a month less), each also saving $500 a
+//     month more, both last on average.
 //
 // The lessons load this household with /app/?demo=parkers (demoDeepLink.js).
 import { DEFAULT_INPUTS, INPUTS_SCHEMA_VERSION, TAX_YEAR } from '../calculator';
@@ -116,7 +116,7 @@ export function buildParkersInputs() {
 const WORK_TWO_MORE = { retireAge1: 67, retireAge2: 65, claimingAge1: 67, claimingAge2: 65 };
 const SPEND_LESS = 6000;  // $500 a month, in retirement
 const SAVE_MORE = 6000;   // $500 a month, into Ray's 401(k), from now
-const RAY_SPENDS_LESS = 9000; // $750 a month, in retirement
+const TRIM_TRAVEL = 9000; // $750 a month, in retirement (Angie's plan)
 
 export const PARKERS_SCENARIO_DEFS = [
   {
@@ -153,36 +153,37 @@ export const PARKERS_SCENARIO_DEFS = [
     name: 'Demo: Stop working at 62 instead',
     mutate: (i) => ({ ...i, retireAge1: 62, retireAge2: 60, claimingAge1: 62, claimingAge2: 62 }),
   },
-  // Two plans built from the Parkers' own priorities, for lesson 7 ("What
-  // do you want your retirement to do?") and the "Your three answers" notes
-  // (changelog 453). Each saves the extra $500 a month now, so the two match
-  // year for year until Ray stops; after that they take different roads to
-  // about the same odds.
+  // Two plans built from the Parkers' own answers to lesson 7's three
+  // questions (Learn, "What do you want your retirement to do?") and the
+  // "Your three answers" notes (changelogs 453-454). The answers and levers
+  // are the lesson's slides 4 and 5. Each also saves the extra $500 a month
+  // from lesson 6, so the two match year for year until Ray turns 65 and
+  // then drift apart; without it, neither lasts on average.
   {
-    // Ray stops on time and pays for it with spending.
-    name: "Demo: Ray's priorities: stop at 65, spend less",
+    // Ray: keep today's lifestyle, pay for it with two more years of work.
+    name: "Demo: Ray's plan: keep spending, work to 67",
     mutate: (i) => ({
-      ...i, claimingAge1: 67, claimingAge2: 65,
-      lifestyleExpense: i.lifestyleExpense - RAY_SPENDS_LESS,
+      ...i, ...WORK_TWO_MORE,
       preTaxContribution1: i.preTaxContribution1 + SAVE_MORE,
     }),
     answers: {
-      maximize: 'Time together while we are both healthy enough to enjoy it',
-      protect: 'Working past 65. The warehouse is hard on my back.',
-      giveUp: 'About $750 a month of spending, and two years living on savings before Social Security',
+      maximize: 'Keep spending what we spend now',
+      protect: 'Running out in our 80s',
+      giveUp: 'Work two more years',
     },
   },
   {
-    // Angie keeps the spending and buys a bigger survivor check with work.
-    name: "Demo: Angie's priorities: work two more years, keep spending",
+    // Angie: protect the house, pay for it with less travel.
+    name: "Demo: Angie's plan: protect the house, trim travel",
     mutate: (i) => ({
-      ...i, ...WORK_TWO_MORE, claimingAge1: 70, claimingAge2: 67,
+      ...i,
+      lifestyleExpense: i.lifestyleExpense - TRIM_TRAVEL,
       preTaxContribution1: i.preTaxContribution1 + SAVE_MORE,
     }),
     answers: {
-      maximize: 'The life we planned: same house, same trips to see the grandkids',
-      protect: 'Too small a Social Security check if I outlive Ray',
-      giveUp: 'Two more years of work for both of us',
+      maximize: 'Leave the house to the kids',
+      protect: 'A care bill wiping us out',
+      giveUp: 'Trim travel, not the house',
     },
   },
 ];
@@ -199,7 +200,7 @@ export function buildParkersBackupPayload() {
     liquidations: [],
     estateChecklist: {},
     // The current plan's three answers start blank (a visitor's own never
-    // show through); the two "priorities" scenarios carry theirs.
+    // show through); the two lesson 7 plan scenarios carry theirs.
     planAnswers: {},
   };
 }

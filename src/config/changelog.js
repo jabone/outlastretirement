@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 454,
+    date: '2026-10-22',
+    title: 'Learn: lessons grouped, lesson 7 on choosing between plans, and a video for every lesson',
+    summary: 'The Learn page groups its lessons as The basics and Big decisions, lesson 7 shows how three questions choose a plan, and every lesson links to its video.',
+    items: [
+      "**Grouped.** The site tour stays at the top under Start here. Lessons 1 to 6 sit under The basics, and the new lesson 7 under Big decisions. Every address stays the same.",
+      "**Lesson 7: What do you want your retirement to do?** Ray and Angie answer three questions separately, what to maximize, what not to risk and what to give up, and each answer becomes a plan. Seven pictures with the narration written out, and lesson 6 now points ahead to it.",
+      "**In the Parkers demo.** The two plans added earlier today now follow the lesson: Ray\u2019s plan keeps spending and works to 67, and Angie\u2019s stops on time and trims travel. Both save $500 a month more, last on average, and carry their answers.",
+      "**Videos.** Every lesson and the site tour now link to their narrated video. The link opens YouTube in a new tab; nothing is embedded, so reading a lesson still contacts no other site.",
+    ],
+  },
+  {
     id: 453,
     date: '2026-10-22',
     title: 'Your three answers: what a plan is for, saved with it',

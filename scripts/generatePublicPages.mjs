@@ -58,7 +58,7 @@ const esc = (s) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-const { LEARN_LESSONS, LEARN_STANDING_LINE, LEARN_PARKERS_HREF, learnHref, learnHasPage } = await load('src/config/learnLessons.js');
+const { LEARN_LESSONS, LEARN_GROUPS, LEARN_STANDING_LINE, LEARN_PARKERS_HREF, learnHref, learnHasPage } = await load('src/config/learnLessons.js');
 const privacy = readFileSync(join(root, 'public/privacy.html'), 'utf8');
 const privacyHead = privacy.slice(0, privacy.indexOf('</head>'));
 
@@ -340,27 +340,40 @@ const LEARN_CSS = `    .page-head, main { max-width: 860px; }
     .path a.name { text-decoration: none; }
     .path a.name:hover { text-decoration: underline; }
     .path .sum { display: block; margin-top: 2px; }
-    .path .soon { color: var(--muted); font-size: 13px; }`;
+    .path .soon { color: var(--muted); font-size: 13px; }
+    .hub-group { margin-top: 36px; }
+    .hub-group h2 { margin-bottom: 4px; }
+    .part { margin-top: 36px; }
+    .part h2 { margin: 0 0 10px; }
+    .part p, .part li { font-size: 17px; color: var(--text); }
+    .part ul { margin: 10px 0 0; padding-left: 22px; }`;
 
 const LEARN_PAGES = LEARN_LESSONS.filter(learnHasPage);
 
+// The hub, one section per group (LEARN_GROUPS): the tour on its own under
+// "Start here", then each group headed with its lesson count.
 function learnHubPage() {
-  const items = LEARN_LESSONS.map((l) => `        <li>
-          <span class="label">${esc(l.label)}${learnHasPage(l) ? ` · about ${l.minutes} minutes` : ''}</span>
-          ${learnHasPage(l) ? `<a class="name" href="${learnHref(l)}">${esc(l.title)}</a>` : `<span class="name">${esc(l.title)}</span>`}
-          <span class="sum">${esc(l.summary)}${learnHasPage(l) ? '' : ' <span class="soon">Coming soon.</span>'}</span>
-        </li>`).join('\n');
+  const item = (l) => `          <li>
+            <span class="label">${esc(l.label)}${learnHasPage(l) ? ` · about ${l.minutes} minutes` : ''}</span>
+            ${learnHasPage(l) ? `<a class="name" href="${learnHref(l)}">${esc(l.title)}</a>` : `<span class="name">${esc(l.title)}</span>`}
+            <span class="sum">${esc(l.summary)}${learnHasPage(l) ? '' : ' <span class="soon">Coming soon.</span>'}</span>
+          </li>`;
+  const sections = LEARN_GROUPS.map((g) => {
+    const lessons = LEARN_LESSONS.filter((l) => l.group === g.id);
+    if (lessons.length === 0) return '';
+    const heading = g.id === 'start' ? g.title : `${g.title} · ${lessons.length} lesson${lessons.length === 1 ? '' : 's'}`;
+    return `      <section class="hub-group" id="${g.id}">
+        <h2>${esc(heading)}</h2>
+${g.intro ? `        <p>${esc(g.intro)}</p>\n` : ''}        <ol class="path">
+${lessons.map(item).join('\n')}
+        </ol>
+      </section>
+`;
+  }).join('\n');
   const body = `      <p class="lead">Short lessons on planning for retirement, a few minutes each, in plain words. Every lesson follows the same fictional couple, Ray and Angie Parker, and ends with something to try in the planner.</p>
       <p class="standing">${esc(LEARN_STANDING_LINE)}</p>
 
-      <section>
-        <h2>Start here</h2>
-        <p>Read them in order. Each one builds on the last.</p>
-        <ol class="path">
-${items}
-        </ol>
-      </section>
-
+${sections}
       <section class="try">
         <h2>Follow along in the planner</h2>
         <p>Ray and Angie’s plan opens with every number already filled in. Nothing you change there is saved, and it does not touch a plan of your own.</p>
@@ -369,7 +382,7 @@ ${items}
   return page({
     path: '/learn',
     title: 'Learn: retirement planning in plain words',
-    description: 'Short, illustrated lessons on retirement planning: will my money last, who pays me when work stops, what it costs, and how to fix a plan that runs short.',
+    description: 'Illustrated retirement lessons: will my money last, who pays me when work stops, what it costs, fixing a plan that runs short, and choosing between plans.',
     css: LEARN_CSS,
     h1: 'Learn',
     eyebrow: 'Start here',
@@ -382,13 +395,19 @@ function learnLessonPage(lesson) {
   const prev = LEARN_PAGES[i - 1];
   const next = LEARN_PAGES[i + 1];
   const img = (n) => `/learn/img/${lesson.slug}/${String(n).padStart(2, '0')}`;
-  const slides = lesson.slides.map((s, k) => `      <section class="slide" id="slide-${k + 1}">
+  const group = (l) => l && l.group;
+  // Text-only lessons (no slides yet): one section per part.
+  const parts = (lesson.text || []).map((t, k) => `      <section class="part" id="part-${k + 1}">
+        <h2>${esc(t.title)}</h2>
+${t.paras.map((para) => `        <p>${esc(para)}</p>`).join('\n')}${t.list ? `\n        <ul>\n${t.list.map((x) => `          <li>${esc(x)}</li>`).join('\n')}\n        </ul>` : ''}
+      </section>`).join('\n\n');
+  const slides = lesson.slides ? lesson.slides.map((s, k) => `      <section class="slide" id="slide-${k + 1}">
         <h2><span class="num">${k + 1}.</span>${esc(s.title)}</h2>
         <img src="${img(k + 1)}.webp" srcset="${img(k + 1)}-800.webp 800w, ${img(k + 1)}.webp 1600w" sizes="(max-width: 908px) 100vw, 860px" width="1600" height="900" ${k === 0 ? 'loading="eager"' : 'loading="lazy"'} decoding="async" alt="${esc(s.alt)}" />
         <p>${esc(s.say)}</p>
-      </section>`).join('\n\n');
+      </section>`).join('\n\n') : parts;
   const body = `      <p class="lead">${esc(lesson.summary)}</p>
-      <p class="meta">${esc(lesson.label)} · Start here · about ${lesson.minutes} minutes · ${lesson.slides.length} pictures</p>
+      <p class="meta">${[esc(lesson.label), ['start', 'basics'].includes(lesson.group) ? 'Start here' : null, `about ${lesson.minutes} minutes`, lesson.slides ? `${lesson.slides.length} pictures` : null].filter(Boolean).join(' · ')}</p>
       <p class="standing">${esc(LEARN_STANDING_LINE)}</p>
 ${lesson.video ? `      <p class="watch"><a class="btn-go" href="${esc(lesson.video)}" target="_blank" rel="noopener">Watch this lesson (${lesson.minutes} minutes)</a> <span class="soon">Opens YouTube in a new tab.</span></p>\n` : ''}
 ${slides}
@@ -400,8 +419,8 @@ ${slides}
       </section>
 
       <nav class="pager" aria-label="Lessons">
-        ${prev ? `<a href="${learnHref(prev)}">← ${esc(prev.label)}: ${esc(prev.title)}</a>` : '<a href="/learn">← All lessons</a>'}
-        ${next ? `<a href="${learnHref(next)}">${esc(next.label)}: ${esc(next.title)} →</a>` : '<a href="/learn">All lessons →</a>'}
+        ${prev ? `<a href="${learnHref(prev)}">← ${esc(prev.label)}${group(prev) === group(lesson) || group(prev) === 'start' ? `: ${esc(prev.title)}` : ''}</a>` : '<a href="/learn">← All lessons</a>'}
+        ${next ? `<a href="${learnHref(next)}">${group(next) === group(lesson) || group(lesson) === 'start' ? `${esc(next.label)}: ` : 'Next: '}${esc(next.title)} →</a>` : '<a href="/learn">All lessons →</a>'}
       </nav>`;
   return page({
     path: learnHref(lesson),
@@ -409,7 +428,7 @@ ${slides}
     description: lesson.description,
     css: LEARN_CSS,
     h1: lesson.h1 || lesson.title,
-    eyebrow: `Learn · ${lesson.label}`,
+    eyebrow: `Learn · ${lesson.eyebrow || lesson.label}`,
     body,
   });
 }
