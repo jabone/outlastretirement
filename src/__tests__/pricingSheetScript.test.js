@@ -10,7 +10,7 @@
 //     payouts of the last 12 months
 //   * an error's text is never returned as the dividend
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { PRICING_SHEET_SCRIPT_VERSION, PRICING_SHEET_SCRIPT_CHANGELOG } from '../utils/pricingSource';
@@ -212,9 +212,24 @@ describe('pricing Sheet: first-time setup', () => {
   });
   it('walks through deploy, allow, paste and refresh, and no longer asks anyone to email us', () => {
     expect(page).toContain('id="first-time"');
-    for (const step of ['New deployment', 'Web app', 'Execute as', 'Who has access', 'Anyone', 'verified', 'Apps Script Web App URL', 'Refresh Prices &amp; Dividends']) {
+    for (const step of ['New deployment', 'Web app', 'Execute as', 'Who has access', 'Anyone', 'verified', 'Allow', 'What you are allowing', 'Connect to an external service', 'Apps Script Web App URL', 'Refresh Prices &amp; Dividends']) {
       expect(page, step).toContain(step);
     }
     expect(page).not.toMatch(/walkthrough[^.]*email/i);
+  });
+});
+
+describe('pricing Sheet: the setup pictures', () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const page = readFileSync(join(root, 'public', 'pricing-script.html'), 'utf8');
+  const imgs = [...page.matchAll(/<img src="(\/pricing-script-img\/[^"]+)"[^>]*alt="([^"]*)"/g)];
+  it('folds a picture under the steps, each one ours, described and lazy-loaded', () => {
+    expect(imgs.length).toBe(8);
+    for (const [tag, src, alt] of imgs) {
+      expect(existsSync(join(root, 'public', src)), src).toBe(true);
+      expect(alt.length, src).toBeGreaterThan(30);
+      expect(tag).toContain('loading="lazy"');
+    }
+    expect((page.match(/<details class="shot">/g) || []).length).toBe(8);
   });
 });
