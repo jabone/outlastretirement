@@ -234,7 +234,7 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'live-pricing-setup',
-    video: 'https://www.youtube.com/watch?v=-OU6Xcl647s',
+    video: 'https://www.youtube.com/watch?v=PfwOs4P3Fqo',
     // Stands alone (2026-10-22): a how-to for a Premium tool, not part
     // of the Learn path, which teaches the free planner first. It has a page
     // but no place on the hub or in the lesson-to-lesson links; the pricing
