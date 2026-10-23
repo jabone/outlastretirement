@@ -35,6 +35,7 @@ export const LEARN_GROUPS = [
   { id: 'start', title: 'Start here' },
   { id: 'basics', title: 'The basics', intro: 'Read them in order. Each one builds on the last.' },
   { id: 'decisions', title: 'Big decisions', intro: 'For when you have more than one plan that works, and have to choose.' },
+  { id: 'premium', title: 'Inside Premium', intro: 'Walkthroughs for the Premium tools.' },
 ];
 
 export const LEARN_LESSONS = [
@@ -229,6 +230,72 @@ export const LEARN_LESSONS = [
       { title: 'Two scenarios: Ray’s plan and Angie’s plan', alt: 'Two scenario cards. Ray’s plan: priority, the current lifestyle of $46,000 a year; biggest risk, running out of cash in his 80s; lever, both work to 67, with spending kept and $500 a month more saved. Angie’s plan: priority, protect the home and a legacy for the kids; biggest risk, long-term care wiping out savings; lever, trim travel by $750 a month, with Ray still stopping at 65 and $500 a month more saved.', say: 'So they saved each set of answers as its own scenario. Same savings, same house, two plans. In Ray’s plan, they both work two more years and keep spending what they spend now. In Angie’s, they stop on time and spend seven hundred fifty dollars a month less, mostly on travel. Both start saving five hundred dollars a month more, the lever from lesson six. For the first several years the two paths look the same, then they drift apart. That gives them time to decide.' },
       { title: 'Neither plan is wrong', alt: 'Neither plan is wrong: the app doesn’t pick one for you. You decide what matters most and the app shows the cost and the reward. Tradeoffs, not formulas; your household’s values; private on your device.', say: 'Neither plan is wrong. OutlastRetirement shows you the tradeoff each answer makes. It doesn’t pick one for you. This is education, not financial advice.' },
       { title: 'Your turn: three steps for your plan', alt: 'Three steps: open your plan or Ray and Angie’s demo; enter your three answers, what to maximize, what to protect and what to give up; save scenarios and compare two or three side by side. Below, the link to Ray and Angie’s Scenarios page.', say: 'Now it’s your turn. Open your plan. Enter your own three answers in the app. And save it as a scenario, or a few, to compare. Your plan data and calculations stay on your device. Your answers, your plan. This is education, not financial advice.' },
+    ],
+  },
+  {
+    slug: 'live-pricing-setup',
+    video: 'https://www.youtube.com/watch?v=-OU6Xcl647s',
+    group: 'premium',
+    label: 'Inside Premium',
+    eyebrow: 'Detailed Holdings',
+    title: 'Set up Live Pricing',
+    description: 'How to connect a free Google Sheet in your own Google account for live stock, ETF, and mutual fund prices and dividends in Detailed Holdings.',
+    summary: 'A step-by-step walkthrough to set up private, automated stock prices and dividends with your own free Google Sheet.',
+    minutes: 4,
+    tryHref: '/app/?tab=preferences',
+    tryLabel: 'Open Preferences in the planner',
+    tryNote: 'The Preferences page lets you connect your own Google Sheet URL. Nothing you paste there touches any external server.',
+    slides: [
+      {
+        title: 'Set up Live Pricing',
+        alt: 'Title slide: Inside Premium, Set up Live Pricing. Five minutes, once.',
+        say: 'Detailed Holdings can fill in prices, dividends and yields for you. To do that, it uses a free Google Sheet in your own Google account. Setting it up takes about five minutes, and you only do it once. Let’s walk through it.',
+      },
+      {
+        title: 'What you need',
+        alt: 'Three cards: a Google account, Premium Access, and about five minutes, with the privacy reminder.',
+        say: 'You need three things: a Google account, and a free one is fine; Premium Access; and about five minutes. One thing first. The only thing the app ever sends to your Sheet is a ticker symbol, like VTI. Your shares, your accounts and your dollar amounts never leave your browser.',
+      },
+      {
+        title: 'Step 1: make your copy',
+        alt: 'The pricing-script page button, and Google’s Copy document page with the yellow script note.',
+        say: 'Step one. Go to outlastretirement dot com slash pricing script, and press Make your copy of the Sheet. Google asks if you want to make a copy, and tells you the script comes with it. Press Make a copy. The copy is yours alone.',
+      },
+      {
+        title: 'Step 2: open the script and deploy it',
+        alt: 'Extensions menu with Apps Script selected; Deploy button with New deployment; Web app selected.',
+        say: 'Step two. In your new Sheet, open the Extensions menu and choose Apps Script. The script is already there. Press Deploy, then New deployment. Press the little gear next to Select type, and choose Web app.',
+      },
+      {
+        title: 'Who has access: Anyone',
+        alt: 'Web app settings showing Execute as Me and Who has access set to Anyone.',
+        say: 'Two settings. Execute as stays on Me. Who has access starts on Only myself. Change it to Anyone. Not Anyone with Google account. Just Anyone. The app asks your Sheet for prices without signing in to Google, so this is the setting it needs. Then press Deploy.',
+      },
+      {
+        title: 'Step 3: allow it',
+        alt: 'Google’s permission review screen showing access to spreadsheets, external services, and running when offline.',
+        say: 'Step three. Google asks you to allow it. Press Authorize access and pick your account. Google notes the app hasn’t been verified. That’s because it is your own copy, and Google hasn’t reviewed it. It lists three things. Your Sheets: Google only offers this as all your Sheets, but the script only touches its own tab. An external service: that’s the price lookups. Running when you’re not there: that’s the refresh every six hours. Press Allow.',
+      },
+      {
+        title: 'Step 4: copy the Web app address',
+        alt: 'Google deployment dialog showing the Web app URL ending in slash exec with the Copy button.',
+        say: 'Step four. Google shows your Web app address. It ends in slash exec. Press Copy, then Done.',
+      },
+      {
+        title: 'Step 5: paste it into the app',
+        alt: 'OutlastRetirement Preferences page under Live Pricing Connection with the URL pasted into the box.',
+        say: 'Step five. Open the app, go to Preferences, and find Live Pricing Connection. Paste the address into Apps Script Web App URL. That’s the connection.',
+      },
+      {
+        title: 'Step 6: refresh',
+        alt: 'Detailed Holdings panel before and after pressing Refresh Prices and Dividends, showing live prices and change figures.',
+        say: 'Step six. On Detailed Holdings, press Refresh Prices and Dividends. The first time, the app adds your tickers to your Sheet, so give it up to a minute. Then the prices, the day’s change and the values fill in. From now on, your Sheet refreshes itself every six hours.',
+      },
+      {
+        title: 'Keeping it current',
+        alt: 'Summary of background refreshes and how to update the script when a new version is released.',
+        say: 'That’s it. Two things to know. Your Sheet keeps itself fresh, so there’s nothing to run. And now and then we improve the script. When we do, the app tells you. Copy the new script from the pricing script page, paste it over the old one in Apps Script, and save. Then choose Manage deployments, Edit, and New version. Your address stays the same. The written steps, with pictures, are at outlastretirement dot com slash pricing script.',
+      },
     ],
   },
 ];

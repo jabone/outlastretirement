@@ -79,15 +79,17 @@ describe('Learn pages', () => {
 
   it('the hub groups the lessons: the tour under Start here, then each group with its count', () => {
     const hub = read('public/learn.html');
-    expect(LEARN_GROUPS.map((g) => g.id)).toEqual(['start', 'basics', 'decisions']);
+    expect(LEARN_GROUPS.map((g) => g.id)).toEqual(['start', 'basics', 'decisions', 'premium']);
     for (const l of LEARN_LESSONS) expect(LEARN_GROUPS.map((g) => g.id), l.slug).toContain(l.group);
     expect(LEARN_LESSONS.filter((l) => l.group === 'start').map((l) => l.slug)).toEqual(['site-tour']);
     expect(hub).toContain('<h2>Start here</h2>');
     expect(hub).toContain('<h2>The basics · 6 lessons</h2>');
     expect(hub).toContain('<h2>Big decisions · 1 lesson</h2>');
+    expect(hub).toContain('<h2>Inside Premium · 1 lesson</h2>');
     // The groups appear in order, and no "X of N" anywhere.
     expect(hub.indexOf('Start here</h2>')).toBeLessThan(hub.indexOf('The basics ·'));
     expect(hub.indexOf('The basics ·')).toBeLessThan(hub.indexOf('Big decisions ·'));
+    expect(hub.indexOf('Big decisions ·')).toBeLessThan(hub.indexOf('Inside Premium ·'));
     expect(hub).not.toMatch(/\b\d+ of \d+\b/);
     // Lessons 1-6 under the basics, lesson 7 under big decisions.
     const basics = hub.slice(hub.indexOf('The basics ·'), hub.indexOf('Big decisions ·'));

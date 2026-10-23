@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { SITE_NAV, HOME_NAV_HREF } from '../config/siteNav';
 
 const ROOT = join(__dirname, '..', '..');
-const PAGES = ['index.html', 'public/privacy.html', 'public/terms.html', 'public/accessibility.html', 'public/premium.html', 'public/verify.html', 'public/404.html', 'public/changelog.html', 'public/how-the-math-works.html', 'public/pricing-script.html', 'public/learn.html', 'public/learn/site-tour.html', 'public/learn/will-my-money-last.html', 'public/learn/who-pays-me-when-i-stop-working.html', 'public/learn/what-will-retirement-cost-me.html', 'public/learn/build-my-own-plan.html', 'public/learn/how-do-i-read-my-answer.html', 'public/learn/my-plan-runs-short.html'];
+const PAGES = ['index.html', 'public/privacy.html', 'public/terms.html', 'public/accessibility.html', 'public/premium.html', 'public/verify.html', 'public/404.html', 'public/changelog.html', 'public/how-the-math-works.html', 'public/pricing-script.html', 'public/learn.html', 'public/learn/site-tour.html', 'public/learn/will-my-money-last.html', 'public/learn/who-pays-me-when-i-stop-working.html', 'public/learn/what-will-retirement-cost-me.html', 'public/learn/build-my-own-plan.html', 'public/learn/how-do-i-read-my-answer.html', 'public/learn/my-plan-runs-short.html', 'public/learn/three-questions.html', 'public/learn/live-pricing-setup.html'];
 
 function headerLinks(html) {
   const header = /<header[\s\S]*?<\/header>/.exec(html)[0];

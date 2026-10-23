@@ -35,6 +35,7 @@ export const CANONICAL = {
   'public/learn/how-do-i-read-my-answer.html': `${BASE}/learn/how-do-i-read-my-answer`,
   'public/learn/my-plan-runs-short.html': `${BASE}/learn/my-plan-runs-short`,
   'public/learn/three-questions.html': `${BASE}/learn/three-questions`,
+  'public/learn/live-pricing-setup.html': `${BASE}/learn/live-pricing-setup`,
 };
 
 const tag = (html, re) => (re.exec(html) || [])[1];

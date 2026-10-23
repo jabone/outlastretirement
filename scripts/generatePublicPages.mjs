@@ -279,6 +279,7 @@ function pricingScriptPage() {
   const versions = PRICING_SHEET_SCRIPT_CHANGELOG.map((v) => `      <li><strong>Version ${v.version}</strong> (${esc(v.date)}). ${esc(v.summary)}</li>`).join('\n');
   const body = `    <div class="highlight">
       <p>This is the script behind Live Pricing in Detailed Holdings, version ${PRICING_SHEET_SCRIPT_VERSION}. It runs in a Google Sheet in your own Google account, so prices come from your account, not ours. Setting it up takes about five minutes, once. After that, copy the script from here whenever the app says yours is out of date.</p>
+      <p>A visual walkthrough and video are also in <a href="/learn/live-pricing-setup">Inside Premium: Set up Live Pricing</a>.</p>
     </div>
 
     <h2 id="first-time">Setting it up the first time</h2>
