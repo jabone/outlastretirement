@@ -98,8 +98,23 @@ export function savePricingSource(source) {
 // by git -- redeploying is always a manual copy/paste -- so a version bump
 // plus this changelog is the only way PortfolioTab.jsx can tell a user
 // their live deployment has fallen behind the reference script.
-export const PRICING_SHEET_SCRIPT_VERSION = 4;
+// The template Sheet people copy to start Live Pricing (owned by the
+// OutlastRetirement Google account, shared view-only). Opening the /copy
+// address asks Google to make the visitor their own copy, script included.
+// When PRICING_SHEET_SCRIPT_VERSION goes up, paste the new script into the
+// template too (OPERATIONS.md), or new copies start one version behind; the
+// app's out-of-date notice still catches it if not.
+export const PRICING_SHEET_TEMPLATE_ID = '1uvY6duIy3md0pneutaRkwkFFFmohSL_tl37JpfvaV8I';
+export const PRICING_SHEET_COPY_URL = `https://docs.google.com/spreadsheets/d/${PRICING_SHEET_TEMPLATE_ID}/copy`;
+
+export const PRICING_SHEET_SCRIPT_VERSION = 5;
 export const PRICING_SHEET_SCRIPT_CHANGELOG = [
+  {
+    version: 5,
+    date: '2026-10-22',
+    summary:
+      'The scheduled refresh now sets itself up the first time the app connects, so a new copy of the pricing Sheet no longer needs setupRefreshTrigger run by hand. If you already ran it, nothing changes for you: updating is optional.',
+  },
   {
     version: 4,
     date: '2026-10-05',

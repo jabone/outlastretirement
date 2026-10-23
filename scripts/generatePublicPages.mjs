@@ -50,7 +50,7 @@ const { TAX_YEAR } = await load('src/utils/copyFigures.js');
 const { SOURCES, SOURCE_VERIFIED_ON } = await load('src/config/sources.js');
 const { checkedOn } = await load('src/utils/howFiguredFormat.js');
 const { SITE_NAV } = await load('src/config/siteNav.js');
-const { PRICING_SHEET_SCRIPT_VERSION, PRICING_SHEET_SCRIPT_CHANGELOG } = await load('src/utils/pricingSource.js');
+const { PRICING_SHEET_SCRIPT_VERSION, PRICING_SHEET_SCRIPT_CHANGELOG, PRICING_SHEET_COPY_URL } = await load('src/utils/pricingSource.js');
 const PRICING_SCRIPT_SOURCE = readFileSync(join(root, 'scripts/pricing-sheet-apps-script.gs'), 'utf8');
 
 const BASE = 'https://www.outlastretirement.com';
@@ -275,8 +275,21 @@ const SCRIPT_CSS = `    .steps { color: var(--text-2); padding-left: 24px; margi
 function pricingScriptPage() {
   const versions = PRICING_SHEET_SCRIPT_CHANGELOG.map((v) => `      <li><strong>Version ${v.version}</strong> (${esc(v.date)}). ${esc(v.summary)}</li>`).join('\n');
   const body = `    <div class="highlight">
-      <p>This is the script behind Live Pricing in Detailed Holdings, version ${PRICING_SHEET_SCRIPT_VERSION}. It runs in a Google Sheet in your own Google account. Copy it from here whenever the app says your deployed script is out of date.</p>
+      <p>This is the script behind Live Pricing in Detailed Holdings, version ${PRICING_SHEET_SCRIPT_VERSION}. It runs in a Google Sheet in your own Google account, so prices come from your account, not ours. Setting it up takes about five minutes, once. After that, copy the script from here whenever the app says yours is out of date.</p>
     </div>
+
+    <h2 id="first-time">Setting it up the first time</h2>
+    <p>You need a Google account (a free one is fine) and Premium Access for Detailed Holdings.</p>
+    <ol class="steps">
+      <li>Press <a class="copy-button" href="${PRICING_SHEET_COPY_URL}" target="_blank" rel="noopener">Make your copy of the Sheet</a>. Google asks whether to make a copy; press <strong>Make a copy</strong>. The script comes with it, and the copy is yours alone.</li>
+      <li>In your copy, choose <strong>Extensions &rarr; Apps Script</strong>, then <strong>Deploy &rarr; New deployment</strong>. Press the gear beside <strong>Select type</strong> and choose <strong>Web app</strong>. Leave <strong>Execute as</strong> on <strong>Me</strong>. Change <strong>Who has access</strong> from <strong>Only myself</strong> to <strong>Anyone</strong> (not &ldquo;Anyone with Google account&rdquo;, which the app cannot reach), then press <strong>Deploy</strong>.</li>
+      <li>Google asks you to allow it. Press <strong>Authorize access</strong> and choose your account. Because the script is yours and Google has not reviewed it, the next screen says <strong>Google hasn&rsquo;t verified this app</strong>: press <strong>Advanced</strong>, then <strong>Go to</strong> the project, then <strong>Allow</strong>.</li>
+      <li>Copy the <strong>Web app</strong> address it shows (it ends in <code>/exec</code>) and press <strong>Done</strong>.</li>
+      <li>In the app, open <strong>Preferences &rarr; Live Pricing Connection</strong> and paste it into <strong>Apps Script Web App URL</strong>.</li>
+      <li>On <strong>Detailed Holdings</strong>, press <strong>Refresh Prices &amp; Dividends</strong>. Your tickers are added to a <strong>Securities</strong> tab in your Sheet; a new one can take a minute to fill in. From then on the Sheet refreshes itself every six hours.</li>
+    </ol>
+    <p><strong>Why &ldquo;Anyone&rdquo;:</strong> the app asks your Sheet for prices without signing in to Google. Only someone with the long address can reach it, and all it answers is prices for ticker symbols. Your shares, accounts and dollar amounts never leave your browser.</p>
+    <p><strong>Optional backup path:</strong> once the Securities tab exists, choose <strong>File &rarr; Share &rarr; Publish to web</strong>, pick the <strong>Securities</strong> tab and <strong>Comma-separated values (.csv)</strong>, press <strong>Publish</strong>, and paste that address into <strong>Sheet CSV URL</strong>. Refresh then still works if the Web App has a bad moment.</p>
 
     <h2 id="update">Updating a script you already use</h2>
     <ol class="steps">
@@ -286,7 +299,7 @@ function pricingScriptPage() {
       <li>Choose <strong>Deploy &rarr; Manage deployments</strong>, press the pencil (<strong>Edit</strong>), set Version to <strong>New version</strong>, and press <strong>Deploy</strong>. The Web App address stays the same.</li>
       <li>Back in the app, press <strong>Refresh Prices &amp; Dividends</strong>, then dismiss the notice.</li>
     </ol>
-    <p>If you have never run it, also run <code>setupRefreshTrigger</code> once from the editor&rsquo;s Run menu. It keeps prices fresh without the Sheet being open.</p>
+    <p>From version 5 the script sets up its six-hour refresh by itself. With an older version, run <code>setupRefreshTrigger</code> once from the editor&rsquo;s Run menu instead.</p>
 
     <h2 id="script">The script</h2>
     <div class="copy-row">
@@ -306,7 +319,7 @@ ${versions}
   return page({
     path: '/pricing-script',
     title: 'Pricing Sheet script',
-    description: 'The Google Apps Script behind Live Pricing in OutlastRetirement, to copy into your own Google Sheet, with the steps to install or update it.',
+    description: 'Set up Live Pricing for OutlastRetirement: copy the pricing Google Sheet, deploy its script in your own account, and keep it up to date.',
     css: SCRIPT_CSS,
     h1: 'Pricing Sheet script',
     body,

@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 455,
+    date: '2026-10-22',
+    title: 'Live Pricing: start from a copy of our Sheet, with the steps written out',
+    summary: 'Setting up Live Pricing now starts from a copy of our pricing Sheet, with the first-time steps on the pricing script page. The script, version 5, sets up its own refresh. (Premium)',
+    items: [
+      "**A Sheet to copy.** A Make your copy of the Sheet button opens Google\u2019s copy page, and you get your own copy with the script already in it. There is nothing to create or paste.",
+      "**The steps, written out.** Deploy the script as a Web app in your own Google account, allow it, paste its address into Preferences \u2192 Live Pricing Connection, and press Refresh. The Help pages point there instead of asking you to email us.",
+      "**Script version 5.** The six-hour refresh now sets itself up the first time the app connects, so nobody has to start it by hand from the script editor. If you already did, updating is optional.",
+    ],
+  },
+  {
     id: 454,
     date: '2026-10-22',
     title: 'Learn: lessons grouped, lesson 7 on choosing between plans, and a video for every lesson',

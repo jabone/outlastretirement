@@ -151,3 +151,70 @@ describe('pricing Sheet script: SMART_FREQUENCY and YAHOO_PRICE', () => {
     expect(load({ '/chart/NOPE': [404, {}] }).YAHOO_PRICE('NOPE')).toBe('');
   });
 });
+
+// Version 5: a copied Sheet has no triggers, so the script adds its own
+// six-hour refresh the first time the app calls it.
+describe('pricing Sheet script: the refresh schedule sets itself up', () => {
+  function loadWithTriggers(existing = [], { fail = false } = {}) {
+    const store = new Map();
+    const triggers = existing.map((h) => ({ getHandlerFunction: () => h }));
+    const created = [];
+    let lookups = 0;
+    const ScriptApp = {
+      getProjectTriggers() { lookups += 1; if (fail) throw new Error('no permission'); return triggers; },
+      newTrigger(h) {
+        const t = { h };
+        const chain = { timeBased: () => chain, everyHours: (n) => { t.hours = n; return chain; }, create: () => { created.push(t); triggers.push({ getHandlerFunction: () => h }); } };
+        return chain;
+      },
+      deleteTrigger() {},
+    };
+    const CacheService = { getScriptCache: () => ({ get: (k) => (store.has(k) ? store.get(k) : null), put: (k, v) => store.set(k, v), remove: (k) => store.delete(k) }) };
+    const api = new Function('ScriptApp', 'CacheService', 'UrlFetchApp', 'Utilities',
+      `${SOURCE}\nreturn { ensureRefreshTrigger_ };`)(ScriptApp, CacheService, {}, { sleep: () => {} });
+    return { ...api, created, lookups: () => lookups, store };
+  }
+
+  it('adds a six-hour REFRESH_QUOTES trigger when there is none', () => {
+    const s = loadWithTriggers();
+    s.ensureRefreshTrigger_();
+    expect(s.created).toEqual([{ h: 'REFRESH_QUOTES', hours: 6 }]);
+  });
+
+  it('leaves an existing trigger alone, and checks at most once per six hours', () => {
+    const s = loadWithTriggers(['REFRESH_QUOTES']);
+    s.ensureRefreshTrigger_();
+    s.ensureRefreshTrigger_();
+    expect(s.created).toEqual([]);
+    expect(s.lookups()).toBe(1);
+  });
+
+  it('never lets a failure stop a request, and tries again next time', () => {
+    const s = loadWithTriggers([], { fail: true });
+    expect(() => s.ensureRefreshTrigger_()).not.toThrow();
+    s.ensureRefreshTrigger_();
+    expect(s.lookups()).toBe(2);
+  });
+
+  it('runs on every Web App request, before the request is answered', () => {
+    expect(SOURCE).toMatch(/function doGet\(e\) \{\n\s+var p = \(e && e\.parameter\) \|\| \{\};\n\s+ensureRefreshTrigger_\(\);/);
+  });
+});
+
+// The first-time setup (changelog 455): a template Sheet to copy, and the
+// steps on /pricing-script, in place of a walkthrough sent by email.
+describe('pricing Sheet: first-time setup', () => {
+  const page = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'pricing-script.html'), 'utf8');
+  it('links the template as a Google make-a-copy address', async () => {
+    const { PRICING_SHEET_COPY_URL } = await import('../utils/pricingSource');
+    expect(PRICING_SHEET_COPY_URL).toMatch(/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[A-Za-z0-9_-]{30,}\/copy$/);
+    expect(page).toContain(`href="${PRICING_SHEET_COPY_URL}"`);
+  });
+  it('walks through deploy, allow, paste and refresh, and no longer asks anyone to email us', () => {
+    expect(page).toContain('id="first-time"');
+    for (const step of ['New deployment', 'Web app', 'Execute as', 'Who has access', 'Anyone', 'verified', 'Apps Script Web App URL', 'Refresh Prices &amp; Dividends']) {
+      expect(page, step).toContain(step);
+    }
+    expect(page).not.toMatch(/walkthrough[^.]*email/i);
+  });
+});

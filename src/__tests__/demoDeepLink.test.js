@@ -353,10 +353,14 @@ describe('OutlastRetirement brand assets', () => {
   it('keeps the app reading the address from one constant', () => {
     // GuideTab and the welcome announcement used to hardcode their own
     // copies, which is how the old address ended up spelled three ways.
+    // (The Guide named the address only for the Live Pricing walkthrough,
+    // which became the steps on /pricing-script in changelog 455; it may
+    // name none, but never a hardcoded one.)
     for (const f of ['components/tabs/GuideTab.jsx', 'config/announcements.js']) {
       const src = readFileSync(join(SRC, f), 'utf8');
-      expect(src).toMatch(/CONTACT_EMAIL/);
+      if (f === 'config/announcements.js') expect(src).toMatch(/CONTACT_EMAIL/);
       expect(src).not.toMatch(/@gmail\.com/);
+      expect(src).not.toMatch(/support@outlastretirement\.com/);
     }
   });
 

@@ -58,10 +58,19 @@
 //  3. SMART_DIVIDEND passed quoteSummary's error TEXT through as if it were
 //     the dividend. Only a number is treated as a value now.
 
+// ── v5: the refresh schedule installs itself ─────────────────────────
+// A copy of the template Sheet (a "Make a copy" link) brings this script
+// with it, but Google never copies triggers, and running setupRefreshTrigger
+// by hand was the step most people missed. ensureRefreshTrigger_() now runs
+// on each request from the app: if this account has no REFRESH_QUOTES
+// trigger, it adds one. It looks at most once every six hours (a CacheService
+// note, private to this script) and never lets a failure stop the request.
+// setupRefreshTrigger still works from the editor, as before.
+
 // ── Configuration ──────────────────────────────────────────────────
 // Reported in every JSON reply. Bump with PRICING_SHEET_SCRIPT_VERSION in
 // the app's sheetPricing.js.
-var SCRIPT_VERSION = 4;
+var SCRIPT_VERSION = 5;
 
 // Name of the tab that stores ticker data. Must match your Sheet's tab
 // name exactly (case-sensitive). If the tab doesn't exist yet, doGet()
@@ -115,6 +124,28 @@ function isValidTicker_(ticker) {
 function setupRefreshTrigger() {
   removeRefreshTrigger();
   ScriptApp.newTrigger("REFRESH_QUOTES").timeBased().everyHours(6).create();
+}
+
+/**
+ * Adds the REFRESH_QUOTES trigger when this account has none (v5). Called
+ * on every Web App request; checks at most once per six hours. Any failure
+ * (a missing permission, a quota) is swallowed: prices still come back,
+ * and the next check tries again.
+ */
+function ensureRefreshTrigger_() {
+  try {
+    var cache = CacheService.getScriptCache();
+    if (cache.get("refresh_trigger_checked")) return;
+    var triggers = ScriptApp.getProjectTriggers();
+    var found = false;
+    for (var i = 0; i < triggers.length; i++) {
+      if (triggers[i].getHandlerFunction() === "REFRESH_QUOTES") { found = true; break; }
+    }
+    if (!found) ScriptApp.newTrigger("REFRESH_QUOTES").timeBased().everyHours(6).create();
+    cache.put("refresh_trigger_checked", "1", 21600);
+  } catch (err) {
+    // Leave it for the next request.
+  }
 }
 
 /** Removes the REFRESH_QUOTES trigger(s). Run from the editor if you want
@@ -193,6 +224,7 @@ function ensureSaltedFormulas_(sheet) {
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
+  ensureRefreshTrigger_();
 
   if (p.action === "quotes") return serveQuotes_();
   if (p.tickers) return registerBatch_(p.tickers);

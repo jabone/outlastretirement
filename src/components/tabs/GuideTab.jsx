@@ -1,7 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import { HelpCircle, AlertTriangle, CheckCircle2, Lightbulb, Trophy } from 'lucide-react';
 import { BRAND_NAME } from '../../config/branding';
-import { CONTACT_EMAIL, FEEDBACK_EMAIL } from '../../config/premiumOffering';
+import { FEEDBACK_EMAIL } from '../../config/premiumOffering';
 import { useSimulation } from '../../context/useSimulation';
 import InputReference from '../InputReference';
 import WhatsNewHistory from '../WhatsNewHistory';
@@ -859,9 +859,10 @@ const GuideTab = () => {
                       <strong>Live Pricing Connection</strong> &mdash; the Apps Script Web App URL (the main connection:
                       quotes read live from your Sheet, plus automatic new-ticker registration) and an optional published-CSV
                       URL (a fallback read path) for your own copy of the pricing Google Sheet, which feed the premium
-                      Detailed Holdings tab. Setup is a one-time walkthrough we send by email (write to {CONTACT_EMAIL}) &mdash; including
-                      running <code>setupRefreshTrigger</code> once, which keeps prices updating on a schedule without the
-                      Sheet ever being open. Only ticker symbols are ever sent there; your shares, accounts, and dollar
+                      Detailed Holdings tab. Setup takes about five minutes, once: the steps are at{' '}
+                      <a href="/pricing-script#first-time" target="_blank" rel="noopener noreferrer">outlastretirement.com/pricing-script</a>. You make
+                      your own copy of the pricing Sheet, deploy its script in your Google account and paste its address here; the
+                      Sheet then refreshes itself every six hours, without being open. Only ticker symbols are ever sent there; your shares, accounts, and dollar
                       totals never leave the browser. Only Google addresses are accepted: a link must start with https://docs.google.com/ or https://script.google.com/, or be a googleusercontent.com address; anything else shows an error under the field and is never contacted. If your deployed Apps Script falls behind the current version,
                       the notice to redeploy it appears here.
                     </p>
