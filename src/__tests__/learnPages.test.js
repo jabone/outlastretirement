@@ -49,7 +49,7 @@ describe('Learn pages', () => {
       });
 
       it('says it is education, not advice, and links into the planner', () => {
-        expect(html).toContain(esc(LEARN_STANDING_LINE));
+        expect(html).toContain(esc(lesson.standing || LEARN_STANDING_LINE));
         const href = lesson.tryHref || LEARN_PARKERS_HREF;
         expect(href).toMatch(/^\/app\//);
         expect(html).toContain(`class="btn-go" href="${esc(href)}"`);
@@ -71,30 +71,40 @@ describe('Learn pages', () => {
   it('the hub links every lesson that has a page and none that does not', () => {
     const hub = read('public/learn.html');
     for (const l of LEARN_LESSONS) {
-      if (learnHasPage(l)) expect(hub).toContain(`href="/learn/${l.slug}"`);
+      if (learnHasPage(l) && !l.standalone) expect(hub).toContain(`href="/learn/${l.slug}"`);
       else expect(hub).not.toContain(`href="/learn/${l.slug}"`);
-      expect(hub).toContain(esc(l.title));
+      if (!l.standalone) expect(hub).toContain(esc(l.title));
     }
   });
 
   it('the hub groups the lessons: the tour under Start here, then each group with its count', () => {
     const hub = read('public/learn.html');
-    expect(LEARN_GROUPS.map((g) => g.id)).toEqual(['start', 'basics', 'decisions', 'premium']);
-    for (const l of LEARN_LESSONS) expect(LEARN_GROUPS.map((g) => g.id), l.slug).toContain(l.group);
+    expect(LEARN_GROUPS.map((g) => g.id)).toEqual(['start', 'basics', 'decisions']);
+    for (const l of LEARN_LESSONS.filter((x) => !x.standalone)) expect(LEARN_GROUPS.map((g) => g.id), l.slug).toContain(l.group);
     expect(LEARN_LESSONS.filter((l) => l.group === 'start').map((l) => l.slug)).toEqual(['site-tour']);
     expect(hub).toContain('<h2>Start here</h2>');
     expect(hub).toContain('<h2>The basics · 6 lessons</h2>');
     expect(hub).toContain('<h2>Big decisions · 1 lesson</h2>');
-    expect(hub).toContain('<h2>Inside Premium · 1 lesson</h2>');
     // The groups appear in order, and no "X of N" anywhere.
     expect(hub.indexOf('Start here</h2>')).toBeLessThan(hub.indexOf('The basics ·'));
     expect(hub.indexOf('The basics ·')).toBeLessThan(hub.indexOf('Big decisions ·'));
-    expect(hub.indexOf('Big decisions ·')).toBeLessThan(hub.indexOf('Inside Premium ·'));
     expect(hub).not.toMatch(/\b\d+ of \d+\b/);
     // Lessons 1-6 under the basics, lesson 7 under big decisions.
     const basics = hub.slice(hub.indexOf('The basics ·'), hub.indexOf('Big decisions ·'));
     for (let n = 1; n <= 6; n += 1) expect(basics).toContain(`Lesson ${n} ·`);
     expect(hub.slice(hub.indexOf('Big decisions ·'))).toContain('Lesson 7 ·');
+  });
+
+  it('the Live Pricing walkthrough stands alone: off the hub and the path, back to the written steps', () => {
+    const hub = read('public/learn.html');
+    const page = read('public/learn/live-pricing-setup.html');
+    expect(hub).not.toContain('live-pricing-setup');
+    expect(read('public/learn/three-questions.html')).toContain('<a href="/learn">All lessons →</a>');
+    expect(page).toContain('<a href="/pricing-script#first-time">← The written steps, with pictures</a>');
+    expect(page).toContain('Watch the walkthrough');
+    expect(page).not.toContain(esc(LEARN_STANDING_LINE));
+    expect(page).toContain('class="btn-go" href="/app/#/preferences"');
+    expect(read('public/pricing-script.html')).toContain('href="/learn/live-pricing-setup"');
   });
 
   it('lesson 7 sits under Big decisions and links back to lesson 6, which points ahead to it', () => {

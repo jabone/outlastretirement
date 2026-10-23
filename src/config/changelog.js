@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 456,
+    date: '2026-10-22',
+    title: 'Live Pricing setup, as a narrated walkthrough',
+    summary: 'A five-minute video and picture walkthrough of setting up Live Pricing, linked from the pricing script page. (Premium)',
+    items: [
+      "**Where.** The pricing script page links to the walkthrough at outlastretirement.com/learn/live-pricing-setup: ten pictures with the narration written out, and the video on YouTube.",
+      "**Apart from the lessons.** It is a how-to for a Premium tool, so it is not on the Learn page or in the lesson order, which teach the free planner first.",
+    ],
+  },
+  {
     id: 455,
     date: '2026-10-22',
     title: 'Live Pricing: start from a copy of our Sheet, with the steps written out',

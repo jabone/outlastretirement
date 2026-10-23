@@ -372,7 +372,10 @@ const LEARN_CSS = `    .page-head, main { max-width: 860px; }
     .part p, .part li { font-size: 17px; color: var(--text); }
     .part ul { margin: 10px 0 0; padding-left: 22px; }`;
 
-const LEARN_PAGES = LEARN_LESSONS.filter(learnHasPage);
+// The Learn path: every lesson with a page, in order. A standalone page
+// (the Live Pricing how-to) is built too, but sits outside the path.
+const LEARN_PAGES = LEARN_LESSONS.filter((l) => learnHasPage(l) && !l.standalone);
+const LEARN_STANDALONE = LEARN_LESSONS.filter((l) => learnHasPage(l) && l.standalone);
 
 // The hub, one section per group (LEARN_GROUPS): the tour on its own under
 // "Start here", then each group headed with its lesson count.
@@ -432,8 +435,8 @@ ${t.paras.map((para) => `        <p>${esc(para)}</p>`).join('\n')}${t.list ? `\n
       </section>`).join('\n\n') : parts;
   const body = `      <p class="lead">${esc(lesson.summary)}</p>
       <p class="meta">${[esc(lesson.label), ['start', 'basics'].includes(lesson.group) ? 'Start here' : null, `about ${lesson.minutes} minutes`, lesson.slides ? `${lesson.slides.length} pictures` : null].filter(Boolean).join(' · ')}</p>
-      <p class="standing">${esc(LEARN_STANDING_LINE)}</p>
-${lesson.video ? `      <p class="watch"><a class="btn-go" href="${esc(lesson.video)}" target="_blank" rel="noopener">Watch this lesson (${lesson.minutes} minutes)</a> <span class="soon">Opens YouTube in a new tab.</span></p>\n` : ''}
+      <p class="standing">${esc(lesson.standing || LEARN_STANDING_LINE)}</p>
+${lesson.video ? `      <p class="watch"><a class="btn-go" href="${esc(lesson.video)}" target="_blank" rel="noopener">${lesson.standalone ? 'Watch the walkthrough' : 'Watch this lesson'} (${lesson.minutes} minutes)</a> <span class="soon">Opens YouTube in a new tab.</span></p>\n` : ''}
 ${slides}
 
       <section class="try">
@@ -443,8 +446,9 @@ ${slides}
       </section>
 
       <nav class="pager" aria-label="Lessons">
-        ${prev ? `<a href="${learnHref(prev)}">← ${esc(prev.label)}${group(prev) === group(lesson) || group(prev) === 'start' ? `: ${esc(prev.title)}` : ''}</a>` : '<a href="/learn">← All lessons</a>'}
-        ${next ? `<a href="${learnHref(next)}">${group(next) === group(lesson) || group(lesson) === 'start' ? `${esc(next.label)}: ` : 'Next: '}${esc(next.title)} →</a>` : '<a href="/learn">All lessons →</a>'}
+${lesson.standalone ? `        <a href="${esc(lesson.backHref)}">← ${esc(lesson.backLabel)}</a>
+        <a href="/learn">All lessons →</a>` : `        ${prev ? `<a href="${learnHref(prev)}">← ${esc(prev.label)}${group(prev) === group(lesson) || group(prev) === 'start' ? `: ${esc(prev.title)}` : ''}</a>` : '<a href="/learn">← All lessons</a>'}
+        ${next ? `<a href="${learnHref(next)}">${group(next) === group(lesson) || group(lesson) === 'start' ? `${esc(next.label)}: ` : 'Next: '}${esc(next.title)} →</a>` : '<a href="/learn">All lessons →</a>'}`}
       </nav>`;
   return page({
     path: learnHref(lesson),
@@ -462,7 +466,7 @@ const outputs = [
   ['public/how-the-math-works.html', mathPage()],
   ['public/pricing-script.html', pricingScriptPage()],
   ['public/learn.html', learnHubPage()],
-  ...LEARN_PAGES.map((l) => [`public/learn/${l.slug}.html`, learnLessonPage(l)]),
+  ...[...LEARN_PAGES, ...LEARN_STANDALONE].map((l) => [`public/learn/${l.slug}.html`, learnLessonPage(l)]),
 ];
 const check = process.argv.includes('--check');
 let stale = false;

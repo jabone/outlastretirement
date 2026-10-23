@@ -30,12 +30,12 @@ export const LEARN_PARKERS_HREF = '/app/?demo=parkers';
 // announced on the hub as coming soon and has no page yet.
 //
 // `group` places it on the hub (LEARN_GROUPS, in order); the lessons run in
-// this list's order within and across groups.
+// this list's order within and across groups. A `standalone` page (with its
+// own `standing` line and `backHref`) is on neither the hub nor the path.
 export const LEARN_GROUPS = [
   { id: 'start', title: 'Start here' },
   { id: 'basics', title: 'The basics', intro: 'Read them in order. Each one builds on the last.' },
   { id: 'decisions', title: 'Big decisions', intro: 'For when you have more than one plan that works, and have to choose.' },
-  { id: 'premium', title: 'Inside Premium', intro: 'Walkthroughs for the Premium tools.' },
 ];
 
 export const LEARN_LESSONS = [
@@ -235,16 +235,23 @@ export const LEARN_LESSONS = [
   {
     slug: 'live-pricing-setup',
     video: 'https://www.youtube.com/watch?v=-OU6Xcl647s',
-    group: 'premium',
+    // Stands alone (2026-10-22): a how-to for a Premium tool, not part
+    // of the Learn path, which teaches the free planner first. It has a page
+    // but no place on the hub or in the lesson-to-lesson links; the pricing
+    // script page links to it.
+    standalone: true,
+    standing: 'A walkthrough of a Premium tool, recorded in a demo Google account. Addresses are blurred.',
+    backHref: '/pricing-script#first-time',
+    backLabel: 'The written steps, with pictures',
     label: 'Inside Premium',
     eyebrow: 'Detailed Holdings',
     title: 'Set up Live Pricing',
     description: 'How to connect a free Google Sheet in your own Google account for live stock, ETF, and mutual fund prices and dividends in Detailed Holdings.',
     summary: 'A step-by-step walkthrough to set up private, automated stock prices and dividends with your own free Google Sheet.',
     minutes: 4,
-    tryHref: '/app/?tab=preferences',
+    tryHref: '/app/#/preferences',
     tryLabel: 'Open Preferences in the planner',
-    tryNote: 'The Preferences page lets you connect your own Google Sheet URL. Nothing you paste there touches any external server.',
+    tryNote: 'Paste your Web app address into Live Pricing Connection. The app uses it only to ask your own Sheet for prices; your shares, accounts and amounts stay in your browser.',
     slides: [
       {
         title: 'Set up Live Pricing',
