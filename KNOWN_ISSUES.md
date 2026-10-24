@@ -43,7 +43,9 @@ engine makes knowingly; each is also stated in `TAX_RULES_SPEC.md`.
 - **Social Security earnings test (Rule 2.11):** no birth month, so the FRA
   year tests the whole calendar year's earnings, not only the months before
   the FRA month; the first-year monthly test and the spousal top-up's
-  exposure to the worker's earnings are not modelled.
+  exposure to either spouse's earnings are not modelled. (A working
+  survivor's benefit IS tested, with the months credited back at FRA —
+  the 2026-10-23 review.)
 - **State retirement income (Rule 4.3):** New York's $20,000 room is pooled
   across the 59½+ spouses; Pennsylvania taxes an early distribution in full
   rather than above the owner's contributions; Colorado splits a joint
@@ -72,7 +74,8 @@ engine makes knowingly; each is also stated in `TAX_RULES_SPEC.md`.
   Settings "annuity income" line has no source account, so it always counts
   as net investment income.
 - **Capital gains (Rules 2.3, 2.8, 3.8):** every gain is long-term; the
-  harvested loss is a balance × |return| proxy, not tax lots; no §1202,
+  harvested loss is the account's basis over its declined value (changelog
+  429), a whole-account figure rather than per-lot tax lots; no §1202,
   §1044, exchange-fund or collar alternative to a concentrated-stock sale.
 - **HSA (Rule 3.10):** the 70% premium share of the healthcare bridge is a
   planning default; §213(d)(10) LTC-premium limits are not applied; the
@@ -191,8 +194,8 @@ Social Security subtraction uses up the same pension cap.)
 - **Q-11 Capital losses — FIXED 2026-09-02 (changelog 124):** $1,500 for
   MFS, not indexed, nets only against realized gains (Life-Event Taxable
   withdrawals and the solver's Taxable draw), never the dividend proxy.
-  Still a simplification: the harvested loss is a balance × |return|
-  proxy, not tax lots.
+  Still a simplification: the harvest is a whole-account figure (basis
+  over declined value since changelog 429), not per-lot tax lots.
 - **Q-10(a) — FIXED 2026-09-02 (changelog 125):** rents and annuity
   income now count as NII. **Q-10(b) — FIXED 2026-09-03 (changelog 127):**
   the diversification is taken before the tax engine runs, so its gain is

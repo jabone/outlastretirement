@@ -233,6 +233,11 @@ describe('Social Security, health cover and Medicare abroad', () => {
       spouse2Enabled: false, filingStatus: 'Single', birthYear1: START - 56, retireAge1: 56,
       lifeExpectancy1: 90, claimingAge1: 70, ss1: 0, pension1: 0, salary1: 0, rentalIncome: 0,
       annuityIncome: 0, partTimeIncome1: 0, preTaxInit: 800000, rothInit: 200000, taxableInit: 200000,
+      // The Roth draws must be return of contributions: a pre-59 1/2 draw
+      // of EARNINGS is AGI and so ACA MAGI (the 2026-10-23 review), which
+      // would lift this household over the poverty line this fixture is
+      // built to sit under.
+      rothBasisInit: 200000,
       preTaxContribution1: 0, rothContribution1: 0, taxableContribution: 0, lifestyleExpense: 40000,
       withdrawalStrategy: 'RothFirst', rothConversionStrategy: 'none', taxBracketInflationRate: 0,
       inflationRate: 0, stateOfResidence: 'TX', stateTaxState: 'none', acaSubsidyProtectionEnabled: true,

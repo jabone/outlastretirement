@@ -1,6 +1,6 @@
 # OutlastRetirement — Tax Rules Specification for Professional Review
 
-**Version:** 2.29 — 2026-10-20, engine as of changelog 448. *(2.29: an optional Keep at Least floor; the Monte Carlo, historical starts and SAFEMAX count a run as lasting only if it never ends a retired year below it (§1.5).)* v2.28 — 2026-10-20, engine as of changelog 447. *(2.28: investment fees — fund expenses (default 0.10%) and an advisor fee (default 0) — come off the Pre-Tax, Roth, Taxable and HSA balances each year after the return, are not deductible (IRC §67(g), made permanent by Pub. L. 119-21; Pub. 529), and also reduce an heir's inherited-account growth (§1.4).)* v2.27 — 2026-10-19, engine as of changelog 443. *(2.27: ACA Cliff Protection is on by default, and the plan warns when the assumed premium is well under the age-rated benchmark (Rule 2.10).)* v2.26 — 2026-10-19, engine as of changelog 442. *(2.26: a Detailed Holdings REIT, option-income or BDC holding left at Not Set is ordinary, and Mixed counts half (Rule 3.9).)* v2.25 — 2026-10-19, engine as of changelog 441. *(2.25: the default qualified share is weighted by what the stock and bond sides yield, not by the balance split (Rule 2.3).)* v2.24 — 2026-10-19, engine as of changelog 440. *(2.24: a QCD beyond the RMD is shown inside the year's Pre-Tax distributions (Rule 3.3); the optimizers' net-to-heirs key prices the heirs' share of the Pre-Tax balance after a bequest at the federal and state rate they pay (Rule 5.0, changelog 438).)* v2.23 — 2026-10-19, engine as of changelog 433. *(2.23: an itemizer's AMTI adds back only the SALT line and the senior deduction, not the whole itemized total (Rule 2.5); §7 and Rule 2.2 no longer say the app does not itemize.)* v2.22 — 2026-10-18, engine as of changelog 430. *(2.22: California's brackets, standard deduction, exemption credit and phase-out carry forward from their 2025 vintage by the Tax Bracket Inflation Rate instead of standing still (Rule 4.4, §1.3, §7).)* v2.21 — 2026-10-18, engine as of changelog 429. *(2.21: a harvested loss is the loss the account holds — basis over the declined value, plus the year's own contribution — and the sale resets the basis (Rule 2.8); §7 notes that an unharvested decline below basis is forfeited.)* v2.20 — 2026-10-18, engine as of changelog 423. *(2.20: the surviving spouse's inherited-IRA election is documented as not modelled (Rule 3.2, §7); §7 brought current for itemized deductions and dividend character.)* v2.19 — 2026-10-18, engine as of changelog 423. *(2.19: a fill-to-bracket Roth conversion is trimmed after the withdrawal solver by the income its draws added, so conversion and Pre-Tax draw together land on the ceiling (Rule 3.4).)* v2.18 — 2026-10-18, engine as of changelog 422. *(2.18: a Monte Carlo trial hands the engine its random draw and the engine prices it in the phase it is in, so the Survivor Stress Test, a fatal care episode and the glide path shape a trial as they shape the plan (§1.3).)* v2.17 — 2026-10-18, engine as of changelog 420. *(2.17: sampled Monte Carlo inflation moves every indexed figure, not only spending (§1.3).)* v2.16 — 2026-10-18, engine as of changelog 419. *(2.16: statutory figures index from their TAX_YEAR vintage rather than the plan's first year (§1.3).)* v2.15 — 2026-10-17, engine as of changelog 418. *(2.15: Wisconsin leaves the ACA coverage-gap list (Rule 2.10); QCDs from the year the owner turns 71, with or without an RMD and not capped at it (Rule 3.3).)* v2.14 — 2026-10-17, engine as of changelog 417. *(2.14: itemized deductions — SALT under the OBBBA cap, mortgage interest on acquisition debt, cash gifts after the 0.5% floor, medical over 7.5% — taken when larger than the standard deduction, and the non-itemizer charitable deduction from 2026 (Rule 2.2).)* v2.13 — 2026-10-17, engine as of changelog 416. *(2.13: RMDs read the Joint and Last Survivor table when the sole-beneficiary spouse is more than 10 years younger (Rule 3.2).)* v2.12 — 2026-10-17, engine as of changelog 415. *(2.12: the ACA premium tax credit is computed — state benchmark premium by age less the Rev. Proc. 2025-25 applicable percentage of MAGI, capped at the premium, estimated before the year and reconciled on the settled MAGI (Rule 2.10).)* v2.11 — 2026-10-17, engine as of changelog 414. *(2.11: the taxable-brokerage qualified share follows the plan's stock/bond split by default, the bond and cash share being interest; a Detailed Holdings bond or cash holding with no Distribution Character is ordinary (Rules 2.3, 3.9).)* v2.10 — 2026-10-17, engine as of changelog 411. *(2.10: SSA's announced 2027 COLA, wage base and earnings-test amounts (Rules 2.11, 3.1); the Survivor Stress Test age is alive-through, like Life Expectancy, so the year of death is a joint return (Q-2).)* v2.9 — 2026-10-17, engine as of changelog 409. *(2.9: the ACA poverty line is the guideline published the year before the coverage year — 2026 coverage on the 2025 table — so the 400% cliff and the coverage-gap floor sit where the marketplace puts them (Rule 2.10).)* v2.8 — 2026-10-17, engine as of changelog 407. *(2.8: two MFS returns each floor their own standard deduction, for the ordinary tax, the gains stack, the NIIT test, the conversion ceiling, the ledger's bracket and a state that starts from the federal deduction (Rule 1.1).)* v2.7 — 2026-10-17, engine as of changelog 406. *(2.7: the max-bracket conversion ceiling and the ledger's marginal bracket read the larger MFS return's share, as the IRMAA cap already did (Rule 1.1); the heir's year-one inherited-IRA draw is priced above the year-one HSA/NQDC lumps on the same return, federal and state; the household effective estate tax rate counts GST and the heirs' state income tax as each heir's rate already did; Today's Dollars deflates the heirs' state income tax (Rule 5.0 and the per-heir rules); a harvested loss covers the solver's draw gains before any of it offsets ordinary income, and the senior-bonus MAGI nets the loss used (Rule 2.8); the draws that fund the ACA boost tax, the subsidy clawback and the IRMAA true-up are taxed and penalized like any other and keep the Roth layer accounting; the boost's tax is split federal/state; the foreign dividend surtax and the §904 re-sourcing follow the split-year and remitted shares and the passive basket needs the country to tax investment income; a QCD comes only from taxable money and leaves the Form 8606 ratio (Rules 2.10, 3.2, the years-abroad section).)* v2.6 — 2026-09-30, engine as of changelog 349. *(2.6: new Rule 4.8 — a Washington jurisdiction with the capital gains excise tax (7% + 2.9% over $1M, RCW 82.87) and, from 2028, the ESSB 6346 income tax (9.9% over a $1,000,000 household deduction, capital gains tax credited); Washington's estate tax runs through its graduated 10%–20% table (Rule 5.5, Q-19 revised); New York's 2026 / 2027–2032 / 2033+ rates re-confirmed against Tax Law §601 (Rule 4.5); Pub. 590-A labelled as the 2025 edition used for rules only, 2026 IRA figures from Notice 2025-67.)* v2.5 — 2026-09-30, engine after the 2026-09 tax review. *(2.5: the senior bonus phases out per person (Rule 2.2); MFS gives each return its own deduction, age add-on, state return and IRMAA test (Rules 1.1, 2.1, 2.2, 2.9, 4.1) and no premium tax credit (Rule 2.10); the survivor keeps their own 65+ deduction whichever spouse survives; provisional income includes every AGI item (§1.2, Rule 2.6); Life-Event Pre-Tax withdrawals before 59½ are penalized (Rule 3.5); Colorado's SS subtraction shares the pension cap and Pennsylvania taxes 401(k) deferrals (Rules 4.2, 4.3, 4.6); NIIT excludes a Pre-Tax-funded annuity (Rule 2.4); the FRA-year earnings test runs for FRA 67 (Rule 2.11); IRMAA's top tier is ≥ and the MFS-together top line is $500,000 less the lower one (Rule 2.9); Auto-Max 401(k) routes the catch-up to Roth over the wage threshold (Rule 3.1); the estate exemption doubles for MFS and the DSUE indexes only to the first death (Rule 5.1); Illinois' 2026 exemption is $2,925; §1.3 corrected.)* v2.4 — 2026-09-24, engine as of changelog 265. *(2.4 replaces the survivor Social Security rule in Rule 3.12: age-60 start, the 71.5%–100% age reduction, RIB-LIM and carried delayed credits, in place of "the greater of the two from 62".)* v2.3 — 2026-09-10, engine as of changelog 165. *(2.3 documents
+**Version:** 2.30 — 2026-10-23, engine as of changelog 457. *(2.30: the 2026-10-23 review — ACA MAGI counts the taxable-earnings slice of a non-qualified Roth draw, as IRMAA MAGI always did (§1.2, Rule 2.10); a working survivor's benefit is subject to the Retirement Earnings Test, with withheld months credited back at FRA (Rules 2.11, 3.12); a Pre-Tax Life-Event withdrawal counts toward the year's RMD (Rule 3.2); SSA's announced 2026 COLA is 2.8%; text corrections where the spec contradicted the correct engine — reinvested dividends add basis (Rule 3.9), the charitable bequest draws on five buckets (Rule 5.4), Maryland credits inheritance tax against its estate tax (Rule 5.5), heir state income tax IS charged (Rule 5.7), each MFS return floors its own deduction (§7), the senior deduction is §70103(a), and the HSA/FICA cafeteria-plan note was inverted (Rule 2.7); notes added on the uncapped §36B(f) repayment (P.L. 119-21 repeal), the Part D premium-stabilization demonstration, AMT gains near the phase-out, pre-claim COLA-vs-AWI indexing, mortgage-insurance premiums, Minnesota's NII surtax and Georgia's 2027 exclusion step-up (Rules 2.5, 2.9, 2.10, 2.2, 3.12, 4.9).)* v2.29 — 2026-10-20, engine as of changelog 448. *(2.29: an optional Keep at Least floor; the Monte Carlo, historical starts and SAFEMAX count a run as lasting only if it never ends a retired year below it (§1.5).)* v2.28 — 2026-10-20, engine as of changelog 447. *(2.28: investment fees — fund expenses (default 0.10%) and an advisor fee (default 0) — come off the Pre-Tax, Roth, Taxable and HSA balances each year after the return, are not deductible (IRC §67(g), made permanent by Pub. L. 119-21; Pub. 529), and also reduce an heir's inherited-account growth (§1.4).)* v2.27 — 2026-10-19, engine as of changelog 443. *(2.27: ACA Cliff Protection is on by default, and the plan warns when the assumed premium is well under the age-rated benchmark (Rule 2.10).)* v2.26 — 2026-10-19, engine as of changelog 442. *(2.26: a Detailed Holdings REIT, option-income or BDC holding left at Not Set is ordinary, and Mixed counts half (Rule 3.9).)* v2.25 — 2026-10-19, engine as of changelog 441. *(2.25: the default qualified share is weighted by what the stock and bond sides yield, not by the balance split (Rule 2.3).)* v2.24 — 2026-10-19, engine as of changelog 440. *(2.24: a QCD beyond the RMD is shown inside the year's Pre-Tax distributions (Rule 3.3); the optimizers' net-to-heirs key prices the heirs' share of the Pre-Tax balance after a bequest at the federal and state rate they pay (Rule 5.0, changelog 438).)* v2.23 — 2026-10-19, engine as of changelog 433. *(2.23: an itemizer's AMTI adds back only the SALT line and the senior deduction, not the whole itemized total (Rule 2.5); §7 and Rule 2.2 no longer say the app does not itemize.)* v2.22 — 2026-10-18, engine as of changelog 430. *(2.22: California's brackets, standard deduction, exemption credit and phase-out carry forward from their 2025 vintage by the Tax Bracket Inflation Rate instead of standing still (Rule 4.4, §1.3, §7).)* v2.21 — 2026-10-18, engine as of changelog 429. *(2.21: a harvested loss is the loss the account holds — basis over the declined value, plus the year's own contribution — and the sale resets the basis (Rule 2.8); §7 notes that an unharvested decline below basis is forfeited.)* v2.20 — 2026-10-18, engine as of changelog 423. *(2.20: the surviving spouse's inherited-IRA election is documented as not modelled (Rule 3.2, §7); §7 brought current for itemized deductions and dividend character.)* v2.19 — 2026-10-18, engine as of changelog 423. *(2.19: a fill-to-bracket Roth conversion is trimmed after the withdrawal solver by the income its draws added, so conversion and Pre-Tax draw together land on the ceiling (Rule 3.4).)* v2.18 — 2026-10-18, engine as of changelog 422. *(2.18: a Monte Carlo trial hands the engine its random draw and the engine prices it in the phase it is in, so the Survivor Stress Test, a fatal care episode and the glide path shape a trial as they shape the plan (§1.3).)* v2.17 — 2026-10-18, engine as of changelog 420. *(2.17: sampled Monte Carlo inflation moves every indexed figure, not only spending (§1.3).)* v2.16 — 2026-10-18, engine as of changelog 419. *(2.16: statutory figures index from their TAX_YEAR vintage rather than the plan's first year (§1.3).)* v2.15 — 2026-10-17, engine as of changelog 418. *(2.15: Wisconsin leaves the ACA coverage-gap list (Rule 2.10); QCDs from the year the owner turns 71, with or without an RMD and not capped at it (Rule 3.3).)* v2.14 — 2026-10-17, engine as of changelog 417. *(2.14: itemized deductions — SALT under the OBBBA cap, mortgage interest on acquisition debt, cash gifts after the 0.5% floor, medical over 7.5% — taken when larger than the standard deduction, and the non-itemizer charitable deduction from 2026 (Rule 2.2).)* v2.13 — 2026-10-17, engine as of changelog 416. *(2.13: RMDs read the Joint and Last Survivor table when the sole-beneficiary spouse is more than 10 years younger (Rule 3.2).)* v2.12 — 2026-10-17, engine as of changelog 415. *(2.12: the ACA premium tax credit is computed — state benchmark premium by age less the Rev. Proc. 2025-25 applicable percentage of MAGI, capped at the premium, estimated before the year and reconciled on the settled MAGI (Rule 2.10).)* v2.11 — 2026-10-17, engine as of changelog 414. *(2.11: the taxable-brokerage qualified share follows the plan's stock/bond split by default, the bond and cash share being interest; a Detailed Holdings bond or cash holding with no Distribution Character is ordinary (Rules 2.3, 3.9).)* v2.10 — 2026-10-17, engine as of changelog 411. *(2.10: SSA's announced 2027 COLA, wage base and earnings-test amounts (Rules 2.11, 3.1); the Survivor Stress Test age is alive-through, like Life Expectancy, so the year of death is a joint return (Q-2).)* v2.9 — 2026-10-17, engine as of changelog 409. *(2.9: the ACA poverty line is the guideline published the year before the coverage year — 2026 coverage on the 2025 table — so the 400% cliff and the coverage-gap floor sit where the marketplace puts them (Rule 2.10).)* v2.8 — 2026-10-17, engine as of changelog 407. *(2.8: two MFS returns each floor their own standard deduction, for the ordinary tax, the gains stack, the NIIT test, the conversion ceiling, the ledger's bracket and a state that starts from the federal deduction (Rule 1.1).)* v2.7 — 2026-10-17, engine as of changelog 406. *(2.7: the max-bracket conversion ceiling and the ledger's marginal bracket read the larger MFS return's share, as the IRMAA cap already did (Rule 1.1); the heir's year-one inherited-IRA draw is priced above the year-one HSA/NQDC lumps on the same return, federal and state; the household effective estate tax rate counts GST and the heirs' state income tax as each heir's rate already did; Today's Dollars deflates the heirs' state income tax (Rule 5.0 and the per-heir rules); a harvested loss covers the solver's draw gains before any of it offsets ordinary income, and the senior-bonus MAGI nets the loss used (Rule 2.8); the draws that fund the ACA boost tax, the subsidy clawback and the IRMAA true-up are taxed and penalized like any other and keep the Roth layer accounting; the boost's tax is split federal/state; the foreign dividend surtax and the §904 re-sourcing follow the split-year and remitted shares and the passive basket needs the country to tax investment income; a QCD comes only from taxable money and leaves the Form 8606 ratio (Rules 2.10, 3.2, the years-abroad section).)* v2.6 — 2026-09-30, engine as of changelog 349. *(2.6: new Rule 4.8 — a Washington jurisdiction with the capital gains excise tax (7% + 2.9% over $1M, RCW 82.87) and, from 2028, the ESSB 6346 income tax (9.9% over a $1,000,000 household deduction, capital gains tax credited); Washington's estate tax runs through its graduated 10%–20% table (Rule 5.5, Q-19 revised); New York's 2026 / 2027–2032 / 2033+ rates re-confirmed against Tax Law §601 (Rule 4.5); Pub. 590-A labelled as the 2025 edition used for rules only, 2026 IRA figures from Notice 2025-67.)* v2.5 — 2026-09-30, engine after the 2026-09 tax review. *(2.5: the senior bonus phases out per person (Rule 2.2); MFS gives each return its own deduction, age add-on, state return and IRMAA test (Rules 1.1, 2.1, 2.2, 2.9, 4.1) and no premium tax credit (Rule 2.10); the survivor keeps their own 65+ deduction whichever spouse survives; provisional income includes every AGI item (§1.2, Rule 2.6); Life-Event Pre-Tax withdrawals before 59½ are penalized (Rule 3.5); Colorado's SS subtraction shares the pension cap and Pennsylvania taxes 401(k) deferrals (Rules 4.2, 4.3, 4.6); NIIT excludes a Pre-Tax-funded annuity (Rule 2.4); the FRA-year earnings test runs for FRA 67 (Rule 2.11); IRMAA's top tier is ≥ and the MFS-together top line is $500,000 less the lower one (Rule 2.9); Auto-Max 401(k) routes the catch-up to Roth over the wage threshold (Rule 3.1); the estate exemption doubles for MFS and the DSUE indexes only to the first death (Rule 5.1); Illinois' 2026 exemption is $2,925; §1.3 corrected.)* v2.4 — 2026-09-24, engine as of changelog 265. *(2.4 replaces the survivor Social Security rule in Rule 3.12: age-60 start, the 71.5%–100% age reduction, RIB-LIM and carried delayed credits, in place of "the greater of the two from 62".)* v2.3 — 2026-09-10, engine as of changelog 165. *(2.3 documents
 the taxable-account income change already shipped in changelog 161: the
 holdings-linked yield now counts every taxable distribution rather than
 dividends alone. It also adds **Q-24**, which proposes splitting that
@@ -112,7 +112,7 @@ Two conventions to keep in mind throughout:
 | **Capital gains** | The qualified share of the taxable-brokerage yield (2% of the balance by default; the share follows the plan's stock/bond split, Rule 2.3), plus realized gains on taxable-brokerage withdrawals (the non-basis fraction of each dollar withdrawn). All gains are treated as long-term. |
 | **MAGI proxy** | Ordinary income base + discretionary Pre-Tax draw + capital gains. Used for the OBBBA senior-bonus phase-out and NIIT. |
 | **IRMAA MAGI** | Ordinary income base + discretionary Pre-Tax draw + taxable Roth earnings + capital gains — i.e. AGI (tax-exempt interest is not modelled). Social Security enters at its *taxable* amount, as in AGI (since v1.6; Q-4(b)(c)). The figure that sets year N's premium is year N−2's IRMAA MAGI (the two-year lookback, v1.5). |
-| **ACA MAGI** | Ordinary income base + discretionary Pre-Tax draw + capital gains + the non-taxable part of Social Security. |
+| **ACA MAGI** | Ordinary income base + discretionary Pre-Tax draw + taxable Roth earnings + capital gains + the non-taxable part of Social Security (§36B(d)(2)(B): AGI plus untaxed Social Security; tax-exempt interest is not modelled). |
 | **Provisional income (SS)** | The ordinary income base without Social Security (wages net of deferrals, pensions, rental/flat-annuity income, taxable RMD, Pre-Tax Life-Event withdrawals, the purchased annuity's taxable slice, other taxable inflows, NUA cost basis, less the harvested-loss ordinary offset) + dividends + taxable Roth conversion + the discretionary Pre-Tax draw + realized gains on a Taxable draw + the taxable earnings slice of an early Roth draw + ½ of Social Security. Settled AFTER the withdrawal solver, so it matches AGI; see Rule 2.6. The same "other ordinary income" figure feeds the max-bracket conversion sizing and the ACA / IRMAA conversion caps. |
 
 ### 1.3 What is indexed forward, and by what
@@ -270,7 +270,7 @@ bonus either way. The standard deduction is the sum of three parts:
    two returns each spouse counts on their own return; a one-return MFS plan
    (100% split, or no Spouse 2) counts Spouse 1 only. A surviving spouse --
    whichever spouse survives -- counts as one senior on a Single return.
-3. **OBBBA senior deduction (P.L. 119-21 §70104; IRC §151(d)(5) as
+3. **OBBBA senior deduction (P.L. 119-21 §70103(a); IRC §151(d)(5) as
    added):** $6,000 per individual aged 65+, tax years 2025–2028 only, each
    individual's $6,000 reduced separately by 6% of MAGI over $75,000
    (Single) / $150,000 (MFJ), floored at zero -- so two seniors filing
@@ -316,13 +316,14 @@ below the line, so no MAGI changes. The rows carry `deductionUsed`,
 start from federal taxable income (Rule 4.9) and so inherit whichever
 deduction the federal return used. Not modelled: the 35% ceiling on the
 value of itemized deductions in the 37% bracket (§68 as amended by
-§70111), investment interest, casualty losses, the pre-2018 Pease limit,
-every other state's own itemizing rules, and the AMT's other preference
-items (Rule 2.5 adds back the SALT line for an itemizer and allows the
-other three).
+§70111), mortgage-insurance premiums as residence interest (§163(h)(3)(E)
+as revived by §70108, from 2026), investment interest, casualty losses,
+the pre-2018 Pease limit, every other state's own itemizing rules, and
+the AMT's other preference items (Rule 2.5 adds back the SALT line for an
+itemizer and allows the other three).
 
 **Authority.** Rev. Proc. 2025-32 (basic and §63(f) amounts); P.L. 119-21
-§70104 as summarised by IRS, H&R Block and the Peter G. Peterson Foundation
+§70103(a) as summarised by IRS, H&R Block and the Peter G. Peterson Foundation
 (bonus amount, years, phase-out, MFS exclusion). Verified 2026-08-29.
 P.L. 119-21 §§70111, 70120, 70424, 70425 (itemized changes from 2025/2026);
 IRC §§163(h)(3), 164(b)(6), 170(b), 170(p), 213(a).
@@ -412,9 +413,16 @@ deductions the AMT disallows: the standard deduction, or in a year that
 itemizes (Rule 2.2) the state and local tax line only — mortgage interest,
 charitable gifts and medical costs over the floor are allowed under both
 systems (§56(b)(1)); the senior deduction is added back. Capital gains are
-excluded from both sides of the comparison. (v2.23: until changelog 433 an
-itemizer's AMTI was the income before any deduction, which produced a
-phantom AMT for every household that itemized.)
+excluded from both sides of the comparison — the rates are identical under
+both systems, but note that in law gains DO enter AMTI and can erode the
+exemption through the phase-out (a 50%-rate effect above the thresholds
+below since P.L. 119-21), so a household with large ordinary AMTI plus
+large gains near the threshold can owe AMT the engine misses; bounded by
+26–28% of the exemption, rare for this app's profiles, and conservative to
+leave out only in the sense that the comparison stays simple. (v2.23:
+until changelog 433 an itemizer's AMTI was the income before any
+deduction, which produced a phantom AMT for every household that
+itemized.)
 
 | | MFJ | Single | MFS |
 |---|---|---|---|
@@ -511,7 +519,10 @@ income):
 NQDC deferrals remain in FICA wages in the year deferred (§3121(v)(2)
 timing) and NQDC distributions are not FICA-taxed. Pre-tax 401(k) and HSA
 contributions are *not* excluded from the FICA wage base (correct for
-401(k); for HSA it matches the cafeteria-plan case).
+401(k); for the HSA it matches a DIRECT contribution — an HSA funded
+through a §125 cafeteria plan at work IS excluded from FICA wages in law,
+so the engine overstates FICA by 7.65% of the contribution for that common
+case, a conservative simplification).
 
 **Authority.** ssa.gov/oact/cola/cbb.html (wage base, verified
 2026-08-20); 42 U.S.C. §430; IRS Additional Medicare Tax Q&A.
@@ -683,7 +694,10 @@ MFS (lived with spouse): $649.20 above $109,000; $689.90 at or above $391,000.
 
 Part D (monthly): base premium $38.99 (2026 national base beneficiary
 premium, CMS July 28 2025 announcement — Q-6, v1.7) plus IRMAA surcharges of
-$14.50 / $37.50 / $60.40 / $83.30 / $91.00 at the same tiers.
+$14.50 / $37.50 / $60.40 / $83.30 / $91.00 at the same tiers. Note: the
+2026 base embeds CMS's Premium Stabilization Demonstration (a $10 uniform
+reduction in 2026); if the demonstration lapses, the base jumps more than
+the Part D inflation default projects — re-check at the annual update.
 
 **Authority.** CMS "2026 Medicare Parts A & B Premiums and Deductibles"
 fact sheet; SSA POMS Part D IRMAA table (via Kiplinger's 2026 summary);
@@ -790,7 +804,9 @@ the return as Form 8962 does — a shortfall repaid as federal tax
 (`acaSubsidyClawback`, funded Taxable → Roth → Pre-Tax like the boost
 tax), an excess refunded to the taxable account (`acaSubsidyRefund`). A
 year over the cliff or in the coverage gap earns nothing and repays the
-whole advance. The first marketplace year of a household with no income
+whole advance. The repayment is deliberately UNCAPPED: the §36B(f)(2)(B)
+repayment limitation was repealed by P.L. 119-21 for tax years after 2025
+(IRS FS-2025-10), so the old income-tiered caps must not be reintroduced. The first marketplace year of a household with no income
 before the solver is estimated at zero and settled as a refund.
 
 *Manual* (`acaCreditSource: 'manual'`): the user-entered "Estimated ACA
@@ -859,12 +875,20 @@ lifetime benefits by roughly $128,000 relative to the pre-178 engine, which
 paid the reduced benefit in full forever.
 
 Withholding is applied per spouse against that spouse's own retirement
-benefit and capped at that benefit; it never reaches other income.
+benefit and capped at that benefit; it never reaches other income. **A
+survivor's benefit is tested too** (survivor benefits are not exempt from
+the test, 42 U.S.C. §403(b)): in a survivor year the benefit actually in
+payment -- own or survivor, whichever the max-of rule pays -- is tested
+against the survivor's own earnings, and the withheld months are credited
+back at FRA through the recomputation of whichever benefit was being paid
+(the survivor claim age for a survivor benefit, the own claiming age
+otherwise).
 
 **Simplifications, all deliberate:**
 - The monthly "grace year" test in the first retired year is not modelled.
-- A spousal top-up is not reduced by the worker's earnings (the test does
-  reach it in law).
+- A spousal top-up is not reduced by either spouse's earnings (the test
+  reaches it in law, both for the worker's excess earnings and the
+  recipient's own).
 - The engine steps a year at a time and models no birth month. The
   FRA-attainment year is the calendar year in which the age reaches the
   whole-year part of FRA (age 67 for anyone born 1960 or later), and in that
@@ -916,7 +940,13 @@ in 1960 or later** — and are computed as balance ÷ the Uniform Lifetime
 Table divisor for the owner's age. The owner is Spouse 1 while alive, then
 the surviving Spouse 2 (treated as a spousal rollover, on Spouse 2's own
 age and start age). No first-year April 1 deferral; no still-working
-exception.
+exception. **Any distribution during the year counts toward the
+requirement** (Reg. §1.401(a)(9)-5): a Pre-Tax Life-Event withdrawal taken
+in an RMD year reduces the amount forced on top of it dollar for dollar,
+so a $50,000 Life Event against a $40,000 RMD leaves nothing further to
+force. (The discretionary draws the withdrawal solver takes come later in
+the year's ordering and do not reduce the RMD; the RMD's cash is credited
+to spending first, so the solver only draws beyond it.)
 
 **The survivor's beneficiary election (v2.20, noted 2026-10-17).** A
 surviving spouse may instead keep the decedent's IRA as an inherited
@@ -1156,8 +1186,10 @@ collar alternative to an outright sale.
 reinvested surplus, NUA basis and diversification proceeds enter at 100%
 basis; growth never adds basis; withdrawals remove basis pro-rata. The
 starting basis is either entered or defaults to 40% of the balance. Each
-withdrawal realizes gain equal to the non-basis fraction. Dividends are not
-added to basis (treated as retained appreciation).
+withdrawal realizes gain equal to the non-basis fraction. Reinvested
+dividends add to basis -- they are after-tax money buying shares, and not
+crediting them would tax the same dollars twice -- while dividends paid out
+in cash add nothing.
 
 **Income on the account (v2.3, changelog 161).** The engine applies a yield
 to the taxable balance each year. That yield is either a user input
@@ -1297,6 +1329,14 @@ statutory multiplier × cumulative COLA:
   64 = 80%, 65 = 86.7%, 66 = 93.3%; for FRA 66: 62 = 75%).
 - Delayed: 2/3 of 1% per month to age 70 (124% for FRA 67; 132% for FRA
   66; a 1957-born claimant at 70 earns 42 months, 128%).
+
+The cumulative COLA applies from the plan's first year, including years
+before the claim. In law a pre-claim benefit grows with the national
+Average Wage Index to roughly age 60 and with CPI COLAs only after;
+AWI has historically outrun CPI, so a younger planner's FRA amount is
+modestly understated — conservative, and the user can simply enter a
+present-dollar FRA estimate from ssa.gov, which already embeds AWI
+indexing to the statement date.
 
 Single-person plan: benefit starts at the chosen claiming age.
 Couple, both alive: each benefit starts at that spouse's claiming age.
@@ -1718,8 +1758,11 @@ by the same record at the heir's age.
 **Not modelled:** credits other than flat per-person ones, itemized
 deductions, the Alabama deduction for federal tax paid, Missouri's public
 pension exemption, Montana's lower capital gains rates, Vermont's minimum
-tax, municipal taxes other than the county averages, and per-spouse
-attribution of exclusions.
+tax, Minnesota's 1% net-investment-income surtax over $1,000,000,
+Georgia's 2027 step-up of the 65+ retirement exclusion to $70,000 (HB 463;
+the record holds $65,000 for all years, conservative from 2027), municipal
+taxes other than the county averages, and per-spouse attribution of
+exclusions.
 
 **Reviewer:** [ ] Agree  [ ] Correct but incomplete  [ ] Issue: ______________
 
@@ -1848,10 +1891,10 @@ and non-citizen spouse rules not modelled.
 
 Unlimited deduction (§2055). The bequest is a percentage or dollar amount
 of the gross estate, capped at the assets it can actually be paid from
-(the Pre-Tax, Roth and Taxable buckets — life-insurance proceeds pass to
-the policy's beneficiaries and cannot fund it), and is sourced pro-rata,
-Pre-Tax-first, or taxable-first across those buckets; heirs inherit what
-remains of each. Bequests are assumed exempt from all state estate and
+(the Pre-Tax, Roth, Taxable, cash-reserve and concentrated-stock buckets —
+life-insurance proceeds pass to the policy's beneficiaries and cannot fund
+it), and is sourced pro-rata, Pre-Tax-first, or taxable-first across those
+buckets; heirs inherit what remains of each. Bequests are assumed exempt from all state estate and
 inheritance taxes.
 
 **Reviewer:** [ ] Agree  [ ] Correct but incomplete  [ ] Issue: ______________
@@ -1967,9 +2010,11 @@ child / parent / sibling / in-law / niece-nephew / other; default child):
   Class C (other): $500 exempt, then 6% to $10k, 8% to $20k, 10% to $30k,
   12% to $45k, 14% to $60k, 16% above.
 - **Maryland** (Tax-Gen. §7-203/-204): spouse, child, parent, sibling,
-  in-law exempt; others 10% flat if the bequest exceeds $1,000. MD estate
-  tax and inheritance tax are both charged with no credit for the other
-  (see Q-18).
+  in-law exempt; others 10% flat if the bequest exceeds $1,000. The
+  inheritance tax paid is credited against the MD estate tax (Tax-Gen.
+  §7-309(b); Comptroller Tax Tip 42), as the table above and the engine
+  both apply -- the household pays the larger of the two, not both
+  (see Q-18(b)).
 - **Nebraska** (§77-2004 to -2006, post-LB 310): spouse exempt; child,
   parent, sibling, in-law 1% over $100,000; niece/nephew 11% over $40,000;
   other 15% over $25,000.
@@ -2082,7 +2127,9 @@ today's dollars — is carried forward with them, so both sides of the stack
 sit in the same money as the nominal inheritance. Moving them together
 leaves the heir's own marginal position unchanged and stops inflation alone
 pushing the inheritance up the schedule. `estateIndexingEnabled: false`
-restores the unindexed 2026 comparison. No heir standard deduction, state tax or NIIT; no §691(c) IRD
+restores the unindexed 2026 comparison. No heir standard deduction or NIIT
+(heir STATE income tax on the ten-year draw-down IS charged, by the state
+set on each heir card -- see Rules 5.0 and 4.9); no §691(c) IRD
 deduction for federal estate tax paid on the same dollars. Eligible designated
 beneficiaries (spouse, minor child, disabled, chronically ill, ≤10 years
 younger) are not distinguished. Inherited Roth is tax-free; inherited
@@ -2542,8 +2589,8 @@ Listed so you can skip them unless you consider one unacceptable.
   probate costs or debts.
 - MFS divides the household's income, deductions, state figures and IRMAA
   MAGI between the two returns in one ratio (`mfsIncomeSplitPct`); no
-  income source is attributed to the spouse who earned it, and each
-  return's deduction is not floored separately.
+  income source is attributed to the spouse who earned it. Each return
+  floors its own standard deduction (Rule 1.1).
 - SS survivor benefit (since v2.4) follows 402(e)/(f) -- age-60 start,
   71.5%-100% age reduction, RIB-LIM, delayed credits carried -- but the
   survivor is assumed to start it in the first eligible year rather than

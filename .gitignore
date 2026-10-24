@@ -74,3 +74,7 @@ coverage/
 *.pdf
 !docs/**/*.pdf
 outlastretirement_full_backup_*.json
+
+# Parked files awaiting deletion (old reviewer packs, git strays). Never
+# committed: a git add -A once swept a parked .docx into a commit.
+_to_delete/

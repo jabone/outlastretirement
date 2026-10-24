@@ -209,7 +209,7 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'three-questions',
-    video: 'https://www.youtube.com/watch?v=VyhB2jxfQQw',
+    video: 'https://www.youtube.com/watch?v=UDq8z-rx9Fc',
     group: 'decisions',
     label: 'Lesson 7',
     eyebrow: 'Big decisions',

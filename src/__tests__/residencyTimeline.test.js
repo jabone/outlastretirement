@@ -184,6 +184,10 @@ describe('every seam follows the move', () => {
       ss1: 0, ss2: 0, pension1: 0, pension2: 0, rentalIncome: 0, annuityIncome: 0,
       salary1: 0, salary2: 0, partTimeIncome1: 0, partTimeIncome2: 0,
       preTaxInit: 800000, rothInit: 200000, taxableInit: 200000,
+      // All basis, so the pre-59 1/2 Roth draws are return of contributions
+      // and keep ACA MAGI under the poverty line (a draw of EARNINGS is AGI
+      // and so ACA MAGI since the 2026-10-23 review).
+      rothBasisInit: 200000,
       preTaxContribution1: 0, preTaxContribution2: 0, rothContribution1: 0, rothContribution2: 0, taxableContribution: 0,
       lifestyleExpense: 40000, withdrawalStrategy: 'RothFirst', rothConversionStrategy: 'none',
       taxBracketInflationRate: 0, inflationRate: 0, acaSubsidyProtectionEnabled: false,
@@ -225,6 +229,10 @@ describe('a move in the first year is the same as living there all along', () =>
     spouse2Enabled: false, filingStatus: 'Single', birthYear1: START - 56, retireAge1: 56,
     lifeExpectancy1: 90, claimingAge1: 70, ss1: 0, pension1: 0, salary1: 0, rentalIncome: 0,
     annuityIncome: 0, partTimeIncome1: 0, preTaxInit: 800000, rothInit: 200000, taxableInit: 200000,
+    // The Roth draws must be return of contributions: a pre-59 1/2 draw of
+    // EARNINGS is AGI and so ACA MAGI (the 2026-10-23 review), which would
+    // lift this household over the poverty line and leave no boost to test.
+    rothBasisInit: 200000,
     preTaxContribution1: 0, rothContribution1: 0, taxableContribution: 0, lifestyleExpense: 40000,
     withdrawalStrategy: 'RothFirst', rothConversionStrategy: 'none', taxBracketInflationRate: 0,
     inflationRate: 0, acaSubsidyProtectionEnabled: true,

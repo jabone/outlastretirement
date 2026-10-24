@@ -128,7 +128,11 @@ const YearLedgerTab = () => {
     const body = view === 'uses' ? buildMoneyGoesCsv(projection, { split: isPremium }) : buildYearLedgerCsv(projection);
     const title = view === 'uses' ? 'Year by Year, where the money goes' : 'Year by Year ledger';
     const name = `${view === 'uses' ? 'where_the_money_goes' : 'retirement_projection'}_${new Date().toISOString().slice(0, 10)}.csv`;
-    downloadCsv(name, csvPreamble({ title, inputs, useRealDollars }) + body);
+    // The on-screen column's tooltip says Income Tax carries payroll tax in
+    // working years; a CSV opened on its own has no tooltip, so the
+    // preamble says it instead.
+    const extra = ['Income Tax: federal and state income tax, and payroll tax while working'];
+    downloadCsv(name, csvPreamble({ title, inputs, useRealDollars, extra }) + body);
   };
 
   return (

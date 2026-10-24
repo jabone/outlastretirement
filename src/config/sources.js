@@ -604,6 +604,16 @@ export const SOURCES = [
     expect: ['400 percent'],
   },
   {
+    id: 'aca-applicable-pct',
+    label: 'ACA premium tax credit applicable percentages for 2026',
+    drives: 'The share of income a marketplace household pays toward the benchmark plan, from which the computed premium tax credit is figured.',
+    publisher: 'IRS (Rev. Proc. 2025-25, §36B applicable percentage table for 2026)',
+    url: 'https://www.irs.gov/pub/irs-drop/rp-25-25.pdf',
+    verified: '2026-10-23',
+    note: 'Fetched and confirmed 2026-10-23: "For taxable years beginning in calendar year 2026", 2.10% below 133% of the poverty line, 3.14% to 4.19%, 4.19% to 6.60%, 6.60% to 8.44%, 8.44% to 9.96% across the middle bands, and 9.96% from 300% to 400%. The 2021-2025 enhancement expired, so the 400% ceiling is back.',
+    expect: ['2.10', '9.96'],
+  },
+  {
     id: 'early-distributions',
     label: 'The 10% additional tax on early retirement-plan withdrawals',
     drives: 'The penalty added to Pre-Tax withdrawals before 59½, and the exceptions the projection does not assume.',

@@ -11,7 +11,13 @@ export function compactDollars(v, { digits } = {}) {
     const d = digits ?? (m >= 100 ? 0 : m >= 10 ? 1 : 2);
     return `${sign}$${m.toFixed(d).replace(/\.?0+$/, '')}M`;
   }
-  if (a >= 1e3) return `${sign}$${Math.round(a / 1e3)}k`;
+  // $999,500 and up would round to "$1000k" -- the exact label this module
+  // exists to avoid -- so anything that ROUNDS to a thousand k is an M.
+  if (a >= 1e3) {
+    const k = Math.round(a / 1e3);
+    if (k >= 1000) return `${sign}$1M`;
+    return `${sign}$${k}k`;
+  }
   return `${sign}$${Math.round(a)}`;
 }
 

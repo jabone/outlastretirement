@@ -369,7 +369,7 @@
       <h4>Spousal benefit</h4>
       <p>With the spousal benefit switched on, a spouse whose own full benefit is less than half of the other's receives the difference as a top-up. It starts no earlier than 62 and no earlier than the other spouse's claim, and it is reduced when it starts before full retirement age (at 62 it is 65% of the full top-up). It earns no credits for waiting past full retirement age.</p>
       <p class="meta"><strong>Figures from:</strong> Set in law</p>
-      <p class="meta"><strong>What the app simplifies:</strong> Benefits on a former spouse's record and the one-year marriage test are not modeled, and the earnings test does not reduce the top-up.</p>
+      <p class="meta"><strong>What the app simplifies:</strong> Benefits on a former spouse's record and the one-year marriage test are not modeled, and the earnings test does not reduce the top-up for either spouse's earnings.</p>
       <p class="meta"><strong>Official source:</strong></p>
       <ul>
         <li><a href="https://www.ssa.gov/oact/quickcalc/spouse.html" target="_blank" rel="noopener noreferrer">SSA, Office of the Chief Actuary (Benefits for Spouses)</a> — checked September 30, 2026</li>
@@ -387,7 +387,7 @@
     </div>
     <div class="rule" id="rule-ss-earnings-test">
       <h4>Working while collecting: the earnings test</h4>
-      <p>If you claim before full retirement age and still earn wages, Social Security holds back one dollar of benefits for every two dollars you earn above $24,480. In the year you reach full retirement age the limit is $65,160, and one dollar is held back for every three. At full retirement age the benefit is recalculated to credit the months held back, and the app raises your benefit to match. Only wages and self-employment income count; pensions, withdrawals and investment income do not.</p>
+      <p>If you claim before full retirement age and still earn wages, Social Security holds back one dollar of benefits for every two dollars you earn above $24,480. In the year you reach full retirement age the limit is $65,160, and one dollar is held back for every three. At full retirement age the benefit is recalculated to credit the months held back, and the app raises your benefit to match. A survivor benefit collected while working is tested the same way. Only wages and self-employment income count; pensions, withdrawals and investment income do not.</p>
       <p class="meta"><strong>Figures from:</strong> tax year 2026</p>
       <p class="meta"><strong>What the app simplifies:</strong> The app counts whole years, so in the year you reach full retirement age it tests the whole year's earnings rather than only the months before that birthday; the first-year monthly test is not modeled.</p>
       <p class="meta"><strong>Official source:</strong></p>
@@ -420,13 +420,14 @@
     </div>
     <div class="rule" id="rule-aca-cliff">
       <h4>ACA premium tax credit and the 400% line</h4>
-      <p>Before Medicare, a retired household with marketplace coverage gets a premium tax credit only if its income is between 100% and 400% of the federal poverty line. The app flags any year over the 400% line ($84,600 for a couple, $62,600 single) and, if you entered an expected credit, charges it back as tax that year. In a state that has not expanded Medicaid it also flags years below the poverty line ($15,650 for one person), where there is neither Medicaid nor a credit.</p>
+      <p>Before Medicare, a retired household with marketplace coverage gets a premium tax credit only if its income is between 100% and 400% of the federal poverty line, measured against the guideline published the year before the coverage year, as the marketplace measures it. The app works the credit out: your state's benchmark premium at your age, less the share of income the law asks you to pay (2.1% to 9.96%, sliding with income), estimated going into the year and settled on the year's actual income. A year over the 400% line ($84,600 for a couple, $62,600 single) gets no credit at all, and any credit taken in advance is charged back as tax that year. In a state that has not expanded Medicaid the app also flags years below the poverty line ($15,650 for one person), where there is neither Medicaid nor a credit.</p>
       <p class="meta"><strong>Figures from:</strong> tax year 2026</p>
-      <p class="meta"><strong>What the app simplifies:</strong> The credit's amount is your own estimate rather than worked out from benchmark premiums, and the poverty line is the current year's rather than the prior year's the law uses.</p>
+      <p class="meta"><strong>What the app simplifies:</strong> The benchmark premium is your state's average rather than your county's own plan menu, and in a state that expanded Medicaid the app does not switch coverage to Medicaid between 100% and 138% of the poverty line.</p>
       <p class="meta"><strong>Official sources:</strong></p>
       <ul>
         <li><a href="https://www.irs.gov/affordable-care-act/individuals-and-families/eligibility-for-the-premium-tax-credit" target="_blank" rel="noopener noreferrer">IRS (Eligibility for the Premium Tax Credit)</a> — checked September 30, 2026</li>
-        <li><a href="https://www.federalregister.gov/documents/2026/01/15/2026-00755/annual-update-of-the-hhs-poverty-guidelines" target="_blank" rel="noopener noreferrer">HHS (Annual Update of the HHS Poverty Guidelines, 91 FR 1797)</a> — checked September 30, 2026</li>
+        <li><a href="https://www.irs.gov/pub/irs-drop/rp-25-25.pdf" target="_blank" rel="noopener noreferrer">IRS (Rev. Proc. 2025-25, §36B applicable percentage table for 2026)</a> — checked October 23, 2026</li>
+        <li><a href="https://www.federalregister.gov/documents/2025/01/17/2025-01377/annual-update-of-the-hhs-poverty-guidelines" target="_blank" rel="noopener noreferrer">HHS (Annual Update of the HHS Poverty Guidelines, 90 FR 5917)</a> — checked October 17, 2026</li>
       </ul>
     </div>
     <div class="rule" id="rule-hsa">

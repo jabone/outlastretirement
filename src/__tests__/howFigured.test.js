@@ -155,7 +155,7 @@ describe('how the numbers are figured: dollar figures', () => {
     '$250,000': [/const niitThresh = status === 'MFJ' \? 250000 : status === 'MFS' \? 125000 : 200000;/, /const addMedThreshold = filingStatus === 'MFJ' \? 250000 : 200000;/],
     '$200,000': [/const niitThresh = status === 'MFJ' \? 250000 : status === 'MFS' \? 125000 : 200000;/, /const addMedThreshold = filingStatus === 'MFJ' \? 250000 : 200000;/],
     '$125,000': [/const niitThresh = status === 'MFJ' \? 250000 : status === 'MFS' \? 125000 : 200000;/],
-    '$184,500': [/2026: \{ cola: 2\.5, wageBase: 184500,/],
+    '$184,500': [/2026: \{ cola: 2\.8, wageBase: 184500,/],
     '$32,000': [/\(currentStatus === 'MFJ'\) \? 32000 : 25000;/],
     '$25,000': [/\(currentStatus === 'MFJ'\) \? 32000 : 25000;/],
     '$44,000': [/\(currentStatus === 'MFJ'\) \? 44000 : 34000;/],

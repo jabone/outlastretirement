@@ -273,7 +273,11 @@ const TaxEstateTab = () => {
                 const taxBrackets = getBracketFilling(
                   yearData.ordinaryTaxableIncome,
                   yearData.householdStatus,
-                  yearData.bracketScale || yearData.taxBracketInflationFactor || 1
+                  yearData.bracketScale || yearData.taxBracketInflationFactor || 1,
+                  // The repeal stress toggle changes the rates the engine
+                  // charges, so the bars must be drawn from the same
+                  // schedule or their labels and per-bar tax are wrong.
+                  !!inputs.tcjaSunsetEnabled
                 );
 
                 const filledBrackets = taxBrackets.filter(b => b.filled > 0);

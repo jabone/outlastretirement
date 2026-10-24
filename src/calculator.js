@@ -1977,11 +1977,12 @@ export const DEFAULT_INPUTS = {
 // release: COLA, the wage base, the earnings-test amounts). A year in this
 // table uses the announced figure; the years after the last one index
 // forward from it at the plan's rate, so each October's announcement
-// replaces one year of estimate. 2027: ssa.gov/news/press/releases,
+// replaces one year of estimate. 2026: ssa.gov/news/en/cola/factsheets/2026.html
+// (COLA 2.8%). 2027: ssa.gov/news/press/releases,
 // 2026-10-14 (COLA 3.6%, wage base $192,300, earnings test $25,560 /
 // $67,920, ssa.gov/news/en/cola/factsheets/2027.html); changelog 410.
 export const SS_ANNOUNCED = {
-  2026: { cola: 2.5, wageBase: 184500, earningsTestUnderFra: 24480, earningsTestFraYear: 65160 },
+  2026: { cola: 2.8, wageBase: 184500, earningsTestUnderFra: 24480, earningsTestFraYear: 65160 },
   2027: { cola: 3.6, wageBase: 192300, earningsTestUnderFra: 25560, earningsTestFraYear: 67920 },
 };
 const SS_ANNOUNCED_LAST_YEAR = 2027;
@@ -2401,10 +2402,13 @@ export function getHSAContributionLimit(age, isFamilyCoverage, inflFactor = 1) {
 }
 
 // Qualified Charitable Distribution (QCD) annual limit, per individual —
-// tax year 2026. Indexed for inflation under SECURE 2.0 (was a flat
-// $100,000 pre-2023). Each spouse gets their own limit, so an MFJ household
-// can shelter up to double this. Source: irs.gov Notice 2025-XX / QCD
-// inflation adjustment for 2026.
+// tax year 2026 ($111,000, IRS Notice 2025-67). Indexed for inflation under
+// SECURE 2.0 (was a flat $100,000 pre-2023). In law each spouse has their
+// own limit against their own IRA; this engine's Pre-Tax bucket is pooled
+// with no per-spouse ownership, so ONE household cap is applied (see the
+// qcdAmount computation and KNOWN_ISSUES "the QCD cap is per household") —
+// conservative for an MFJ household giving more than the single cap. Do
+// not double this without first giving the bucket per-spouse ownership.
 // Verified 2026-08-20 against IRS Notice 2025-67 directly: "increased from
 // $108,000 to $111,000". Worth knowing where this lives -- it is NOT in
 // Rev. Proc. 2025-32 (the general annual inflation procedure that carries
@@ -2450,7 +2454,7 @@ const DEDUCTION_SINGLE_PRETCJA = DEDUCTION_SINGLE / 2;
 export const ADDITIONAL_DEDUCTION_AGED_MARRIED_2026 = 1650;
 export const ADDITIONAL_DEDUCTION_AGED_SINGLE_2026 = 2050;
 
-// OBBBA "senior bonus" deduction (P.L. 119-21 s 70104, IRC s 151(d)(5)
+// OBBBA "senior bonus" deduction (P.L. 119-21 s 70103(a), IRC s 151(d)(5)
 // as added): $6,000 per individual aged 65+, tax years 2025 through 2028
 // only, available whether or not the filer itemizes, phased out at 6
 // cents per dollar of MAGI over $75,000 ($150,000 MFJ), MFS excluded, no
@@ -3752,8 +3756,12 @@ function amtForOneReturn(amti, status, inflationFactor = 1) {
 // its own hardcoded bracket literals — a single source of truth here means
 // the two charts can no longer drift out of sync with each other or with
 // calculateTaxes() below.
-export function getBracketFilling(taxableIncome, status, inflationFactor = 1) {
-  const brackets = bracketsFor(status);
+export function getBracketFilling(taxableIncome, status, inflationFactor = 1, preTcja = false) {
+  // preTcja: draw the pre-TCJA rate schedule when the plan's repeal
+  // stress toggle is on, so the bars' rate labels and per-bar tax match
+  // what the engine is actually charging (the stat tiles and marginal
+  // bracket already followed the toggle; the bars did not).
+  const brackets = bracketsFor(status, preTcja);
 
   let prevLimit = 0;
   return brackets.map(b => {
@@ -6000,11 +6008,12 @@ export function getSSMultiplier(claimingAge, fra = 67) {
 }
 
 // Spousal-benefit reduction factor, 42 U.S.C. 402(b)(2)/(q)(1)(B): 25/36 of
-// 1% per month for the first 36 months before FRA (6.67%/yr → 83.33% at
-// 64), then 5/12 of 1% per month (5%/yr → 70% at 62, i.e. 35% of the
-// worker's PIA). There are NO delayed retirement credits on a spousal
-// benefit, so the factor is clamped to 1.0 at or after FRA. Fractional
-// ages are honoured month-by-month like getSSMultiplier.
+// 1% per month for the first 36 months before FRA (8.33%/yr: 75% at 64
+// with FRA 67), then 5/12 of 1% per month (5%/yr: 65% at 62, i.e. 32.5%
+// of the worker's PIA for a full 50% top-up). There are NO delayed
+// retirement credits on a spousal benefit, so the factor is clamped to
+// 1.0 at or after FRA. Fractional ages are honoured month-by-month like
+// getSSMultiplier.
 export function getSpousalSSMultiplier(claimingAge, fra = 67) {
   const monthsFromFRA = Math.round((claimingAge - fra) * 12);
   if (monthsFromFRA >= 0) return 1.0;
@@ -6682,6 +6691,17 @@ export function sanitizeInputs(inputs) {
   for (const key of nonNegative) {
     if (key in defaults) clampKey(key, 0, Infinity);
   }
+  // A conversion bracket entered as a whole-number percent (22 instead of
+  // 0.22) in a hand-edited or imported plan used to target a ceiling of $0
+  // -- getTaxBracketLimit knows no 22% bracket by that spelling -- which
+  // silently converted just enough to zero out taxable income. Read it as
+  // the percent it plainly is, and list the correction.
+  if (!Number.isFinite(clean.rothConversionBracket)) {
+    clean.rothConversionBracket = defaults.rothConversionBracket;
+  } else if (clean.rothConversionBracket > 1) {
+    invalid.push({ key: 'rothConversionBracket', value: clean.rothConversionBracket, reason: 'percent-as-whole-number', usedValue: clean.rothConversionBracket / 100 });
+    clean.rothConversionBracket = clean.rothConversionBracket / 100;
+  }
   // Lists: anything that is not a list becomes the default; entries of a
   // list of records that are not records are dropped, and a life event's
   // figures are parsed the way a typed field is.
@@ -7064,6 +7084,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   let survivorClaimAge1 = null;
   let survivorClaimAge2 = null;
   let ssEarningsTestMonths2 = 0;
+  // Same, for months withheld from a SURVIVOR benefit (42 U.S.C. 403(b)
+  // tests survivor benefits like any other). Kept apart from the own-benefit
+  // counters because the FRA recomputation credits each benefit's own
+  // reduction factor: these feed the survivor-claim-age recomputation, the
+  // ones above feed the own-benefit one.
+  let ssEarningsTestSurvMonths1 = 0;
+  let ssEarningsTestSurvMonths2 = 0;
 
   const irmaaMagiHistory = [];
   // Seed the two pre-plan returns (changelog 179). Pushed oldest-first so
@@ -7793,6 +7820,16 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       : own1Now;
     const ssIfOnly2 = inputs.spouse2Enabled ? Math.max(own2Now, age2 >= 60 ? survivorOn1(age2) : 0) : 0;
 
+    // What a survivor year actually pays this spouse (own or survivor
+    // benefit, whichever is larger) and which of the two it is -- the
+    // earnings test below tests this amount against the survivor's own
+    // wages and credits the withheld months to the matching benefit's
+    // FRA recomputation.
+    let survivorPaid1 = 0;
+    let survivorPaid2 = 0;
+    let survivorBenefitPaying1 = false;
+    let survivorBenefitPaying2 = false;
+
     if (spouse1Alive && spouse2Alive) {
       if (age1 >= inputs.claimingAge1) ssIncome += ss1Benefit;
       if (age2 >= inputs.claimingAge2) ssIncome += ss2Benefit;
@@ -7816,12 +7853,27 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (age1 >= inputs.claimingAge1) ssIncome += ss1Benefit;
     } else if (spouse1Alive) {
       // Spouse 2 has died: own benefit, or the survivor benefit on spouse
-      // 2's record from 60, whichever is larger this year.
+      // 2's record from 60, whichever is larger this year. From FRA the
+      // survivor benefit is priced with the months the earnings test below
+      // withheld given back -- the same recomputation own benefits get at
+      // ssEffClaim1 above, applied to the survivor claim age here.
       if (survivorClaimAge1 === null && age1 >= 60) survivorClaimAge1 = age1;
-      ssIncome += Math.max(own1Now, survivorClaimAge1 !== null ? survivorOn2(survivorClaimAge1) : 0);
+      const survClaimEff1 = (survivorClaimAge1 !== null && age1 >= ssFra1)
+        ? ssEffectiveClaimingAge(survivorClaimAge1, ssEarningsTestSurvMonths1, ssFra1)
+        : survivorClaimAge1;
+      const survBenefit1 = survClaimEff1 !== null ? survivorOn2(survClaimEff1) : 0;
+      survivorPaid1 = Math.max(own1Now, survBenefit1);
+      survivorBenefitPaying1 = survBenefit1 > own1Now;
+      ssIncome += survivorPaid1;
     } else if (spouse2Alive) {
       if (survivorClaimAge2 === null && age2 >= 60) survivorClaimAge2 = age2;
-      ssIncome += Math.max(own2Now, survivorClaimAge2 !== null ? survivorOn1(survivorClaimAge2) : 0);
+      const survClaimEff2 = (survivorClaimAge2 !== null && age2 >= ssFra2)
+        ? ssEffectiveClaimingAge(survivorClaimAge2, ssEarningsTestSurvMonths2, ssFra2)
+        : survivorClaimAge2;
+      const survBenefit2 = survClaimEff2 !== null ? survivorOn1(survClaimEff2) : 0;
+      survivorPaid2 = Math.max(own2Now, survBenefit2);
+      survivorBenefitPaying2 = survBenefit2 > own2Now;
+      ssIncome += survivorPaid2;
     }
 
     // Retirement Earnings Test, part one: the withholding (42 U.S.C. 403).
@@ -7833,24 +7885,55 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // income it would not receive -- the single largest overstatement the
     // engine could still produce for a common plan.
     //
-    // Only the worker's own retirement benefit is reduced here. A spousal
-    // top-up is also subject to the test on the WORKER's earnings, which is
-    // not modeled; see the Guide and Input Dictionary, which say so.
+    // A spousal top-up is also subject to the test on the WORKER's
+    // earnings, which is not modeled; see the Guide and Input Dictionary,
+    // which say so. In a survivor year the dedicated blocks below test the
+    // whole benefit in payment instead of these own-benefit blocks.
     let ssEarningsTestWithheld = 0;
     let ssEarningsTestInFraYear = false;
     let ssWithheld1 = 0;
-    if (spouse1Alive && age1 >= inputs.claimingAge1 && (age1 < ssFra1 || (inputs.claimingAge1 < ssFra1 && Math.floor(age1) === Math.floor(ssFra1)))) {
+    const survivorYear1 = inputs.spouse2Enabled && spouse1Alive && !spouse2Alive;
+    const survivorYear2 = inputs.spouse2Enabled && spouse2Alive && !spouse1Alive;
+    if (!survivorYear1 && spouse1Alive && age1 >= inputs.claimingAge1 && (age1 < ssFra1 || (inputs.claimingAge1 < ssFra1 && Math.floor(age1) === Math.floor(ssFra1)))) {
       const t1 = ssEarningsTestWithholding(ficaWages1, ss1Benefit, age1, ssFra1, inflFactor, year, inputs.inflationRate);
       ssWithheld1 = t1.withheld;
       ssEarningsTestWithheld += t1.withheld;
       ssEarningsTestMonths1 += t1.monthsWithheld;
       ssEarningsTestInFraYear = ssEarningsTestInFraYear || t1.inFraYear;
     }
-    if (inputs.spouse2Enabled && spouse2Alive && age2 >= inputs.claimingAge2 && (age2 < ssFra2 || (inputs.claimingAge2 < ssFra2 && Math.floor(age2) === Math.floor(ssFra2)))) {
+    if (!survivorYear2 && inputs.spouse2Enabled && spouse2Alive && age2 >= inputs.claimingAge2 && (age2 < ssFra2 || (inputs.claimingAge2 < ssFra2 && Math.floor(age2) === Math.floor(ssFra2)))) {
       const t2 = ssEarningsTestWithholding(ficaWages2, ss2Benefit, age2, ssFra2, inflFactor, year, inputs.inflationRate);
       ssEarningsTestWithheld += t2.withheld;
       ssEarningsTestMonths2 += t2.monthsWithheld;
       ssEarningsTestInFraYear = ssEarningsTestInFraYear || t2.inFraYear;
+    }
+    // A working survivor's benefit is tested too -- survivor benefits are
+    // not exempt from the earnings test (42 U.S.C. 403(b); SSA "How Work
+    // Affects Your Benefits"). The amount in payment (own or survivor,
+    // whichever the branch above chose) is tested against the survivor's
+    // own wages; the withheld months are credited back at FRA through
+    // whichever benefit was being paid. Until 2026-10 a working widow(er)
+    // under FRA was paid in full, overstating pre-FRA income by up to the
+    // whole benefit.
+    if (survivorYear1 && survivorPaid1 > 0) {
+      const claimAgeInPay1 = survivorBenefitPaying1 ? survivorClaimAge1 : inputs.claimingAge1;
+      if (age1 < ssFra1 || (claimAgeInPay1 < ssFra1 && Math.floor(age1) === Math.floor(ssFra1))) {
+        const t1 = ssEarningsTestWithholding(ficaWages1, survivorPaid1, age1, ssFra1, inflFactor, year, inputs.inflationRate);
+        ssEarningsTestWithheld += t1.withheld;
+        if (survivorBenefitPaying1) ssEarningsTestSurvMonths1 += t1.monthsWithheld;
+        else { ssEarningsTestMonths1 += t1.monthsWithheld; ssWithheld1 = t1.withheld; }
+        ssEarningsTestInFraYear = ssEarningsTestInFraYear || t1.inFraYear;
+      }
+    }
+    if (survivorYear2 && survivorPaid2 > 0) {
+      const claimAgeInPay2 = survivorBenefitPaying2 ? survivorClaimAge2 : inputs.claimingAge2;
+      if (age2 < ssFra2 || (claimAgeInPay2 < ssFra2 && Math.floor(age2) === Math.floor(ssFra2))) {
+        const t2 = ssEarningsTestWithholding(ficaWages2, survivorPaid2, age2, ssFra2, inflFactor, year, inputs.inflationRate);
+        ssEarningsTestWithheld += t2.withheld;
+        if (survivorBenefitPaying2) ssEarningsTestSurvMonths2 += t2.monthsWithheld;
+        else ssEarningsTestMonths2 += t2.monthsWithheld;
+        ssEarningsTestInFraYear = ssEarningsTestInFraYear || t2.inFraYear;
+      }
     }
     // Never below zero: a survivor branch above may be paying the larger of
     // the two benefits rather than the one the test was computed against.
@@ -9022,9 +9105,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
 
     // The RMD (owner, divisor and prior-balance figure above, beside the
     // QCD): the prior December 31 balance over the divisor, never more
-    // than what is there now.
+    // than what is there now. A Life-Event Pre-Tax withdrawal taken above
+    // counts toward the year's requirement -- ANY distribution during the
+    // year does (Reg. s 1.401(a)(9)-5; Pub 590-B) -- so only the remainder
+    // is forced here. Until 2026-10 the engine forced the full RMD on top
+    // of the milestone, over-distributing by min(milestone, RMD).
     let rmdAmount = 0;
-    if (rmdApplies && rmdDivisor > 0) rmdAmount = Math.min(Math.max(0, preTax), rmdFromPriorBalance);
+    if (rmdApplies && rmdDivisor > 0) rmdAmount = Math.min(Math.max(0, preTax), Math.max(0, rmdFromPriorBalance - actualMilestonePreTax));
     preTax = Math.max(0, preTax - rmdAmount);
 
     // Qualified Charitable Distribution. The money still leaves the Pre-Tax
@@ -9163,9 +9250,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // account as a whole holds after the decline (changelog 429, below),
     // never more than the decline itself. The harvested loss first offsets this
     // year's realized capital gains/dividends dollar-for-dollar, then up
-    // to $3,000 (2026; inflated forward for consistency with how every
-    // other statutory dollar limit in this model is projected in nominal
-    // terms, even though the real IRS limit is not actually indexed)
+    // to a flat $3,000 ($1,500 MFS) -- the IRC s 1211(b) cap, which the
+    // law does not index and this model deliberately does not either (see
+    // the authoritative comment at the cap below)
     // against ordinary income, with any remainder carried forward
     // indefinitely to future years -- mirroring the real IRS capital-loss
     // carryforward rule (IRC Sec. 1211-1212).
@@ -10622,7 +10709,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const discretionaryTaxableDraw = drawTaxable - actualMilestoneTaxable;
         const realizedGainsThisYear = Math.max(0, Math.max(0, discretionaryTaxableDraw) * (1 - taxableBasisRatioForYear) - lossUsedOnDraw);
         const ordinaryIncomeForAca = baseOrdinaryTaxableIncome + Math.max(0, discretionaryPreTaxDraw);
-        return ordinaryIncomeForAca + taxableDividends + realizedGainsThisYear + Math.max(0, ssIncome - taxableSS);
+        // The taxable-earnings slice of a non-qualified Roth draw is AGI
+        // (s 408A(d)), so it belongs in ACA MAGI (s 36B(d)(2)(B)) exactly as
+        // it already does in IRMAA MAGI below -- leaving it out showed a
+        // pre-59 1/2 household keeping a credit the IRS would claw back.
+        return ordinaryIncomeForAca + (rothDrawSplitThisYear.taxableEarnings || 0) + taxableDividends + realizedGainsThisYear + Math.max(0, ssIncome - taxableSS);
       };
       acaMagi = settleAcaMagi();
       acaCliffBreached = acaMagi > acaCliffThreshold + 0.005;
@@ -14400,9 +14491,6 @@ export const FEDERAL_ESTATE_TOP_RATE = 0.40;
 // estate-planning practice, so it's assumed here by default. Like the
 // state estate/inheritance model above, this is computed once against the
 // whole estate and allocated to this heir proportionally by heirShare.
-// Simplification: unlike real law (IRC Sec. 2058), this does NOT deduct
-// state estate tax paid from the federal taxable estate -- that only
-// matters for the rare household large enough to owe both at once.
 // `lifetimeTaxableGifts` is the estate-and-gift tax's defining feature and
 // the thing people are most often surprised by: it is ONE unified
 // exemption covering both. Gifts above the annual exclusion don't get

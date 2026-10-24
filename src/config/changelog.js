@@ -29,6 +29,32 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 458,
+    date: '2026-10-23',
+    title: 'Clearer displays and Help copy, from the same review',
+    summary: 'The Help card on the marketplace health credit now describes how the app works the credit out, and three small displays read more precisely.',
+    items: [
+      "**The health-credit card caught up with the app.** Help → How the numbers are figured → ACA premium tax credit still said the credit was your own estimate measured against the current year's poverty line. Since mid-October the app works the credit out itself — your state's benchmark premium at your age, less the share of income the law asks you to pay — against the prior year's poverty line, as the marketplace does. The card, its sources and the public How the math works page now say so.",
+      "**Bracket bars follow the repeal stress test.** With Assume TCJA Rates Are Later Repealed turned on, the Tax & Estate bracket bars kept today's rate labels while the plan was being taxed at the repealed-era rates; the bars now draw the schedule the plan is actually charged. The figures were always right — only the bars' labels lagged.",
+      "**Dollar labels just under a million.** A value from $999,500 printed as $1000k on chart axes; it now reads $1M.",
+      "**The spending CSV explains its tax column.** The exported Where the money goes file now says in its header notes that Income Tax includes payroll tax while working, as the on-screen column's tooltip already did.",
+    ],
+  },
+  {
+    id: 457,
+    date: '2026-10-23',
+    title: 'Tax review: working survivors, life events in RMD years, and early Roth draws',
+    summary: 'A working survivor’s Social Security now meets the earnings test, a Pre-Tax life event counts toward that year’s required minimum, and early Roth earnings count toward health credits.',
+    items: [
+      "**A working survivor's benefit meets the earnings test.** A widow or widower claiming a survivor benefit before full retirement age while still working was paid the whole benefit; Social Security withholds $1 for every $2 of wages over the yearly allowance, survivor benefits included. The withheld months are credited back at full retirement age, exactly as they are for your own benefit. Your numbers will change if a survivor in your plan works before full retirement age.",
+      "**A life event paid from Pre-Tax counts toward that year's required minimum.** Any money that leaves the account during the year satisfies the requirement, so a $50,000 life event against a $40,000 required minimum leaves nothing further to force. Until now the app forced both. Your numbers will change if a Pre-Tax life event lands in a required-distribution year.",
+      "**Early Roth earnings count toward the health-credit income test.** The taxable-earnings part of a Roth withdrawal before 59½ is income on the return, so it now counts toward the marketplace credit's income — a plan drawing Roth near the 400% line could be shown keeping a credit the IRS would take back.",
+      "**The 2026 Social Security COLA is 2.8%.** The announced figure replaced the 2.5% estimate; it matters only for a plan saved with a 2025 start year.",
+      "**A conversion bracket typed as 22 is read as 22%.** In a hand-edited or imported plan, a whole-number bracket used to make the fill-the-bracket conversion target $0 of taxable income; it is now read as the percent it plainly is, and the correction is listed with the plan's other input fixes.",
+      "**Corrections to the written spec.** Seven places where the professional-review document contradicted the (correct) app: reinvested dividends add to cost basis, Maryland credits its inheritance tax against its estate tax, heirs' state income tax is charged, each separate return keeps its own deduction floor, the charitable bequest can draw on five account types, the senior deduction's legal citation, and the payroll-tax note on workplace HSA contributions.",
+    ],
+  },
+  {
     id: 456,
     date: '2026-10-22',
     title: 'Live Pricing setup, as a narrated walkthrough',

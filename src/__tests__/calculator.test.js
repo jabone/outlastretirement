@@ -2045,6 +2045,11 @@ describe('calculator.js core logic', () => {
       ss1: 0, ss2: 0, pension1: 0, pension2: 0, rentalIncome: 0, annuityIncome: 0,
       salary1: 0, salary2: 0, partTimeIncome1: 0, partTimeIncome2: 0,
       preTaxInit: 800000, rothInit: 200000, taxableInit: 200000,
+      // The Roth draws must be return of contributions: a pre-59 1/2 draw
+      // of EARNINGS is AGI and so ACA MAGI (the 2026-10-23 review), which
+      // would lift this household out of the coverage gap this fixture is
+      // built to sit in.
+      rothBasisInit: 200000,
       preTaxContribution1: 0, preTaxContribution2: 0, rothContribution1: 0, rothContribution2: 0, taxableContribution: 0,
       lifestyleExpense: 40000,
       withdrawalStrategy: 'RothFirst',
