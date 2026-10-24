@@ -22,7 +22,7 @@
 // year's (utils/displayDollars.js, END_OF_YEAR_BALANCES). The pins convert
 // the same way, so they match what a reader of the lesson sees on screen.
 import { describe, it, expect } from 'vitest';
-import { runProjection, runMonteCarlo, TAX_YEAR } from '../calculator';
+import { runProjection, runMonteCarlo, TAX_YEAR, getSSMultiplier, getFullRetirementAge } from '../calculator';
 import { firstShortfallRow, verdictPct } from '../utils/planVerdict';
 import { yearEndFactor } from '../utils/displayDollars';
 import { buildParkersInputs, PARKERS_SCENARIO_DEFS } from '../config/demoPlanParkers';
@@ -337,12 +337,51 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     const ray = scenario("Demo: Ray's plan: keep spending, work to 67");
     const angie = scenario("Demo: Angie's plan: protect the house, trim travel");
     pin('three-questions', 5, '$46,000 a year', ray.lifestyleExpense);
-    pin('three-questions', 5, 'both work to 67', ray.retireAge1);
+    pin('three-questions', 5, 'Ray to 67', ray.retireAge1);
+    pin('three-questions', 5, 'Angie to 65', ray.retireAge2);
     pin('three-questions', 5, '$750 a month', (plan.lifestyleExpense - angie.lifestyleExpense) / 12);
     pin('three-questions', 5, '$500 a month more saved', (ray.preTaxContribution1 - plan.preTaxContribution1) / 12);
     expect(angie.preTaxContribution1 - plan.preTaxContribution1).toBe(6000);
     says('three-questions', 5, 'seven hundred fifty dollars a month less');
     says('three-questions', 5, 'five hundred dollars a month more');
+  });
+
+  it("lesson 8's claiming figures and the two scenarios it reads", () => {
+    // The checks at 62, 67 and 70 are the plan's full-retirement-age
+    // amounts times the claiming multiplier, as the Plan page shows them.
+    const fra1 = getFullRetirementAge(plan.birthYear1);
+    const fra2 = getFullRetirementAge(plan.birthYear2);
+    expect([fra1, fra2]).toEqual([67, 67]);
+    const ray = (age) => plan.ss1 * getSSMultiplier(age, fra1);
+    const angie = (age) => plan.ss2 * getSSMultiplier(age, fra2);
+    pin('start-social-security', 3, '$25,000 a year at 67', plan.ss1);
+    pin('start-social-security', 3, 'claim at 62, $17,500', ray(62), 1, 'last');
+    pin('start-social-security', 3, '$1,458 a month', ray(62) / 12);
+    pin('start-social-security', 3, 'at 70, $31,000', ray(70), 1, 'last');
+    pin('start-social-security', 3, '$2,583 a month', ray(70) / 12);
+    pin('start-social-security', 3, '$13,500 a year for life', ray(70) - ray(62));
+    pin('start-social-security', 3, 'Angie, $17,000 at 67', plan.ss2);
+    pin('start-social-security', 3, 'at 62, $11,900', angie(62), 1, 'last');
+    pin('start-social-security', 3, 'at 70, $21,080', angie(70), 1, 'last');
+    pin('start-social-security', 3, '$42,000 a year', plan.ss1 + plan.ss2);
+    pin('start-social-security', 4, '$12,600 a year less', (plan.ss1 - ray(62)) + (plan.ss2 - angie(62)));
+    pin('start-social-security', 6, '$48,000 a year together', ray(70) + plan.ss2);
+    says('start-social-security', 3, 'thirteen thousand five hundred dollar difference');
+    // Stopping at 62 runs short when Ray is 67; the two verdicts are the
+    // same seeded Monte Carlo lesson 6 quotes.
+    const stop62 = runProjection(scenario('Demo: Stop working at 62 instead'));
+    pin('start-social-security', 4, 'runs short when Ray is 67', firstShortfallRow(stop62.years).age1);
+    expect(lessonSlide('start-social-security', 4).text).toContain('three more years of living on savings');
+    says('start-social-security', 4, 'three fewer years to save');
+    expect(plan.retireAge1 - 62).toBe(3);
+    const allThree = verdictPct(runMonteCarlo(scenario('Demo: All three changes together')).successProbability);
+    const waitSS = scenario('Demo: All three, and wait longer for Social Security');
+    pin('start-social-security', 5, '83 of 100', allThree);
+    pin('start-social-security', 6, '92 of 100', verdictPct(runMonteCarlo(waitSS).successProbability));
+    pin('start-social-security', 6, 'Angie claims at 67', waitSS.claimingAge2);
+    pin('start-social-security', 6, 'Ray waits to 70', waitSS.claimingAge1);
+    pin('start-social-security', 5, 'Ray to 67', waitSS.retireAge1);
+    pin('start-social-security', 5, 'Angie to 65', waitSS.retireAge2);
   });
 
   it('the plan retires at 65 on $46,000, with the mortgage done that year (lessons 1 and 3)', () => {

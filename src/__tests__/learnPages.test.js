@@ -84,7 +84,7 @@ describe('Learn pages', () => {
     expect(LEARN_LESSONS.filter((l) => l.group === 'start').map((l) => l.slug)).toEqual(['site-tour']);
     expect(hub).toContain('<h2>Start here</h2>');
     expect(hub).toContain('<h2>The basics · 6 lessons</h2>');
-    expect(hub).toContain('<h2>Big decisions · 1 lesson</h2>');
+    expect(hub).toContain('<h2>Big decisions · 2 lessons</h2>');
     // The groups appear in order, and no "X of N" anywhere.
     expect(hub.indexOf('Start here</h2>')).toBeLessThan(hub.indexOf('The basics ·'));
     expect(hub.indexOf('The basics ·')).toBeLessThan(hub.indexOf('Big decisions ·'));
@@ -99,7 +99,7 @@ describe('Learn pages', () => {
     const hub = read('public/learn.html');
     const page = read('public/learn/live-pricing-setup.html');
     expect(hub).not.toContain('live-pricing-setup');
-    expect(read('public/learn/three-questions.html')).toContain('<a href="/learn">All lessons →</a>');
+    expect(read('public/learn/start-social-security.html')).toContain('<a href="/learn">All lessons →</a>');
     expect(page).toContain('<a href="/pricing-script#first-time">← The written steps, with pictures</a>');
     expect(page).toContain('Watch the walkthrough');
     expect(page).not.toContain(esc(LEARN_STANDING_LINE));

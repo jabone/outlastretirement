@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 459,
+    date: '2026-10-24',
+    title: 'Learn: when should I start Social Security?',
+    summary: 'A new lesson on claiming Social Security at 62, 67 or 70, and the home page now links three lessons by the question each answers.',
+    items: [
+      "**Lesson 8.** When should I start Social Security? Claiming at 62 cuts every check by 30% for life, and waiting to 70 makes each one 24% larger. Ray and Angie's saved scenarios show both: stopping at 62 runs short when Ray is 67, and the three changes from lesson 6 with later claims reach On track. Eight pictures with the narration written out, and the video on YouTube.",
+      "**Three questions on the home page.** Will my money last? My plan runs short. Now what? When should I start Social Security? Each opens its lesson, and See all the lessons opens the rest.",
+      "**Clearer wording in lessons 6 and 7.** Working two more years means Ray to 67 and Angie to 65; two slides read as though both stopped at 67.",
+    ],
+  },
+  {
     id: 458,
     date: '2026-10-23',
     title: 'Clearer displays and Help copy, from the same review',
