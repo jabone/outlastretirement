@@ -113,7 +113,7 @@ describe('Learn pages', () => {
     expect(l7).toContain(`<title>${title}</title>`);
     expect(l7).toContain(`property="og:title" content="${title}"`);
     expect(l7).toContain(`name="twitter:title" content="${title}"`);
-    expect(l7).toContain('<p class="eyebrow">Learn · Big decisions</p>');
+    expect(l7).toContain('<p class="eyebrow">Lessons · Big decisions</p>');
     expect(l7).toContain('<p class="meta">Lesson 7 · about 3 minutes · 7 pictures</p>');
     expect(l7).toContain('<a href="/learn/my-plan-runs-short">← Lesson 6</a>');
     expect(read('public/learn/my-plan-runs-short.html')).toContain('<a href="/learn/three-questions">Next: What do you want your retirement to do? →</a>');

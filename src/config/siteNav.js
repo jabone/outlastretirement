@@ -7,7 +7,7 @@
 // Terms, Accessibility and Contact stay in the footer.
 export const SITE_NAV = Object.freeze([
   { href: '/#how', label: 'How it works' },
-  { href: '/learn', label: 'Learn' },
+  { href: '/learn', label: 'Lessons' },
   { href: '/how-the-math-works', label: 'How the math works' },
   { href: '/privacy', label: 'Privacy' },
   { href: '/verify', label: 'Verify it yourself' },

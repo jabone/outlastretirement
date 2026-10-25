@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 460,
+    date: '2026-10-24',
+    title: 'The Learn page is now called Lessons',
+    summary: 'The website menu, footer and lesson pages say Lessons instead of Learn. The address stays outlastretirement.com/learn, so existing links still work.',
+    items: [
+      "**Same lessons, plainer name.** The menu link, the footer link, the page heading and the small label above each lesson now read Lessons.",
+      "**Links keep working.** The pages stay at outlastretirement.com/learn and outlastretirement.com/learn/ followed by the lesson's name, so links in video descriptions and bookmarks still open them.",
+    ],
+  },
+  {
     id: 459,
     date: '2026-10-24',
     title: 'Learn: when should I start Social Security?',

@@ -81,7 +81,7 @@ const NAV = (current) => {
 
 const FOOTER = `    <footer>
       <p><strong>Local-first retirement education. Your numbers never leave your device.</strong></p>
-      <nav class="foot-links" aria-label="Site links"><a href="/">Home</a> <a href="/learn">Learn</a> <a href="/how-the-math-works">How the math works</a> <a href="/changelog">Release notes</a> <a href="/privacy">Privacy</a> <a href="/terms">Terms</a> <a href="/accessibility">Accessibility</a> <a href="/verify">Verify it yourself</a> <a href="/premium">Free and Premium</a> <a href="mailto:hello@outlastretirement.com">Contact</a> <a href="/app/">Open the app</a></nav>
+      <nav class="foot-links" aria-label="Site links"><a href="/">Home</a> <a href="/learn">Lessons</a> <a href="/how-the-math-works">How the math works</a> <a href="/changelog">Release notes</a> <a href="/privacy">Privacy</a> <a href="/terms">Terms</a> <a href="/accessibility">Accessibility</a> <a href="/verify">Verify it yourself</a> <a href="/premium">Free and Premium</a> <a href="mailto:hello@outlastretirement.com">Contact</a> <a href="/app/">Open the app</a></nav>
       <p>© 2026 OutlastRetirement LLC. All rights reserved.</p>
     </footer>`;
 
@@ -408,10 +408,10 @@ ${sections}
       </section>`;
   return page({
     path: '/learn',
-    title: 'Learn: retirement planning in plain words',
+    title: 'Lessons: retirement planning in plain words',
     description: 'Illustrated retirement lessons: will my money last, who pays me when work stops, what it costs, fixing a plan that runs short, and choosing between plans.',
     css: LEARN_CSS,
-    h1: 'Learn',
+    h1: 'Lessons',
     eyebrow: 'Start here',
     body,
   });
@@ -456,7 +456,7 @@ ${lesson.standalone ? `        <a href="${esc(lesson.backHref)}">← ${esc(lesso
     description: lesson.description,
     css: LEARN_CSS,
     h1: lesson.h1 || lesson.title,
-    eyebrow: `Learn · ${lesson.eyebrow || lesson.label}`,
+    eyebrow: `Lessons · ${lesson.eyebrow || lesson.label}`,
     body,
   });
 }
