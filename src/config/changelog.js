@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 461,
+    date: '2026-10-28',
+    title: 'The offline notice no longer covers the page',
+    summary: 'When the connection drops, the offline notice now shrinks to a small Offline pill after a few seconds, or when you close it, and opens again on a tap.',
+    items: [
+      "**What was wrong.** The card saying you are offline and everything still works stayed in the middle of the bottom of the screen for as long as the connection was gone, over your figures, with no way to close it.",
+      "**What changed.** It shows in full when the connection drops, then shrinks to a small Offline pill after eight seconds, or at once with its close button. Tap the pill to read the card again. Each new loss of connection shows it in full once more.",
+    ],
+  },
+  {
     id: 460,
     date: '2026-10-24',
     title: 'The Learn page is now called Lessons',

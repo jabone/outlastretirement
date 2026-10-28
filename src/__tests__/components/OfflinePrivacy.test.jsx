@@ -9,7 +9,7 @@
 // pieces carry the behavioral coverage.
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
-import OfflineIndicator from '../../components/OfflineIndicator';
+import OfflineIndicator, { COLLAPSE_AFTER_MS } from '../../components/OfflineIndicator';
 import UpdateToast from '../../components/UpdateToast';
 import LocalOnlyBanner from '../../components/LocalOnlyBanner';
 import { _setPWAState, initPWA, getPWAState } from '../../utils/pwa';
@@ -43,6 +43,27 @@ describe('OfflineIndicator', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/Live Pricing/i);
     act(goOnline);
     expect(screen.queryByRole('status')).toBeNull();
+  });
+  it('shrinks to an Offline pill by itself or on Minimize, and the pill opens it again', () => {
+    vi.useFakeTimers();
+    try {
+      goOnline();
+      render(<OfflineIndicator />);
+      act(goOffline);
+      expect(screen.getByRole('status')).toHaveTextContent(/everything still works/i);
+      act(() => { vi.advanceTimersByTime(COLLAPSE_AFTER_MS); });
+      expect(screen.getByRole('status')).not.toHaveTextContent(/lives on this device/i);
+      fireEvent.click(screen.getByRole('button', { name: /Show details/i }));
+      expect(screen.getByRole('status')).toHaveTextContent(/lives on this device/i);
+      fireEvent.click(screen.getByRole('button', { name: /Minimize offline notice/i }));
+      expect(screen.getByRole('button', { name: /Show details/i })).toBeInTheDocument();
+      // A fresh loss of connection shows the card in full again.
+      act(goOnline);
+      act(goOffline);
+      expect(screen.getByRole('status')).toHaveTextContent(/lives on this device/i);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

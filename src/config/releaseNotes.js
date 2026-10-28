@@ -23,6 +23,14 @@ export const RELEASE_NOTES_WEEKS = 6;
 
 export const RELEASE_WEEKS = [
   {
+    weekOf: '2026-10-26',
+    headline: 'The offline notice steps aside',
+    bullets: [
+      { title: 'The offline notice shrinks to a small pill', ids: [461],
+        text: 'When your connection drops, the notice that everything still works now shrinks to a small Offline pill after a few seconds, or at once with its close button, so it no longer covers your figures. Tap the pill to read it again.' },
+    ],
+  },
+  {
     weekOf: '2026-10-19',
     headline: 'Investment fees in every plan, and tax corrections from a second outside review',
     bullets: [
@@ -130,26 +138,6 @@ export const RELEASE_WEEKS = [
         text: 'Morgan Stanley at Work lot lists now import, an import can start a new holding, the app says when your plan is not using your holdings, and Wealth Milestones growth figures were corrected.' },
     ],
   },
-  {
-    weekOf: '2026-09-14',
-    headline: 'Plan a move, and Social Security and Medicare by the rules',
-    bullets: [
-      { title: 'Move to another state', ids: [195],
-        text: 'Plan a move in a given year, and every year after it, plus your estate, is taxed by the state you actually live in.' },
-      { title: 'Retirement abroad', ids: [196, 197], premium: true,
-        text: 'Plan a move to another country in the year you choose and see its tax on top of the US tax you keep paying. Summaries for Mexico, Portugal, Panama and Costa Rica fill in the rules.' },
-      { title: 'Social Security and Medicare', ids: [178, 179, 180, 185, 186],
-        text: 'Claiming early while still working now applies the earnings test and the higher benefit you get back later. You can name a life-changing event for a Medicare premium appeal (Form SSA-44), and your first two Medicare years can use the tax returns you actually filed.' },
-      { title: 'Clearer tax figures', ids: [176, 182, 189],
-        text: 'This year’s tax is split into federal, state and FICA, the effective tax rate now includes capital gains, and Year by Year shows each Roth conversion and the tax it caused.' },
-      { title: 'Fairer comparisons', ids: [177, 181, 184, 187],
-        text: 'Saved scenarios and Change one thing use the same today’s or future dollars as the rest of the app and no longer pick a winner. A charitable bequest can be funded from cash or a stock position.' },
-      { title: 'Detailed Holdings', ids: [190, 191, 192, 193], premium: true,
-        text: 'Paste a lot list or a few lines of transaction history to fill in tax lots and reinvested dividends, see where each price came from, and see Social Security as its own line in Retirement Income.' },
-      { title: 'Premium keys and terms', ids: [183, 188, 194],
-        text: 'Premium keys now last 30 days, with a visible warning a week before one runs out. The app now has Terms of Use.' },
-    ],
-  },
 ];
 
 // Older history, a quarter at a time. `through` is the last day the summary
@@ -159,7 +147,7 @@ export const RELEASE_QUARTERS = [
     quarter: '2026-Q3',
     label: 'July – September 2026',
     from: '2026-07-24',
-    through: '2026-09-13',
+    through: '2026-09-20',
     headline: 'The core planner, Detailed Holdings, and a full tax-engine audit',
     ids: [
       ...Array.from({ length: 27 }, (_, i) => i + 1),
@@ -176,6 +164,8 @@ export const RELEASE_QUARTERS = [
       // Week of September 7
       170, 172, 173, 143, 148, 149, 174, 175, 169, 144, 145, 146,
       147, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 171,
+      // Week of September 14
+      195, 196, 197, 178, 179, 180, 185, 186, 176, 182, 189, 177, 181, 184, 187, 190, 191, 192, 193, 183, 188, 194,
     ],
     bullets: [
       { title: 'The core planner',
