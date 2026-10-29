@@ -6,9 +6,26 @@ import { AlertTriangle } from 'lucide-react';
 import { useSimulation } from '../../../context/useSimulation';
 import { getPossessive } from '../getPossessive';
 import { SEX_OPTIONS, horizonOdds } from '../../../utils/mortality';
-import { TAX_YEAR, getFullRetirementAge, getSSMultiplier } from '../../../calculator';
+import { TAX_YEAR, getFullRetirementAge, getSSMultiplier, exactClaimAge } from '../../../calculator';
+import Tooltip from '../../Tooltip';
 import NumberInput from '../../NumberInput';
 import SwitchRow from '../../SwitchRow';
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// The month a spouse's benefit starts (changelog 464): optional, January
+// is the whole-year plan. The select is written out per spouse below (the
+// field index and the Interview coverage read literal field names); this
+// is its label and the hint under it, which prices the claim at the exact
+// age and says how many months the first year pays.
+const claimMonthTip = 'Social Security changes by the month: about 0.56% less for each of the first 36 months before full retirement age, 0.42% for each earlier month, and 0.67% more for each month you wait past it, up to 70. Leave this at January to plan in whole years.';
+
+function claimMonthHint(age, month, birthYear) {
+  if (Number(age) >= 70) return 'A claim at 70 starts in January: waiting past 70 adds nothing.';
+  if (!(month > 0)) return `Starts in January of the year you turn ${age}.`;
+  const pct = (getSSMultiplier(exactClaimAge(Number(age) || 67, month), getFullRetirementAge(birthYear)) * 100).toFixed(1).replace(/\.0$/, '');
+  return `Starts in ${MONTH_NAMES[month]} of the year you turn ${age}: ${pct}% of full benefit. That first year pays ${12 - month} of 12 months.`;
+}
 
 export default function DemographicsSection() {
   const { inputs, updateInput } = useSimulation();
@@ -133,6 +150,15 @@ export default function DemographicsSection() {
                     Benefit multiplier: {(getSSMultiplier(inputs.claimingAge1, getFullRetirementAge(inputs.birthYear1))*100).toFixed(0)}% of FRA baseline. Check estimates on <a href="https://www.ssa.gov" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-text)', textDecoration: 'underline' }}>ssa.gov</a>.
                   </span>
                 </div>
+                <div className="form-group">
+                  <label htmlFor="field-claimMonth1"><Tooltip text={claimMonthTip} more="SS Start Month">Start in (optional)</Tooltip></label>
+                  <select id="field-claimMonth1" className="form-input form-input-select" value={inputs.claimingAge1 >= 70 ? 0 : (inputs.claimMonth1 || 0)} disabled={inputs.claimingAge1 >= 70} onChange={(e) => updateInput('claimMonth1', parseInt(e.target.value, 10))}>
+                    {MONTH_NAMES.map((name, i) => <option key={name} value={i}>{name}</option>)}
+                  </select>
+                  <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                    {claimMonthHint(inputs.claimingAge1, inputs.claimMonth1 || 0, inputs.birthYear1)}
+                  </span>
+                </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0 10px 0' }}>
                   <label htmlFor="toggle-spouse2Enabled" style={{ fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>Planning with a spouse or partner?</label>
@@ -203,6 +229,15 @@ export default function DemographicsSection() {
                         Benefit multiplier: {(getSSMultiplier(inputs.claimingAge2, getFullRetirementAge(inputs.birthYear2))*100).toFixed(0)}% of FRA baseline. Check estimates on <a href="https://www.ssa.gov" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-text)', textDecoration: 'underline' }}>ssa.gov</a>.
                       </span>
                     </div>
+                <div className="form-group">
+                  <label htmlFor="field-claimMonth2"><Tooltip text={claimMonthTip} more="SS Start Month">Start in (optional)</Tooltip></label>
+                  <select id="field-claimMonth2" className="form-input form-input-select" value={inputs.claimingAge2 >= 70 ? 0 : (inputs.claimMonth2 || 0)} disabled={inputs.claimingAge2 >= 70} onChange={(e) => updateInput('claimMonth2', parseInt(e.target.value, 10))}>
+                    {MONTH_NAMES.map((name, i) => <option key={name} value={i}>{name}</option>)}
+                  </select>
+                  <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                    {claimMonthHint(inputs.claimingAge2, inputs.claimMonth2 || 0, inputs.birthYear2)}
+                  </span>
+                </div>
                   </div>
                 )}
 

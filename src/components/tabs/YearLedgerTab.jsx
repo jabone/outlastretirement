@@ -445,6 +445,13 @@ const YearLedgerTab = () => {
                               &minus;{formatCurrency(row.ssEarningsTestWithheld)} earnings test
                             </span>
                           )}
+                          {/* Changelog 464: a claim year with a later start
+                              month pays only part of the year. */}
+                          {[1, 2].filter((n) => row[`ssClaimMonthsPaid${n}`] > 0 && row[`ssClaimMonthsPaid${n}`] < 12).map((n) => (
+                            <span key={n} style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '2px' }}>
+                              Social Security{inputs.spouse2Enabled ? ` (${n === 1 ? (inputs.spouse1Name || 'Spouse 1') : (inputs.spouse2Name || 'Spouse 2')})` : ''}: {row[`ssClaimMonthsPaid${n}`]} of 12 months
+                            </span>
+                          ))}
                         </td>
                         <td className="lg g-sum g-inc col-uses">
                           <span>{formatCurrency(row.lifestyleExpenses)}</span>

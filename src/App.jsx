@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef, useId } from 'react';
+import { claimAgeLabel } from './utils/ssClaimLabel';
 import { flushSync } from 'react-dom';
 import { PLAN_ANSWERS_KEY, ANSWER_FIELDS, readPlanAnswers, sanitizeAnswers, sanitizeAnswersForEditing, answersSummary } from './utils/planAnswers';
 import { readinessSummary } from './utils/readinessSummary';
@@ -3384,6 +3385,9 @@ export default function App() {
                                       setSelectedHeatmapCell(cell);
                                       updateInput('claimingAge1', age1);
                                       updateInput('claimingAge2', age2);
+                                      // The grid compares whole ages (changelog 464).
+                                      updateInput('claimMonth1', 0);
+                                      updateInput('claimMonth2', 0);
                                     }}
                                     style={{
                                       height: '52px',
@@ -3432,6 +3436,7 @@ export default function App() {
                                 onClick={() => {
                                   setSelectedHeatmapCell(cell);
                                   updateInput('claimingAge1', age1);
+                                  updateInput('claimMonth1', 0);
                                 }}
                                 style={{
                                   height: '75px',
@@ -3747,12 +3752,12 @@ export default function App() {
               <tbody>
                 <tr>
                   <td>{printInputs.spouse1Name || 'Spouse 1'}</td>
-                  <td>Age {inputs.planYear - inputs.birthYear1} (Retire at {inputs.retireAge1}, SS at {inputs.claimingAge1})</td>
+                  <td>Age {inputs.planYear - inputs.birthYear1} (Retire at {inputs.retireAge1}, SS at {claimAgeLabel(inputs.claimingAge1, inputs.claimMonth1)})</td>
                 </tr>
                 {inputs.spouse2Enabled && (
                   <tr>
                     <td>{printInputs.spouse2Name || 'Spouse 2'}</td>
-                    <td>Age {inputs.planYear - inputs.birthYear2} (Retire at {inputs.retireAge2}, SS at {inputs.claimingAge2})</td>
+                    <td>Age {inputs.planYear - inputs.birthYear2} (Retire at {inputs.retireAge2}, SS at {claimAgeLabel(inputs.claimingAge2, inputs.claimMonth2)})</td>
                   </tr>
                 )}
                 <tr>

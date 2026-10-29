@@ -1279,6 +1279,15 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}>
+                <span style={sectionStyles.badge}>Dropdown</span><br/>
+                <strong>SS Start Month</strong><br/>
+                <em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Plan &rarr; Household</em>
+              </td>
+              <td style={sectionStyles.td}>The month the benefit starts, in the calendar year you reach your claiming age. January is the whole-year plan. A later month prices the benefit at the claiming age plus those months, by the same monthly rules, and the first year pays only the months from that month on: a May start at 67 is priced at 67 and 4 months and pays 8 of that year&rsquo;s 12 months. The app does not know your birth month, so the months count from the start of that year. A claim at 70 always starts in January.</td>
+              <td style={sectionStyles.td}>January (default) to December, per spouse.</td>
+            </tr>
+            <tr>
+              <td style={sectionStyles.td}>
                 <span style={sectionStyles.badge}>Checkbox</span><br/>
                 <strong>Use the spousal benefit if higher (per spouse)</strong>
               </td>

@@ -159,8 +159,9 @@ export const HOW_FIGURED_RULES = [
     id: 'ss-claiming',
     title: 'Claiming age: early and delayed benefits',
     group: 'Social Security',
-    summary: 'You enter each benefit at full retirement age, which is 67 for anyone born in 1960 or later and between 66 and 67 for births from 1943 to 1959. Claiming earlier reduces the benefit for life (to 70% at 62 when full retirement age is 67), and waiting past full retirement age adds 8% a year until 70. Benefits then rise each year by the cost-of-living rate you set.',
+    summary: 'You enter each benefit at full retirement age, which is 67 for anyone born in 1960 or later and between 66 and 67 for births from 1943 to 1959. Claiming earlier reduces the benefit for life (to 70% at 62 when full retirement age is 67), and waiting past full retirement age adds 8% a year until 70. You can also choose a month: each month counts, at 5/9 of 1% for each of the first 36 months early, 5/12 of 1% for each earlier month, and 2/3 of 1% for each month of delay. The year you start counts only the months you are paid. Benefits then rise each year by the cost-of-living rate you set.',
     figuresYear: 'Set in law',
+    simplifies: 'The app does not know your birth month, so a chosen month is counted from the start of the year you reach that age.',
     sources: ['ss-claiming', 'ss-delayed-credits'],
   },
   {

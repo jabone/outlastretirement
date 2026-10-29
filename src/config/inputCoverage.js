@@ -97,6 +97,14 @@ export const NOT_ASKED_IN_INTERVIEW = [
     keys: ['mfsIncomeSplitPct'],
   },
   {
+    id: 'claimMonth',
+    title: 'The month Social Security starts',
+    blurb: 'Each spouse can choose the month their benefit starts, in the year they reach their claiming age. It is priced by the month and the first year pays only the months received. Optional: January keeps the whole-year plan the Interview sets up. It lives on Plan Settings \u2192 Household, under each claiming age.',
+    domain: 'household',
+    interviewSection: 'household',
+    keys: ['claimMonth'],
+  },
+  {
     id: 'spendingBlueprint',
     title: 'Breaking your retirement spending down by category',
     blurb: 'Instead of one Annual Lifestyle Spending figure you can enter seven categories \u2014 housing, food, transport, health, insurance, personal, other \u2014 plus a separate line for health coverage before 65, and tick which of them you could not cut. The categories add up to the same annual figure, so nothing downstream changes. Free, and it lives on Plan Settings \u2192 Spending: it is an alternative way to enter a number the Interview already asks for, not an extra question, so adding it to the Interview would lengthen the walkthrough without asking anything new.',

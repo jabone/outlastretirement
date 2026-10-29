@@ -9,6 +9,7 @@
 // same narrative.
 //
 import { buildAbroadActionItems } from './abroadActionItems';
+import { claimAgeLabel } from './ssClaimLabel';
 import { legacyAfterTaxes } from '../calculator';
 
 // Returns { headline, sections } where each section is
@@ -177,8 +178,8 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
 
   retirementItems.push({
     label: hasSpouse2
-      ? `Claim Social Security at age ${inputs.claimingAge1} (${spouse1}) and age ${inputs.claimingAge2} (${spouse2})`
-      : `Claim Social Security at age ${inputs.claimingAge1}`,
+      ? `Claim Social Security at age ${claimAgeLabel(inputs.claimingAge1, inputs.claimMonth1)} (${spouse1}) and age ${claimAgeLabel(inputs.claimingAge2, inputs.claimMonth2)} (${spouse2})`
+      : `Claim Social Security at age ${claimAgeLabel(inputs.claimingAge1, inputs.claimMonth1)}`,
     detail: `Estimated benefit at Full Retirement Age: ${fc(inputs.ss1 || 0)}/yr${hasSpouse2 ? ` (${spouse1}), ${fc(inputs.ss2 || 0)}/yr (${spouse2})` : ''}. Claiming earlier or later than FRA changes the actual amount.`,
   });
 

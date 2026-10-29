@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 464,
+    date: '2026-10-28',
+    title: 'Social Security: choose the month your benefit starts',
+    summary: 'Each spouse can now pick the month Social Security starts, in the year they reach their claiming age. The benefit is priced by the month and the first year pays only the months you receive.',
+    items: [
+      "**Start in.** Plan \u2192 Household now has a Start in choice under each claiming age, January to December. January is the whole-year plan you had before.",
+      "**Priced by the month.** Social Security changes by the month: about 0.56% less for each of the first 36 months before full retirement age, 0.42% for each earlier month, and 0.67% more for each month past it. A May start at 67 is priced at 67 and 4 months.",
+      "**The first year counts the months paid.** A May start pays 8 of that year's 12 months, and Year by Year says so under the year's income. A spousal top-up that starts with it does the same.",
+      "**Whole years where it matters.** The app does not know your birth month, so the months count from the start of that year. The claiming grid on Optimizers still compares whole ages, and choosing a cell there sets the start back to January. A claim at 70 always starts in January.",
+      "**Your numbers do not change** unless you choose a month after January.",
+    ],
+  },
+  {
     id: 463,
     date: '2026-10-28',
     title: 'Roth conversions: a 0% tier, up to your deductions',

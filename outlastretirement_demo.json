@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-22T21:42:27.281Z",
+  "timestamp": "2026-10-29T03:15:45.273Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -13,10 +13,12 @@
     "retireAge1": 60,
     "lifeExpectancy1": 92,
     "claimingAge1": 67,
+    "claimMonth1": 0,
     "birthYear2": 1968,
     "retireAge2": 58,
     "lifeExpectancy2": 94,
     "claimingAge2": 67,
+    "claimMonth2": 0,
     "spouse2Enabled": true,
     "filingStatus": "MFJ",
     "mfsIncomeSplitPct": 50,
@@ -495,10 +497,12 @@
         "retireAge1": 58,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -968,10 +972,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.309Z",
+      "savedAt": "2026-10-29T03:15:45.295Z",
       "tag": "demo"
     },
     {
@@ -987,10 +991,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -1460,10 +1466,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.319Z",
+      "savedAt": "2026-10-29T03:15:45.298Z",
       "tag": "demo"
     },
     {
@@ -1479,10 +1485,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -1952,10 +1960,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.325Z",
+      "savedAt": "2026-10-29T03:15:45.305Z",
       "tag": "demo"
     },
     {
@@ -1971,10 +1979,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -2444,10 +2454,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.338Z",
+      "savedAt": "2026-10-29T03:15:45.320Z",
       "tag": "demo"
     },
     {
@@ -2463,10 +2473,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -2936,10 +2948,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.358Z",
+      "savedAt": "2026-10-29T03:15:45.327Z",
       "tag": "demo"
     },
     {
@@ -2955,10 +2967,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -3428,10 +3442,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.366Z",
+      "savedAt": "2026-10-29T03:15:45.329Z",
       "tag": "demo"
     },
     {
@@ -3447,10 +3461,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 62,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -3920,10 +3936,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.372Z",
+      "savedAt": "2026-10-29T03:15:45.332Z",
       "tag": "demo"
     },
     {
@@ -3939,10 +3955,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -4412,10 +4430,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.382Z",
+      "savedAt": "2026-10-29T03:15:45.339Z",
       "tag": "demo"
     },
     {
@@ -4431,10 +4449,12 @@
         "retireAge1": 64,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -4904,10 +4924,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.399Z",
+      "savedAt": "2026-10-29T03:15:45.345Z",
       "tag": "demo"
     },
     {
@@ -4923,10 +4943,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -5396,10 +5418,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.412Z",
+      "savedAt": "2026-10-29T03:15:45.354Z",
       "tag": "demo"
     },
     {
@@ -5415,10 +5437,12 @@
         "retireAge1": 60,
         "lifeExpectancy1": 92,
         "claimingAge1": 67,
+        "claimMonth1": 0,
         "birthYear2": 1968,
         "retireAge2": 58,
         "lifeExpectancy2": 94,
         "claimingAge2": 67,
+        "claimMonth2": 0,
         "spouse2Enabled": true,
         "filingStatus": "MFJ",
         "mfsIncomeSplitPct": 50,
@@ -5888,10 +5912,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 454
+        "oddsVersion": 464
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-22T21:42:27.430Z",
+      "savedAt": "2026-10-29T03:15:45.371Z",
       "tag": "demo"
     }
   ],

@@ -26,6 +26,8 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-10-26',
     headline: 'Roth conversions up to your deductions, and a survivor keeps a larger own check',
     bullets: [
+      { title: 'Choose the month Social Security starts', ids: [464],
+        text: 'Each spouse can pick the month their benefit starts, in the year they reach their claiming age. It is priced by the month, as Social Security does, and the first year pays only the months received. January keeps the whole-year plan, so your numbers change only if you pick a later month.' },
       { title: 'Roth conversions up to your deductions, with no federal income tax', ids: [463],
         text: 'Fill-to-bracket Roth conversions can target 0%: each year the plan converts only as much as your deductions cover, so the conversion adds no federal income tax, though it can still raise state tax, the taxable share of Social Security and Medicare surcharges. The Roth Ladder Optimizer now tries it too. Your numbers change only if you choose it.' },
       { title: 'A survivor keeps a larger own Social Security check', ids: [462],

@@ -456,11 +456,18 @@ export const DEFAULT_INPUTS = {
   retireAge1: 67,
   lifeExpectancy1: 90,
   claimingAge1: 67,
+  // Changelog 464: the month of the claim year the benefit starts, 0 for
+  // January (the whole-year plan of every earlier version) to 11 for
+  // December. The engine knows no birth month, so it counts from the start
+  // of the calendar year you reach claimingAge: a May start (4) is priced
+  // at claimingAge + 4/12 and pays 8 of that year's 12 months.
+  claimMonth1: 0,
 
   birthYear2: 1982,
   retireAge2: 67,
   lifeExpectancy2: 90,
   claimingAge2: 67,
+  claimMonth2: 0,
   
   spouse2Enabled: false,
   filingStatus: 'Single', // 'MFJ', 'MFS' or 'Single'
@@ -6005,6 +6012,20 @@ export function ssEarningsTestWithholding(earnedIncome, annualBenefit, age, fra,
 // identical to having claimed that many months later, which is exactly what
 // getSSMultiplier already takes. Capped at FRA: the credit can undo an early
 // claim entirely but never earns delayed retirement credits.
+// The claim age a benefit is priced at, with the start month as twelfths
+// (changelog 464): claim age 67, May start -> 67 + 4/12.
+export function exactClaimAge(claimingAge, claimMonth) {
+  return claimingAge + (claimMonth || 0) / 12;
+}
+
+// The share of the claim year a benefit is paid: 12 months, less the
+// months before the start month (changelog 464).
+export function claimYearShare(claimMonth) {
+  return (12 - (claimMonth || 0)) / 12;
+}
+
+const claimYearShareFor = (age, claimingAge, claimMonth) => (age === claimingAge ? claimYearShare(claimMonth) : 1);
+
 export function ssEffectiveClaimingAge(claimingAge, monthsWithheld, fra) {
   if (!(monthsWithheld > 0)) return claimingAge;
   return Math.min(fra, claimingAge + monthsWithheld / 12);
@@ -6063,7 +6084,9 @@ export function getSpousalSSMultiplier(claimingAge, fra = 67) {
 export function survivorSSBenefit({ deceasedFull, deceasedClaimAge, deceasedFra = 67, deceasedDeathAge, survivorFra = 67, survivorClaimAge }) {
   const full = Math.max(0, Number(deceasedFull) || 0);
   if (full === 0) return 0;
-  const claimedBeforeDeath = Number.isFinite(deceasedDeathAge) && deceasedDeathAge >= deceasedClaimAge;
+  // A claim age may carry a start month (changelog 464); the deceased had
+  // claimed if they were alive in the claim year.
+  const claimedBeforeDeath = Number.isFinite(deceasedDeathAge) && deceasedDeathAge >= Math.floor(deceasedClaimAge + 1e-9);
   const claim = Math.max(60, Number(survivorClaimAge) || 60);
   let ageFactor = 1;
   if (claim < survivorFra) {
@@ -6097,8 +6120,14 @@ export function spousalSSTopUp(ownFra, otherFra, myClaimAge, otherClaimAge, ageG
   const excess = Math.max(0, 0.5 * (otherFra || 0) - (ownFra || 0));
   if (!(excess > 0)) return 0;
   const startAge = Math.max(myClaimAge, otherClaimAge + ageGap, 62);
-  if (myAge < startAge) return 0;
-  return excess * getSpousalSSMultiplier(startAge, fra);
+  // A claim age may carry a start month as twelfths (changelog 464): the
+  // top-up is paid from the year of its whole start age, for the months
+  // from the start month on, and priced at the exact age.
+  const startYearAge = Math.floor(startAge + 1e-9);
+  if (myAge < startYearAge) return 0;
+  const months = Math.round((startAge - startYearAge) * 12);
+  const share = myAge === startYearAge ? (12 - months) / 12 : 1;
+  return excess * getSpousalSSMultiplier(startAge, fra) * share;
 }
 
 // ---------------------------------------------------------------------
@@ -6687,6 +6716,24 @@ export function sanitizeInputs(inputs) {
     // so the ceiling is generous; claiming follows the statute's window.
     clampKey(`retireAge${n}`, 30, 120);
     clampKey(`claimingAge${n}`, 62, 70);
+    // Changelog 464: the start month, 0 (January) to 11 (December), a whole
+    // number. Missing is 0, the whole-year plan. Out of range is clamped and
+    // listed; a claim at 70 starts in January, since delayed credits stop
+    // at 70 and a later month would only lose months of benefit.
+    const mKey = `claimMonth${n}`;
+    const rawMonth = inputs[mKey];
+    if (rawMonth === undefined || rawMonth === null || rawMonth === '' || !Number.isFinite(Number(rawMonth))) {
+      clean[mKey] = 0;
+    } else {
+      const m = Math.round(Number(rawMonth));
+      const fixed = Math.min(11, Math.max(0, m));
+      if (fixed !== m) invalid.push({ key: mKey, value: rawMonth, reason: 'claim-month-range', usedValue: fixed });
+      clean[mKey] = fixed;
+    }
+    if (clean[`claimingAge${n}`] >= 70 && clean[mKey] !== 0) {
+      invalid.push({ key: mKey, value: clean[mKey], reason: 'claim-month-after-70', usedValue: 0 });
+      clean[mKey] = 0;
+    }
   }
   for (const key of ['preRetireReturn', 'postRetireReturn', 'stockReturnRate', 'bondReturnRate', 'cashFloorReturnRate', 'stressCrashReturn']) {
     clampKey(key, -99, 100);
@@ -7798,8 +7845,16 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // 62 that was fully withheld for three years ends up paying roughly what
     // a claim at 65 would have. Leaving this out would show the withholding
     // as a permanent loss, which is not what the law does.
-    const ssEffClaim1 = age1 >= ssFra1 ? ssEffectiveClaimingAge(inputs.claimingAge1, ssEarningsTestMonths1, ssFra1) : inputs.claimingAge1;
-    const ssEffClaim2 = age2 >= ssFra2 ? ssEffectiveClaimingAge(inputs.claimingAge2, ssEarningsTestMonths2, ssFra2) : inputs.claimingAge2;
+    // The claim age with its start month (changelog 464); 0 months is the
+    // whole age, as before. Whether a benefit is paid in a year still goes
+    // by the whole age (age1 >= inputs.claimingAge1); the claim year pays
+    // only the months from the start month on (claimShare1).
+    const claimExact1 = exactClaimAge(inputs.claimingAge1, inputs.claimMonth1);
+    const claimExact2 = exactClaimAge(inputs.claimingAge2, inputs.claimMonth2);
+    const claimShare1 = age1 === inputs.claimingAge1 ? claimYearShare(inputs.claimMonth1) : 1;
+    const claimShare2 = age2 === inputs.claimingAge2 ? claimYearShare(inputs.claimMonth2) : 1;
+    const ssEffClaim1 = age1 >= ssFra1 ? ssEffectiveClaimingAge(claimExact1, ssEarningsTestMonths1, ssFra1) : claimExact1;
+    const ssEffClaim2 = age2 >= ssFra2 ? ssEffectiveClaimingAge(claimExact2, ssEarningsTestMonths2, ssFra2) : claimExact2;
     const ss1Multiplier = getSSMultiplier(ssEffClaim1, ssFra1);
     const ss2Multiplier = getSSMultiplier(ssEffClaim2, ssFra2);
     const ss1Full = inputs.ss1 * ssColaFactor;
@@ -7812,8 +7867,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const ssDepletionFactor = (inputs.ssDepletionEnabled && year >= inputs.ssDepletionYear)
       ? Math.max(0, 1 - (inputs.ssCutPercent / 100))
       : 1;
-    const ss1Benefit = ss1Full * ss1Multiplier * ssDepletionFactor;
-    const ss2Benefit = ss2Full * ss2Multiplier * ssDepletionFactor;
+    const ss1Benefit = ss1Full * ss1Multiplier * ssDepletionFactor * claimShare1;
+    const ss2Benefit = ss2Full * ss2Multiplier * ssDepletionFactor * claimShare2;
 
     // Changelog 255: the household benefit this year under each way the
     // household could be alive, whatever the plan's fixed Life Expectancy
@@ -7823,8 +7878,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // exactly the planned age. The earnings-test withholding share is
     // applied below, once the test has run.
     const ssTopUps = inputs.spouse2Enabled
-      ? ((inputs.ssSpousalEnabled1 ? spousalSSTopUp(ss1Full, ss2Full, inputs.claimingAge1, inputs.claimingAge2, age1 - age2, age1, ssFra1) * ssDepletionFactor : 0)
-        + (inputs.ssSpousalEnabled2 ? spousalSSTopUp(ss2Full, ss1Full, inputs.claimingAge2, inputs.claimingAge1, age2 - age1, age2, ssFra2) * ssDepletionFactor : 0))
+      ? ((inputs.ssSpousalEnabled1 ? spousalSSTopUp(ss1Full, ss2Full, claimExact1, claimExact2, age1 - age2, age1, ssFra1) * ssDepletionFactor : 0)
+        + (inputs.ssSpousalEnabled2 ? spousalSSTopUp(ss2Full, ss1Full, claimExact2, claimExact1, age2 - age1, age2, ssFra2) * ssDepletionFactor : 0))
       : 0;
     const ssIfBoth = inputs.spouse2Enabled
       ? (age1 >= inputs.claimingAge1 ? ss1Benefit : 0) + (age2 >= inputs.claimingAge2 ? ss2Benefit : 0) + ssTopUps
@@ -7838,11 +7893,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const deathAge1 = (inputs.survivorStressEnabled && inputs.survivorStressSpouse === 1) ? inputs.survivorStressAge : lifeExpectancy1;
     const deathAge2 = (inputs.survivorStressEnabled && inputs.survivorStressSpouse === 2) ? inputs.survivorStressAge : lifeExpectancy2;
     const survivorOn2 = (claimAge) => survivorSSBenefit({
-      deceasedFull: ss2Full, deceasedClaimAge: inputs.claimingAge2, deceasedFra: ssFra2, deceasedDeathAge: deathAge2,
+      deceasedFull: ss2Full, deceasedClaimAge: claimExact2, deceasedFra: ssFra2, deceasedDeathAge: deathAge2,
       survivorFra: ssFra1, survivorClaimAge: claimAge,
     }) * ssDepletionFactor;
     const survivorOn1 = (claimAge) => survivorSSBenefit({
-      deceasedFull: ss1Full, deceasedClaimAge: inputs.claimingAge1, deceasedFra: ssFra1, deceasedDeathAge: deathAge1,
+      deceasedFull: ss1Full, deceasedClaimAge: claimExact1, deceasedFra: ssFra1, deceasedDeathAge: deathAge1,
       survivorFra: ssFra2, survivorClaimAge: claimAge,
     }) * ssDepletionFactor;
     const own1Now = age1 >= inputs.claimingAge1 ? ss1Benefit : 0;
@@ -7869,10 +7924,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // only while both are alive: at the worker's death the survivor's
       // benefit (below) already steps up to the greater of the two.
       if (inputs.ssSpousalEnabled1) {
-        ssIncome += spousalSSTopUp(ss1Full, ss2Full, inputs.claimingAge1, inputs.claimingAge2, age1 - age2, age1, ssFra1) * ssDepletionFactor;
+        ssIncome += spousalSSTopUp(ss1Full, ss2Full, claimExact1, claimExact2, age1 - age2, age1, ssFra1) * ssDepletionFactor;
       }
       if (inputs.ssSpousalEnabled2) {
-        ssIncome += spousalSSTopUp(ss2Full, ss1Full, inputs.claimingAge2, inputs.claimingAge1, age2 - age1, age2, ssFra2) * ssDepletionFactor;
+        ssIncome += spousalSSTopUp(ss2Full, ss1Full, claimExact2, claimExact1, age2 - age1, age2, ssFra2) * ssDepletionFactor;
       }
     } else if (spouse1Alive && !inputs.spouse2Enabled) {
       // Single-person plan: there is no survivor benefit to fall back on,
@@ -7931,17 +7986,19 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let ssWithheld1 = 0;
     const survivorYear1 = inputs.spouse2Enabled && spouse1Alive && !spouse2Alive;
     const survivorYear2 = inputs.spouse2Enabled && spouse2Alive && !spouse1Alive;
-    if (!survivorYear1 && spouse1Alive && age1 >= inputs.claimingAge1 && (age1 < ssFra1 || (inputs.claimingAge1 < ssFra1 && Math.floor(age1) === Math.floor(ssFra1)))) {
+    if (!survivorYear1 && spouse1Alive && age1 >= inputs.claimingAge1 && (age1 < ssFra1 || (claimExact1 < ssFra1 && Math.floor(age1) === Math.floor(ssFra1)))) {
       const t1 = ssEarningsTestWithholding(ficaWages1, ss1Benefit, age1, ssFra1, inflFactor, year, inputs.inflationRate);
       ssWithheld1 = t1.withheld;
       ssEarningsTestWithheld += t1.withheld;
-      ssEarningsTestMonths1 += t1.monthsWithheld;
+      // A claim year with a later start month pays fewer months; the test
+      // withholds a share of those months, not of twelve (changelog 464).
+      ssEarningsTestMonths1 += t1.monthsWithheld * claimShare1;
       ssEarningsTestInFraYear = ssEarningsTestInFraYear || t1.inFraYear;
     }
-    if (!survivorYear2 && inputs.spouse2Enabled && spouse2Alive && age2 >= inputs.claimingAge2 && (age2 < ssFra2 || (inputs.claimingAge2 < ssFra2 && Math.floor(age2) === Math.floor(ssFra2)))) {
+    if (!survivorYear2 && inputs.spouse2Enabled && spouse2Alive && age2 >= inputs.claimingAge2 && (age2 < ssFra2 || (claimExact2 < ssFra2 && Math.floor(age2) === Math.floor(ssFra2)))) {
       const t2 = ssEarningsTestWithholding(ficaWages2, ss2Benefit, age2, ssFra2, inflFactor, year, inputs.inflationRate);
       ssEarningsTestWithheld += t2.withheld;
-      ssEarningsTestMonths2 += t2.monthsWithheld;
+      ssEarningsTestMonths2 += t2.monthsWithheld * claimShare2;
       ssEarningsTestInFraYear = ssEarningsTestInFraYear || t2.inFraYear;
     }
     // A working survivor's benefit is tested too -- survivor benefits are
@@ -7953,7 +8010,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // under FRA was paid in full, overstating pre-FRA income by up to the
     // whole benefit.
     if (survivorYear1 && survivorPaid1 > 0) {
-      const claimAgeInPay1 = survivorBenefitPaying1 ? survivorClaimAge1 : inputs.claimingAge1;
+      const claimAgeInPay1 = survivorBenefitPaying1 ? survivorClaimAge1 : claimExact1;
       if (age1 < ssFra1 || (claimAgeInPay1 < ssFra1 && Math.floor(age1) === Math.floor(ssFra1))) {
         const t1 = ssEarningsTestWithholding(ficaWages1, survivorPaid1, age1, ssFra1, inflFactor, year, inputs.inflationRate);
         ssEarningsTestWithheld += t1.withheld;
@@ -7963,7 +8020,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       }
     }
     if (survivorYear2 && survivorPaid2 > 0) {
-      const claimAgeInPay2 = survivorBenefitPaying2 ? survivorClaimAge2 : inputs.claimingAge2;
+      const claimAgeInPay2 = survivorBenefitPaying2 ? survivorClaimAge2 : claimExact2;
       if (age2 < ssFra2 || (claimAgeInPay2 < ssFra2 && Math.floor(age2) === Math.floor(ssFra2))) {
         const t2 = ssEarningsTestWithholding(ficaWages2, survivorPaid2, age2, ssFra2, inflFactor, year, inputs.inflationRate);
         ssEarningsTestWithheld += t2.withheld;
@@ -11215,6 +11272,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       isRetired,
       isRetired1: isSpouse1Retired,
       ssOwn1,
+      // Months of each spouse's own benefit paid this year (changelog 464):
+      // 12 once it has started, fewer in a claim year with a later start
+      // month, 0 before the claim year.
+      ssClaimMonthsPaid1: age1 >= inputs.claimingAge1 ? Math.round(claimYearShareFor(age1, inputs.claimingAge1, inputs.claimMonth1) * 12) : 0,
+      ssClaimMonthsPaid2: inputs.spouse2Enabled && age2 >= inputs.claimingAge2 ? Math.round(claimYearShareFor(age2, inputs.claimingAge2, inputs.claimMonth2) * 12) : 0,
       // Withdrawal-rate guardrails (changelog 216). Null in every year the
       // rule did not run, so a surface can tell "off" from "held steady".
       wrGuardrailRate,
@@ -12864,7 +12926,10 @@ export function getSSClaimingHeatmap(rawInputs = DEFAULT_INPUTS) {
       const testInputs = {
         ...inputs,
         claimingAge1: age1,
-        claimingAge2: inputs.spouse2Enabled ? age2 : 62 // spouse 2 claim age ignored if spouse 2 is disabled
+        claimingAge2: inputs.spouse2Enabled ? age2 : 62, // spouse 2 claim age ignored if spouse 2 is disabled
+        // The grid compares whole claiming ages (changelog 464).
+        claimMonth1: 0,
+        claimMonth2: 0
       };
 
       const proj = _runProjectionPreSanitized(testInputs);

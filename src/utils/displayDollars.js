@@ -43,7 +43,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
   ...byClass(NONE, [
     // Who and when
     'year', 'age1', 'age2', 'seniorCount', 'moveMonth',
-    'ssEarningsTestCreditMonths1', 'ssEarningsTestCreditMonths2',
+    'ssEarningsTestCreditMonths1', 'ssEarningsTestCreditMonths2', 'ssClaimMonthsPaid1', 'ssClaimMonthsPaid2',
     // Price levels and inflation factors
     'priceIndex', 'inflFactor', 'ssColaFactor', 'medicalInflFactor', 'ltcInflFactor',
     'partBInflFactor', 'partDInflFactor', 'irmaaThresholdFactor', 'taxBracketInflationFactor', 'statutoryInflFactor',
