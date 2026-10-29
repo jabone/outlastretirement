@@ -178,7 +178,7 @@ export const HOW_FIGURED_RULES = [
     group: 'Social Security',
     summary: 'When a spouse dies, the survivor keeps the larger of their own benefit and a survivor benefit on the deceased spouse\'s record. That benefit is based on what the deceased was receiving, or on their full benefit with any credits earned for waiting if they had not yet claimed, and is 71.5% of it when started at 60, rising to 100% at the survivor\'s full retirement age. If the deceased claimed early, the survivor benefit is capped at the larger of their reduced benefit and 82.5% of their full one.',
     figuresYear: 'Set in law',
-    simplifies: 'The survivor is assumed to start the survivor benefit in the first year they can rather than delay it, and survivors born 1957 to 1961 use the retirement full-retirement-age table.',
+    simplifies: 'The survivor benefit is assumed to start in the first year it pays more than the survivor\'s own, rather than being delayed further to shrink its reduction, and survivors born 1957 to 1961 use the retirement full-retirement-age table.',
     sources: ['ss-survivor'],
   },
   {

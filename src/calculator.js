@@ -7079,8 +7079,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // withheld months, not just this year's.
   let ssEarningsTestMonths1 = 0;
   // Survivor benefit claim ages (changelog 265): fixed in the first year
-  // the survivor is alone and at least 60, and held from then on, since
-  // the age reduction is set when the survivor benefit starts.
+  // the survivor is alone, at least 60, and the survivor benefit pays more
+  // than their own (changelog 462), and held from then on, since the age
+  // reduction is set when the survivor benefit starts.
   let survivorClaimAge1 = null;
   let survivorClaimAge2 = null;
   let ssEarningsTestMonths2 = 0;
@@ -7857,7 +7858,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // survivor benefit is priced with the months the earnings test below
       // withheld given back -- the same recomputation own benefits get at
       // ssEffClaim1 above, applied to the survivor claim age here.
-      if (survivorClaimAge1 === null && age1 >= 60) survivorClaimAge1 = age1;
+      // The survivor benefit starts (and its age reduction is fixed) in the
+      // first alone year it pays more than the survivor's own benefit, not
+      // simply the first alone year: a survivor whose own check is larger
+      // has not filed for it, and can still file later, e.g. at FRA for the
+      // unreduced amount (changelog 462).
+      if (survivorClaimAge1 === null && age1 >= 60 && survivorOn2(age1) > own1Now) survivorClaimAge1 = age1;
       const survClaimEff1 = (survivorClaimAge1 !== null && age1 >= ssFra1)
         ? ssEffectiveClaimingAge(survivorClaimAge1, ssEarningsTestSurvMonths1, ssFra1)
         : survivorClaimAge1;
@@ -7866,7 +7872,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       survivorBenefitPaying1 = survBenefit1 > own1Now;
       ssIncome += survivorPaid1;
     } else if (spouse2Alive) {
-      if (survivorClaimAge2 === null && age2 >= 60) survivorClaimAge2 = age2;
+      if (survivorClaimAge2 === null && age2 >= 60 && survivorOn1(age2) > own2Now) survivorClaimAge2 = age2;
       const survClaimEff2 = (survivorClaimAge2 !== null && age2 >= ssFra2)
         ? ssEffectiveClaimingAge(survivorClaimAge2, ssEarningsTestSurvMonths2, ssFra2)
         : survivorClaimAge2;

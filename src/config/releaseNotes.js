@@ -24,8 +24,10 @@ export const RELEASE_NOTES_WEEKS = 6;
 export const RELEASE_WEEKS = [
   {
     weekOf: '2026-10-26',
-    headline: 'The offline notice steps aside',
+    headline: 'A survivor keeps a larger own check, and the offline notice steps aside',
     bullets: [
+      { title: 'A survivor keeps a larger own Social Security check', ids: [462],
+        text: 'A widow or widower whose own Social Security is larger now keeps it, and starts the survivor benefit only in the year it pays more, at the latest unreduced at full retirement age. Before, its reduction was fixed in the first year alone, so it could never overtake their own. Your numbers will change if your plan has such a survivor; their income can only go up.' },
       { title: 'The offline notice shrinks to a small pill', ids: [461],
         text: 'When your connection drops, the notice that everything still works now shrinks to a small Offline pill after a few seconds, or at once with its close button, so it no longer covers your figures. Tap the pill to read it again.' },
     ],

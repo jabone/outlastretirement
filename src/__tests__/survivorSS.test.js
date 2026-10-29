@@ -55,6 +55,25 @@ describe('runProjection survivor branch', () => {
     expect(p.years.find((y) => y.age2 === 67).ssIncome).toBeCloseTo(30000 * factor, 0);
   });
 
+  it('own larger in the first alone year: the survivor benefit starts only in the year it pays more (here at FRA, unreduced)', () => {
+    // Own claimed at 62: 17,000 x 0.70 = 11,900. Alone from 63. The survivor
+    // benefit on a 12,200 record is 12,200 x (1 - 0.285 x months-to-FRA/84):
+    // 10,710 at 63 up to 11,703 at 66, all below her own, so she keeps her
+    // own check and has not filed; at 67 the unreduced 12,200 is larger and
+    // starts. Before changelog 462 the survivor benefit was fixed at 63 and
+    // never overtook her own.
+    const inputs = {
+      ...couple, ss1: 12200, ss2: 17000, claimingAge2: 62, lifeExpectancy1: 64,
+    };
+    const p = runProjection(inputs);
+    const at = (a) => p.years.find((y) => y.age2 === a).ssIncome;
+    expect(p.years.find((y) => !y.spouse1Alive).age2).toBe(63);
+    expect(at(63)).toBeCloseTo(11900, 0);
+    expect(at(66)).toBeCloseTo(11900, 0);
+    expect(at(67)).toBeCloseTo(12200, 0);
+    expect(at(75)).toBeCloseTo(12200, 0);
+  });
+
   it('a survivor under 60 draws nothing on the record until 60', () => {
     const p = runProjection({ ...couple, birthYear2: 1972, lifeExpectancy1: 66 });
     const first = p.years.find((y) => !y.spouse1Alive);

@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 462,
+    date: '2026-10-28',
+    title: 'A survivor keeps a larger own Social Security check',
+    summary: 'A widow or widower whose own Social Security is larger keeps it, and starts the survivor benefit only once that pays more, often unreduced at full retirement age.',
+    items: [
+      "**What was wrong.** The survivor benefit's early-claiming reduction was fixed in the first year someone was alone, even when their own check was larger and the survivor benefit was not being paid. That reduced survivor amount could then never overtake their own, so a survivor who could switch to a larger unreduced survivor benefit at full retirement age was shown their own smaller check for life.",
+      "**What changed.** The survivor benefit now starts, and its reduction is set, in the first year it pays more than the survivor's own: at 60 or later, and at the latest at full retirement age, when it is no longer reduced. Your numbers will change only if a plan has a survivor whose own benefit is larger at first; their income can only go up.",
+      "**Written rules.** The professional-review document now gives the trust-fund stress test's defaults as the app uses them: depletion in 2032 and a 22% cut, from the 2026 Trustees Report. It had still said 2033 and 23%.",
+    ],
+  },
+  {
     id: 461,
     date: '2026-10-28',
     title: 'The offline notice no longer covers the page',
