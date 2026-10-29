@@ -24,8 +24,10 @@ export const RELEASE_NOTES_WEEKS = 6;
 export const RELEASE_WEEKS = [
   {
     weekOf: '2026-10-26',
-    headline: 'A survivor keeps a larger own check, and the offline notice steps aside',
+    headline: 'Roth conversions up to your deductions, and a survivor keeps a larger own check',
     bullets: [
+      { title: 'Roth conversions up to your deductions, with no federal income tax', ids: [463],
+        text: 'Fill-to-bracket Roth conversions can target 0%: each year the plan converts only as much as your deductions cover, so the conversion adds no federal income tax, though it can still raise state tax, the taxable share of Social Security and Medicare surcharges. The Roth Ladder Optimizer now tries it too. Your numbers change only if you choose it.' },
       { title: 'A survivor keeps a larger own Social Security check', ids: [462],
         text: 'A widow or widower whose own Social Security is larger now keeps it, and starts the survivor benefit only in the year it pays more, at the latest unreduced at full retirement age. Before, its reduction was fixed in the first year alone, so it could never overtake their own. Your numbers will change if your plan has such a survivor; their income can only go up.' },
       { title: 'The offline notice shrinks to a small pill', ids: [461],

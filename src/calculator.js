@@ -1546,7 +1546,9 @@ export const DEFAULT_INPUTS = {
   // Roth Conversions
   rothConversionStrategy: 'none', // 'none', 'fixed', 'maxBracket'
   rothConversionAmount: 25000,
-  rothConversionBracket: 0.22, // 12% (0.12), 22% (0.22), 24% (0.24)
+  // One of ROTH_CONVERSION_BRACKETS; 0 is the 0% tier, up to the
+  // deductions (changelog 463).
+  rothConversionBracket: 0.22,
   rothConversionBuffer: 1000,
   // Changelog 250: hold a voluntary conversion under an IRMAA tier. A cap
   // on whatever strategy is active (fixed or bracket-fill), the way ACA
@@ -5270,10 +5272,24 @@ function capGainsTaxForOneReturn(ordinaryIncome, capitalGains, status, inflation
 
 // Derived from BRACKETS_MFJ / BRACKETS_SINGLE (single source of truth) rather
 // than a third copy of the literal bracket dollar amounts.
+// The brackets a fill-to-bracket conversion may target (changelog 463).
+// 0 is the "0% tier": taxable income kept at $0, so the conversion uses up
+// the standard deduction (with the 65+ add-on and the senior deduction)
+// and adds no federal income tax.
+export const ROTH_CONVERSION_BRACKETS = Object.freeze([0, 0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37]);
+// "the 22% bracket" / "the 0% tier": the words a label puts after the rate.
+export const rothTargetNoun = (rate) => (rate === 0 ? 'tier' : 'bracket');
+
 export function getTaxBracketLimit(status, rate, inflationFactor = 1) {
+  // 0% has no bracket of its own: its ceiling is $0 of taxable income,
+  // the top of the deductions (changelog 463).
+  if (rate === 0) return 0;
   const brackets = bracketsFor(status);
   const limits = brackets.reduce((acc, b) => { acc[b.rate] = b.limit; return acc; }, {});
   const val = limits[rate];
+  // An unknown rate falls back to a $0 ceiling. sanitizeInputs keeps a
+  // conversion target to ROTH_CONVERSION_BRACKETS, so a plan only reaches
+  // this with a rate it was never meant to carry; 0% is handled above.
   if (val === undefined) return 0;
   if (val === Infinity) return Infinity;
   return val * inflationFactor;
@@ -6701,6 +6717,21 @@ export function sanitizeInputs(inputs) {
   } else if (clean.rothConversionBracket > 1) {
     invalid.push({ key: 'rothConversionBracket', value: clean.rothConversionBracket, reason: 'percent-as-whole-number', usedValue: clean.rothConversionBracket / 100 });
     clean.rothConversionBracket = clean.rothConversionBracket / 100;
+  }
+  // Changelog 463: a target outside the real brackets (0.15, say) used to
+  // fall through getTaxBracketLimit to a $0 ceiling and quietly become the
+  // 0% tier. It now takes the default and is listed. 0 itself is the 0%
+  // tier and is kept. Compared to the cent, so 0.2200000001 still reads
+  // as 22%.
+  {
+    const r = clean.rothConversionBracket;
+    const match = ROTH_CONVERSION_BRACKETS.find((b) => Math.abs(b - r) < 1e-9);
+    if (match === undefined) {
+      invalid.push({ key: 'rothConversionBracket', value: r, reason: 'unknown-bracket', usedValue: defaults.rothConversionBracket });
+      clean.rothConversionBracket = defaults.rothConversionBracket;
+    } else {
+      clean.rothConversionBracket = match;
+    }
   }
   // Lists: anything that is not a list becomes the default; entries of a
   // list of records that are not records are dropped, and a life event's
@@ -9426,6 +9457,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (inputs.rothConversionStrategy === 'fixed') {
         convertAmount = Math.min(preTax, inputs.rothConversionAmount);
       } else if (inputs.rothConversionStrategy === 'maxBracket') {
+        // 0 is valid: the 0% tier, whose ceiling is $0 of taxable income,
+        // so the fill stops where the deductions run out (changelog 463).
         const targetRate = inputs.rothConversionBracket;
         // The ceiling is a per-return figure. MFS splits the household's
         // taxable income across two returns (forEachSeparateReturn), so the
@@ -12029,7 +12062,7 @@ const rankKey = (r) => (r.isSuccessful ? 1 : 0) * 1e15 + (r.afterTaxLegacy ?? r.
 // TaxableFirst/PreTaxFirst/ProRata; the no-conversion column can't win
 // here because every grid cell converts), so the Hub never shows a
 // duplicate. Costs one extra projection in runOptimizer rather than
-// re-running the 28-cell grid.
+// re-running the 32-cell grid.
 export function gridBestExtraStrategy(rothBracketHeatmapData) {
   if (!Array.isArray(rothBracketHeatmapData) || rothBracketHeatmapData.length === 0) return null;
   const best = rothBracketHeatmapData.reduce((b, c) => (!b || rankKey(c) > rankKey(b) ? c : b), null);
@@ -12039,7 +12072,7 @@ export function gridBestExtraStrategy(rothBracketHeatmapData) {
   const pct = Math.round(best.bracket * 100);
   return {
     id: 'grid_best',
-    name: `Full-Grid Best: ${pct}% Bracket + ${orderLabels[best.withdrawalStrategy] || best.withdrawalStrategy}`,
+    name: `Full-Grid Best: ${pct}% ${best.bracket === 0 ? 'Tier' : 'Bracket'} + ${orderLabels[best.withdrawalStrategy] || best.withdrawalStrategy}`,
     description: `Best of all ${rothBracketHeatmapData.length} combinations in the Roth Ladder Optimizer's full grid.`,
     config: { withdrawalStrategy: best.withdrawalStrategy, rothConversionStrategy: 'maxBracket', rothConversionBracket: best.bracket, rothConversionDurationYears: 0 },
   };
@@ -12858,13 +12891,13 @@ export function getSSClaimingHeatmap(rawInputs = DEFAULT_INPUTS) {
   return results;
 }
 
-// Standard federal marginal bracket ceilings tested by both Roth Conversion
-// Ladder heatmaps below -- the same set runOptimizer's 3 hardcoded
-// "roth_conv_12/22/24" cards sample from, extended to every bracket a
-// maxBracket conversion target actually makes sense at (10% through the top
-// 37% rate covers the realistic range; nobody targets 0% since that
-// converts nothing).
-const ROTH_LADDER_BRACKETS = [0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37];
+// Federal marginal bracket ceilings tested by both Roth Conversion Ladder
+// heatmaps below: every target a maxBracket conversion can take. 0% is
+// the 0% tier (changelog 463): it converts as much as the standard
+// deduction, the 65+ add-on and the senior deduction cover, with no
+// federal income tax on it, which for many retirees is the cheapest
+// conversion there is.
+const ROTH_LADDER_BRACKETS = ROTH_CONVERSION_BRACKETS;
 const ROTH_LADDER_WITHDRAWAL_STRATEGIES = ['TaxableFirst', 'PreTaxFirst', 'RothFirst', 'ProRata'];
 
 // Shared per-cell metric extraction for both Roth Conversion Ladder heatmaps

@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 463,
+    date: '2026-10-28',
+    title: 'Roth conversions: a 0% tier, up to your deductions',
+    summary: 'Fill-to-bracket Roth conversions can now target 0%: convert only as much as your deductions cover each year, so no federal income tax is due on it.',
+    items: [
+      "**The 0% tier.** Plan \u2192 Taxes & Roth \u2192 Roth Conversion Optimization \u2192 Target Bracket now starts with 0%. Each year the plan converts as much as your standard deduction covers, with the extra amount at 65 and the senior deduction, less the buffer, so the conversion adds no federal income tax. It can still raise your state tax, the taxable share of Social Security and the Medicare surcharge two years later. A 10% choice is there too.",
+      "**The Roth Ladder Optimizer tries it.** The bracket grid now tests eight targets against the four withdrawal orders, 32 combinations instead of 28, so the 0% tier can be the Full-Grid Best card on the Tax Optimizer Hub.",
+      "**A target that is not a real bracket is caught.** An imported plan with a conversion target such as 15% used to convert just enough to reach $0 of taxable income without saying so. It now uses the 22% default and lists the correction with the plan's other input fixes.",
+      "**Your numbers do not change** unless you choose the 0% or 10% target. Plans at 12%, 22%, 24% or 32% project exactly as before.",
+    ],
+  },
+  {
     id: 462,
     date: '2026-10-28',
     title: 'A survivor keeps a larger own Social Security check',

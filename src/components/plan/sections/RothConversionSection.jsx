@@ -53,8 +53,14 @@ export default function RothConversionSection({ forceOpen = false }) {
                 {inputs.rothConversionStrategy === 'maxBracket' && (
                   <>
                     <div className="form-group">
-                      <label htmlFor="field-rothConversionBracket">Target Bracket</label>
+                      <label htmlFor="field-rothConversionBracket">
+                        <Tooltip text="0% converts only what your deductions cover, so it adds no federal income tax. It can still raise state tax, the taxable share of Social Security and Medicare surcharges two years later." more="Target Bracket">
+                          Target Bracket
+                        </Tooltip>
+                      </label>
                       <select id="field-rothConversionBracket" className="form-input form-input-select" value={inputs.rothConversionBracket} onChange={(e) => updateInput('rothConversionBracket', (e.target.value === '' ? '' : parseFloat(e.target.value)))}>
+                        <option value="0">0% (up to your standard deduction, no federal income tax)</option>
+                        <option value="0.1">10% Tax Bracket</option>
                         <option value="0.12">12% Tax Bracket</option>
                         <option value="0.22">22% Tax Bracket</option>
                         <option value="0.24">24% Tax Bracket</option>

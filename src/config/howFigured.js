@@ -252,7 +252,7 @@ export const HOW_FIGURED_RULES = [
     id: 'roth-conversions',
     title: 'Roth conversions',
     group: 'Retirement accounts',
-    summary: 'You can convert a fixed amount each year or fill up to the top of a bracket you choose. A conversion is taxable income the year it is made, and it also counts in the Social Security test, the senior deduction and the Medicare surcharge two years later. If your Pre-Tax money includes after-tax contributions, only the pre-tax share of each converted dollar is taxed, as on Form 8606.',
+    summary: 'You can convert a fixed amount each year or fill up to the top of a bracket you choose, including 0%, which converts only as much as your standard deduction (with the extra amount at 65 and the senior deduction) covers, so no federal income tax is due on it. A conversion is taxable income the year it is made, and it also counts in the Social Security test, the senior deduction and the Medicare surcharge two years later. If your Pre-Tax money includes after-tax contributions, only the pre-tax share of each converted dollar is taxed, as on Form 8606.',
     figuresYear: 'Set in law',
     simplifies: 'The after-tax share is measured across the whole Pre-Tax pool, 401(k) money included, where the law looks at IRAs only.',
     sources: ['ira-phaseouts', 'inherited-ira'],

@@ -257,7 +257,9 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
     } else if (inputs.rothConversionStrategy === 'maxBracket') {
       const pct = Math.round((inputs.rothConversionBracket || 0) * 100);
       retirementItems.push({
-        label: `Your plan converts Pre-Tax to Roth each year, up to the top of the ${pct}% tax bracket`,
+        label: pct === 0
+          ? 'Your plan converts Pre-Tax to Roth each year, as much as your deductions cover (the 0% tier)'
+          : `Your plan converts Pre-Tax to Roth each year, up to the top of the ${pct}% tax bracket`,
         detail: startNote,
       });
     }
@@ -300,7 +302,7 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
     if (!isActiveCombo && improvement > 1000) {
       const bestPct = Math.round(bestCell.bracket * 100);
       retirementItems.push({
-        label: `Filling the ${bestPct}% bracket with ${WITHDRAWAL_STRATEGY_SHORT_LABELS[bestCell.withdrawalStrategy] || bestCell.withdrawalStrategy} withdrawals leaves your heirs more after every tax`,
+        label: `Filling the ${bestPct}% ${bestCell.bracket === 0 ? 'tier' : 'bracket'} with ${WITHDRAWAL_STRATEGY_SHORT_LABELS[bestCell.withdrawalStrategy] || bestCell.withdrawalStrategy} withdrawals leaves your heirs more after every tax`,
         detail: `Optimizers \u2192 Roth Ladder Optimizer tries every bracket and withdrawal order and ranks them by what your heirs keep after every tax. It projects ${fc(bestCell.afterTaxLegacy ?? bestCell.endingBalance)} for this combination, ${fc(improvement)} more than your current settings. A large gap usually means your current conversion setting is aggressive, or timid, for your bracket picture.`,
       });
     }

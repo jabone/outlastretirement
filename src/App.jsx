@@ -3934,7 +3934,7 @@ export default function App() {
                       {conversionActive ? (
                         <>
                           {inputs.rothConversionStrategy === 'fixed' && `Fixed annual conversion of ${formatCurrency(inputs.rothConversionAmount || 0)}`}
-                          {inputs.rothConversionStrategy === 'maxBracket' && `Convert up to the top of the ${((inputs.rothConversionBracket || 0) * 100).toFixed(0)}% marginal tax bracket each year`}
+                          {inputs.rothConversionStrategy === 'maxBracket' && (inputs.rothConversionBracket === 0 ? 'Convert as much as your deductions cover each year (the 0% tier)' : `Convert up to the top of the ${((inputs.rothConversionBracket || 0) * 100).toFixed(0)}% marginal tax bracket each year`)}
                           {!['fixed', 'maxBracket'].includes(inputs.rothConversionStrategy) && inputs.rothConversionStrategy}
                           <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.8, marginTop: '4px' }}>
                             {formatEnding(totalConverted)} converted over the plan's lifetime, at a total tax cost of {formatEnding(totalConversionTax)}{totalConverted > 0 ? ` (${((totalConversionTax / totalConverted) * 100).toFixed(1)}% effective rate)` : ''}. Converting pre-tax dollars to Roth pays tax now in exchange for tax-free growth and withdrawals later, and shrinks future Required Minimum Distributions.

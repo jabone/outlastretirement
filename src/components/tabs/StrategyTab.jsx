@@ -3,7 +3,7 @@ import { gridCompactDollars } from '../../utils/compactDollars';
 import { heatCellBg } from '../../utils/heatCell';
 import { useSimulation } from '../../context/useSimulation';
 import { CheckCircle, Loader2, Layers, Trophy, Coins, Dices, AlertTriangle, CheckCircle2, Lightbulb, Star, XCircle } from 'lucide-react';
-import { getSSMultiplier, getFullRetirementAge, runMonteCarlo, getContributionSplitOptimizer, runProjection } from '../../calculator';
+import { getSSMultiplier, getFullRetirementAge, runMonteCarlo, getContributionSplitOptimizer, runProjection, rothTargetNoun } from '../../calculator';
 import { compareSsClaimingAges } from '../../utils/retirementFunding';
 import HoverTooltip from '../HoverTooltip';
 import Tooltip from '../Tooltip';
@@ -1199,7 +1199,7 @@ const StrategyTab = () => {
                         </h3>
                         <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
                           {rothLadderMode === 'bracket'
-                            ? `Fill the ${Math.round(inspectedCell.bracket * 100)}% bracket, ${withdrawalLabels[inspectedCell.withdrawalStrategy]} withdrawals`
+                            ? `Fill the ${Math.round(inspectedCell.bracket * 100)}% ${rothTargetNoun(inspectedCell.bracket)}, ${withdrawalLabels[inspectedCell.withdrawalStrategy]} withdrawals`
                             : `Convert ${formatCurrency(inspectedCell.annualAmount)}/yr for ${inspectedCell.durationYears} years`}
                         </p>
                       </div>
@@ -1242,7 +1242,7 @@ const StrategyTab = () => {
                       {!isOptimal && optimalCell && (
                         <div style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(42, 127, 122, 0.2)', backgroundColor: 'rgba(42, 127, 122, 0.03)', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
                           <Lightbulb size={14} style={{ verticalAlign: '-2px', color: 'var(--accent-text)' }} /> <strong>Best result in this grid:</strong> {rothLadderMode === 'bracket'
-                            ? `Filling the ${Math.round(optimalCell.bracket * 100)}% bracket with ${withdrawalLabels[optimalCell.withdrawalStrategy]} withdrawals`
+                            ? `Filling the ${Math.round(optimalCell.bracket * 100)}% ${rothTargetNoun(optimalCell.bracket)} with ${withdrawalLabels[optimalCell.withdrawalStrategy]} withdrawals`
                             : `Converting ${formatCurrency(optimalCell.annualAmount)}/yr for ${optimalCell.durationYears} years`} yields the {rothLadderMetricDirection === 'max' ? 'highest' : 'lowest'} {rothLadderMetric === 'afterTaxLegacy' ? 'net to heirs after every tax' : rothLadderMetric === 'endingBalance' ? 'ending balance' : 'lifetime tax bill'}: <strong>{formatCurrency(cellValue(optimalCell))}</strong>.
                         </div>
                       )}

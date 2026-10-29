@@ -22,7 +22,7 @@ import { guardrailsComparisonForDisplay } from './utils/guardrailsDisplay.js';
 // collectively fire 150+ full runProjection() calls per settings change
 // (stress comparison: 5, SS claiming heatmap: up to 81, optimizer: one per
 // strategy, age finder: one per candidate age, sensitivity analysis: 9, Roth
-// bracket/withdrawal heatmap: 28, Roth ladder schedule heatmap: 42). Moved
+// bracket/withdrawal heatmap: 32, Roth ladder schedule heatmap: 42). Moved
 // here so they run off the main thread instead of jank-ing the UI on every
 // debounced input change.
 //
@@ -49,7 +49,7 @@ export async function runHeavyAnalyses({ requestId, inputs, useRealDollars }, { 
     () => { out.ssClaimingHeatmapData = getSSClaimingHeatmap(inputs); },
     // Roth grid computed BEFORE the optimizer so its best cell can join the
     // Hub's cards as a seventh, dynamic strategy (gridBestExtraStrategy) —
-    // one extra projection instead of re-running the whole 28-cell grid.
+    // one extra projection instead of re-running the whole 32-cell grid.
     () => { out.rothBracketHeatmapData = getRothBracketWithdrawalHeatmap(inputs, useRealDollars); },
     () => {
       const gridBestExtras = [gridBestExtraStrategy(out.rothBracketHeatmapData)];

@@ -3825,11 +3825,11 @@ describe('calculator.js core logic', () => {
   });
 
   describe('Roth Conversion Ladder Optimizer (getRothBracketWithdrawalHeatmap)', () => {
-    it('tests every combination of the 7 bracket targets and 4 withdrawal strategies', () => {
+    it('tests every combination of the 8 bracket targets and 4 withdrawal strategies', () => {
       const results = getRothBracketWithdrawalHeatmap(DEFAULT_INPUTS);
-      expect(results.length).toBe(28); // 7 x 4
+      expect(results.length).toBe(32); // 8 x 4 (changelog 463 added the 0% tier)
       const brackets = new Set(results.map(r => r.bracket));
-      expect(brackets).toEqual(new Set([0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37]));
+      expect(brackets).toEqual(new Set([0, 0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37]));
       const strategies = new Set(results.map(r => r.withdrawalStrategy));
       expect(strategies).toEqual(new Set(['TaxableFirst', 'PreTaxFirst', 'RothFirst', 'ProRata']));
     });
