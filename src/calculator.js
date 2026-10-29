@@ -1551,7 +1551,19 @@ export const DEFAULT_INPUTS = {
   lifeInsuranceAnnualPremium2: 0,
 
   // Roth Conversions
-  rothConversionStrategy: 'none', // 'none', 'fixed', 'maxBracket'
+  rothConversionStrategy: 'none', // 'none', 'fixed', 'maxBracket', 'schedule'
+  // Changelog 465: a year-by-year schedule, used when the strategy is
+  // 'schedule': [{ year, bracket }], bracket one of
+  // ROTH_CONVERSION_BRACKETS or null for no conversion that year. A year
+  // missing from the list converts nothing. Each scheduled year fills to
+  // its bracket exactly as 'maxBracket' fills to rothConversionBracket,
+  // caps and trims included. Written by "Find my best schedule"
+  // (optimizeRothSchedule) or kept from an earlier search.
+  rothConversionSchedule: [],
+  // What "Find my best schedule" aims for: 'afterTaxEnding' (what the
+  // heirs keep after every tax, today's dollars) or 'lifetimeSpending'
+  // (the most level spending that lasts).
+  rothOptimizerObjective: 'afterTaxEnding',
   rothConversionAmount: 25000,
   // One of ROTH_CONVERSION_BRACKETS; 0 is the 0% tier, up to the
   // deductions (changelog 463).
@@ -6780,6 +6792,30 @@ export function sanitizeInputs(inputs) {
       clean.rothConversionBracket = match;
     }
   }
+  // Changelog 465: the year-by-year schedule. Records only; a year is a
+  // whole calendar year inside the plan; a bracket is a real target
+  // (snapped like rothConversionBracket) or null. A later entry for the
+  // same year replaces an earlier one; the list is kept in year order.
+  {
+    const list = Array.isArray(clean.rothConversionSchedule) ? clean.rothConversionSchedule : [];
+    const lastYear = clean.planYear + 130;
+    const byYear = new Map();
+    for (const e of list) {
+      if (!e || typeof e !== 'object' || Array.isArray(e)) continue;
+      const y = Number(e.year);
+      if (!Number.isInteger(y) || y < clean.planYear || y > lastYear) continue;
+      let b = e.bracket;
+      if (b === null || b === undefined || b === '') {
+        b = null;
+      } else {
+        const n = Number(b);
+        b = Number.isFinite(n) ? (ROTH_CONVERSION_BRACKETS.find((r) => Math.abs(r - (n > 1 ? n / 100 : n)) < 1e-9) ?? null) : null;
+      }
+      byYear.set(y, b);
+    }
+    clean.rothConversionSchedule = [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([year, bracket]) => ({ year, bracket }));
+    if (clean.rothOptimizerObjective !== 'lifetimeSpending') clean.rothOptimizerObjective = 'afterTaxEnding';
+  }
   // Lists: anything that is not a list becomes the default; entries of a
   // list of records that are not records are dropped, and a life event's
   // figures are parsed the way a typed field is.
@@ -7119,6 +7155,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   let lifeInsuranceHeldForHeirs2 = 0;
 
   const startYear = inputs.planYear;
+  // The year-by-year Roth schedule as a lookup (changelog 465).
+  const rothScheduleByYear = new Map((inputs.rothConversionSchedule || []).map((e) => [e.year, e.bracket]));
   const birthYear1 = inputs.birthYear1;
   const birthYear2 = inputs.spouse2Enabled ? inputs.birthYear2 : birthYear1;
   
@@ -9485,7 +9523,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // is on, since isConversionYear above already requires isRetired to be
     // true in that case, and isRetired becoming true is exactly what sets
     // householdRetirementYear (see the isRetired check earlier in this loop).
-    if (isConversionYear && inputs.rothConversionDurationYears > 0) {
+    // A schedule names its own years, so the duration cap does not apply
+    // to it (changelog 465).
+    if (isConversionYear && inputs.rothConversionDurationYears > 0 && inputs.rothConversionStrategy !== 'schedule') {
       const conversionStartYear = inputs.rothConversionDelayUntilRetire ? householdRetirementYear : startYear;
       const yearsSinceConversionStart = year - conversionStartYear;
       if (yearsSinceConversionStart >= inputs.rothConversionDurationYears) {
@@ -9513,10 +9553,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (isConversionYear && inputs.rothConversionStrategy !== 'none' && preTax > 0) {
       if (inputs.rothConversionStrategy === 'fixed') {
         convertAmount = Math.min(preTax, inputs.rothConversionAmount);
-      } else if (inputs.rothConversionStrategy === 'maxBracket') {
+      } else if (inputs.rothConversionStrategy === 'maxBracket' || (inputs.rothConversionStrategy === 'schedule' && rothScheduleByYear.get(year) != null)) {
         // 0 is valid: the 0% tier, whose ceiling is $0 of taxable income,
         // so the fill stops where the deductions run out (changelog 463).
-        const targetRate = inputs.rothConversionBracket;
+        // A schedule (changelog 465) fills to this year's bracket the same
+        // way; a year with no bracket never enters this branch.
+        const targetRate = inputs.rothConversionStrategy === 'schedule' ? rothScheduleByYear.get(year) : inputs.rothConversionBracket;
         // The ceiling is a per-return figure. MFS splits the household's
         // taxable income across two returns (forEachSeparateReturn), so the
         // household can fill to the ceiling divided by the larger return's
@@ -12757,6 +12799,28 @@ export const DIE_WITH_ZERO_CEILING = 5000000;
 // ceiling for the other two, each indistinguishable from a real answer.
 // finalProjection is always a projection the charts can draw: the solved
 // spend, the ceiling, or the plan as it stands.
+// The bisection behind findDieWithZeroSpending, shared with the Roth
+// schedule search (changelog 465): the highest level lifestyleExpense in
+// [low, high] that lasts, after `iterations` halvings. A level lasts when
+// the plan is successful and never ends below zero. Returns the best level
+// found (null if none in the range did) and its projection.
+function bisectLevelSpending(inputs, low, high, iterations, run = _runProjectionPreSanitized) {
+  let best = null;
+  let projection = null;
+  for (let iter = 0; iter < iterations; iter++) {
+    const mid = (low + high) / 2;
+    const result = run({ ...inputs, lifestyleExpense: mid });
+    if (result.isSuccessful && result.endingBalance >= 0) {
+      best = mid;
+      projection = result;
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  return { best, projection };
+}
+
 export function findDieWithZeroSpending(rawInputs = DEFAULT_INPUTS) {
   const inputs = sanitizeInputs(rawInputs);
   const ceiling = DIE_WITH_ZERO_CEILING;
@@ -12777,25 +12841,9 @@ export function findDieWithZeroSpending(rawInputs = DEFAULT_INPUTS) {
     };
   }
 
-  let low = 0;
-  let high = ceiling;
-  let bestSpending = null;
-  let finalProjection = null;
-
-  for (let iter = 0; iter < 40; iter++) {
-    const mid = (low + high) / 2;
-    const testInputs = { ...inputs, lifestyleExpense: mid };
-    const result = _runProjectionPreSanitized(testInputs);
-
-    // We check if it is successful and does not run out early
-    if (result.isSuccessful && result.endingBalance >= 0) {
-      bestSpending = mid;
-      finalProjection = result;
-      low = mid;
-    } else {
-      high = mid;
-    }
-  }
+  const found = bisectLevelSpending(inputs, 0, ceiling, 40);
+  let bestSpending = found.best;
+  let finalProjection = found.projection;
 
   if (bestSpending === null) {
     // Every probe failed; $0 is the last word on whether anything works.
@@ -12814,6 +12862,201 @@ export function findDieWithZeroSpending(rawInputs = DEFAULT_INPUTS) {
     reason: 'ok',
     ceiling,
     finalProjection,
+  };
+}
+
+// ---------------------------------------------------------------------
+// Year-by-year Roth schedule search (changelog 465).
+//
+// One bracket every year (maxBracket, and the Roth Ladder grid) cannot say
+// "0% while on the marketplace, 22% from 65 to 69, 12% once Social
+// Security starts". This searches for such a schedule, on the device, by
+// coordinate descent: start from the better of no conversions and the best
+// single bracket at the plan's own withdrawal order, then, one conversion
+// year at a time, try each candidate bracket with every other year held,
+// keeping a change only when it improves the chosen goal. The caps (IRMAA,
+// ACA cliff protection) and the post-solver trim apply inside every
+// projection, so the search only ever chooses among conversions the plan
+// allows. It is a step-by-step search, not a proof of the single best
+// answer.
+//
+// Goals: 'afterTaxEnding' -- legacyAfterTaxes in today's dollars, a plan
+// that runs short ranking below any that lasts (the optimizers' key);
+// 'lifetimeSpending' -- the highest level lifestyle spending that lasts
+// (findDieWithZeroSpending's definition), found inside the search by a
+// short bisection around the incumbent's answer and checked at the end
+// with the full one.
+//
+// Budget: ROTH_SCHEDULE_BUDGET projections in all, seeds and the final
+// check included -- about one 1,000-trial Monte Carlo. At the budget the
+// best schedule so far is returned with budgetHit.
+// ---------------------------------------------------------------------
+export const ROTH_SCHEDULE_BUDGET = 1200;
+export const ROTH_SCHEDULE_WINDOW_YEARS = 20;
+// Brackets tried for a single year. 35% and 37% are rarely right for one
+// year and cost search time, so they appear only as flat seeds.
+export const ROTH_SCHEDULE_CANDIDATES = Object.freeze([null, 0, 0.10, 0.12, 0.22, 0.24, 0.32]);
+const scheduleRank = (b) => (b === null ? -1 : b);
+
+export function optimizeRothSchedule(rawInputs = DEFAULT_INPUTS, { objective, onProgress, isCurrent } = {}) {
+  const inputs = sanitizeInputs(rawInputs);
+  const goal = (objective ?? inputs.rothOptimizerObjective) === 'lifetimeSpending' ? 'lifetimeSpending' : 'afterTaxEnding';
+  const budget = ROTH_SCHEDULE_BUDGET;
+  let runs = 0;
+  let budgetHit = false;
+  const project = (inp) => { runs += 1; return _runProjectionPreSanitized(inp); };
+  const canceled = () => typeof isCurrent === 'function' && !isCurrent();
+  const report = (year) => { if (onProgress) onProgress({ runs, budget, year }); };
+
+  const afterTaxOf = (proj) => legacyAfterTaxes(inputs, proj) / finalBalanceFactor(proj.years);
+  const afterTaxKey = (proj) => (proj.isSuccessful ? 1e15 : 0) + afterTaxOf(proj);
+  const asSchedule = (schedule) => ({ ...inputs, rothConversionStrategy: 'schedule', rothConversionSchedule: schedule, rothConversionDurationYears: 0 });
+  const fullSpending = (inp) => {
+    const top = project({ ...inp, lifestyleExpense: DIE_WITH_ZERO_CEILING });
+    if (top.isSuccessful && top.endingBalance >= 0) return DIE_WITH_ZERO_CEILING;
+    const found = bisectLevelSpending(inp, 0, DIE_WITH_ZERO_CEILING, 40, project);
+    return found.best ?? 0;
+  };
+  // A short bisection around a known answer: 10 halvings of +/-10%, widened
+  // once when the answer sits on an edge. $50 is the tolerance it needs.
+  const warmSpending = (inp, near) => {
+    const base = Math.max(1000, near);
+    let lo = base * 0.9;
+    let hi = base * 1.1;
+    let found = bisectLevelSpending(inp, lo, hi, 10, project);
+    if (found.best === null) {
+      hi = lo; lo = Math.max(0, base * 0.5);
+      found = bisectLevelSpending(inp, lo, hi, 10, project);
+      return found.best ?? lo;
+    }
+    if (hi - found.best < (hi - lo) / 512) {
+      lo = hi; hi = base * 1.5;
+      const up = bisectLevelSpending(inp, lo, hi, 10, project);
+      return up.best ?? lo;
+    }
+    return found.best;
+  };
+
+  // The plan with no conversions: the baseline, and the conversion window.
+  const noneInputs = { ...inputs, rothConversionStrategy: 'none' };
+  const noneProj = project(noneInputs);
+  const eligible = noneProj.years
+    .filter((y) => (!inputs.rothConversionDelayUntilRetire || y.isRetired) && (y.preTaxStart || 0) > 0)
+    .map((y) => y.year);
+  if (eligible.length === 0) {
+    const v = goal === 'afterTaxEnding' ? afterTaxOf(noneProj) : null;
+    return { schedule: [], objective: goal, value: v, baselineValue: v, flatBestValue: v, flatBestBracket: null, passes: 0, runs, budgetHit: false };
+  }
+  const window = eligible.slice(0, ROTH_SCHEDULE_WINDOW_YEARS);
+  const tail = eligible.slice(ROTH_SCHEDULE_WINDOW_YEARS);
+  const buildSchedule = (choices) => {
+    const last = choices[choices.length - 1];
+    return [...window.map((year, i) => ({ year, bracket: choices[i] })), ...tail.map((year) => ({ year, bracket: last }))];
+  };
+
+  // Seeds: the best single bracket at the plan's own withdrawal order
+  // (ranked by what the heirs keep, as the Roth Ladder grid ranks), and no
+  // conversions. The search starts from the better of the two.
+  let flatBestBracket = null;
+  let flatBestKey = -Infinity;
+  let flatBestProj = null;
+  for (const b of ROTH_CONVERSION_BRACKETS) {
+    if (canceled()) return { canceled: true, runs };
+    const proj = project(asSchedule(eligible.map((year) => ({ year, bracket: b }))));
+    const k = afterTaxKey(proj);
+    if (k > flatBestKey) { flatBestKey = k; flatBestBracket = b; flatBestProj = proj; }
+  }
+  report(window[0]);
+  const flatChoices = window.map(() => flatBestBracket);
+  const noneChoices = window.map(() => null);
+
+  let baselineValue;
+  let flatBestValue;
+  if (goal === 'afterTaxEnding') {
+    baselineValue = afterTaxOf(noneProj);
+    flatBestValue = afterTaxOf(flatBestProj);
+  } else {
+    baselineValue = fullSpending(noneInputs);
+    flatBestValue = fullSpending(asSchedule(buildSchedule(flatChoices)));
+  }
+  // Comparable keys: for heirs, a plan that runs short ranks below any
+  // that lasts; for spending, the level itself.
+  const evaluate = (choices, near) => {
+    const inp = asSchedule(buildSchedule(choices));
+    if (goal === 'afterTaxEnding') {
+      const proj = project(inp);
+      return { key: afterTaxKey(proj), value: afterTaxOf(proj) };
+    }
+    const v = warmSpending(inp, near);
+    return { key: v, value: v };
+  };
+  let choices;
+  let best;
+  if (goal === 'afterTaxEnding') {
+    const flatKey = flatBestKey;
+    const noneKey = afterTaxKey(noneProj);
+    choices = flatKey >= noneKey ? flatChoices : noneChoices;
+    best = flatKey >= noneKey ? { key: flatKey, value: flatBestValue } : { key: noneKey, value: baselineValue };
+  } else {
+    choices = flatBestValue >= baselineValue ? flatChoices : noneChoices;
+    const v = Math.max(flatBestValue, baselineValue);
+    best = { key: v, value: v };
+  }
+  const seed = { choices: [...choices], value: best.value };
+  const costPerTry = goal === 'afterTaxEnding' ? 1 : 22;
+  const reserve = goal === 'afterTaxEnding' ? 0 : 42;
+
+  let passes = 0;
+  const maxPasses = goal === 'afterTaxEnding' ? 50 : 1;
+  for (; passes < maxPasses && !budgetHit; ) {
+    passes += 1;
+    let gained = 0;
+    for (let i = 0; i < window.length && !budgetHit; i++) {
+      const current = choices[i];
+      let tries;
+      if (goal === 'afterTaxEnding') {
+        tries = ROTH_SCHEDULE_CANDIDATES.filter((c) => c !== current);
+      } else {
+        const at = ROTH_SCHEDULE_CANDIDATES.indexOf(current);
+        const near = at >= 0 ? [ROTH_SCHEDULE_CANDIDATES[at - 1], ROTH_SCHEDULE_CANDIDATES[at + 1]] : [];
+        tries = [...new Set([null, 0, ...near])].filter((c) => c !== undefined && c !== current);
+      }
+      for (const c of tries) {
+        if (canceled()) return { canceled: true, runs };
+        if (runs + costPerTry + reserve > budget) { budgetHit = true; break; }
+        const trial = [...choices];
+        trial[i] = c;
+        const r = evaluate(trial, best.value);
+        const better = r.key > best.key + 1 || (Math.abs(r.key - best.key) <= 1 && scheduleRank(c) < scheduleRank(choices[i]));
+        if (better) {
+          gained += Math.max(0, r.key - best.key);
+          choices = trial;
+          best = r;
+        }
+      }
+      report(window[i]);
+    }
+    if (gained <= 1) break;
+  }
+
+  // The spending goal's answers inside the search are approximate; the
+  // full bisection decides, and the seed stands if the search did not beat it.
+  let value = best.value;
+  if (goal === 'lifetimeSpending') {
+    value = fullSpending(asSchedule(buildSchedule(choices)));
+    if (value < seed.value) { choices = seed.choices; value = seed.value; }
+  }
+  report(window[window.length - 1]);
+  return {
+    schedule: buildSchedule(choices),
+    objective: goal,
+    value,
+    baselineValue,
+    flatBestValue,
+    flatBestBracket,
+    passes,
+    runs,
+    budgetHit,
   };
 }
 

@@ -26,6 +26,8 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-10-26',
     headline: 'Roth conversions up to your deductions, and a survivor keeps a larger own check',
     bullets: [
+      { title: 'A year-by-year Roth conversion schedule, found on your device', ids: [465],
+        text: 'A new Roth conversion strategy picks a bracket for each year, and Find my best schedule searches, in your browser, for the one that leaves your heirs the most after tax or lets you spend the most for life, within your Medicare-surcharge and ACA limits. Your numbers change only if you choose it.' },
       { title: 'Choose the month Social Security starts', ids: [464],
         text: 'Each spouse can pick the month their benefit starts, in the year they reach their claiming age. It is priced by the month, as Social Security does, and the first year pays only the months received. January keeps the whole-year plan, so your numbers change only if you pick a later month.' },
       { title: 'Roth conversions up to your deductions, with no federal income tax', ids: [463],

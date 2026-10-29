@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-29T03:15:45.273Z",
+  "timestamp": "2026-10-29T03:57:54.917Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -363,6 +363,8 @@
     "lifeInsuranceIncreasingBenefit2": false,
     "lifeInsuranceAnnualPremium2": 0,
     "rothConversionStrategy": "maxBracket",
+    "rothConversionSchedule": [],
+    "rothOptimizerObjective": "afterTaxEnding",
     "rothConversionAmount": 25000,
     "rothConversionBracket": 0.22,
     "rothConversionBuffer": 1000,
@@ -847,6 +849,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -972,10 +976,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.295Z",
+      "savedAt": "2026-10-29T03:57:54.936Z",
       "tag": "demo"
     },
     {
@@ -1341,6 +1345,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "none",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -1466,10 +1472,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.298Z",
+      "savedAt": "2026-10-29T03:57:54.941Z",
       "tag": "demo"
     },
     {
@@ -1835,6 +1841,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -1960,10 +1968,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.305Z",
+      "savedAt": "2026-10-29T03:57:54.947Z",
       "tag": "demo"
     },
     {
@@ -2329,6 +2337,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -2454,10 +2464,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.320Z",
+      "savedAt": "2026-10-29T03:57:54.956Z",
       "tag": "demo"
     },
     {
@@ -2823,6 +2833,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -2948,10 +2960,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.327Z",
+      "savedAt": "2026-10-29T03:57:54.965Z",
       "tag": "demo"
     },
     {
@@ -3317,6 +3329,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -3442,10 +3456,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.329Z",
+      "savedAt": "2026-10-29T03:57:54.970Z",
       "tag": "demo"
     },
     {
@@ -3811,6 +3825,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -3936,10 +3952,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.332Z",
+      "savedAt": "2026-10-29T03:57:54.974Z",
       "tag": "demo"
     },
     {
@@ -4305,6 +4321,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -4430,10 +4448,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.339Z",
+      "savedAt": "2026-10-29T03:57:54.980Z",
       "tag": "demo"
     },
     {
@@ -4799,6 +4817,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -4924,10 +4944,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.345Z",
+      "savedAt": "2026-10-29T03:57:54.985Z",
       "tag": "demo"
     },
     {
@@ -5293,6 +5313,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -5418,10 +5440,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.354Z",
+      "savedAt": "2026-10-29T03:57:54.995Z",
       "tag": "demo"
     },
     {
@@ -5787,6 +5809,8 @@
         "lifeInsuranceIncreasingBenefit2": false,
         "lifeInsuranceAnnualPremium2": 0,
         "rothConversionStrategy": "maxBracket",
+        "rothConversionSchedule": [],
+        "rothOptimizerObjective": "afterTaxEnding",
         "rothConversionAmount": 25000,
         "rothConversionBracket": 0.22,
         "rothConversionBuffer": 1000,
@@ -5912,10 +5936,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 464
+        "oddsVersion": 465
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:15:45.371Z",
+      "savedAt": "2026-10-29T03:57:55.004Z",
       "tag": "demo"
     }
   ],

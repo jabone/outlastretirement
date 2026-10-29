@@ -10,6 +10,7 @@ import { Flame, BookOpen } from 'lucide-react';
 import Tooltip from '../../Tooltip';
 import { irmaaThresholdsFor, DEFAULT_INPUTS } from '../../../calculator';
 import NumberInput from '../../NumberInput';
+import RothScheduleFinder from '../../RothScheduleFinder';
 import { US_STATES } from '../../../config/usStates';
 
 const stateName = (code) => (US_STATES.find(([c]) => c === code) || [code, code])[1];
@@ -40,8 +41,19 @@ export default function RothConversionSection({ forceOpen = false }) {
                     <option value="none">No Conversions (Standard)</option>
                     <option value="fixed">Fixed Dollar Annual Conversions</option>
                     <option value="maxBracket">Maximize to a Marginal Tax Bracket</option>
+                    <option value="schedule">Year-by-year schedule (optimized)</option>
                   </select>
                 </div>
+
+                {inputs.rothConversionStrategy === 'schedule' && (
+                  <>
+                    <RothScheduleFinder />
+                    <div className="form-group">
+                      <label htmlFor="field-rothConversionBuffer">Buffer Below the Bracket or Medicare Surcharge (IRMAA) Limit ($)</label>
+                      <NumberInput id="field-rothConversionBuffer" step="100" min="0" className="form-input" value={inputs.rothConversionBuffer} onChange={(e) => updateInput('rothConversionBuffer', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
+                    </div>
+                  </>
+                )}
 
                 {inputs.rothConversionStrategy === 'fixed' && (
                   <div className="form-group">

@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 465,
+    date: '2026-10-29',
+    title: 'Roth conversions: a year-by-year schedule, found on your device',
+    summary: 'A new Roth conversion strategy picks a bracket for each year, and Find my best schedule searches for the one that leaves the most after tax or lets you spend the most.',
+    items: [
+      "**A bracket for each year.** Plan \u2192 Taxes & Roth \u2192 Roth Conversion Optimization now offers Year-by-year schedule (optimized). Each year converts up to its own bracket, for example 0% while on marketplace coverage, 22% in your late 60s and 12% once Social Security starts.",
+      "**Find my best schedule.** Pick a goal, Leave the most after tax or Spend the most while I'm alive, and press the button. The search starts from the best single bracket for your plan and tries each conversion year in turn, keeping a change only when it helps. You see the result beside the best single bracket and no conversions, year by year with the tax each conversion caused, before you choose Use this schedule.",
+      "**Your limits still apply.** Stay under an IRMAA tier and ACA Cliff Protection hold back each scheduled year as they do any conversion, and the search only chooses among what they allow.",
+      "**On your device.** The search runs in the background in your browser, takes about as long as a Monte Carlo, and can be stopped. Your numbers do not change unless you choose the new strategy.",
+    ],
+  },
+  {
     id: 464,
     date: '2026-10-28',
     title: 'Social Security: choose the month your benefit starts',

@@ -259,6 +259,15 @@ export const HOW_FIGURED_RULES = [
     sources: ['ira-phaseouts', 'inherited-ira'],
   },
   {
+    id: 'roth-schedule-optimizer',
+    title: 'Year-by-year Roth schedule',
+    group: 'Retirement accounts',
+    summary: 'The search starts from the best single bracket for your plan, then tries, one year at a time over the first 20 conversion years, no conversion or filling to 0%, 10%, 12%, 22%, 24% or 32%, keeping a change only when it improves the goal you chose: the most left after tax (what your heirs would net, in today\'s dollars) or the most you can spend each year for life. Your Medicare-surcharge and ACA limits are applied every year, so the search only chooses among conversions they allow. It is a step-by-step search, not a proof of the single best answer, and it uses the same tax rules as the rest of your plan.',
+    figuresYear: 'Set in law',
+    simplifies: 'Searches the first 20 conversion years; later years repeat the last choice. Only the brackets listed are tried, not every dollar amount.',
+    sources: ['ira-phaseouts'],
+  },
+  {
     id: 'roth-five-year',
     title: 'Roth withdrawals and the five-year rules',
     group: 'Retirement accounts',
