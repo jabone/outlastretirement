@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { planVerdict, verdictColor, verdictClass, VERDICT_THRESHOLDS, verdictBand, verdictPct, scenarioVerdict } from '../utils/planVerdict';
+import { planVerdict, verdictColor, verdictClass, VERDICT_THRESHOLDS, verdictBand, verdictPct, scenarioVerdict, verdictPctText } from '../utils/planVerdict';
 import { getPlanFeedback } from '../utils/planFeedback';
 import { DEFAULT_INPUTS, runProjection } from '../calculator';
 
@@ -90,15 +90,16 @@ describe('one threshold and one rounding rule on every surface (0..100 in 0.1 st
     for (let i = 0; i <= 1000; i++) {
       const p = i / 10;
       const shown = verdictPct(p);
+      const shownText = verdictPctText(p);
       const band = verdictBand(p);
       const expected = shown >= VERDICT_THRESHOLDS.good ? 'good' : shown >= VERDICT_THRESHOLDS.caution ? 'caution' : 'risk';
       expect(band, `p=${p}`).toBe(expected);
       const badge = planVerdict({ isSuccessful: true, years: [], mc: fresh(p) });
       expect(badge.tone, `p=${p}`).toBe(band);
-      expect(badge.detail, `p=${p}`).toContain(`${shown}% of`);
+      expect(badge.detail, `p=${p}`).toContain(`${shownText}% of`);
       const card = getPlanFeedback(DEFAULT_INPUTS, proj, { successProbability: p }, () => 73).find((r) => r.title in FEEDBACK_BAND);
       expect(FEEDBACK_BAND[card.title], `p=${p}`).toBe(band);
-      expect(card.desc, `p=${p}`).toContain(`${shown}% of simulated`);
+      expect(card.desc, `p=${p}`).toContain(`${shownText}% of simulated`);
       const sc = scenarioVerdict({ isSuccessful: true, successProbability: p });
       expect(LABEL_BAND[sc.label], `p=${p}`).toBe(band);
       checked++;

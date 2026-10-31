@@ -199,7 +199,7 @@ export const HOW_FIGURED_RULES = [
     group: 'Medicare and health coverage',
     summary: `From 65, the app charges each person the Medicare Part B premium (${usdCents(IRMAA_STANDARD_PREMIUM)} a month) and a Part D premium at the national base amount (${usdCents(PART_D_BASE_PREMIUM)} a month). Higher incomes pay a surcharge on both, in five steps: the first above ${usd(IRMAA_FIRST_TIER_SINGLE)} single or ${usd(IRMAA_FIRST_TIER_MFJ)} joint, the top one at ${usd(IRMAA_TOP_TIER_SINGLE)} or ${usd(IRMAA_TOP_TIER_MFJ)}, where Part B is ${usdCents(IRMAA_TOP_PREMIUM)} a month. Premiums grow by the Medicare inflation rates you set and the income steps by your Tax Bracket Inflation Rate, except the top step, which the law holds fixed through 2027.`,
     figuresYear: TAX_YEAR,
-    simplifies: 'Tax-exempt interest, which counts in Medicare\'s income test, is not modeled, and Part D is priced at the national base premium rather than your plan\'s price.',
+    simplifies: 'Tax-exempt interest, which counts in Medicare\'s income test, is not modeled, and Part D is priced at the national base premium rather than your plan\'s price. Everything else Medicare leaves to you, a Medigap or Advantage premium, dental, vision, hearing and out-of-pocket costs, is the one figure you enter under Spending (Medicare Supplement and Out-of-Pocket), not worked out from a policy.',
     sources: ['medicare-irmaa-2026', 'part-d-base-premium', 'medicare'],
   },
   {

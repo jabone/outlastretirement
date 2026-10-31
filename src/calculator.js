@@ -168,6 +168,15 @@ export function migratePersistedInputs(persisted) {
   if (fromVersion < 2) raw = migrateVersion1Shapes(raw);
   if (fromVersion < 3) raw = migrateWashingtonJurisdiction(raw);
   if (fromVersion < 4) raw = migrateStateRulesJurisdiction(raw);
+  // Changelog 467: the match's pay cap is new; a plan saved without it keeps
+  // the no-pay-cap formula it was saved with (0), so its figures do not move.
+  // A new plan (nothing saved) takes the 6% default.
+  if (Object.keys(raw).length > 0) {
+    if (raw.employerMatchCapPayPct1 === undefined) raw = { ...raw, employerMatchCapPayPct1: 0 };
+    if (raw.employerMatchCapPayPct2 === undefined) raw = { ...raw, employerMatchCapPayPct2: 0 };
+    // Likewise the Medicare supplement line (changelog 467).
+    if (raw.medicareSupplementCost === undefined) raw = { ...raw, medicareSupplementCost: 0 };
+  }
 
   return { schemaVersion: INPUTS_SCHEMA_VERSION, fromVersion, inputs: { ...DEFAULT_INPUTS, ...raw } };
 }
@@ -1002,9 +1011,16 @@ export const DEFAULT_INPUTS = {
   // up to their own dedicated (and mostly higher-than-general) inflation
   // rate -- without this nudge, those more realistic cost assumptions on
   // their own pushed this same default plan to a projected $0 shortfall.
-  preTaxContribution1: 7000,
+  //
+  // And again (What's New 467): the employer match now stops at 6% of pay
+  // and Medicare years carry a $4,500 supplement and out-of-pocket line, which
+  // pushed the sample plan to a shortfall in its last years. The sample
+  // saver now puts 16% of pay pre-tax and $4,000 in a Roth, and lives on
+  // $42,000 (below, consistent with a $75,000 salary after tax and savings),
+  // and the plan ends with a cushion rather than on a knife edge.
+  preTaxContribution1: 12000,
   preTaxContribution2: 3000,
-  rothContribution1: 2000,
+  rothContribution1: 4000,
   rothContribution2: 1200,
   taxableContribution: 1000,
   // Mega Backdoor Roth: whether that spouse's OWN employer plan allows
@@ -1086,6 +1102,12 @@ export const DEFAULT_INPUTS = {
   employerMatchCapAPct1: 100,
   employerMatchRateA2: 50,
   employerMatchCapAPct2: 100,
+  // Changelog 467: the match also stops at this share of pay, the way a real
+  // formula reads ("50% of the first 6% of pay"). 0 means no pay cap, which
+  // is what every plan saved before this field existed keeps
+  // (migratePersistedInputs), so their figures do not move.
+  employerMatchCapPayPct1: 6,
+  employerMatchCapPayPct2: 6,
   // Tier B (optional): a second rate (%) applied to deferrals, capped at
   // a flat dollar amount (inflated forward like other statutory-style
   // dollar limits in this model) instead of a percentage of the IRS
@@ -1141,8 +1163,8 @@ export const DEFAULT_INPUTS = {
   charitableGivingAnnual: 0,
   mortgageIsAcquisitionDebt: true,
 
-  // Expenses
-  lifestyleExpense: 48000,
+  // Expenses (see the note above preTaxContribution1 on the sample saver)
+  lifestyleExpense: 42000,
 
   // How lifestyleExpense (above) gets entered in the UI -- 'annual' (a
   // single lump $/yr figure, the default/original behavior) or 'monthly'
@@ -1287,6 +1309,14 @@ export const DEFAULT_INPUTS = {
   goGoBumpRate: 10.0, // +10% travel bump
   goGoBumpEndAge: 75,
   healthcareBridgeCost: 12000, // per spouse prior to 65
+  // Changelog 467: what Medicare leaves to you after 65, per person per
+  // year in today's dollars: a Medigap or Advantage premium, dental, vision,
+  // hearing, and out-of-pocket costs. Part B and Part D premiums are
+  // computed separately (irmaaCost), so this is everything else. Grows at
+  // medicalInflationRate and is charged from the year each spouse is on
+  // Medicare. A plan saved before this field existed keeps 0
+  // (migratePersistedInputs), so its figures do not move.
+  medicareSupplementCost: 4500,
   // What share of that pre-65 cost is INSURANCE PREMIUMS rather than
   // out-of-pocket care (audit Q-8, changelog 126). It matters because an
   // HSA may not be spent on health-insurance premiums: IRS Publication 969
@@ -2167,11 +2197,15 @@ export function getMaxContributionSplit(age, wages, inflFactor = 1) {
 // employerMatchMode1/2 DEFAULT_INPUTS comment for the field-by-field
 // meaning of `config`.
 export function calculateEmployerMatch(deferralAmount, deferralLimitThisYear, inflFactor, config) {
-  const { mode, flatAmount, rateA, capAPct, tierBEnabled, rateB, capB, combine } = config;
+  const { mode, flatAmount, rateA, capAPct, capPayPct, salary, tierBEnabled, rateB, capB, combine } = config;
   if (mode !== 'percent') return Math.max(0, flatAmount || 0) * inflFactor;
 
   const safeDeferral = Math.max(0, deferralAmount || 0);
-  const capA = (Math.max(0, capAPct || 0) / 100) * Math.max(0, deferralLimitThisYear || 0);
+  // Tier A matches deferrals up to a share of the IRS limit and, when a pay
+  // cap is set (changelog 467), up to that share of this year's pay too.
+  const limitCap = (Math.max(0, capAPct || 0) / 100) * Math.max(0, deferralLimitThisYear || 0);
+  const payCap = capPayPct > 0 && salary > 0 ? (capPayPct / 100) * salary : Infinity;
+  const capA = Math.min(limitCap, payCap);
   const tierA = (Math.max(0, rateA || 0) / 100) * Math.min(safeDeferral, capA);
   if (!tierBEnabled) return tierA;
 
@@ -2349,6 +2383,8 @@ export function getContributionAdvisory(rawInputs) {
       flatAmount: num === 1 ? inputs.employerMatch1 : inputs.employerMatch2,
       rateA: num === 1 ? inputs.employerMatchRateA1 : inputs.employerMatchRateA2,
       capAPct: num === 1 ? inputs.employerMatchCapAPct1 : inputs.employerMatchCapAPct2,
+      capPayPct: num === 1 ? inputs.employerMatchCapPayPct1 : inputs.employerMatchCapPayPct2,
+      salary,
       tierBEnabled: num === 1 ? inputs.employerMatchTierBEnabled1 : inputs.employerMatchTierBEnabled2,
       rateB: num === 1 ? inputs.employerMatchRateB1 : inputs.employerMatchRateB2,
       capB: num === 1 ? inputs.employerMatchCapB1 : inputs.employerMatchCapB2,
@@ -6754,12 +6790,16 @@ export function sanitizeInputs(inputs) {
   for (const key of ['fundExpenseRatioPct', 'advisorFeePct']) {
     clampKey(key, 0, 5);
   }
+  // The match's pay cap (changelog 467): 0 (none) to 100% of pay.
+  for (const key of ['employerMatchCapPayPct1', 'employerMatchCapPayPct2']) {
+    clampKey(key, 0, 100);
+  }
   const nonNegative = [
     'preTaxInit', 'rothInit', 'taxableInit', 'hsaInit', 'concentratedStockInit', 'concentratedStock2Init', 'cashFloorInit',
     'homeValueInit', 'otherEstateAssetsInit', 'preTaxBasisInit', 'rothBasisInit', 'rothRecentConversionsInit', 'taxableBasisInit',
     'salary1', 'salary2', 'lifestyleExpense', 'ss1', 'ss2', 'pension1', 'pension2',
     'preTaxContribution1', 'preTaxContribution2', 'rothContribution1', 'rothContribution2', 'taxableContribution', 'hsaContribution',
-    'currentHouseholdSpendingCustom', 'healthcareBridgeCost', 'partTimeIncome1', 'partTimeIncome2',
+    'currentHouseholdSpendingCustom', 'healthcareBridgeCost', 'medicareSupplementCost', 'partTimeIncome1', 'partTimeIncome2',
     'annuityPurchaseAmount', 'annuityIncome', 'rentalIncome',
     'portfolioFloorReal',
   ];
@@ -9005,6 +9045,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       employerMatchAmount += calculateEmployerMatch(spouse1Deferral, deferralLimit1, statutoryInflFactor, {
         mode: inputs.employerMatchMode1, flatAmount: inputs.employerMatch1,
         rateA: inputs.employerMatchRateA1, capAPct: inputs.employerMatchCapAPct1,
+        capPayPct: inputs.employerMatchCapPayPct1, salary: inputs.salary1 * inflFactor,
         tierBEnabled: inputs.employerMatchTierBEnabled1, rateB: inputs.employerMatchRateB1, capB: inputs.employerMatchCapB1,
         combine: inputs.employerMatchCombine1,
       });
@@ -9014,6 +9055,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       employerMatchAmount += calculateEmployerMatch(spouse2Deferral, deferralLimit2, statutoryInflFactor, {
         mode: inputs.employerMatchMode2, flatAmount: inputs.employerMatch2,
         rateA: inputs.employerMatchRateA2, capAPct: inputs.employerMatchCapAPct2,
+        capPayPct: inputs.employerMatchCapPayPct2, salary: inputs.salary2 * inflFactor,
         tierBEnabled: inputs.employerMatchTierBEnabled2, rateB: inputs.employerMatchRateB2, capB: inputs.employerMatchCapB2,
         combine: inputs.employerMatchCombine2,
       });
@@ -10086,6 +10128,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let partBCost = irmaaPriced.partB;
     let partDCost = irmaaPriced.partD;
     const irmaaCost = partBCost + partDCost; // charged before the solver; see irmaaTrueUp
+    // Medigap/Advantage, dental, vision, hearing and out-of-pocket costs on
+    // Medicare (changelog 467): per person on Medicare this year, in that
+    // year's dollars.
+    const medicareSupplement = Math.max(0, inputs.medicareSupplementCost || 0) * medicalInflFactor * ((onMedicare1 ? 1 : 0) + (onMedicare2 ? 1 : 0));
     // Part B late-enrollment penalty: 10% of the STANDARD premium for every
     // full year a spouse went without Part B while abroad, for life, once
     // they are covered again (changelog 196). Foreign coverage does not stop
@@ -10241,7 +10287,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       healthcareBridge -= acaSubsidyApplied;
     }
 
-    let expensesExcludingTaxes = (isRetired ? lifestyleCost : currentSpendingCost) + goGoBump + healthcareBridge + ltcCost + irmaaCost + milestoneOutflowGeneral + totalDebtPayment + giftThisYear.gifted;
+    let expensesExcludingTaxes = (isRetired ? lifestyleCost : currentSpendingCost) + goGoBump + healthcareBridge + ltcCost + irmaaCost + medicareSupplement + milestoneOutflowGeneral + totalDebtPayment + giftThisYear.gifted;
     // Health cover abroad and any Part B late-enrollment penalty (both zero
     // unless a move abroad is planned).
     if (foreignHealthcare + medicarePenalty > 0) expensesExcludingTaxes += foreignHealthcare + medicarePenalty;
@@ -10262,14 +10308,16 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const bridgeHsaEligible = inputs.hsaPreMedicarePremiumsQualified
       ? healthcareBridge
       : healthcareBridge * (1 - bridgePremiumShare);
-    const qualifiedMedicalCosts = bridgeHsaEligible + ltcCost + irmaaCost;
+    // The supplement's out-of-pocket half is HSA-qualified; a Medigap
+    // premium is not (Pub. 969), so half is a fair reading of a mixed figure.
+    const qualifiedMedicalCosts = bridgeHsaEligible + ltcCost + irmaaCost + medicareSupplement * 0.5;
     const hsaMedicalDraw = Math.min(hsa, qualifiedMedicalCosts);
     hsa -= hsaMedicalDraw;
     expensesExcludingTaxes -= hsaMedicalDraw;
     // Changelog 417: the year's deductible medical costs -- the bridge net
     // of its ACA credit, long-term care, Part B and D premiums with IRMAA --
     // less what the HSA paid tax-free, which cannot be deducted twice.
-    itemizedMedicalCosts = Math.max(0, healthcareBridge + ltcCost + irmaaCost - hsaMedicalDraw);
+    itemizedMedicalCosts = Math.max(0, healthcareBridge + ltcCost + irmaaCost + medicareSupplement - hsaMedicalDraw);
     // Changelog 434: the base federal and state tax above were priced with
     // the medical line as it stood before the ACA credit, the Medicare
     // premiums and the HSA draw were known. The solver and every later
@@ -10475,7 +10523,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // dollars" the whole way through -- meaning a pre-fund target set now
       // already lines up with the real target once isRetired flips true,
       // with no re-target jump at the transition.
-      const targetMonthlySpend = (lifestyleCost + goGoBump + healthcareBridge + ltcCost + irmaaCost) / 12;
+      const targetMonthlySpend = (lifestyleCost + goGoBump + healthcareBridge + ltcCost + irmaaCost + medicareSupplement) / 12;
       const reserveTarget = Math.max(0, inputs.cashFloorTargetMonths || 0) * targetMonthlySpend;
       cashReserveMonthlySpend = targetMonthlySpend;
       cashReserveTarget = reserveTarget;
@@ -11265,7 +11313,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const netChange = (preTax + roth + taxable + hsa) - (prevYearEnding(years) ?? (inputs.preTaxInit + inputs.rothInit + inputs.taxableInit + inputs.hsaInit));
 
     // Calculate FI and CoastFIRE Crossover
-    const fiTargetExpenses = lifestyleCost + goGoBump + healthcareBridge + ltcCost + irmaaCost;
+    const fiTargetExpenses = lifestyleCost + goGoBump + healthcareBridge + ltcCost + irmaaCost + medicareSupplement;
     const swrPct = inputs.safeWithdrawalRate > 0 ? inputs.safeWithdrawalRate : 4.0;
     const fiNumber = fiTargetExpenses / (swrPct / 100);
     const isFICrossover = totalPortfolioEnding >= fiNumber;
@@ -11468,6 +11516,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       healthcareBridge,
       ltcCost,
       irmaaCost: irmaaCost + irmaaTrueUp,
+      medicareSupplement,
       partBCost,
       partDCost,
       irmaaTrueUp,
@@ -12834,7 +12883,7 @@ export function findDieWithZeroSpending(rawInputs = DEFAULT_INPUTS) {
   if (atCeiling.isSuccessful) {
     return {
       dieWithZeroSpending: ceiling,
-      additionalAnnualSpend: Math.max(0, ceiling - inputs.lifestyleExpense),
+      additionalAnnualSpend: ceiling - inputs.lifestyleExpense,
       reason: 'above-ceiling',
       ceiling,
       finalProjection: atCeiling,
@@ -12858,7 +12907,9 @@ export function findDieWithZeroSpending(rawInputs = DEFAULT_INPUTS) {
 
   return {
     dieWithZeroSpending: bestSpending,
-    additionalAnnualSpend: Math.max(0, bestSpending - inputs.lifestyleExpense),
+    // Signed (changelog 466): negative when the budget is more than the
+    // plan can carry, so the Readiness card can say by how much.
+    additionalAnnualSpend: bestSpending - inputs.lifestyleExpense,
     reason: 'ok',
     ceiling,
     finalProjection,

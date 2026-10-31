@@ -44,7 +44,7 @@ import { estateForProjection } from './utils/relocationCompare';
 import Sidebar from './components/layout/Sidebar';
 import { buildActionPlan } from './utils/actionPlan';
 import {
-  DISCLAIMER_TITLE, DISCLAIMER_PARAGRAPHS, DISCLAIMER_ACCEPT_LABEL,
+  DISCLAIMER_TITLE, DISCLAIMER_PARAGRAPHS, DISCLAIMER_ACCEPT_LABEL, DISCLAIMER_AGREE_PREFIX, TERMS_HREF, PRIVACY_HREF,
   DISCLAIMER_SHORT, DISCLAIMER_PRINT,
 } from './config/disclaimer';
 import { ROUTES, DEFAULT_TAB, readRoute, formatHash, initialSubTab } from './utils/tabRouting';
@@ -59,6 +59,7 @@ import MigrationNotice from './components/MigrationNotice';
 import { BRAND_NAME, BRAND_DOMAIN, COPYRIGHT_NOTICE, PRIVACY_PROMISE, PRIVACY_URL, TERMS_URL, ACCESSIBILITY_URL } from './config/branding';
 import { growthSummary, monteCarloSummary, taxBracketSummary, estateSummary } from './utils/chartSummaries';
 import { planVerdict, verdictColor, verdictClass } from './utils/planVerdict';
+import { untestedRisksSentence } from './utils/untestedRisks';
 import { safeSetItem, safeRemoveItem } from './utils/safeStorage';
 import { useThemePreference } from './utils/useThemePreference';
 import { verifyPremiumJwt } from './utils/premiumJwt';
@@ -1971,6 +1972,9 @@ export default function App() {
     return () => { window.removeEventListener('beforeprint', before); window.removeEventListener('afterprint', after); };
   }, [printInputs, projection, useRealDollars, formatCurrency]);
 
+  // What the verdict leaves untested (changelog 466).
+  const untestedSentence = useMemo(() => untestedRisksSentence(inputs), [inputs]);
+
   // The one verdict every surface states (utils/planVerdict.js). A run that
   // is under way, or that auto-run is about to start, reads as pending
   // rather than as a made-up 100% or 0%.
@@ -2275,6 +2279,11 @@ export default function App() {
             <span className="kpi-subtext" data-testid="success-odds" aria-live="polite" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.35 }}>
               {verdict.detail}
             </span>
+            {untestedSentence && (
+              <span data-testid="untested-risks" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
+                {untestedSentence} Each can be turned on under Plan.
+              </span>
+            )}
           </div>
         </section>
 
@@ -2547,7 +2556,8 @@ export default function App() {
             <div style={{ fontSize: '14px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '12px', margin: '20px 0' }}>
               {DISCLAIMER_PARAGRAPHS.map((text) => <p key={text}>{text}</p>)}
               <p>
-                By clicking &ldquo;{DISCLAIMER_ACCEPT_LABEL}&rdquo; you confirm you have read the above.
+                {DISCLAIMER_AGREE_PREFIX} <a href={TERMS_HREF} target="_blank" rel="noopener noreferrer">Terms of Use</a> and <a href={PRIVACY_HREF} target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+                By clicking &ldquo;{DISCLAIMER_ACCEPT_LABEL}&rdquo; you confirm you have read the above and agree to the Terms of Use.
               </p>
             </div>
             <button className="btn-primary" data-autofocus onClick={acceptDisclaimer} style={{ width: '100%', marginTop: '10px' }}>
@@ -2602,8 +2612,8 @@ export default function App() {
                 {calibrationResults.changes.length === 0
                   ? 'No changes to suggest: these starting points are what the plan already has.'
                   : calibrationResults.isSuccessful
-                    ? 'Suggested changes that make the plan last with average returns. Nothing in your plan changes unless you apply them.'
-                    : 'Suggested changes to spending, savings and retirement timing. Nothing in your plan changes unless you apply them.'}
+                    ? 'Changes picked by arithmetic that make the plan last with average returns: not by your health, your work or your preferences, and not tested against bad markets. Nothing in your plan changes unless you apply them.'
+                    : 'Changes to spending, savings and retirement timing, picked by arithmetic rather than by your health, your work or your preferences, and not tested against bad markets. Nothing in your plan changes unless you apply them.'}
               </p>
 
               {calibrationResults.changes.length > 0 && (
@@ -3108,7 +3118,7 @@ export default function App() {
 
                 const lifestyleVal = activeYearData.lifestyleExpenses || 0;
                 const taxVal = activeYearData.totalTaxesPaid || 0;
-                const healthcareVal = (activeYearData.healthcareBridge || 0) + (activeYearData.irmaaCost || 0) + (activeYearData.ltcCost || 0);
+                const healthcareVal = (activeYearData.healthcareBridge || 0) + (activeYearData.irmaaCost || 0) + (activeYearData.medicareSupplement || 0) + (activeYearData.ltcCost || 0);
                 const savingsVal = activeYearData.totalContributions || 0;
                 const surplusVal = Math.max(0, totalInflowVal - (lifestyleVal + taxVal + healthcareVal + savingsVal));
 
@@ -3609,11 +3619,18 @@ export default function App() {
         <ForeignYearsNotice inputs={inputs} />
         
         <div className="print-metric-grid">
+          {/* The verdict as the app states it, colored by its tone; the
+              Monte Carlo rate only when it was run on this plan (changelog
+              466: a report printed after an edit used to show the previous
+              plan's rate, colored by the average-returns pass alone). */}
           <div className="print-metric-card">
-            <div className="label">Plan Success Rate</div>
-            <div className="val" style={{ color: kpis.isSuccessful ? 'var(--success)' : 'var(--danger)' }}>
-              {monteCarlo ? `${monteCarlo.successProbability.toFixed(0)}%` : kpis.isSuccessful ? 'Successful' : 'Shortfall'}
+            <div className="label">Plan Verdict</div>
+            <div className="val" style={{ color: verdictColor(verdict.tone) }}>
+              {verdict.label}{mcRange.status === 'fresh' && mcRange.successProbability != null ? ` (${Math.round(mcRange.successProbability)}% of simulated markets)` : ''}
             </div>
+            {mcRange.status !== 'fresh' && (
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Monte Carlo not run on this version of the plan.</div>
+            )}
           </div>
           <div className="print-metric-card">
             <div className="label">Ending Balance</div>
@@ -3722,6 +3739,7 @@ export default function App() {
           return (
             <div className="print-section print-section--flows">
               <h3>Your Action Plan</h3>
+              <p style={{ fontSize: '10px', color: '#555', margin: '0 0 8px' }}>What the plan you entered assumes, step by step: each line restates a setting of yours, not a recommendation. Change a setting and the plan changes with it.</p>
               {actionPlan.sections.map((section) => (
                 <div key={section.id} style={{ marginBottom: '14px' }}>
                   <div className="print-subhead" style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '10px 0 4px', color: '#333' }}>
@@ -4065,6 +4083,12 @@ export default function App() {
                   </td>
                 </tr>
               )}
+              {untestedSentence && (
+                <tr>
+                  <td>Not tested</td>
+                  <td>{untestedSentence.replace(/^Not tested: /, '')} Each is a setting under Plan.</td>
+                </tr>
+              )}
               <tr>
                 <td>Minimum Required Rate of Return</td>
                 <td>
@@ -4074,7 +4098,7 @@ export default function App() {
                     ? 'No feasible flat return keeps this plan solvent — even a 30%/yr average return falls short.'
                     : minimumRequiredReturn.belowSearchFloor
                       ? `Below -10%/yr — this plan is solvent even at a deeply negative average return.`
-                      : `${minimumRequiredReturn.requiredReturn.toFixed(1)}%/yr, vs. an assumed ${minimumRequiredReturn.currentAssumedReturn.toFixed(1)}%/yr (${(minimumRequiredReturn.currentAssumedReturn - minimumRequiredReturn.requiredReturn >= 0 ? '+' : '')}${(minimumRequiredReturn.currentAssumedReturn - minimumRequiredReturn.requiredReturn).toFixed(1)} point cushion)`}
+                      : `${minimumRequiredReturn.requiredReturn.toFixed(1)}%/yr, vs. an assumed ${minimumRequiredReturn.currentAssumedReturn.toFixed(1)}%/yr (${(minimumRequiredReturn.currentAssumedReturn - minimumRequiredReturn.requiredReturn >= 0 ? '+' : '')}${(minimumRequiredReturn.currentAssumedReturn - minimumRequiredReturn.requiredReturn).toFixed(1)} points, on the average path only)`}
                 </td>
               </tr>
               <tr>

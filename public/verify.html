@@ -319,7 +319,7 @@
             <div class="card">
               <h3>What you&rsquo;ll see</h3>
               <ul class="marks yes">
-                <li>Only files from <strong>www.outlastretirement.com</strong></li>
+                <li>Only files from <strong>www.outlastretirement.com</strong> (and <strong>premium.outlastretirement.com</strong> when a Premium area, or the demo&rsquo;s Detailed Holdings, opens)</li>
                 <li>After your first visit, most rows say <em>(ServiceWorker)</em>: they came from the copy saved on your device, not the internet</li>
               </ul>
             </div>
@@ -486,7 +486,7 @@
           </tr>
         </tbody>
       </table>
-      <p class="never"><strong>Never touch the network:</strong> backups (saved where you choose, encrypted if you set a password), your Premium key (checked on your device), and imports of PDFs, CSVs and bank exports (read in your browser).</p>
+      <p class="never"><strong>Never touch the network:</strong> backups (saved where you choose, encrypted if you set a password) and imports of PDFs, CSVs and bank exports (read in your browser). Your Premium key is checked on your device first and sent only to our module server when a Premium area loads, as the table above says.</p>
       <p class="trio"><span>No accounts.</span> <span>No logins.</span> <span>No bank linking.</span></p>
     </section>
 
@@ -494,7 +494,7 @@
       <div class="card claims">
         <p class="eyebrow" id="claims-h">What we don&rsquo;t claim</p>
         <ul>
-          <li><strong>Loading the page does contact our host.</strong> That&rsquo;s how the app gets to your browser in the first place. Our host, Vercel, receives your IP address and browser type, as any web server does; we don&rsquo;t receive or keep them.</li>
+          <li><strong>Loading the page does contact our host.</strong> That&rsquo;s how the app gets to your browser in the first place. Our host, Vercel, receives your IP address and browser type, as any web server does, and keeps short-lived request logs we can see in its dashboard for a short time and do not export, analyze or keep.</li>
           <li><strong>Google sees Live Pricing requests</strong> when you use it, as any website sees a visit: your IP address and the ticker symbols, nothing else. The Sheet&rsquo;s script then looks the symbol up with Google Finance and Yahoo Finance from Google&rsquo;s servers; those services see the symbol, not you.</li>
           <li><strong>We can&rsquo;t see what&rsquo;s on your device &mdash; so we can&rsquo;t recover a lost plan.</strong> Keep backups.</li>
         </ul>

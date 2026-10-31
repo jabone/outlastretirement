@@ -16,18 +16,20 @@
 // { label, config } patch the card can apply to `inputs` in one click.
 
 import { reviewDue } from './annualReview';
-import { verdictBand, verdictPct } from './planVerdict';
+import { verdictBand, verdictPct, verdictPctText } from './planVerdict';
+import { stateTaxJurisdictionFor } from '../calculator';
+import { US_STATE_NAME } from '../config/usStates';
 import { planWarningFeedback, invalidInputLines, CHECK_INPUTS_TITLE } from './planNotices';
 
 export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
-  const recommendations = [];
+  const findings = [];
 
   // Annual review (changelog 256): a plan whose own year lags the calendar
   // is aging every figure it holds. Named first because every age depends
   // on it.
   const due = reviewDue(inputs);
   if (due.due) {
-    recommendations.push({
+    findings.push({
       type: 'warning',
       title: `This plan still thinks it is ${inputs.planYear}`,
       desc: `It is ${due.years} year${due.years === 1 ? '' : 's'} behind the calendar, so every age, the projection's first year and the Medicare lookback are anchored a year back. The annual review checklist advances the year and walks through what to update.`,
@@ -38,14 +40,36 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   // entries it ran as entered that are probably not what was meant.
   const invalid = invalidInputLines(projection, inputs);
   if (invalid.length) {
-    recommendations.push({
+    findings.push({
       type: 'danger',
       title: CHECK_INPUTS_TITLE,
       desc: invalid.join(' '),
       action: { tab: 'settings', subTab: 'household', label: 'Open Household \u2192' },
     });
   }
-  recommendations.push(...planWarningFeedback(projection, inputs));
+  findings.push(...planWarningFeedback(projection, inputs));
+
+  // The state and the tax jurisdiction disagree (changelog 467): a plan
+  // whose jurisdiction was left at 'none' or set by hand to another
+  // state's rules is taxed as somewhere it does not live. The two are
+  // soft-linked when the state is chosen, so this fires only on an older,
+  // imported or hand-edited plan, and on one unlinked on purpose.
+  {
+    const expected = stateTaxJurisdictionFor(inputs.stateOfResidence);
+    const actual = inputs.stateTaxState;
+    if (expected !== actual && expected !== 'flat_5' && !(expected === 'state_rules' && actual === 'flat_5')) {
+      const stateName = US_STATE_NAME[inputs.stateOfResidence] || inputs.stateOfResidence;
+      findings.push({
+        type: 'warning',
+        title: 'State Tax Does Not Match Your State',
+        desc: actual === 'none'
+          ? `Your state is ${stateName}, which has an income tax, but this plan charges no state income tax. The State Taxes section can set the jurisdiction to ${stateName}'s own rules.`
+          : `Your state is ${stateName}, but this plan's state tax jurisdiction is set differently. The State Taxes section shows which rules the plan is using.`,
+        action: { tab: 'settings', subTab: 'taxes', label: 'Open State Taxes \u2192' },
+        quickApply: { label: `Tax this plan as ${stateName}`, config: { stateTaxState: expected, stateTaxUnlinked: false } },
+      });
+    }
+  }
   const initialNestEgg = inputs.preTaxInit + inputs.rothInit + inputs.taxableInit;
   
   // 1. Success Rate & Core Health
@@ -58,35 +82,35 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   // the title and the Dashboard verdict cannot disagree at 89.5%.
   const band = verdictBand(successRate);
   if (!projection.isSuccessful) {
-    recommendations.push({
+    findings.push({
       type: 'danger',
       title: 'Shortfall Even With Average Returns',
-      desc: `With the returns you assumed every year, the plan does not cover its spending to the end.${successRate === null ? '' : ` In the Monte Carlo, ${successRate.toFixed(0)}% of simulated markets last.`} Retiring later, claiming Social Security later, or spending less each change that; the Optimizers and Readiness tabs show by how much.`,
+      desc: `With the returns you assumed every year, the plan does not cover its spending to the end.${successRate === null ? '' : ` In the Monte Carlo, ${verdictPctText(successRate)}% of simulated markets last.`} Retiring later, claiming Social Security later, or spending less each change that; the Optimizers and Readiness tabs show by how much.`,
     });
   } else if (successRate === null) {
-    recommendations.push({
+    findings.push({
       type: 'info',
       title: 'Lasts With Average Returns',
       desc: 'With the returns you assumed every year, the plan covers its spending to the end. How it holds up across good and bad markets appears here once the Monte Carlo check has run.',
       action: { tab: 'risk', subTab: 'montecarlo', label: 'Open the Monte Carlo →' },
     });
   } else if (band === 'good') {
-    recommendations.push({
+    findings.push({
       type: 'success',
       title: 'On Track',
-      desc: `Lasts with average returns, and ${successRate.toFixed(0)}% of simulated markets last too, so there is a buffer against down-years. The Readiness tab shows the most the plan could spend and still last.`
+      desc: `Lasts with average returns, and ${verdictPctText(successRate)}% of simulated markets last too, so there is a buffer against down-years. The Readiness tab shows the most the plan could spend and still last.`
     });
   } else if (band === 'caution') {
-    recommendations.push({
+    findings.push({
       type: 'warning',
       title: 'Mostly On Track',
-      desc: `Lasts with average returns, and ${successRate.toFixed(0)}% of simulated markets last, so a bad run of returns could still fall short. Spending Guardrails (spending trimmed after down years) and a higher savings rate are two settings that change this.`
+      desc: `Lasts with average returns, and ${verdictPctText(successRate)}% of simulated markets last, so a bad run of returns could still fall short. Spending Guardrails (spending trimmed after down years) and a higher savings rate are two settings that change this.`
     });
   } else {
-    recommendations.push({
+    findings.push({
       type: 'danger',
       title: 'At Risk in Weak Markets',
-      desc: `Lasts with average returns, but only ${successRate.toFixed(0)}% of simulated markets last. Retiring later, claiming Social Security later, or spending less each raise that; the Optimizers and Readiness tabs show by how much.`
+      desc: `Lasts with average returns, but only ${verdictPctText(successRate)}% of simulated markets last. Retiring later, claiming Social Security later, or spending less each raise that; the Optimizers and Readiness tabs show by how much.`
     });
   }
 
@@ -111,15 +135,15 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
       if (last && y === last[1] + 1) last[1] = y; else ranges.push([y, y]);
     }
     const yearText = ranges.map(([a, b]) => (a === b ? `${a}` : `${a}–${b}`)).join(', ');
-    recommendations.push({
+    findings.push({
       type: 'danger',
       title: 'ACA Medicaid Coverage Gap Detected',
-      desc: `Because you live in a non-expansion state (${acaGapStates}) and retire early, your projected taxable income falls below the Federal Poverty Level (FPL) in ${acaGapYears.length === 1 ? 'one year' : `${acaGapYears.length} years`} (${yearText}). This will completely disqualify you from ACA Premium Subsidies in those years, making health insurance unaffordable. We strongly recommend enabling "ACA Subsidy Protection" below to automatically generate artificial taxable income (via strategic Roth Conversions) to hit the 100% FPL floor. Each affected year is flagged with a GAP badge in the Year by Year ledger's ACA / FPL column.`,
+      desc: `Because you live in a non-expansion state (${acaGapStates}) and retire early, your projected taxable income falls below the Federal Poverty Level (FPL) in ${acaGapYears.length === 1 ? 'one year' : `${acaGapYears.length} years`} (${yearText}). Below that line the marketplace pays no premium credit in those years, so the plan is charged the full premium. The "ACA Subsidy Protection" setting shows the plan with enough taxable income (from Roth conversions) to stay above the line. Each affected year is flagged with a GAP badge in the Year by Year ledger's ACA / FPL column.`,
       action: { tab: 'settings', subTab: 'taxes', label: 'Enable ACA Subsidy Protection →' }
     });
   } else if (projection.years && projection.years.some(d => d.acaSubsidyBoost > 0)) {
     const totalBoost = projection.years.reduce((sum, d) => sum + (d.acaSubsidyBoost || 0), 0);
-    recommendations.push({
+    findings.push({
       type: 'success',
       title: 'ACA Subsidy Protection Active',
       desc: `Your ACA Subsidy Protection automatically executed a total of $${totalBoost.toLocaleString()} in forced Roth Conversions during your pre-65 retirement years to keep your taxable income above the poverty line, securing your ACA health insurance subsidies.`
@@ -134,7 +158,7 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   // concentrated Roth conversion ever does push it positive.
   const totalAmt = projection.years ? projection.years.reduce((sum, d) => sum + (d.amtTax || 0), 0) : 0;
   if (totalAmt > 0) {
-    recommendations.push({
+    findings.push({
       type: 'danger',
       title: 'Alternative Minimum Tax (AMT) Triggered',
       desc: `This plan is projected to owe a combined $${Math.round(totalAmt).toLocaleString()} in Alternative Minimum Tax over the plan horizon, on top of regular federal tax. AMT applies when your tentative minimum tax (income minus the AMT exemption, taxed at 26%/28%) exceeds your regular tax bill — most often triggered by a very large, concentrated Roth conversion in a single year. Consider spreading large conversions across more years to stay under the AMT threshold.`
@@ -158,10 +182,10 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
       if (prevYear.householdStatus === 'MFJ' && thisYear.householdStatus === 'Single') {
         const bracketJump = thisYear.marginalBracket - prevYear.marginalBracket;
         if (bracketJump > 0.02) {
-          recommendations.push({
+          findings.push({
             type: 'danger',
             title: "Widow's/Widower's Tax Torpedo",
-            desc: `In ${thisYear.year}, your household's filing status shifts from Married Filing Jointly to Single following the loss of a spouse, and the surviving spouse's marginal tax bracket jumps from ${(prevYear.marginalBracket * 100).toFixed(0)}% to ${(thisYear.marginalBracket * 100).toFixed(0)}%. This happens because Single filer tax brackets are roughly half as wide as MFJ brackets, while income sources like RMDs and pensions often don't drop proportionally when one spouse passes away. Consider more aggressive Roth conversions while both spouses are alive (and still in the wider MFJ brackets) to reduce the survivor's future tax burden — the Tax Optimizer Hub can help model this.`,
+            desc: `In ${thisYear.year}, your household's filing status shifts from Married Filing Jointly to Single following the loss of a spouse, and the surviving spouse's marginal tax bracket jumps from ${(prevYear.marginalBracket * 100).toFixed(0)}% to ${(thisYear.marginalBracket * 100).toFixed(0)}%. This happens because Single filer tax brackets are roughly half as wide as MFJ brackets, while income sources like RMDs and pensions often don't drop proportionally when one spouse passes away. Some couples convert more to Roth while both are alive, in the wider joint brackets, so less is taxed at the survivor's rates; the Tax Optimizer Hub shows what that does on this plan.`,
             action: { tab: 'strategy', subTab: 'optimizer', label: 'Go to Tax Optimizer Hub →' }
           });
           break; // surface only the first such transition, not every year after
@@ -186,7 +210,7 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
     const first = appealYears[0].year;
     const last = appealYears[appealYears.length - 1].year;
     const spanText = first === last ? `${first}` : `${first}-${last}`;
-    recommendations.push({
+    findings.push({
       type: 'warning',
       title: 'Medicare Premiums Billed on Your Working Income',
       desc: `Medicare sets each year's Part B and Part D premium from the tax return you filed two years earlier, so your first Medicare years are surcharged on the income you had while still working. Filing Form SSA-44, "Medicare Income-Related Monthly Adjustment Amount - Life-Changing Event", asks Social Security to use this year's estimated income instead; stopping work qualifies, as do seven other events (marriage, divorce or annulment, death of a spouse, work reduction, loss of income-producing property, loss of pension income, and an employer settlement payment). On this plan an approved appeal is worth about $${Math.round(totalAppealSaving).toLocaleString()} across ${spanText}. This is paperwork you file with Social Security, with evidence of the event attached - the projection below does not assume you file it, so those years currently show the higher premium. Each affected year carries an SSA-44 badge in the Year by Year ledger's Medicare line of the Health column.`,
@@ -204,26 +228,27 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   
   if (preTaxPct > 70) {
     const rmdAgeVal = getRMDAge(inputs.birthYear1);
-    recommendations.push({
+    findings.push({
       type: 'info',
       title: 'Pre-Tax Concentration (RMD Tax Bomb)',
-      desc: `${preTaxPct.toFixed(0)}% of your wealth is in Traditional Pre-Tax accounts. Starting at age ${rmdAgeVal}, required withdrawals (RMDs) will force taxable ordinary income on you. We highly recommend using the Optimizer Hub to model Max Bracket Roth Conversions during your gap years to shift these assets into tax-free Roth.`,
+      desc: `${preTaxPct.toFixed(0)}% of your wealth is in Traditional Pre-Tax accounts. Starting at age ${rmdAgeVal}, required withdrawals (RMDs) will force taxable ordinary income on you. The Optimizer Hub shows what converting some of it to Roth in low-bracket years, before Social Security and the required withdrawals start, would do to this plan's taxes and what is left after them.`,
       action: { tab: 'strategy', subTab: 'optimizer', label: 'Go to Tax Optimizer Hub →' }
     });
   }
   
+  const retiresBefore59 = (Number(inputs.retireAge1) || 0) < 59.5 || (inputs.spouse2Enabled && (Number(inputs.retireAge2) || 0) < 59.5);
   if (taxablePct < 10 && inputs.preTaxInit > 0) {
-    recommendations.push({
+    findings.push({
       type: 'info',
       title: 'Low Taxable Liquidity',
-      desc: `Your taxable brokerage account accounts for only ${taxablePct.toFixed(0)}% of your assets. Draining your taxable bucket too early in retirement will force you to withdraw from pre-tax accounts before age 59½ (triggering penalties) or during low-market years, reducing your withdrawal flexibility.`,
+      desc: `Your taxable brokerage account accounts for only ${taxablePct.toFixed(0)}% of your assets. Once it is spent, the plan draws from Pre-Tax accounts instead${retiresBefore59 ? ', before age 59½ with the 10% early-withdrawal penalty' : ''}, in good markets and bad, which leaves less room to choose where each year's money comes from.`,
       action: { tab: 'settings', subTab: 'balances', label: 'Adjust Starting Balances →' }
     });
   }
 
   // Spending Guardrails recommendation
   if (!inputs.spendingGuardrails) {
-    recommendations.push({
+    findings.push({
       type: 'info',
       title: 'Spending Guardrails Disabled',
       desc: 'Spending Guardrails are off. With them on, spending skips its inflation raise after a down year and is cut 10% after a crash in the first retired year, and both are restored once the portfolio is back on your plan’s path. That often helps a plan last through a bear market, at the cost of spending less while it runs.',
@@ -237,7 +262,7 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
 
   // 3. Asset Allocation & Volatility Risk
   if (!inputs.rebalancingEnabled) {
-    recommendations.push({
+    findings.push({
       type: 'warning',
       title: 'Static Return Assumption Risk',
       desc: 'You are using flat return rates (pre vs. post retirement). This models average returns but ignores market volatility. Dynamic Asset Allocation (rebalancing) derives the return and the risk from your stock/bond mix instead, under Plan → Assumptions & Risk.',
@@ -250,56 +275,58 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   } else {
     const postStock = inputs.stockAllocationPost;
     if (postStock > 80) {
-      recommendations.push({
+      findings.push({
         type: 'danger',
         title: 'High Equity Volatility in Retirement',
-        desc: `Your post-retirement stock allocation is ${postStock}%. A high-equity portfolio exposes you to Sequence of Returns Risk—a crash in the early years of retirement could cause permanent depletion. Consider reducing stock exposure in post-retirement to a 50-60% range, using bonds as a volatility buffer.`,
+        desc: `Your post-retirement stock allocation is ${postStock}%. A high-equity portfolio exposes you to Sequence of Returns Risk—a crash in the early years of retirement could cause permanent depletion. Risk & Stress shows how this plan fares in the worst historical starts, and Compare allocations shows other stock shares on your own numbers. The mix is a decision for you and any advisor you work with.`,
         action: { tab: 'settings', subTab: 'assumptions', label: 'Adjust Retirement Allocations →' }
       });
     } else if (postStock < 30) {
-      recommendations.push({
+      findings.push({
         type: 'warning',
         title: 'High Bond Allocation (Inflation Risk)',
-        desc: `Your post-retirement stock allocation is only ${postStock}%. While stable, a low-equity portfolio may fail to outpace long-term inflation. Consider increasing stock exposure to 40-50% to maintain purchasing power over a 30+ year retirement.`,
+        desc: `Your post-retirement stock allocation is only ${postStock}%. While stable, a low-equity portfolio may fail to outpace long-term inflation. Compare allocations on Risk & Stress shows what other stock shares do to this plan over a 30-year retirement. The mix is a decision for you and any advisor you work with.`,
         action: { tab: 'settings', subTab: 'assumptions', label: 'Adjust Retirement Allocations →' }
       });
     }
   }
 
-  // 4. Social Security Optimization
+  // 4. Social Security claiming
   const age1 = inputs.claimingAge1;
   if (age1 === 62) {
-    recommendations.push({
+    findings.push({
       type: 'info',
       title: 'Early Social Security Claiming Discount',
-      desc: `You are claiming Social Security at age 62, which permanently reduces your benefit check by 30% compared to your Full Retirement Age (FRA). If your health is good, delaying to age 67 or 70 acts as a guaranteed, inflation-indexed ~8% annual return on your baseline payout.`,
+      desc: `You are claiming Social Security at age 62, which permanently reduces your benefit check by 30% compared to your Full Retirement Age (FRA). Each year you wait raises the check for life: about 5% to 6.7% a year between 62 and 67, and 8% a year from 67 to 70. The SS Claiming Matrix shows the lifetime totals on this plan, and the years of checks a later start gives up.`,
       action: { tab: 'strategy', subTab: 'ssheatmap', label: 'View SS Claiming Matrix →' },
       quickApply: {
-        label: 'Delay Social Security to Age 67 (FRA)',
+        label: 'Try claiming at 67 (full retirement age)',
         config: { claimingAge1: 67 }
       }
     });
   }
 
   // 5. Pension COLA Erosion
-  if (inputs.pension1 > 0 && inputs.pension1COLA === 0 && !inputs.pension1LumpSum) {
-    recommendations.push({
+  const inflationPct = Number(inputs.inflationRate) || 0;
+  const halfLifeYears = inflationPct > 0 ? Math.round(Math.log(2) / Math.log(1 + inflationPct / 100)) : null;
+  if (inputs.pension1 > 0 && inputs.pension1COLA === 0 && !inputs.pension1LumpSum && halfLifeYears) {
+    findings.push({
       type: 'warning',
       title: 'Pension Purchasing Power Erosion',
-      desc: `Your pension does not have cost-of-living adjustments (0% COLA). In a 3% inflation environment, the purchasing power of this pension will decrease by 50% in approximately 24 years. Ensure you budget for higher portfolio drawdowns in late retirement to offset this erosion.`,
+      desc: `Your pension does not have cost-of-living adjustments (0% COLA). At this plan's ${inflationPct}% inflation its purchasing power halves in about ${halfLifeYears} years, so the portfolio covers more of the spending in late retirement. The plan already prices that; this is a reminder of what it assumes.`,
       action: { tab: 'settings', subTab: 'income', label: 'Adjust Pension Settings →' }
     });
   }
 
   // 6. Tax Bracket Optimization suggestions based on Optimizer
   if (inputs.rothConversionStrategy === 'none' && inputs.preTaxInit > 100000) {
-    recommendations.push({
+    findings.push({
       type: 'info',
       title: 'Roth Conversion Arbitrage Opportunity',
-      desc: 'You are currently not performing any Roth conversions. Converting Pre-Tax IRA/401(k) assets to Roth in years when your ordinary tax bracket is low (such as right after retirement but before Social Security starts) is a proven way to hedge against tax hikes. *Note: Roth conversions require paying upfront income taxes. Depending on your current tax bracket, state laws, and inheritance goals, this may not be the best option for your situation.*',
+      desc: 'You are currently not performing any Roth conversions. Converting Pre-Tax IRA/401(k) assets to Roth in years when your ordinary tax bracket is low (such as right after retirement but before Social Security starts) is one widely used approach, and the Optimizer Hub shows what it does on this plan. A conversion means paying income tax now; whether it helps depends on your brackets now and later, your state, and what you want left for heirs.',
       action: { tab: 'strategy', subTab: 'optimizer', label: 'Compare Strategies in Optimizer Hub →' },
       quickApply: {
-        label: 'Apply Max Bracket Roth Conversions',
+        label: 'Try conversions to the 22% bracket',
         config: {
           rothConversionStrategy: 'maxBracket',
           rothConversionBracket: 0.22
@@ -308,6 +335,6 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
     });
   }
 
-  return recommendations;
+  return findings;
 }
 

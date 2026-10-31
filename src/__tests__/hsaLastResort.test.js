@@ -3,7 +3,9 @@
 // untouched, because the withdrawal solver draws only Pre-Tax, Roth and
 // Taxable and the HSA paid only qualified medical costs.
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_INPUTS, runProjection } from '../calculator';
+import { runProjection } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { YEAR_LEDGER_CSV_HEADERS, buildYearLedgerCsvRows } from '../utils/yearLedgerCsv';
 import { cashFlowSankeyFlows } from '../utils/cashFlowSankeyFlows';
 

@@ -187,7 +187,7 @@ describe('YearLedgerTab — balances view, matched to where the money goes', () 
     expect(y.healthcareBridge).toBeGreaterThan(0);
     expect(y.irmaaCost).toBeGreaterThan(0);
     const cellText = rowFor(y.year).textContent;
-    const whole = Math.round(y.healthcareBridge + y.irmaaCost + (y.ltcCost || 0) + (y.medicarePenalty || 0) + (y.foreignHealthcare || 0));
+    const whole = Math.round(y.healthcareBridge + y.irmaaCost + (y.medicareSupplement || 0) + (y.ltcCost || 0) + (y.medicarePenalty || 0) + (y.foreignHealthcare || 0));
     expect(cellText.replace(/,/g, '')).toContain(`$${whole}`);
     expect(cellText).toMatch(/Medicare \$/);
   });

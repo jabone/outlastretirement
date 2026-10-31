@@ -69,7 +69,7 @@ export const COMPARE_LINES = [
   { id: 'federalTax', label: 'US federal tax, before the credit for foreign tax', fields: ['federalTax'], sign: 1 },
   { id: 'foreignTax', label: 'Tax abroad', fields: ['foreignTax'], sign: 1 },
   { id: 'foreignTaxCredit', label: 'US credit for tax abroad', fields: ['foreignTaxCredit'], sign: -1 },
-  { id: 'health', label: 'Health cover and Medicare premiums', fields: ['healthcareBridge', 'irmaaCost', 'foreignHealthcare'], sign: 1 },
+  { id: 'health', label: 'Health cover and Medicare premiums', fields: ['healthcareBridge', 'irmaaCost', 'medicareSupplement', 'foreignHealthcare'], sign: 1 },
   { id: 'medicarePenalty', label: 'Medicare late-enrollment penalty', fields: ['medicarePenalty'], sign: 1 },
 ];
 

@@ -23,6 +23,20 @@ export default function HealthcareSection() {
                   )}
                 </div>
 
+                {/* Changelog 467: what Medicare leaves to you. Part B and
+                    Part D premiums are computed; this is the rest. */}
+                <div className="form-group">
+                  <label htmlFor="field-medicareSupplementCost">
+                    <Tooltip text="Everything Medicare leaves to you after 65, per person per year in today's dollars: a Medigap or Advantage premium, dental, vision, hearing and out-of-pocket costs. Part B and Part D premiums are computed separately. Set 0 if your spending figure already includes these." more="Medicare supplement and out-of-pocket">
+                      Medicare Supplement and Out-of-Pocket ($/yr per person on Medicare)
+                    </Tooltip>
+                  </label>
+                  <NumberInput id="field-medicareSupplementCost" min="0" step="500" className="form-input" value={inputs.medicareSupplementCost} onChange={(e) => updateInput('medicareSupplementCost', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
+                  <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>
+                    Part B and Part D premiums, with any surcharge, are added separately. Many retirees spend $4,000 to $6,000 a year on the rest.
+                  </span>
+                </div>
+
                 {/* Delaying Medicare on a current employer's plan (changelog
                     241). Off by default: it is only safe with an employer of
                     20 or more employees, which the plan cannot know. Moved

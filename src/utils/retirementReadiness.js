@@ -475,7 +475,7 @@ export const PAYCHECK_TRANSFER = ['drawTaxable', 'drawPreTax', 'drawRoth', 'cash
 // tested; it is listed only if it is not).
 export const PAID_OUT_PARTS = [
   { id: 'living', label: 'living costs', text: 'for living costs', keys: ['lifestyleExpenses'] },
-  { id: 'health', label: 'health cover', text: 'for health cover', keys: ['healthcareBridge', 'ltcCost', 'irmaaCost', 'foreignHealthcare', 'medicarePenalty'], less: ['hsaMedicalDraw'] },
+  { id: 'health', label: 'health cover', text: 'for health cover', keys: ['healthcareBridge', 'ltcCost', 'irmaaCost', 'medicareSupplement', 'foreignHealthcare', 'medicarePenalty'], less: ['hsaMedicalDraw'] },
   { id: 'tax', label: 'tax', text: 'in tax', keys: ['totalTaxesPaid'] },
   { id: 'oneTime', label: 'one-time life events', text: 'for one-time life events', keys: ['milestoneOutflow'] },
   { id: 'debt', label: 'debt payments', text: 'for debt payments', keys: ['mortgagePaymentThisYear', 'otherDebtPaymentThisYear'] },

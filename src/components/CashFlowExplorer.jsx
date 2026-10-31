@@ -68,7 +68,7 @@ export default function CashFlowExplorer({ projection, inputs, formatCurrency, s
       
       const lifestyleVal = activeYearData.lifestyleExpenses || 0;
       const taxVal = activeYearData.totalTaxesPaid || 0;
-      const healthcareVal = (activeYearData.healthcareBridge || 0) + (activeYearData.irmaaCost || 0) + (activeYearData.ltcCost || 0);
+      const healthcareVal = (activeYearData.healthcareBridge || 0) + (activeYearData.irmaaCost || 0) + (activeYearData.medicareSupplement || 0) + (activeYearData.ltcCost || 0);
       const savingsVal = activeYearData.totalContributions || 0;
       const surplusVal = Math.max(0, totalInflowVal - (lifestyleVal + taxVal + healthcareVal + savingsVal));
       

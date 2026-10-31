@@ -6,7 +6,7 @@
 // the era tests in calculator.test.js already pin.
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, DEFAULT_INPUTS, calculateHeirEstateTax,
+  runProjection, calculateHeirEstateTax,
   calculateStateEstateInheritanceTax, stateGrossEstateTax, stateInheritanceTaxForHeir,
   calculateFederalEstateTax, calculateTaxes, calculateAMT, calculateCapitalGainsTaxes,
   federal2011StateDeathTaxCredit, applyEstateSchedule, newYorkEstateTax,
@@ -14,6 +14,8 @@ import {
   NY_ESTATE_SCHEDULE, MN_ESTATE_SCHEDULE, OR_ESTATE_SCHEDULE,
   STATE_ESTATE_INHERITANCE_TAX_TABLE, GST_EXEMPTION_2026, FEDERAL_ESTATE_EXEMPTION_2026,
 } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 describe('Q-18(a): the graduated states use their real schedules, not a top rate on the excess', () => {
   it('one pre-2001 s 2011 table reproduces MA, RI and MD\'s three published credit figures', () => {

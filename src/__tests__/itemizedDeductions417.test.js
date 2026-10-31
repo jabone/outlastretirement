@@ -5,10 +5,12 @@
 // deduction from 2026.
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, DEFAULT_INPUTS,
+  runProjection,
   itemizedDeductionFor, saltCapFor, nonItemizerCharitableFor,
   SALT_CAP_BY_YEAR, MORTGAGE_ACQUISITION_DEBT_LIMIT,
 } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { buildDemoInputs } from '../config/demoPlan';
 import { buildParkersInputs } from '../config/demoPlanParkers';
 

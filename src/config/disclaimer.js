@@ -20,7 +20,17 @@ export const DISCLAIMER_PARAGRAPHS = [
   `Welcome to ${BRAND_DOMAIN}. This application is designed solely for educational, informational, and scenario-modeling purposes.`,
   'All calculations, historical stress tests, and Monte Carlo probability outputs are mathematical projections based on the assumptions you enter. They do not constitute actual professional financial, legal, tax, or investment advice.',
   'Market returns vary and tax law changes over time, and past performance is not a guarantee of future outcomes.',
+  // Changelog 466: the two caveats a planner always gives.
+  'A projection is only as good as the numbers you enter, and this tool sees only what you tell it: not your insurance, your health, your family or the rest of your finances. Figures twenty or thirty years out are rough.',
 ];
+
+// The sentence under the paragraphs in the first-visit modal: the one
+// place the user clicks to agree, so it names what they agree to
+// (changelog 466). Links are rendered by App.jsx from TERMS_HREF and
+// PRIVACY_HREF.
+export const DISCLAIMER_AGREE_PREFIX = 'Use of this application is governed by our';
+export const TERMS_HREF = '/terms';
+export const PRIVACY_HREF = '/privacy';
 
 // Shown on the accept button the first time only. Reopening later is a
 // read, not a re-acceptance -- re-prompting someone to agree to terms they
@@ -41,4 +51,5 @@ export const DISCLAIMER_SHORT =
 export const DISCLAIMER_PRINT =
   `${BRAND_DOMAIN} is an educational tool only and does not provide financial, legal, tax, or investment advice. ` +
   'All figures are mathematical projections based on the assumptions entered and will differ from actual results ' +
-  'as markets, IRS rules, and tax law change over time.';
+  'as markets, IRS rules, and tax law change over time. A projection is only as good as the figures entered, and ' +
+  'figures twenty or thirty years out are rough.';

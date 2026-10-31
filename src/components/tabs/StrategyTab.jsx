@@ -918,7 +918,7 @@ const StrategyTab = () => {
 
                     {isOptimal && (
                       <div style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(16,185,129,0.3)', backgroundColor: 'rgba(16,185,129,0.03)', fontSize: 'var(--fs-xs)', color: 'var(--success)', lineHeight: '1.4' }}>
-                        <strong>Peak Strategy Selected!</strong> You are inspecting the mathematically optimal claiming strategy for your demographics.
+                        <strong>Highest in this grid.</strong> You are inspecting the claiming pair that ranks highest on this measure, on the assumptions entered; other measures rank differently.
                       </div>
                     )}
 
@@ -1249,7 +1249,7 @@ const StrategyTab = () => {
 
                       {isOptimal && (
                         <div style={{ padding: '12px', borderRadius: '8px', border: '1px solid rgba(16,185,129,0.3)', backgroundColor: 'rgba(16,185,129,0.03)', fontSize: 'var(--fs-xs)', color: 'var(--success)', lineHeight: '1.4' }}>
-                          <strong>Peak Strategy Selected!</strong> You are inspecting the mathematically optimal combination for this metric.
+                          <strong>Highest in this grid.</strong> You are inspecting the combination that ranks highest on this measure, on the assumptions entered; other measures rank differently.
                         </div>
                       )}
 

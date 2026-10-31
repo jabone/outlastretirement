@@ -26,6 +26,10 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-10-26',
     headline: 'Roth conversions up to your deductions, and a survivor keeps a larger own check',
     bullets: [
+      { title: 'Three defaults a planner would question', ids: [467],
+        text: 'Quick Setup asks your state and taxes the plan by it; a new plan\u2019s employer match stops at 6% of pay, as real formulas do; and Medicare years carry a $4,500-a-person line for the supplement, dental, vision and out-of-pocket costs that Part B and Part D do not cover. Plans saved earlier keep their figures until you set the new fields.' },
+      { title: 'Plainer about what the numbers are', ids: [466],
+        text: 'A planner\u2019s review of the words: Plan Feedback describes instead of advising, the verdict names the risks the plan has not tested, a shortfall is called one, no rate prints as 100%, and the printed report shows the same verdict the app does. The first-visit notice links the Terms and adds that a projection is only as good as its inputs.' },
       { title: 'A year-by-year Roth conversion schedule, found on your device', ids: [465],
         text: 'A new Roth conversion strategy picks a bracket for each year, and Find my best schedule searches, in your browser, for the one that leaves your heirs the most after tax or lets you spend the most for life, within your Medicare-surcharge and ACA limits. Your numbers change only if you choose it.' },
       { title: 'Choose the month Social Security starts', ids: [464],

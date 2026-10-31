@@ -39,7 +39,7 @@ export function cashFlowSankeyFlows(yearData) {
   const outflows = [
     { name: 'Taxes Paid', value: otherTaxesPaid },
     { name: 'Roth Conversion Tax', value: conversionTaxCost },
-    { name: 'Living Expenses', value: (yearData.lifestyleExpenses || 0) + (yearData.ltcCost || 0) + (yearData.irmaaCost || 0) + (yearData.healthcareBridge || 0) },
+    { name: 'Living Expenses', value: (yearData.lifestyleExpenses || 0) + (yearData.ltcCost || 0) + (yearData.irmaaCost || 0) + (yearData.medicareSupplement || 0) + (yearData.healthcareBridge || 0) },
     { name: 'Milestone Expenses', value: yearData.milestoneOutflow || 0 },
     { name: 'Savings/Reinvested', value: (yearData.totalContributions || 0) }
   ].filter(o => o.value > 0);

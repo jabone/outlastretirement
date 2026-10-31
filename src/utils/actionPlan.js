@@ -300,11 +300,16 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
     // A small, arbitrary noise floor -- don't recommend switching strategies
     // over a rounding-level difference that isn't worth the hassle.
     const improvement = (bestCell.afterTaxLegacy ?? bestCell.endingBalance) - currentAfterTax;
-    if (!isActiveCombo && improvement > 1000) {
+    // Worth a line only when the gap is large against the figure itself:
+    // 2% of what the heirs would keep, and at least $1,000. A smaller gap is
+    // inside the uncertainty of a 30-year projection and reads as a tax
+    // recommendation when printed (changelog 466).
+    const meaningful = improvement > 1000 && improvement > 0.02 * Math.max(1, Math.abs(currentAfterTax));
+    if (!isActiveCombo && meaningful) {
       const bestPct = Math.round(bestCell.bracket * 100);
       retirementItems.push({
-        label: `Filling the ${bestPct}% ${bestCell.bracket === 0 ? 'tier' : 'bracket'} with ${WITHDRAWAL_STRATEGY_SHORT_LABELS[bestCell.withdrawalStrategy] || bestCell.withdrawalStrategy} withdrawals leaves your heirs more after every tax`,
-        detail: `Optimizers \u2192 Roth Ladder Optimizer tries every bracket and withdrawal order and ranks them by what your heirs keep after every tax. It projects ${fc(bestCell.afterTaxLegacy ?? bestCell.endingBalance)} for this combination, ${fc(improvement)} more than your current settings. A large gap usually means your current conversion setting is aggressive, or timid, for your bracket picture.`,
+        label: `The Roth Ladder grid projects more left after every tax with the ${bestPct}% ${bestCell.bracket === 0 ? 'tier' : 'bracket'} and ${WITHDRAWAL_STRATEGY_SHORT_LABELS[bestCell.withdrawalStrategy] || bestCell.withdrawalStrategy} withdrawals`,
+        detail: `Optimizers \u2192 Roth Ladder Optimizer tries every bracket and withdrawal order and ranks them by what your heirs keep after every tax. On the assumptions entered it projects ${fc(bestCell.afterTaxLegacy ?? bestCell.endingBalance)} for that combination, ${fc(improvement)} more than your current settings. Rankings move with the assumptions, and other measures rank differently; it is a comparison to look at, not a recommendation.`,
       });
     }
   }

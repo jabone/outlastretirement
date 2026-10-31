@@ -40,7 +40,10 @@ import { vi } from 'vitest';
 import SimulationContext from '../context/SimulationContext';
 import EntitlementContext from '../context/EntitlementContext';
 import { usePortfolioHoldings } from '../context/usePortfolioHoldings';
-import { DEFAULT_INPUTS, runProjection, calculateHeirEstateTax, findDieWithZeroSpending, findTargetPortfolioSize, rmdStartAge } from '../calculator';
+import { runProjection, calculateHeirEstateTax, findDieWithZeroSpending, findTargetPortfolioSize, rmdStartAge } from '../calculator';
+// The context's plan is the reference household (the pre-467 default
+// plan, which lasts to the end): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 // Guard for hand-built plan objects; see knownInputKeys.js.
 export { assertKnownInputKeys, unknownInputKeys } from './knownInputKeys';

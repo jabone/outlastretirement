@@ -173,6 +173,10 @@ export default function ContributionsSection() {
                           <label htmlFor="field-employerMatchCapAPct1" style={{ fontSize: 'var(--fs-xs)' }}>Tier A Cap (% of IRS deferral limit)</label>
                           <NumberInput id="field-employerMatchCapAPct1" step="5" min="0" max="100" className="form-input" value={inputs.employerMatchCapAPct1} onChange={(e) => updateInput('employerMatchCapAPct1', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
                         </div>
+                        <div>
+                          <label htmlFor="field-employerMatchCapPayPct1" style={{ fontSize: 'var(--fs-xs)' }}>Tier A Cap (% of pay; 0 = none)</label>
+                          <NumberInput id="field-employerMatchCapPayPct1" step="1" min="0" max="100" className="form-input" value={inputs.employerMatchCapPayPct1} onChange={(e) => updateInput('employerMatchCapPayPct1', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
+                        </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <label htmlFor="toggle-employerMatchTierBEnabled1" style={{ fontSize: '14px', cursor: 'pointer' }}>Add a Second Tier</label>
@@ -228,6 +232,10 @@ export default function ContributionsSection() {
                           <div>
                             <label htmlFor="field-employerMatchCapAPct2" style={{ fontSize: 'var(--fs-xs)' }}>Tier A Cap (% of IRS deferral limit)</label>
                             <NumberInput id="field-employerMatchCapAPct2" step="5" min="0" max="100" className="form-input" value={inputs.employerMatchCapAPct2} onChange={(e) => updateInput('employerMatchCapAPct2', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
+                          </div>
+                          <div>
+                            <label htmlFor="field-employerMatchCapPayPct2" style={{ fontSize: 'var(--fs-xs)' }}>Tier A Cap (% of pay; 0 = none)</label>
+                            <NumberInput id="field-employerMatchCapPayPct2" step="1" min="0" max="100" className="form-input" value={inputs.employerMatchCapPayPct2} onChange={(e) => updateInput('employerMatchCapPayPct2', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
                           </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

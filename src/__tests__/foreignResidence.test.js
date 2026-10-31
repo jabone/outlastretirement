@@ -15,11 +15,13 @@
 // Every fixture key is checked against DEFAULT_INPUTS (see DEVELOPMENT.md).
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, calculateHeirEstateTax, DEFAULT_INPUTS, IRMAA_STANDARD_PREMIUM,
+  runProjection, calculateHeirEstateTax, IRMAA_STANDARD_PREMIUM,
   readResidencyTimeline, readForeignTerms, priceForeignYear, progressiveTax,
   settleFtcCarryforward, ftcCarryforwardAvailable, FTC_CARRYFORWARD_YEARS,
   calculateNetInvestmentIncomeTax, calculateCapitalGainsTaxes,
 } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 const plan = (over) => {
   for (const k of Object.keys(over)) {

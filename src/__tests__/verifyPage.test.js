@@ -50,7 +50,7 @@ describe('/verify', () => {
     for (const feature of ['Backups', 'Premium key']) {
       expect(page, feature).not.toContain(`<td>${feature}`);
     }
-    expect(page).toMatch(/Never touch the network:<\/strong>[^<]*backups[^<]*Premium key[^<]*imports/);
+    expect(page).toMatch(/Never touch the network:<\/strong>[^<]*backups[^<]*imports[^<]*Premium key[^<]*module server/);
     expect(page).toMatch(/Ticker symbols only/);
   });
 

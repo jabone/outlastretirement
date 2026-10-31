@@ -29,6 +29,34 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 467,
+    date: '2026-10-31',
+    title: 'Three defaults a planner would question: state tax, the employer match, and Medicare\u2019s leftovers',
+    summary: 'Quick Setup asks your state and taxes the plan by it, a new plan\u2019s employer match stops at 6% of pay, and Medicare years carry a supplement and out-of-pocket line. Saved plans keep their figures.',
+    items: [
+      "**Your state, up front.** Quick Setup now asks the state you live in, and choosing it sets the state tax rules, so a new plan is taxed where it lives. A plan whose state has an income tax but is taxed as nowhere gets a Plan Feedback warning with a one-click fix.",
+      "**The employer match stops at a share of pay.** The percent formula gained a \"% of pay\" cap, 6% for a new plan, the way most real formulas read: 50% of the first 6% of pay. It used to match everything up to the IRS limit, so a large deferral drew a match no employer pays. A plan saved before this keeps 0, no pay cap, and its figures do not move.",
+      "**What Medicare leaves to you.** Plan \u2192 Spending has a new line, Medicare Supplement and Out-of-Pocket, $4,500 a person a year for a new plan: a Medigap or Advantage premium, dental, vision, hearing and out-of-pocket costs. Part B and Part D premiums were already computed; nothing covered the rest, so a plan could read Medicare as taking care of everything. It grows at medical inflation, shows in the Year by Year Health column, the Readiness paycheck's health cover and the Cash Flow chart, has its own column in the ledger download, and counts in the medical deduction. A plan saved before this keeps 0.",
+      "**The sample plan saves more.** The blank plan you see before Quick Setup was on a knife edge, ending with about $37,000, and these two realistic lines would have tipped it into a shortfall. Its saver now puts 16% of pay pre-tax and $4,000 a year in a Roth and lives on $42,000, and the plan ends with a cushion. It is a placeholder until Quick Setup fills in your own figures.",
+      "**Your numbers do not change** on a saved plan unless you set the new fields; the demo households keep their published figures.",
+    ],
+  },
+  {
+    id: 466,
+    date: '2026-10-31',
+    title: 'Plainer about what the numbers are: a planner\u2019s review of the words',
+    summary: 'Plan Feedback describes instead of advising, the verdict says what it did not test, a shortfall is named as one, no rate prints as 100%, and the printed report shows the verdict the app shows.',
+    items: [
+      "**Plan Feedback describes, it does not advise.** Cards that said \"we strongly recommend\", gave a target stock mix, or called delaying Social Security \"a guaranteed 8% return\" now say what the projection shows and where in the app to look. Delaying raises the check about 5% to 6.7% a year before full retirement age and 8% a year after it.",
+      "**What the verdict did not test.** Under Will It Last?, and in the printed Risk Analysis, a line now names the risks the plan has switched off: a spouse dying early, long-term care, a Social Security cut, living past the ages set. Each is a setting under Plan.",
+      "**A shortfall is named.** Readiness' spend-to-zero card said \"about what you are planning to spend\" when the plan could carry less than the budget; it now says how much less. The Monte Carlo rate on Risk & Stress is colored by the verdict, not always green, and prints as a whole number.",
+      "**No rate prints as 100%.** A plan that lasts in every simulated market reads \"over 99%\": no simulation sees every risk. Lesson 5 now says On track means at least nine of ten simulated markets.",
+      "**The printed report shows the verdict**, with the Monte Carlo rate only when it was run on this version of the plan; it used to print the previous plan's rate, colored by the average-returns pass alone. The Action Plan says each line restates a setting of yours, and its Roth Ladder note appears only for a gap over 2% of what the heirs keep, worded as a comparison.",
+      "**Smaller wording.** First safe year to retire says it is on average returns only; Suggest changes says its picks are arithmetic, not advice; the claiming grid's highlighted cell is \"highest in this grid\", not \"mathematically optimal\"; the printed required-return line no longer calls its gap a cushion.",
+      "**The first-visit notice** now links the Terms of Use and Privacy Policy and adds two caveats: a projection is only as good as the numbers entered, and figures twenty or thirty years out are rough. The Terms scope their copying restrictions to Premium, the name and the logo, since the core is open source under the AGPL. Verify it yourself and the Premium page now describe the Premium key's one connection the same way the Privacy Policy does.",
+    ],
+  },
+  {
     id: 465,
     date: '2026-10-29',
     title: 'Roth conversions: a year-by-year schedule, found on your device',

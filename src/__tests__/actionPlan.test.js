@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS, getRothBracketWithdrawalHeatmap, getGuardrailsComparisonHeatmap } from '../calculator.js';
+import { runProjection, DEFAULT_INPUTS, getRothBracketWithdrawalHeatmap, getGuardrailsComparisonHeatmap, legacyAfterTaxes } from '../calculator.js';
 import { buildActionPlan } from '../utils/actionPlan.js';
 
 // buildActionPlan is pure presentation logic layered on top of runProjection's
@@ -406,11 +406,15 @@ describe('buildActionPlan', () => {
 
       // Changelog 428: the note ranks on net to heirs after every tax.
       const best = heatmap.reduce((b, c) => (!b || c.afterTaxLegacy > b.afterTaxLegacy ? c : b), null);
-      const item = retirement.items.find((i) => i.label.includes('leaves your heirs more after every tax'));
+      const item = retirement.items.find((i) => i.label.includes('projects more left after every tax'));
 
+      // Changelog 466: the note appears only for a gap worth acting on
+      // (over 2% of what the heirs keep; this plan's is about 4.5%), and
+      // reads as a comparison, not a recommendation.
       expect(item).toBeTruthy();
       expect(item.label).toContain(`${Math.round(best.bracket * 100)}%`);
       expect(item.detail).toContain('Roth Ladder Optimizer');
+      expect(item.detail).toContain('not a recommendation');
     });
 
     it('does not recommend anything when the household is already running the best combo', () => {
@@ -427,7 +431,16 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection, undefined, heatmap);
       const retirement = findSection(plan, 'retirement');
 
-      expect(retirement.items.find((i) => i.label.includes('leaves your heirs more after every tax'))).toBeUndefined();
+      expect(retirement.items.find((i) => i.label.includes('projects more left after every tax'))).toBeUndefined();
+    });
+
+    it('is skipped when the gap is inside the noise of a long projection', () => {
+      const inputs = { ...SOLVENT_INPUTS, rothConversionStrategy: 'none' };
+      const projection = runProjection(inputs);
+      const current = legacyAfterTaxes(inputs, projection);
+      const heatmap = getRothBracketWithdrawalHeatmap(inputs).map((c) => ({ ...c, afterTaxLegacy: current * 1.01 }));
+      const plan = buildActionPlan(inputs, projection, undefined, heatmap);
+      expect(findSection(plan, 'retirement').items.find((i) => i.label.includes('projects more left after every tax'))).toBeUndefined();
     });
 
     it('is skipped silently when no heatmap is passed in, so existing callers keep working', () => {
@@ -437,7 +450,7 @@ describe('buildActionPlan', () => {
       expect(() => buildActionPlan(inputs, projection)).not.toThrow();
       const plan = buildActionPlan(inputs, projection);
       const retirement = findSection(plan, 'retirement');
-      expect(retirement.items.find((i) => i.label.includes('leaves your heirs more after every tax'))).toBeUndefined();
+      expect(retirement.items.find((i) => i.label.includes('projects more left after every tax'))).toBeUndefined();
     });
 
     it('is skipped when the passed-in heatmap is an empty array', () => {
@@ -446,7 +459,7 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection, undefined, []);
       const retirement = findSection(plan, 'retirement');
 
-      expect(retirement.items.find((i) => i.label.includes('leaves your heirs more after every tax'))).toBeUndefined();
+      expect(retirement.items.find((i) => i.label.includes('projects more left after every tax'))).toBeUndefined();
     });
   });
 

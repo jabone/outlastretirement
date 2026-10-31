@@ -4,7 +4,9 @@
 // plan's first year. A plan starting in 2027 and one starting in 2026 must
 // agree about calendar 2027 to the dollar.
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS, TAX_YEAR, calculateHeirEstateTax } from '../calculator';
+import { runProjection, TAX_YEAR, calculateHeirEstateTax } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 const base = {
   ...DEFAULT_INPUTS, birthYear1: 1960, birthYear2: 1962, retireAge1: 60, retireAge2: 60, salary1: 0, salary2: 0,

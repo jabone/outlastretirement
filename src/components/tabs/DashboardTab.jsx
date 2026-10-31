@@ -375,6 +375,7 @@ const DashboardTab = () => {
                         : `Your plan retires in ${firstSafe.plannedYear} and runs out; stopping work in ${firstSafe.year} (age ${firstSafe.age1}${firstSafe.age2 !== null ? ` / ${firstSafe.age2}` : ''}) is the first year that lasts.`
                   )}
                   {!firstSafe.found && `No year up to ${firstSafe.searchedTo} lasts to the end of the plan on these settings.`}
+                  {' '}With average returns only; not tested against bad markets.
                 </span>
                 </>)}
               </div>

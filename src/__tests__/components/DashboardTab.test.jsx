@@ -33,7 +33,8 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DashboardTab from '../../components/tabs/DashboardTab';
 import { renderWithSimulation } from '../testUtils';
-import { DEFAULT_INPUTS } from '../../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from '../referenceHousehold';
 
 describe('DashboardTab — chart panel and stress test banner', () => {
   it('renders the chart panel with no crash-test banner when stressType is none (default)', () => {

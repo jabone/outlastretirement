@@ -4,7 +4,9 @@
 // is everything the year pays out (tax, health cover and one-time events
 // included), and it is now shown as parts that add up.
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_INPUTS, runProjection } from '../calculator';
+import { runProjection } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { buildDemoInputs } from '../config/demoPlan';
 import {
   firstYearsPlan, paidOutFigures, paidOutBreakdown, joinParts,

@@ -1,6 +1,8 @@
 // Historical bootstrap for the Monte Carlo (changelog 267).
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_INPUTS, runMonteCarlo } from '../calculator';
+import { runMonteCarlo } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from '../config/historicalReturns';
 import { historicalPortfolioReturn, historicalGeometricMean, historicalMeanInflation, bootstrapPath, recenterReturn } from '../utils/bootstrap';
 

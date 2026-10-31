@@ -66,11 +66,17 @@ describe('optimizers rank after every tax', () => {
       expect(split.best.afterTaxLegacy).toBeGreaterThanOrEqual(Math.max(...split.results.filter((r) => r.isSuccessful).map((r) => r.afterTaxLegacy)));
       expect(split.improvement).toBeCloseTo(split.best.afterTaxLegacy - split.current.afterTaxLegacy, 6);
     }
+    // The Action Plan note appears only for a gap over 2% of what the heirs
+    // keep (changelog 466); the Carters' gap to the grid's best is under
+    // 1%, so it is silent for them. Force a large gap to check the measure.
     const proj = runProjection(demo);
-    const plan = buildActionPlan(demo, proj, null, grid, null);
+    const current = legacyAfterTaxes(demo, proj);
+    const wide = grid.map((c) => (c === best ? { ...c, afterTaxLegacy: current * 1.1 } : c));
+    const plan = buildActionPlan(demo, proj, null, wide, null);
     const note = [...(plan.retirementItems || []), ...(plan.sections || []).flatMap((s) => s.items || [])].find((i) => /Roth Ladder Optimizer/.test(i.detail || ''));
     expect(note).toBeTruthy();
     expect(note.detail).toMatch(/after every tax/);
+    expect(buildActionPlan(demo, proj, null, grid, null).sections.flatMap((s) => s.items).find((i) => /Roth Ladder Optimizer/.test(i.detail || ''))).toBeUndefined();
   });
 
   it("today's dollars deflate the figure by the final-year factor", () => {

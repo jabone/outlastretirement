@@ -74,11 +74,11 @@ describe('GuidedSection only={…} — the wizard density', () => {
       <GuidedSection only={WIZARD_FIELDS.household}><DemographicsSection /></GuidedSection>,
       { inputs: { ...DEFAULT_INPUTS, spouse2Enabled: true } },
     );
-    for (const id of ['field-spouse1Name', 'field-birthYear1', 'field-retireAge1', 'toggle-spouse2Enabled', 'field-spouse2Name', 'field-birthYear2', 'field-retireAge2']) {
+    for (const id of ['field-spouse1Name', 'field-birthYear1', 'field-retireAge1', 'field-stateOfResidence', 'toggle-spouse2Enabled', 'field-spouse2Name', 'field-birthYear2', 'field-retireAge2']) {
       expect(field(id)).not.toBeNull();
       expect(hidden(field(id))).toBe(false);
     }
-    for (const id of ['field-stateOfResidence', 'field-sex1', 'field-lifeExpectancy1', 'field-claimingAge1', 'field-filingStatus']) {
+    for (const id of ['field-sex1', 'field-lifeExpectancy1', 'field-claimingAge1', 'field-filingStatus']) {
       expect(field(id)).not.toBeNull();
       expect(hidden(field(id))).toBe(true);
     }

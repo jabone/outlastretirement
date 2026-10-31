@@ -97,6 +97,22 @@ export const NOT_ASKED_IN_INTERVIEW = [
     keys: ['mfsIncomeSplitPct'],
   },
   {
+    id: 'employerMatchCapPayPct',
+    title: 'The employer match\u2019s cap as a share of pay',
+    blurb: 'A matching formula usually reads \u201c50% of the first 6% of pay\u201d. The Interview sets the match rate; this is the share of pay it stops at, 6% for a new plan and 0 for no pay cap. It lives on Plan Settings \u2192 Savings, under the match formula.',
+    domain: 'savings',
+    interviewSection: 'savings',
+    keys: ['employerMatchCapPayPct'],
+  },
+  {
+    id: 'medicareSupplementCost',
+    title: 'Medicare supplement and out-of-pocket costs',
+    blurb: 'What Medicare leaves to you after 65, per person per year: a Medigap or Advantage premium, dental, vision, hearing and out-of-pocket costs. Part B and Part D premiums are computed; this is the rest, $4,500 for a new plan. It lives on Plan Settings \u2192 Spending, under Healthcare Bridge Cost.',
+    domain: 'spending',
+    interviewSection: 'spending',
+    keys: ['medicareSupplementCost'],
+  },
+  {
     id: 'claimMonth',
     title: 'The month Social Security starts',
     blurb: 'Each spouse can choose the month their benefit starts, in the year they reach their claiming age. It is priced by the month and the first year pays only the months received. Optional: January keeps the whole-year plan the Interview sets up. It lives on Plan Settings \u2192 Household, under each claiming age.',

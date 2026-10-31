@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-29T03:57:54.917Z",
+  "timestamp": "2026-10-31T05:15:31.734Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -193,6 +193,8 @@
     "employerMatchCapAPct1": 100,
     "employerMatchRateA2": 50,
     "employerMatchCapAPct2": 100,
+    "employerMatchCapPayPct1": 0,
+    "employerMatchCapPayPct2": 0,
     "employerMatchTierBEnabled1": false,
     "employerMatchRateB1": 100,
     "employerMatchCapB1": 3000,
@@ -256,6 +258,7 @@
     "goGoBumpRate": 10,
     "goGoBumpEndAge": 75,
     "healthcareBridgeCost": 12000,
+    "medicareSupplementCost": 0,
     "healthcareBridgePremiumPct": 70,
     "hsaPreMedicarePremiumsQualified": false,
     "ltcActive1": false,
@@ -679,6 +682,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -742,6 +747,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -976,10 +982,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.936Z",
+      "savedAt": "2026-10-31T05:15:31.767Z",
       "tag": "demo"
     },
     {
@@ -1175,6 +1181,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -1238,6 +1246,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -1472,10 +1481,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.941Z",
+      "savedAt": "2026-10-31T05:15:31.771Z",
       "tag": "demo"
     },
     {
@@ -1671,6 +1680,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -1734,6 +1745,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -1968,10 +1980,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.947Z",
+      "savedAt": "2026-10-31T05:15:31.782Z",
       "tag": "demo"
     },
     {
@@ -2167,6 +2179,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -2230,6 +2244,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -2464,10 +2479,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.956Z",
+      "savedAt": "2026-10-31T05:15:31.836Z",
       "tag": "demo"
     },
     {
@@ -2663,6 +2678,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -2726,6 +2743,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -2960,10 +2978,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.965Z",
+      "savedAt": "2026-10-31T05:15:31.857Z",
       "tag": "demo"
     },
     {
@@ -3159,6 +3177,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -3222,6 +3242,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -3456,10 +3477,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.970Z",
+      "savedAt": "2026-10-31T05:15:31.864Z",
       "tag": "demo"
     },
     {
@@ -3655,6 +3676,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -3718,6 +3741,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -3952,10 +3976,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.974Z",
+      "savedAt": "2026-10-31T05:15:31.867Z",
       "tag": "demo"
     },
     {
@@ -4151,6 +4175,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -4214,6 +4240,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -4448,10 +4475,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.980Z",
+      "savedAt": "2026-10-31T05:15:31.883Z",
       "tag": "demo"
     },
     {
@@ -4647,6 +4674,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -4710,6 +4739,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -4944,10 +4974,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.985Z",
+      "savedAt": "2026-10-31T05:15:31.901Z",
       "tag": "demo"
     },
     {
@@ -5143,6 +5173,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -5206,6 +5238,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -5440,10 +5473,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:54.995Z",
+      "savedAt": "2026-10-31T05:15:31.933Z",
       "tag": "demo"
     },
     {
@@ -5639,6 +5672,8 @@
         "employerMatchCapAPct1": 100,
         "employerMatchRateA2": 50,
         "employerMatchCapAPct2": 100,
+        "employerMatchCapPayPct1": 0,
+        "employerMatchCapPayPct2": 0,
         "employerMatchTierBEnabled1": false,
         "employerMatchRateB1": 100,
         "employerMatchCapB1": 3000,
@@ -5702,6 +5737,7 @@
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
         "healthcareBridgeCost": 12000,
+        "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
@@ -5936,10 +5972,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 465
+        "oddsVersion": 466
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-29T03:57:55.004Z",
+      "savedAt": "2026-10-31T05:15:31.957Z",
       "tag": "demo"
     }
   ],

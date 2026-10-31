@@ -4,12 +4,13 @@
 import { describe, it, expect } from 'vitest';
 import {
   runProjection,
-  DEFAULT_INPUTS,
   calculateHeirEstateTax,
   calculateStateEstateInheritanceTax,
   calculateFederalEstateTax,
   federal2011StateDeathTaxCredit,
 } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 // Couple where Spouse 1 dies at 80 and Spouse 2 lives to 95.
 const WIDOW_PLAN = {

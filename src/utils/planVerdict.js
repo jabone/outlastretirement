@@ -38,6 +38,14 @@ export function verdictPct(successProbability) {
   return Number.isFinite(n) ? Math.round(n) : null;
 }
 
+// The percent as a surface prints it: "92", or "over 99" for a rate that
+// rounds to 100, since no simulation sees every risk (changelog 466).
+export function verdictPctText(successProbability) {
+  const pct = verdictPct(successProbability);
+  if (pct === null) return null;
+  return pct >= 100 ? 'over 99' : String(pct);
+}
+
 // 'good' | 'caution' | 'risk' for a success rate, or null when there is none.
 export function verdictBand(successProbability) {
   const pct = verdictPct(successProbability);
@@ -80,7 +88,7 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
   // Changelog 364: with a fresh Monte Carlo deciding the label, the real
   // retirements since 1928 still appear as a second line of evidence.
   const alsoHist = fresh && histOk ? ` It also lasted through ${historyPhrase(histOk, keep)}.` : '';
-  const pct = fresh ? verdictPct(mc.successProbability) : null;
+  const pctText = fresh ? verdictPctText(mc.successProbability) : null;
   const band = fresh ? verdictBand(mc.successProbability) : null;
   const trials = fresh ? (mc.trials || 1000).toLocaleString('en-US') : null;
   const horizon = `${fresh && mc.longevitySampled ? 'as long as you do' : 'to the end of the plan'}${keep}`;
@@ -88,7 +96,7 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
   if (!isSuccessful) {
     const short = firstShortfallRow(years);
     const when = short ? ` starting in ${short.year}` : '';
-    const odds = fresh ? ` ${pct}% of ${trials} simulated markets last ${horizon}.${alsoHist}`
+    const odds = fresh ? ` ${pctText}% of ${trials} simulated markets last ${horizon}.${alsoHist}`
       : hist ? ` It lasted through ${historyPhrase(hist, keep)}.` : '';
     return {
       tone: 'risk',
@@ -102,20 +110,20 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
       return {
         tone: 'good',
         label: 'On track',
-        detail: `${lastsAvg}, and ${pct}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
+        detail: `${lastsAvg}, and ${pctText}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
       };
     }
     if (band === 'caution') {
       return {
         tone: 'caution',
         label: 'Mostly on track',
-        detail: `${lastsAvg}, and ${pct}% of ${trials} simulated markets last ${horizon}; a poor run of markets could fall short.${alsoHist}`,
+        detail: `${lastsAvg}, and ${pctText}% of ${trials} simulated markets last ${horizon}; a poor run of markets could fall short.${alsoHist}`,
       };
     }
     return {
       tone: 'risk',
       label: 'At risk',
-      detail: `${lastsAvg}, but only ${pct}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
+      detail: `${lastsAvg}, but only ${pctText}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
     };
   }
 

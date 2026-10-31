@@ -6,12 +6,13 @@
 import { describe, it, expect } from 'vitest';
 import {
   runProjection,
-  DEFAULT_INPUTS,
   makeRothLayers,
   rothLayersBasis,
   splitRothDraw,
   consumeRothLayers,
 } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 // Retired single, age 55, living entirely off a $500k Roth.
 const ROTH_ONLY_55 = {

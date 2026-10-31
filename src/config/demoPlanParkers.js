@@ -54,6 +54,13 @@ export function buildParkersInputs() {
     acaCreditSource: 'manual',
     // And the standard deduction every year (changelog 417).
     itemizeDeductions: 'never',
+    // And no pay cap on the employer match (changelog 467 caps a new
+    // plan's match at 6% of pay), so the published figures stay as drawn.
+    employerMatchCapPayPct1: 0,
+    employerMatchCapPayPct2: 0,
+    // And no Medicare supplement line (changelog 467 adds $4,500 a person
+    // for new plans): the lessons' health figures are Part B and Part D.
+    medicareSupplementCost: 0,
 
     // -- Who they are ------------------------------------------------------
     spouse1Name: 'Ray',

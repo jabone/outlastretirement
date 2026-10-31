@@ -47,7 +47,7 @@ export function moneyGoesYear(row, { split = false } = {}) {
 
   const healthParts = {
     bridge: n(row, 'healthcareBridge'),
-    medicare: n(row, 'irmaaCost') + n(row, 'medicarePenalty'),
+    medicare: n(row, 'irmaaCost') + n(row, 'medicarePenalty') + n(row, 'medicareSupplement'),
     ltc: n(row, 'ltcCost'),
     abroad: n(row, 'foreignHealthcare'),
   };

@@ -67,7 +67,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     // The cost-basis change at the first death (changelog 360).
     'firstDeathBasisChange',
     // Spending, costs and taxes
-    'lifestyleExpenses', 'healthcareBridge', 'ltcCost', 'irmaaCost', 'partBCost', 'partDCost',
+    'lifestyleExpenses', 'healthcareBridge', 'ltcCost', 'irmaaCost', 'medicareSupplement', 'partBCost', 'partDCost',
     'irmaaTrueUp', 'irmaaAppealSavings', 'totalExpenses', 'totalTaxesPaid', 'extraTax', 'amtTax',
     'conversionTaxCost', 'conversionTrimmedForDraw', 'baseFederalTax', 'baseStateTax', 'ficaTax', 'extraTaxFederal',
     'extraTaxState', 'federalTax', 'stateTax', 'mortgagePaymentThisYear', 'otherDebtPaymentThisYear',

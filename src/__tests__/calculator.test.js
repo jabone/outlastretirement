@@ -82,7 +82,6 @@ import {
   BRACKETS_MFJ_PRETCJA,
   BRACKETS_SINGLE_PRETCJA,
   getRSUVestingIncomeForYear,
-  DEFAULT_INPUTS,
   TAX_YEAR,
   calculateStateTaxes,
   getBracketFilling,
@@ -109,6 +108,8 @@ import {
   spendingShapeShares,
   essentialShareOf,
 } from '../calculator.js';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { HISTORICAL_RETURNS } from '../config/historicalReturns';
 import { finalBalanceFactor, yearEndFactor } from '../utils/displayDollars';
 import { historicalPortfolioReturn } from '../utils/bootstrap';
@@ -5426,7 +5427,7 @@ describe('calculator.js core logic', () => {
         };
         const result = findDieWithZeroSpending(inputs);
         expect(result.dieWithZeroSpending).toBeGreaterThanOrEqual(inputs.lifestyleExpense);
-        expect(result.additionalAnnualSpend).toBeCloseTo(Math.max(0, result.dieWithZeroSpending - inputs.lifestyleExpense), 2);
+        expect(result.additionalAnnualSpend).toBeCloseTo(result.dieWithZeroSpending - inputs.lifestyleExpense, 2);
         expect(result.finalProjection).toBeTruthy();
         expect(result.finalProjection.isSuccessful).toBe(true);
       });

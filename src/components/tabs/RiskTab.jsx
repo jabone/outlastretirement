@@ -1,3 +1,4 @@
+import { verdictBand, verdictPct, verdictColor } from '../../utils/planVerdict';
 import React, { useState, useMemo } from 'react';
 import { gridCompactDollars } from '../../utils/compactDollars';
 import { basisLabel } from '../../utils/displayDollars';
@@ -600,8 +601,8 @@ const RiskTab = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
                     <div className="glass-panel" style={{ padding: '16px', textAlign: 'center' }}>
                       <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>Success Probability</div>
-                      <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--success)', marginTop: '8px' }}>
-                        {monteCarlo.successProbability.toFixed(1)}%
+                      <div style={{ fontSize: '28px', fontWeight: '700', color: verdictColor(verdictBand(verdictPct(monteCarlo.successProbability))), marginTop: '8px' }}>
+                        {verdictPct(monteCarlo.successProbability)}%
                       </div>
                       {monteCarlo.seed !== undefined && (
                         <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '4px' }}>

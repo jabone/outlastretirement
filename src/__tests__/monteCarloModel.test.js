@@ -16,9 +16,11 @@
 // DEFAULT_INPUTS by the vacuity guard at the bottom.
 import { describe, it, expect } from 'vitest';
 import {
-  DEFAULT_INPUTS, runMonteCarlo, runProjection, migrateInputs, sanitizeInputs,
+  runMonteCarlo, runProjection, migrateInputs, sanitizeInputs,
   mulberry32, lognormalReturnParams, derivedVolatility,
 } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { probAliveAt, probAnyAlive } from '../utils/mortality';
 
 const USED_KEYS = [

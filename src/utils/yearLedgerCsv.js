@@ -34,7 +34,7 @@ const derivedGrowth = (y) => {
 export const YEAR_LEDGER_CSV_HEADERS = [
   'Year', 'Age 1', 'Age 2', 'Filing', 'Phase',
   'Salary', 'Social Security', 'Pension', 'Fixed Inflows',
-  'Lifestyle Expenses', 'Healthcare', 'IRMAA', 'Taxes Paid', 'Total Expenses',
+  'Lifestyle Expenses', 'Healthcare', 'IRMAA', 'Medicare Supplement', 'Taxes Paid', 'Total Expenses',
   'Contributions', 'RMD', 'Draw PreTax', 'Draw Roth', 'Draw Taxable', 'Total Draw',
   'Roth Conversion', 'Roth Conversion Taxable', 'Roth Conversion Tax', 'Shortfall',
   'PreTax Start', 'Roth Start', 'Taxable Start', 'HSA Start',
@@ -70,6 +70,7 @@ export function buildYearLedgerCsvRows(projection) {
     round(y.lifestyleExpenses),
     round(y.healthcareBridge),
     round(y.irmaaCost),
+    round(y.medicareSupplement),
     round(y.totalTaxesPaid),
     round(y.totalExpenses),
     round(y.totalContributions),

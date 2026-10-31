@@ -118,8 +118,10 @@ describe('ledger CSV splits pay, stock vesting and deferred comp', () => {
   const proj = runProjection(buildDemoInputs());
   const rows = buildYearLedgerCsvRows(proj);
   const col = (name) => YEAR_LEDGER_CSV_HEADERS.indexOf(name);
-  it('has the two columns after the older ones, then HSA general spending, then fees last, 45 in all', () => {
-    expect(YEAR_LEDGER_CSV_HEADERS).toHaveLength(45);
+  it('has the two columns after the older ones, then HSA general spending, then fees last, 46 in all', () => {
+    // 46 since the Medicare supplement column (What's New 467).
+    expect(YEAR_LEDGER_CSV_HEADERS).toHaveLength(46);
+    expect(YEAR_LEDGER_CSV_HEADERS[col('IRMAA') + 1]).toBe('Medicare Supplement');
     expect(YEAR_LEDGER_CSV_HEADERS.slice(-6, -4)).toEqual(['Stock vesting', 'Deferred comp payout']);
     expect(YEAR_LEDGER_CSV_HEADERS.slice(-4, -2)).toEqual(['HSA for general spending', 'HSA general spending tax']);
     // Investment fees (changelog 447).

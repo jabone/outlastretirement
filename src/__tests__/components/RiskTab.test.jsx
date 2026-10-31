@@ -217,7 +217,7 @@ describe('RiskTab — Monte Carlo Probability', () => {
     };
     renderWithSimulation(<RiskTab />, { riskSubTab: 'montecarlo', monteCarlo });
 
-    expect(screen.getByText('87.3%')).toBeInTheDocument();
+    expect(screen.getByText('87%')).toBeInTheDocument();
     expect(screen.getByText('$2,500,000')).toBeInTheDocument();
     expect(screen.getByText('$1,200,000')).toBeInTheDocument();
     expect(screen.getByText('$300,000')).toBeInTheDocument();

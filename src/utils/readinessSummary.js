@@ -61,7 +61,7 @@ export function readinessSummary(inputs, projection, { useRealDollars = true, fo
   } else {
     const out = runsOut(walk);
     const support = walk.supportsStatus === 'ok'
-      ? (walk.supports > 0 ? ` It supports about ${money(walk.supports)}/yr of spending against a ${money(walk.budget)}/yr budget.` : '')
+      ? (walk.supports > 0 ? ` It supports about ${money(walk.supports)}/yr of spending against a ${money(walk.budget)}/yr budget, spending the portfolio to nothing by the end.` : '')
       : (SPENDING_SOLVE_TEXT[walk.supportsStatus] ? ` ${SPENDING_SOLVE_TEXT[walk.supportsStatus]}` : '');
     lines.push({
       id: 'walkAway',

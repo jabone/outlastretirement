@@ -4,7 +4,9 @@
 // breakdown can never drift from the total the rest of the app shows.
 import { describe, it, expect } from 'vitest';
 import { ROW_FIELD_CLASS } from '../utils/displayDollars';
-import { runProjection, DEFAULT_INPUTS } from '../calculator';
+import { runProjection } from '../calculator';
+// The reference household (the pre-467 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { whereMoneyGoes, moneyGoesYear, buildMoneyGoesCsv, MONEY_GOES_CSV_HEADERS } from '../utils/whereMoneyGoes';
 
 const plan = (over) => {
