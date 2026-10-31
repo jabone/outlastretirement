@@ -80,6 +80,9 @@ export function buildDemoInputs() {
     // turns the top-up on for new plans).
     ssSpousalEnabled1: false,
     ssSpousalEnabled2: false,
+    // The couple's budget runs unchanged after one death outside the
+    // stress test (changelog 470 drops it for new plans).
+    survivorExpenseDropInPlan: false,
     planYear: TAX_YEAR,
 
     // -- Who they are ------------------------------------------------------

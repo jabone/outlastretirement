@@ -633,6 +633,19 @@ const RiskTab = () => {
                           The plan has changed since this ran &mdash; run again
                         </div>
                       )}
+                      {/* Changelog 470: a sampled rate has a margin. Two
+                          standard errors of a proportion, so about one
+                          run in twenty lands outside it. */}
+                      {(() => {
+                        const n = Number(monteCarlo.trials) || 1000;
+                        const p = Math.min(0.999, Math.max(0.001, (Number(monteCarlo.successProbability) || 0) / 100));
+                        const margin = Math.max(0.5, Math.round(2 * Math.sqrt(p * (1 - p) / n) * 1000) / 10);
+                        return (
+                          <div data-testid="mc-margin" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '4px' }}>
+                            Give or take about {margin} points: that is the reach of {n.toLocaleString('en-US')} random trials, and Reshuffle shows it. A plan near a line is near it, not on one side.
+                          </div>
+                        );
+                      })()}
                       {monteCarlo.longevitySampled && (
                         <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '4px' }}>
                           <Tooltip text="With longevity sampling on, each trial ran to a drawn age at death. This is the share of trials in which someone outlived the planned horizon." more="Longevity Uncertainty">

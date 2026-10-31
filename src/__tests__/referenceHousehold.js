@@ -23,6 +23,8 @@ export const REFERENCE_INPUTS = Object.freeze({
   pension1COLA: 2.0,
   annuityIncomeIndexed: true,
   annuityIncomeStartAge: 0,
+  // And before 470: the couple's budget held after one death in the plan.
+  survivorExpenseDropInPlan: false,
 });
 
 export const REFERENCE_ENDING_BALANCE = 36762.2363;

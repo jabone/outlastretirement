@@ -68,6 +68,9 @@ export function buildParkersInputs() {
     // turns the top-up on for new plans).
     ssSpousalEnabled1: false,
     ssSpousalEnabled2: false,
+    // The couple's budget runs unchanged after one death outside the
+    // stress test (changelog 470 drops it for new plans).
+    survivorExpenseDropInPlan: false,
 
     // -- Who they are ------------------------------------------------------
     spouse1Name: 'Ray',

@@ -547,7 +547,7 @@ describe('privacy policy', () => {
     // key (changelog 425).
     // And on 2026-10-19 (changelog 446): the mailbox that holds email to us moved from
     // Gmail to Google Workspace on our own domain.
-    expect(privacy).toMatch(/Effective Date: October 19, 2026/);
+    expect(privacy).toMatch(/Effective Date: October 31, 2026/);
     expect(privacy).toMatch(/Update, October 19, 2026: Our contact addresses/);
     expect(privacy).toMatch(/Update, October 18, 2026/);
     expect(privacy).toMatch(/demo delivery key/);

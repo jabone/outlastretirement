@@ -187,6 +187,9 @@ export function migratePersistedInputs(persisted) {
     // saved without the switch keeps paying each spouse their own benefit.
     if (raw.ssSpousalEnabled1 === undefined) raw = { ...raw, ssSpousalEnabled1: false };
     if (raw.ssSpousalEnabled2 === undefined) raw = { ...raw, ssSpousalEnabled2: false };
+    // A plan saved before changelog 470 keeps the couple's full budget
+    // after one death outside the stress test, as it was projected.
+    if (raw.survivorExpenseDropInPlan === undefined) raw = { ...raw, survivorExpenseDropInPlan: false };
   }
 
   return { schemaVersion: INPUTS_SCHEMA_VERSION, fromVersion, inputs: { ...DEFAULT_INPUTS, ...raw } };
@@ -1000,6 +1003,13 @@ export const DEFAULT_INPUTS = {
   survivorStressSpouse: 1, // 1 or 2
   survivorStressAge: 75,
   survivorExpenseDropPct: 20,
+  // Changelog 470: the same drop applies in the plan itself once one
+  // spouse's Life Expectancy has passed (and in a Monte Carlo trial that
+  // samples a death), not only inside the stress test. A widow's spending
+  // does fall; a plan that kept the couple's budget for the years one of
+  // them is alone overstated spending in exactly the years taxes went up.
+  // On for a new plan; a plan saved before keeps the full budget (off).
+  survivorExpenseDropInPlan: true,
 
   // Savings / Contributions (annual limits). Pre-Tax and Roth are tracked
   // per spouse (preTaxContribution1/2, rothContribution1/2) since two
@@ -8733,7 +8743,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     }
 
     let survivorExpenseMultiplier = 1.0;
-    if (inputs.spouse2Enabled && inputs.survivorStressEnabled && (!spouse1Alive || !spouse2Alive)) {
+    if (inputs.spouse2Enabled && (inputs.survivorStressEnabled || inputs.survivorExpenseDropInPlan) && (!spouse1Alive || !spouse2Alive)) {
       survivorExpenseMultiplier = 1.0 - (inputs.survivorExpenseDropPct / 100);
     }
 

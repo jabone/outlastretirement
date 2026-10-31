@@ -174,7 +174,7 @@ export const NOT_ASKED_IN_INTERVIEW = [
     blurb: 'What happens to the plan if one spouse dies early — surviving income, the switch to single filing, and how much spending actually drops.',
     domain: 'household',
     interviewSection: 'household',
-    keys: ['survivorStressEnabled', 'survivorStressSpouse', 'survivorStressAge', 'survivorExpenseDropPct'],
+    keys: ['survivorStressEnabled', 'survivorStressSpouse', 'survivorStressAge', 'survivorExpenseDropPct', 'survivorExpenseDropInPlan'],
   },
   {
     id: 'rsuRefresh',

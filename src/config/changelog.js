@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 470,
+    date: '2026-10-31',
+    title: 'A widow\u2019s spending falls in the plan itself, the Monte Carlo states its margin, and the privacy policy speaks to Europe',
+    summary: 'A new plan drops spending once one spouse has reached their life expectancy; the Monte Carlo names its margin; the privacy policy adds an EU and UK section; the Guide says how to report a problem.',
+    items: [
+      "**Spending falls once one of you has gone.** Until now the plan kept the couple\u2019s whole budget for the years one spouse is alone, and cut it only inside the Survivor Stress Test, so those years were taxed as Single on a budget built for two. A new plan now applies the same reduction (20% unless you change it) from the year after the first life expectancy passes, and in a Monte Carlo trial that samples a death. The switch is under the Survivor Stress Test on Household; saved plans and the demo households keep the full budget until you turn it on.",
+      "**The Monte Carlo says how sure it is.** Under the success rate: \u201cGive or take about 2 points: that is the reach of 1,000 random trials.\u201d A plan at 89% and a plan at 91% are the same plan; Reshuffle shows the spread.",
+      "**Privacy, for readers in the EU, the UK and Switzerland.** A new section of the privacy policy says who the controller is for anything you email us, why we process it, where it sits, and how to exercise your rights. Nothing about what the app collects or sends changed; the effective date moved with the addition.",
+      "**Found a problem?** The Guide\u2019s Contact section now lists the five things that make a report answerable in one exchange, and how to share a plan safely if the problem is in the figures.",
+      "**Accessibility page.** Its reviewed date reflects the scan every release runs.",
+    ],
+  },
+  {
     id: 469,
     date: '2026-10-31',
     title: 'Five assumptions a planner would set differently: pre-65 health cover, the allocation model, pensions and annuities, returns, and the spousal benefit',

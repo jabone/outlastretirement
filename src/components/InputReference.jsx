@@ -820,7 +820,7 @@ const InputReference = () => {
                 <em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Plan &rarr; Household, shown with a spouse in the plan</em>
               </td>
               <td style={sectionStyles.td}>Tests the plan if one of you dies early. From the chosen age the plan runs as a single survivor: Single tax brackets and standard deduction, the larger of the two Social Security checks, and household spending cut by the reduction you set.</td>
-              <td style={sectionStyles.td}>Off by default. <strong>Who passes away prematurely?</strong>: either person. <strong>Age they pass away</strong>: 30&ndash;110 (default 75). <strong>Household Expense Reduction (%)</strong>: 0&ndash;100 (default 20), applied to spending from that year on.</td>
+              <td style={sectionStyles.td}>Off by default. <strong>Who passes away prematurely?</strong>: either person. <strong>Age they pass away</strong>: 30&ndash;110 (default 75). <strong>Household Expense Reduction (%)</strong>: 0&ndash;100 (default 20), applied to spending from that year on. The switch beneath it, <strong>Household spending also drops in the plan itself</strong> (on for a new plan), applies the same reduction once one of you has reached your life expectancy, and in a Monte Carlo trial that samples a death; the alone years are taxed as Single either way.</td>
             </tr>
             <tr>
               <td style={sectionStyles.td}>

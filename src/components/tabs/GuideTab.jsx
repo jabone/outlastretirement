@@ -1204,6 +1204,19 @@ const GuideTab = () => {
                         {FEEDBACK_EMAIL}
                       </a>
                     </div>
+                    {/* Changelog 470: what makes a problem report answerable
+                        in one exchange. */}
+                    <GuideSubsection title="Found a problem?" summary="What to send so we can find it the first time">
+                      <p>A number that looks wrong, a screen that does not open, a figure that moved between versions: we want to hear about all three. Nothing in the app reports anything to us, so what you write is all we will know. Five things make a report answerable in one exchange:</p>
+                      <ol style={{ paddingLeft: '20px', lineHeight: '1.6' }}>
+                        <li><strong>The version.</strong> The number at the top of What&rsquo;s New (the bell in the sidebar), for example Version 470. A reload may already have fixed it.</li>
+                        <li><strong>Where.</strong> The tab and section, and the figure or control you were looking at. A screenshot is better than a description.</li>
+                        <li><strong>What you expected instead,</strong> and why: a figure you worked out by hand, a rule you read, or another tool&rsquo;s answer.</li>
+                        <li><strong>How to get there.</strong> The steps from a fresh plan or the demo, if you can reproduce it that way; a problem we can see is a problem we can fix.</li>
+                        <li><strong>Your browser and device,</strong> roughly: Safari on an iPad, Chrome on Windows.</li>
+                      </ol>
+                      <p>If the problem is in the figures and you are comfortable sharing your plan, a <strong>Backup Everything</strong> file with a password set lets us run exactly what you see; the password travels separately, and we delete the file once the problem is understood. If you would rather not share your plan, the demo household or a made-up one that shows the same problem is nearly as good. The free core is open source, so a reader of code can also open an issue on the project&rsquo;s GitHub page, linked from the Verify it yourself page.</p>
+                    </GuideSubsection>
                   </div>
                 )
               },

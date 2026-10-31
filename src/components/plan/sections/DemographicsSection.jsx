@@ -266,6 +266,22 @@ export default function DemographicsSection() {
                     <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.4' }}>
                       Models the "Widow's Penalty": standard deduction halves, tax brackets shift to Single, SS drops to the single highest check, and household expenses drop.
                     </p>
+                    {/* Changelog 470: the drop also applies in the plan
+                        itself once one spouse's Life Expectancy has passed. */}
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <SwitchRow id="toggle-survivorExpenseDropInPlan" size="sm" checked={!!inputs.survivorExpenseDropInPlan} onChange={(on) => updateInput('survivorExpenseDropInPlan', on)}>
+                        Household spending also drops {inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 20}% in the plan itself, once one of you has reached your life expectancy
+                      </SwitchRow>
+                      <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                        The years one of you is alone are taxed as Single either way; with this on, the budget for those years falls by the same share the stress test uses. Off keeps the couple&rsquo;s full budget.
+                      </span>
+                    </div>
+                    {inputs.survivorExpenseDropInPlan && !inputs.survivorStressEnabled && (
+                      <div className="form-group" style={{ marginBottom: '12px' }}>
+                        <label htmlFor="field-survivorExpenseDropPct">Household Expense Reduction (%)</label>
+                        <NumberInput id="field-survivorExpenseDropPct" min="0" max="100" className="form-input" value={inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 20} onChange={(e) => updateInput('survivorExpenseDropPct', (e.target.value === '' ? '' : parseInt(e.target.value)))} />
+                      </div>
+                    )}
                     
                     {inputs.survivorStressEnabled && (
                       <div className="form-grid" style={{ gridTemplateColumns: '1fr', gap: '12px' }}>
