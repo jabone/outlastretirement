@@ -147,6 +147,23 @@ export default function ReturnAssumptionsSection() {
                     <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>Usually set lower than the working rate, reflecting a more conservative retired allocation.</span>
                   </div>
                 </div>
+                {/* Changelog 469: the same figures after inflation, and a
+                    word when they run past what planners assume. These
+                    are compound rates before fees; fees come off below. */}
+                {!inputs.rebalancingEnabled && (() => {
+                  const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+                  const infl = n(inputs.inflationRate);
+                  const pre = n(inputs.preRetireReturn), post = n(inputs.postRetireReturn);
+                  const f = (v) => `${(Math.round(v * 10) / 10).toFixed(1)}%`;
+                  const high = pre > 8 || post > 6.5;
+                  return (
+                    <p data-testid="return-sanity-check" style={{ fontSize: 'var(--fs-xs)', color: high ? 'var(--warning)' : 'var(--text-muted)', marginTop: '4px', marginBottom: '12px' }}>
+                      {high && <AlertTriangle size={14} style={{ verticalAlign: '-2px', color: 'var(--warning)' }} />}{' '}
+                      After {f(infl)} inflation these are real returns of {f(pre - infl)} working and {f(post - infl)} retired, before fees. Over the long run a diversified stock-and-bond mix has returned about 7% to 8% a year before inflation, and all stocks about 10% with wide swings; most planners assume less for the years ahead.
+                      {high ? ' A return above 8% working or 6.5% retired is more than most planners would use; the Monte Carlo and the historical starts show what it costs to be wrong.' : ''}
+                    </p>
+                  );
+                })()}
 
                 {/* equityGlidePath*. The calculator has supported this
                     since long before this UI existed — runProjection and

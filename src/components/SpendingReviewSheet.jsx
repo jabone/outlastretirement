@@ -77,7 +77,7 @@ export function SpendingReviewContent({ inputs, formatCurrency, hideNames = fals
 
       {m.bridgeTotal > 0 && (
         <section className="review-category">
-          <h2>Health coverage before 65 <span>{fc(m.bridgeTotal)} a year, per person under 65</span></h2>
+          <h2>Health coverage before 65 <span>{fc(m.bridgeTotal)} a year, per person under 65{m.bridgeBenchmark ? ' (benchmark premium at the first retirement age; it rises with age)' : ''}</span></h2>
           {m.bridge.length > 0 && (
             <table className="review-lines">
               <Cols />

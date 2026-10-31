@@ -2,12 +2,13 @@
 // B1-B8, C5). Each test failed against the engine before its fix.
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, DEFAULT_INPUTS,
-  seniorBonusDeduction, calculateStateTaxes, calculateIRMAA, calculateMedicarePartD,
+  runProjection, seniorBonusDeduction, calculateStateTaxes, calculateIRMAA, calculateMedicarePartD,
   irmaaScaledThresholds, illinoisExemptionAllowance, getHSAContributionLimit,
   calculateFederalEstateTax, getMaxContributionSplit, ssEarningsTestWithholding,
   IRMAA_TIER_PREMIUMS, IRMAA_THRESHOLDS_SINGLE, SS_EARNINGS_TEST_EXEMPT_FRA_YEAR,
 } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 // A quiet retiree: single, born 1960 (66 in 2026), no growth, no inflation,
 // no Social Security, nothing contributed. Every key here is a real

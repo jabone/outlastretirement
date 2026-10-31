@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-31T14:20:12.045Z",
+  "timestamp": "2026-10-31T15:41:47.716Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -77,6 +77,8 @@
     "governmentPension2": true,
     "militaryPension2": false,
     "annuityIncome": 0,
+    "annuityIncomeStartAge": 0,
+    "annuityIncomeIndexed": false,
     "rentalIncome": 0,
     "rsuGrants": [
       {
@@ -257,6 +259,7 @@
     "goGoBumpEnabled": false,
     "goGoBumpRate": 10,
     "goGoBumpEndAge": 75,
+    "healthcareBridgeSource": "manual",
     "healthcareBridgeCost": 12000,
     "medicareSupplementCost": 0,
     "healthcareBridgePremiumPct": 70,
@@ -566,6 +569,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -746,6 +751,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -982,10 +988,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.073Z",
+      "savedAt": "2026-10-31T15:41:47.773Z",
       "tag": "demo"
     },
     {
@@ -1065,6 +1071,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -1245,6 +1253,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -1481,10 +1490,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.082Z",
+      "savedAt": "2026-10-31T15:41:47.779Z",
       "tag": "demo"
     },
     {
@@ -1564,6 +1573,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -1744,6 +1755,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -1980,10 +1992,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.089Z",
+      "savedAt": "2026-10-31T15:41:47.793Z",
       "tag": "demo"
     },
     {
@@ -2063,6 +2075,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -2243,6 +2257,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -2479,10 +2494,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.099Z",
+      "savedAt": "2026-10-31T15:41:47.824Z",
       "tag": "demo"
     },
     {
@@ -2562,6 +2577,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -2742,6 +2759,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -2978,10 +2996,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.115Z",
+      "savedAt": "2026-10-31T15:41:47.835Z",
       "tag": "demo"
     },
     {
@@ -3061,6 +3079,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -3241,6 +3261,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -3477,10 +3498,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.124Z",
+      "savedAt": "2026-10-31T15:41:47.843Z",
       "tag": "demo"
     },
     {
@@ -3560,6 +3581,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -3740,6 +3763,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -3976,10 +4000,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.133Z",
+      "savedAt": "2026-10-31T15:41:47.856Z",
       "tag": "demo"
     },
     {
@@ -4059,6 +4083,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -4239,6 +4265,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -4475,10 +4502,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.141Z",
+      "savedAt": "2026-10-31T15:41:47.870Z",
       "tag": "demo"
     },
     {
@@ -4558,6 +4585,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -4738,6 +4767,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -4974,10 +5004,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.152Z",
+      "savedAt": "2026-10-31T15:41:47.889Z",
       "tag": "demo"
     },
     {
@@ -5057,6 +5087,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -5237,6 +5269,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -5473,10 +5506,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.168Z",
+      "savedAt": "2026-10-31T15:41:47.907Z",
       "tag": "demo"
     },
     {
@@ -5556,6 +5589,8 @@
         "governmentPension2": true,
         "militaryPension2": false,
         "annuityIncome": 0,
+        "annuityIncomeStartAge": 0,
+        "annuityIncomeIndexed": false,
         "rentalIncome": 0,
         "rsuGrants": [
           {
@@ -5736,6 +5771,7 @@
         "goGoBumpEnabled": false,
         "goGoBumpRate": 10,
         "goGoBumpEndAge": 75,
+        "healthcareBridgeSource": "manual",
         "healthcareBridgeCost": 12000,
         "medicareSupplementCost": 0,
         "healthcareBridgePremiumPct": 70,
@@ -5972,10 +6008,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 467
+        "oddsVersion": 468
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T14:20:12.186Z",
+      "savedAt": "2026-10-31T15:41:47.938Z",
       "tag": "demo"
     }
   ],

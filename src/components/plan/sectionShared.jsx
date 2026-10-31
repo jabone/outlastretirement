@@ -230,6 +230,8 @@ const SpendingLedgerPanel = ({ inputs, updateInput, formatCurrency, projection }
     if (d.owns.housingExpensePct) updateInput('housingExpensePct', Math.round(d.housingExpensePct * 10) / 10);
     if (d.owns.healthcareBridgeCost) {
       updateInput('healthcareBridgeCost', Math.round(d.healthcareBridgeCost));
+      // A typed bridge line is the household's own figure (changelog 469).
+      updateInput('healthcareBridgeSource', 'manual');
       if (d.healthcareBridgePremiumPct !== undefined) {
         updateInput('healthcareBridgePremiumPct', Math.round(d.healthcareBridgePremiumPct));
       }

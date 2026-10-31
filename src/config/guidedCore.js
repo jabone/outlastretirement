@@ -22,7 +22,7 @@ export const GUIDED_CORE_KEYS = new Set([
   'employerMatchCapAPct', 'employerMatchCapB', 'employerMatchCombine', 'employerMatchMode',
   'employerMatchRateA', 'employerMatchRateB', 'employerMatchTierBEnabled', 'filingStatus',
   'goGoBumpEnabled', 'goGoBumpEndAge', 'goGoBumpRate', 'goGoEndAge', 'goGoMultiplier', 'governmentPension',
-  'healthcareBridgeCost', 'homeAppreciationRate', 'homeOwned', 'homeValueInit', 'hsaContribution',
+  'healthcareBridgeCost', 'healthcareBridgeSource', 'homeAppreciationRate', 'homeOwned', 'homeValueInit', 'hsaContribution',
   'hsaFamilyCoverage', 'hsaInit', 'inflationRate', 'irmaaFreezeEnabled', 'key', 'lifeExpectancy',
   'lifeInsuranceCashValueGrowthRate', 'lifeInsuranceCashValueInit', 'lifeInsuranceDeathBenefit',
   'lifeInsuranceEnabled', 'lifeInsuranceOwnership', 'lifeInsurancePolicyType', 'lifestyleExpense',

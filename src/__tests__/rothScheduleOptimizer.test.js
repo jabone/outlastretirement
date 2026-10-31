@@ -4,9 +4,11 @@
 // device, within its projection budget.
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
-  DEFAULT_INPUTS, runProjection, runMonteCarlo, sanitizeInputs, optimizeRothSchedule,
+  runProjection, runMonteCarlo, sanitizeInputs, optimizeRothSchedule,
   findDieWithZeroSpending, ROTH_SCHEDULE_BUDGET, irmaaThresholdsFor,
 } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { buildParkersInputs } from '../config/demoPlanParkers';
 import { buildDemoInputs } from '../config/demoPlan';
 import { assertKnownInputKeys } from './knownInputKeys';

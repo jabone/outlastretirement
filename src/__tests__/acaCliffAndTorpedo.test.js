@@ -11,9 +11,11 @@
 // cross-check of the engine's 2026 federal math rather than a self-test.
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, DEFAULT_INPUTS, calculateHeirEstateTax, getFederalPovertyLevel,
+  runProjection, calculateHeirEstateTax, getFederalPovertyLevel,
   ACA_SUBSIDY_CLIFF_FPL_MULTIPLE,
 } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 const dianeAndTom = {
   ...DEFAULT_INPUTS,

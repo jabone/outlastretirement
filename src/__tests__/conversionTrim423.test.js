@@ -4,7 +4,9 @@
 // bracket the conversion had already filled and overshot the target by the
 // whole draw.
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS, getTaxBracketLimit, calculateTaxes } from '../calculator';
+import { runProjection, getTaxBracketLimit, calculateTaxes } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 const START = DEFAULT_INPUTS.planYear;
 const base = {

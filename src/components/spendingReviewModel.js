@@ -1,9 +1,20 @@
 import {
   SPENDING_CATEGORIES, SPENDING_CADENCES, SPENDING_HEALTH_BRIDGE_ID,
-  readSpendingBlueprint, spendingBlueprintDerived, phaseMultiplierFor,
+  readSpendingBlueprint, spendingBlueprintDerived, phaseMultiplierFor, acaBenchmarkPremiumAnnual,
 } from '../calculator';
 
 // The data behind the spending review sheet (SpendingReviewSheet.jsx).
+
+// The typed bridge figure, or (changelog 469) the benchmark-priced cost at
+// the first retirement age, for the sheet's one-line summary.
+function bridgeDefault(inputs) {
+  if (inputs?.healthcareBridgeSource === 'benchmark') {
+    const share = Math.min(100, Math.max(1, Number(inputs.healthcareBridgePremiumPct) || 70)) / 100;
+    const age = Math.min(64, Math.max(21, Number(inputs.retireAge1) || 60));
+    return acaBenchmarkPremiumAnnual(inputs.stateOfResidence, [age]) / share;
+  }
+  return Number(inputs?.healthcareBridgeCost) || 0;
+}
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const cadenceOf = (id) => SPENDING_CADENCES.find((c) => c.id === id) || SPENDING_CADENCES[0];
@@ -48,7 +59,8 @@ export function spendingReviewModel(inputs) {
     essentialTotal: derived ? derived.essentialTotal : null,
     categories,
     bridge,
-    bridgeTotal: bridge.reduce((t, l) => t + l.perYear, 0) || Number(inputs?.healthcareBridgeCost) || 0,
+    bridgeTotal: bridge.reduce((t, l) => t + l.perYear, 0) || bridgeDefault(inputs),
+    bridgeBenchmark: !derived && inputs?.healthcareBridgeSource === 'benchmark',
     phases,
     mortgagePayment: Math.max(0, Number(inputs?.mortgagePayment) || 0),
     otherDebtPayment: Math.max(0, Number(inputs?.otherDebtPayment) || 0),

@@ -7,7 +7,9 @@
 // credit by half. And a fill-to-bracket conversion was sized before any
 // medical cost was in the deduction, so it under-filled the bracket.
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS, calculateTaxes, getTaxBracketLimit } from '../calculator';
+import { runProjection, calculateTaxes, getTaxBracketLimit } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 const START = DEFAULT_INPUTS.planYear;
 const base = {

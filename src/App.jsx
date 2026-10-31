@@ -3888,7 +3888,7 @@ export default function App() {
                 <tr>
                   <td>Healthcare Bridge / LTC</td>
                   <td>
-                    {formatCurrency(inputs.healthcareBridgeCost)} / person <br />
+                    {inputs.healthcareBridgeSource === 'benchmark' ? 'Benchmark marketplace premium for each age and state' : `${formatCurrency(inputs.healthcareBridgeCost)} / person`} <br />
                     {inputs.ltcActive1 ? `${inputs.spouse2Enabled ? (printInputs.spouse1Name || 'Primary') + ' ' : ''}LTC Active: ${formatCurrency(inputs.ltcCost1)} / year (age ${inputs.ltcStartAge1}${inputs.ltcEndsInDeath1 ? ', through end of life' : `, ${inputs.ltcDurationYears1}-yr episode`})` : `${inputs.spouse2Enabled ? (printInputs.spouse1Name || 'Primary') + ' ' : ''}LTC Inactive`}
                     {inputs.spouse2Enabled && (
                       <>

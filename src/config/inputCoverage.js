@@ -161,6 +161,14 @@ export const NOT_ASKED_IN_INTERVIEW = [
     keys: ['healthcareBridgePremiumPct', 'hsaPreMedicarePremiumsQualified'],
   },
   {
+    id: 'annuityIncomeTerms',
+    title: 'When an owned annuity starts and whether it rises',
+    blurb: 'An annuity you already own pays a level amount for life unless yours is indexed; set the age it starts (0 if it is already paying) and whether the payment rises with inflation. They live on Plan Settings \u2192 Income, under Annuity Income.',
+    domain: 'income',
+    interviewSection: 'income',
+    keys: ['annuityIncomeStartAge', 'annuityIncomeIndexed'],
+  },
+  {
     id: 'survivorStress',
     title: 'Survivor Stress Test',
     blurb: 'What happens to the plan if one spouse dies early — surviving income, the switch to single filing, and how much spending actually drops.',

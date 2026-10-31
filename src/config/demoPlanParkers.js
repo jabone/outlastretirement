@@ -61,6 +61,13 @@ export function buildParkersInputs() {
     // And no Medicare supplement line (changelog 467 adds $4,500 a person
     // for new plans): the lessons' health figures are Part B and Part D.
     medicareSupplementCost: 0,
+    // The pre-65 bridge stays the typed $12,000 a person (changelog 469
+    // prices a new plan's from the state benchmark for each age).
+    healthcareBridgeSource: 'manual',
+    // Each spouse keeps their own benefit, no spousal top-up (changelog 469
+    // turns the top-up on for new plans).
+    ssSpousalEnabled1: false,
+    ssSpousalEnabled2: false,
 
     // -- Who they are ------------------------------------------------------
     spouse1Name: 'Ray',

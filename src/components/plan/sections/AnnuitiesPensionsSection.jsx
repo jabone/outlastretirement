@@ -135,9 +135,27 @@ export default function AnnuitiesPensionsSection({ forceOpen = false }) {
                 )}
 
                 <div className="form-group">
-                  <label htmlFor="field-annuityIncome">Annuity Income ($/yr)</label>
+                  <label htmlFor="field-annuityIncome">
+                    <Tooltip text="An annuity you already own, in today's dollars, taxed as ordinary income. Most pay a level amount for life; tick the box below if yours rises with inflation. For an annuity you may buy later, use the purchase below." more="Annuity Income">Annuity Income ($/yr)</Tooltip>
+                  </label>
                   <NumberInput id="field-annuityIncome" min="0" className="form-input" value={inputs.annuityIncome} onChange={(e) => updateInput('annuityIncome', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
                 </div>
+                {(Number(inputs.annuityIncome) || 0) > 0 && (
+                  <>
+                    <div className="form-group">
+                      <label htmlFor="field-annuityIncomeStartAge">Annuity Starts at {getPossessive(inputs.spouse1Name || 'Primary')} Age (0 = already paying)</label>
+                      <NumberInput id="field-annuityIncomeStartAge" min="0" max="120" className="form-input" value={inputs.annuityIncomeStartAge} onChange={(e) => updateInput('annuityIncomeStartAge', (e.target.value === '' ? '' : parseInt(e.target.value)))} />
+                    </div>
+                    <div className="form-group">
+                      <SwitchRow id="toggle-annuityIncomeIndexed" size="sm" checked={!!inputs.annuityIncomeIndexed} onChange={(on) => updateInput('annuityIncomeIndexed', on)}>
+                        Payment rises with inflation each year
+                      </SwitchRow>
+                      <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                        Off: a level payment, which inflation erodes over the years. The payment continues for the whole plan; a survivor reduction is not modeled.
+                      </span>
+                    </div>
+                  </>
+                )}
                 {/* Buying an annuity in retirement (changelog 286). Moved here
                     from Optimizers, where it was the only editor of these
                     plan inputs; a purchase is a plan decision, not a search. */}

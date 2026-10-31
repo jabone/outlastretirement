@@ -7,21 +7,54 @@ import { getPossessive } from '../getPossessive';
 import { ledgerBadgeFor } from '../ledgerBadgeFor';
 import Tooltip from '../../Tooltip';
 import NumberInput from '../../NumberInput';
+import { acaBenchmarkPremiumAnnual } from '../../../calculator';
 
 export default function HealthcareSection() {
-  const { inputs, updateInput } = useSimulation();
+  const { inputs, updateInput, formatCurrency } = useSimulation();
   const { ledgerOwns, ledgerBadge } = ledgerBadgeFor(inputs);
   return (
     <>
+                {/* Changelog 469: a new plan prices the bridge from the
+                    benchmark marketplace premium for each person's age and
+                    state; a typed figure is the other choice. */}
+                <div className="form-group">
+                  <label htmlFor="field-healthcareBridgeSource">
+                    <Tooltip text="Benchmark: each person's cover before 65 is priced from the marketplace benchmark premium for their age and state, so it rises with age as real premiums do. Typed: one figure a person, as entered." more="Healthcare Bridge Cost">Healthcare Bridge Cost Source</Tooltip>
+                  </label>
+                  <select id="field-healthcareBridgeSource" className="form-input" disabled={ledgerOwns('healthcareBridgeCost')} value={ledgerOwns('healthcareBridgeCost') ? 'manual' : (inputs.healthcareBridgeSource || 'manual')} onChange={(e) => updateInput('healthcareBridgeSource', e.target.value)}>
+                    <option value="benchmark">Benchmark premium for each age and state</option>
+                    <option value="manual">A figure I enter</option>
+                  </select>
+                  {inputs.healthcareBridgeSource === 'benchmark' && !ledgerOwns('healthcareBridgeCost') && (
+                    <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                      {(() => {
+                        const share = Math.min(100, Math.max(1, Number(inputs.healthcareBridgePremiumPct) || 70)) / 100;
+                        const st = inputs.stateOfResidence;
+                        const at = (age) => formatCurrency(acaBenchmarkPremiumAnnual(st, [age]) / share);
+                        return `In today's dollars, one person: ${at(55)} at 55, ${at(60)} at 60, ${at(64)} at 64, before any premium tax credit. It grows at medical inflation.`;
+                      })()}
+                    </span>
+                  )}
+                </div>
+                {(() => {
+                  const benchmark = inputs.healthcareBridgeSource === 'benchmark' && !ledgerOwns('healthcareBridgeCost');
+                  return (
                 <div className="form-group">
                   <label htmlFor="field-healthcareBridgeCost">Healthcare Bridge Cost ($/yr per person under 65){ledgerBadge('healthcareBridgeCost')}</label>
-                  <NumberInput id="field-healthcareBridgeCost" min="0" className="form-input" disabled={ledgerOwns('healthcareBridgeCost')} value={inputs.healthcareBridgeCost} onChange={(e) => updateInput('healthcareBridgeCost', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
+                  <NumberInput id="field-healthcareBridgeCost" min="0" className="form-input" disabled={ledgerOwns('healthcareBridgeCost') || benchmark} value={inputs.healthcareBridgeCost} onChange={(e) => updateInput('healthcareBridgeCost', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
                   {ledgerOwns('healthcareBridgeCost') && (
                     <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>
                       From your &ldquo;Health coverage before 65&rdquo; line. Unlink it on the ledger in Spending to type your own.
                     </span>
                   )}
+                  {benchmark && (
+                    <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>
+                      Not used while the source above is the benchmark; choose &ldquo;A figure I enter&rdquo; to type your own.
+                    </span>
+                  )}
                 </div>
+                  );
+                })()}
 
                 {/* Changelog 467: what Medicare leaves to you. Part B and
                     Part D premiums are computed; this is the rest. */}

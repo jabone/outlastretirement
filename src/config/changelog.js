@@ -29,6 +29,20 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 469,
+    date: '2026-10-31',
+    title: 'Five assumptions a planner would set differently: pre-65 health cover, the allocation model, pensions and annuities, returns, and the spousal benefit',
+    summary: 'A new plan prices pre-65 cover by age and state, turns the spousal benefit on, starts pension COLAs at 0, gives an owned annuity a start age, and states returns after inflation.',
+    items: [
+      "**Pre-65 health cover priced by age and state.** A new plan's Healthcare Bridge Cost comes from the marketplace benchmark premium for each person's age and state, over the premium share, so it rises with age the way real premiums do: about $15,000 a year at 50 and $22,700 at 60 on the US average, before any premium tax credit. The flat $12,000 was half the benchmark for a couple of 60, so the computed credit covered all of it. Saved plans keep the figure they typed; a source selector on Plan \u2192 Spending \u2192 Healthcare chooses either.",
+      "**The spousal benefit is on for a new plan.** Social Security tops a lower earner up to half the other spouse's full-retirement-age benefit; with the switch off, a couple's benefit could be understated by up to half the larger one. It changes nothing where each spouse's own benefit is already at least half the other's. Saved plans keep their setting.",
+      "**Pension COLAs start at 0.** Pension 1 defaulted to a 2% cost-of-living adjustment and Pension 2 to none. Most private pensions have none, so both are 0 for a new plan; the one that has a COLA should say so. Saved plans keep theirs.",
+      "**An owned annuity has a start age and is level unless you say otherwise.** Annuity Income used to rise with inflation from the plan's first year. A new plan pays it level from the age you set (0 if it is already paying); saved plans keep the indexed payment they had. A survivor reduction is still not modeled.",
+      "**What your returns are after inflation.** Under the two return fields a line states the real return each implies, with a word on what diversified portfolios have returned, and an amber note when a figure runs past what most planners assume (8% working, 6.5% retired).",
+      "**What Dynamic Asset Allocation does to the return.** Turning it on with the default 60% stocks at 8% and bonds at 4% moved the retired return from 5.0% to 6.4% without saying so. The section now shows the blended figures beside the flat ones and names the gap.",
+    ],
+  },
+  {
     id: 468,
     date: '2026-10-31',
     title: 'Three more things a planner would ask about: how long a couple plans for, what care costs, and the Social Security trust fund',

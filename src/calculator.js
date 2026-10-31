@@ -176,6 +176,17 @@ export function migratePersistedInputs(persisted) {
     if (raw.employerMatchCapPayPct2 === undefined) raw = { ...raw, employerMatchCapPayPct2: 0 };
     // Likewise the Medicare supplement line (changelog 467).
     if (raw.medicareSupplementCost === undefined) raw = { ...raw, medicareSupplementCost: 0 };
+    // Changelog 469: a plan saved before the age-rated bridge keeps the
+    // figure it typed.
+    if (raw.healthcareBridgeSource === undefined) raw = { ...raw, healthcareBridgeSource: 'manual' };
+    // And an annuity income it had keeps rising with inflation from the
+    // first year, as it did (changelog 469).
+    if (raw.annuityIncomeIndexed === undefined) raw = { ...raw, annuityIncomeIndexed: true };
+    if (raw.annuityIncomeStartAge === undefined) raw = { ...raw, annuityIncomeStartAge: 0 };
+    // The spousal top-up is on for a new plan (changelog 469); a plan
+    // saved without the switch keeps paying each spouse their own benefit.
+    if (raw.ssSpousalEnabled1 === undefined) raw = { ...raw, ssSpousalEnabled1: false };
+    if (raw.ssSpousalEnabled2 === undefined) raw = { ...raw, ssSpousalEnabled2: false };
   }
 
   return { schemaVersion: INPUTS_SCHEMA_VERSION, fromVersion, inputs: { ...DEFAULT_INPUTS, ...raw } };
@@ -672,12 +683,16 @@ export const DEFAULT_INPUTS = {
   // month for the first 36 months before FRA, 5/12 of 1% beyond; no
   // delayed credits past FRA). The top-up is payable only once the other
   // spouse has filed, and under deemed filing its reduction is fixed by the
-  // age at which it becomes payable. Off by default: with both off the
-  // engine pays exactly ss1 + ss2 as before, so existing plans are
-  // untouched. Survivor logic (greater of the two own benefits from 62) is
-  // unchanged -- spousal benefits end at the worker's death.
-  ssSpousalEnabled1: false,
-  ssSpousalEnabled2: false,
+  // age at which it becomes payable. On for a new plan since changelog
+  // 469: the top-up is what Social Security pays a lower earner, and with
+  // it off a couple's benefit was understated by up to half the larger
+  // one. It changes nothing when each spouse's own benefit is already at
+  // least half the other's. A plan saved before keeps its own setting (off
+  // if it never had the field). Survivor logic (greater of the two own
+  // benefits from 62) is unchanged -- spousal benefits end at the worker's
+  // death.
+  ssSpousalEnabled1: true,
+  ssSpousalEnabled2: true,
   pension1: 0,
   pensionStartAge1: 65,
   // NY (and only NY, today) fully exempts pensions paid by New York State,
@@ -700,6 +715,11 @@ export const DEFAULT_INPUTS = {
   governmentPension2: false,
   militaryPension2: false,
   annuityIncome: 0,
+  // Changelog 469: an annuity already owned pays a level amount from an
+  // age, as most do. Start age 0 means from the plan's first year; a plan
+  // saved before this keeps the inflation-indexed payment it was saved with.
+  annuityIncomeStartAge: 0,
+  annuityIncomeIndexed: false,
   rentalIncome: 0,
 
   // Equity Compensation (RSU/GSU): stock grants tracked separately from
@@ -1308,7 +1328,16 @@ export const DEFAULT_INPUTS = {
   goGoBumpEnabled: false,
   goGoBumpRate: 10.0, // +10% travel bump
   goGoBumpEndAge: 75,
-  healthcareBridgeCost: 12000, // per spouse prior to 65
+  // Changelog 469: a new plan prices the pre-65 bridge from the state's
+  // benchmark marketplace premium for each covered person's age (the same
+  // age-rated figure the premium tax credit is measured against), divided
+  // by the premium share below so the out-of-pocket part rides along:
+  // about $22,700 a year for a 60-year-old on the US average, $15,000 at
+  // 50. 'manual' charges healthcareBridgeCost as typed, which is what every
+  // plan saved before this keeps. The flat $12,000 default was half the
+  // benchmark for a couple of 60, so the computed credit covered all of it.
+  healthcareBridgeSource: 'benchmark',
+  healthcareBridgeCost: 12000, // per spouse prior to 65, when 'manual'
   // Changelog 467: what Medicare leaves to you after 65, per person per
   // year in today's dollars: a Medigap or Advantage premium, dental, vision,
   // hearing, and out-of-pocket costs. Part B and Part D premiums are
@@ -1952,7 +1981,10 @@ export const DEFAULT_INPUTS = {
   taxLossHarvestingEnabled: false, // realize paper losses in down years to offset gains/income
 
   // Advanced Pension Options
-  pension1COLA: 2.0, // annual cost-of-living adjustments for pension 1
+  // Annual cost-of-living adjustments. Both 0 for a new plan (changelog
+  // 469): most private pensions have none, and the one that does should
+  // say so. Pension 1 was 2% until then; saved plans keep their figures.
+  pension1COLA: 0.0,
   pension2COLA: 0.0,
   pension1SurvivorBenefit: 50.0, // % of pension remaining for survivor
   pension2SurvivorBenefit: 50.0,
@@ -6693,6 +6725,9 @@ export function sanitizeInputs(inputs) {
     clean.acaCreditSource = Number(clean.acaSubsidyAnnualValue) > 0 ? 'manual' : 'formula';
   }
   if (inputs.acaBenchmarkPremiumSource !== 'state' && inputs.acaBenchmarkPremiumSource !== 'manual') clean.acaBenchmarkPremiumSource = 'state';
+  if (inputs.healthcareBridgeSource !== 'benchmark' && inputs.healthcareBridgeSource !== 'manual') clean.healthcareBridgeSource = 'manual';
+  clean.annuityIncomeStartAge = Math.max(0, Math.min(120, Number(clean.annuityIncomeStartAge) || 0));
+  clean.annuityIncomeIndexed = !!clean.annuityIncomeIndexed;
   if (!TAXABLE_ACCOUNT_OWNERS.includes(inputs.taxableAccountOwner)) clean.taxableAccountOwner = 'joint';
   if (clean.cashFloorSource !== 'holdings') clean.cashFloorSource = 'manual';
   if (inputs.dividendGrowthRate === undefined || inputs.dividendGrowthRate === null) clean.dividendGrowthRate = defaults.dividendGrowthRate;
@@ -8501,7 +8536,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const lifeInsuranceNetCashValue = lifeInsuranceNetCashValue1 + lifeInsuranceNetCashValue2;
     const lifeInsuranceNetDeathBenefit = lifeInsuranceNetDeathBenefit1 + lifeInsuranceNetDeathBenefit2;
 
-    const rentalAnnuity = (inputs.annuityIncome + inputs.rentalIncome) * inflFactor;
+    // An owned annuity (changelog 469) pays from its start age, level unless
+    // indexed; rental income rises with inflation as it always has.
+    const annuityStarted = !(Number(inputs.annuityIncomeStartAge) > 0) || age1 >= Number(inputs.annuityIncomeStartAge);
+    const annuityIncomeThisYear = annuityStarted ? inputs.annuityIncome * (inputs.annuityIncomeIndexed ? inflFactor : 1) : 0;
+    const rentalAnnuity = annuityIncomeThisYear + inputs.rentalIncome * inflFactor;
     // A cash lump sum is already inside `pension` (it is ordinary income);
     // a rolled-over lump sum went straight to Pre-Tax and is not spendable
     // cash at all, so neither is added again here (audit Q-9(a)).
@@ -8777,20 +8816,29 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const onMarketplace = !abroad && isRetired && currentStatus !== 'MFS'
       && ((spouse1Alive && age1 < 65) || (spouse2Alive && age2 < 65));
     const foreignHealthcare = abroad ? foreignTerms.healthcareCost * medicalInflFactor * moveShare : 0;
+    // One person's pre-65 cost this year (changelog 469): the typed figure,
+    // or the state benchmark premium for their age over the premium share.
+    const bridgeCostFor = (age) => {
+      if (inputs.healthcareBridgeSource === 'benchmark') {
+        const share = Math.min(100, Math.max(1, Number(inputs.healthcareBridgePremiumPct) || 70)) / 100;
+        return acaBenchmarkPremiumAnnual(residence.stateOfResidence, [age], medicalInflFactor) / share;
+      }
+      return inputs.healthcareBridgeCost * medicalInflFactor;
+    };
     if (isRetired && !abroad) {
       if (spouse1Alive && age1 < 65) {
-        healthcareBridge += inputs.healthcareBridgeCost * medicalInflFactor;
+        healthcareBridge += bridgeCostFor(age1);
       }
       if (spouse2Alive && age2 < 65) {
-        healthcareBridge += inputs.healthcareBridgeCost * medicalInflFactor;
+        healthcareBridge += bridgeCostFor(age2);
       }
     } else if (isRetired && abroad && moveShare < 1 && priorResidence.kind !== 'foreign') {
       // The US months of a split year abroad (changelog 203): the bridge
       // cost for those months, with no marketplace credit (the year's
       // marketplace checks are off once the household is abroad).
       const usShare = 1 - moveShare;
-      if (spouse1Alive && age1 < 65) healthcareBridge += inputs.healthcareBridgeCost * medicalInflFactor * usShare;
-      if (spouse2Alive && age2 < 65) healthcareBridge += inputs.healthcareBridgeCost * medicalInflFactor * usShare;
+      if (spouse1Alive && age1 < 65) healthcareBridge += bridgeCostFor(age1) * usShare;
+      if (spouse2Alive && age2 < 65) healthcareBridge += bridgeCostFor(age2) * usShare;
     }
     // The premium tax credit is applied provisionally against the bridge
     // cost further down, once this year's conversion is chosen (changelog

@@ -5,10 +5,11 @@
 // the cliff. The typed figure survives as 'manual'.
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, sanitizeInputs, DEFAULT_INPUTS,
-  acaApplicablePercent, acaAgeFactor, acaBenchmarkPremiumAnnual, acaPremiumTaxCredit,
+  runProjection, sanitizeInputs, acaApplicablePercent, acaAgeFactor, acaBenchmarkPremiumAnnual, acaPremiumTaxCredit,
   ACA_BENCHMARK_40_MONTHLY_2026, getFederalPovertyLevel,
 } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { buildDemoInputs } from '../config/demoPlan';
 import { buildParkersInputs } from '../config/demoPlanParkers';
 

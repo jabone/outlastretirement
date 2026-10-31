@@ -5,11 +5,12 @@
 // Q-23 (Additional Medicare Tax per return for MFS).
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, DEFAULT_INPUTS,
-  calculateCapitalGainsTaxes, calculateAMT, calculateFICATaxes, calculateMedicarePartD,
+  runProjection, calculateCapitalGainsTaxes, calculateAMT, calculateFICATaxes, calculateMedicarePartD,
   getFullRetirementAge, getSSMultiplier, getSpousalSSMultiplier,
   PART_D_BASE_PREMIUM, AMT_RATE_BREAKPOINT_2026, AMT_RATE_BREAKPOINT_MFS_2026,
 } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
 describe('Q-3: the unused standard deduction shelters capital gains', () => {
   it('a couple with $10,000 of ordinary income and $60,000 of gains pays $0 -- all inside the 0% band', () => {

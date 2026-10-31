@@ -4,12 +4,13 @@ import { describe, it, expect } from 'vitest';
 import {
   IL_EXEMPTION_ALLOWANCE, IL_EXEMPTION_AGE_65,
   runProjection,
-  DEFAULT_INPUTS,
   calculateStateTaxes,
   calculateCapitalGainsTaxes,
   getSSMultiplier,
   calculateFICATaxes,
 } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { buildYearLedgerCsvRows, buildYearLedgerCsv, YEAR_LEDGER_CSV_HEADERS } from '../utils/yearLedgerCsv';
 
 // Retired single filer, flat everything, no SS/pension noise (see the

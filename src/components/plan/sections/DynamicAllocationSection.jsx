@@ -27,6 +27,27 @@ export default function DynamicAllocationSection() {
                   When enabled, your rate of return is calculated dynamically based on your stock/bond ratio instead of using a simple flat percentage rate.
                 </p>
 
+                {/* Changelog 469: what the switch does to the return, in
+                    numbers, so turning it on is not a silent raise. */}
+                {(() => {
+                  const n = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
+                  const pre = n(inputs.stockAllocationPre, 80), post = n(inputs.stockAllocationPost, 60);
+                  const sr = n(inputs.stockReturnRate, 8), br = n(inputs.bondReturnRate, 4);
+                  const blendPre = (pre * sr + (100 - pre) * br) / 100;
+                  const blendPost = (post * sr + (100 - post) * br) / 100;
+                  const flatPre = n(inputs.preRetireReturn, 7), flatPost = n(inputs.postRetireReturn, 5);
+                  const gap = blendPost - flatPost;
+                  const f = (v) => `${(Math.round(v * 10) / 10).toFixed(1)}%`;
+                  const wide = Math.abs(gap) >= 0.5;
+                  return (
+                    <p data-testid="allocation-return-check" style={{ fontSize: 'var(--fs-xs)', color: wide ? 'var(--warning)' : 'var(--text-muted)', marginTop: '-4px', marginBottom: '12px' }}>
+                      {wide && <AlertTriangle size={14} style={{ verticalAlign: '-2px', color: 'var(--warning)' }} />}{' '}
+                      With {pre}% stocks at {f(sr)} and bonds at {f(br)}, this model returns {f(blendPre)} while working and {f(blendPost)} retired, against the flat {f(flatPre)} and {f(flatPost)} above.
+                      {wide ? ` The switch alone ${gap > 0 ? 'raises' : 'lowers'} the retired return by ${f(Math.abs(gap)).replace('%', '')} points; the stock and bond figures, not the switch, decide that. Set them to what you expect before comparing.` : ''}
+                    </p>
+                  );
+                })()}
+
                 {/* The notice sits outside the dimmed block so it stays readable. */}
                 {!inputs.rebalancingEnabled && (
                   <div style={{ padding: '8px 12px', borderRadius: '6px', backgroundColor: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)', fontSize: '12.5px', color: 'var(--warning)', marginBottom: '12px', fontWeight: '500' }}>

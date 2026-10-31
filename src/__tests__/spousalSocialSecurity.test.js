@@ -14,6 +14,9 @@ import {
 // Retired couple, same age, flat everything, only SS as income.
 const COUPLE = {
   ...DEFAULT_INPUTS,
+  // The top-up is on for a new plan since changelog 469; this fixture
+  // starts with both off and turns each on in its own test.
+  ssSpousalEnabled1: false, ssSpousalEnabled2: false,
   spouse2Enabled: true,
   birthYear1: 1959, birthYear2: 1959, // both 67 in 2026
   planYear: 2026,
@@ -74,11 +77,11 @@ describe('spousalSSTopUp', () => {
 });
 
 describe('runProjection with the spousal toggle', () => {
-  it('is unchanged when both toggles are off (default)', () => {
+  it('is unchanged when both toggles are off; a new plan has them on (changelog 469)', () => {
     const y = runProjection(COUPLE).years[0];
     expect(y.ssIncome).toBeCloseTo(42000, 6);
-    expect(DEFAULT_INPUTS.ssSpousalEnabled1).toBe(false);
-    expect(DEFAULT_INPUTS.ssSpousalEnabled2).toBe(false);
+    expect(DEFAULT_INPUTS.ssSpousalEnabled1).toBe(true);
+    expect(DEFAULT_INPUTS.ssSpousalEnabled2).toBe(true);
   });
   it('tops the lower earner up to 50% of the higher earner\'s FRA benefit', () => {
     const y = runProjection({ ...COUPLE, ssSpousalEnabled2: true }).years[0];

@@ -5,7 +5,9 @@
 // (a Plan Feedback card), and ACA Cliff Protection is on by default so a
 // new plan's conversions stop at the line.
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS, acaBenchmarkPremiumAnnual, sanitizeInputs } from '../calculator';
+import { runProjection, acaBenchmarkPremiumAnnual, sanitizeInputs } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { planWarningFeedback } from '../utils/planNotices';
 
 const START = DEFAULT_INPUTS.planYear;

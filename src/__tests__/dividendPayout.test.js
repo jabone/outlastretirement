@@ -4,7 +4,9 @@
 // what the plan has always done, so a saved plan must project to the bit
 // exactly as it did.
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS } from '../calculator';
+import { runProjection, } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { paycheckPlan, firstYearsFunding } from '../utils/retirementReadiness';
 
 const plan = (over) => {

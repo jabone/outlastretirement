@@ -6,13 +6,15 @@
 // distribution rather than only on Roth conversions).
 import { describe, it, expect } from 'vitest';
 import {
-  runProjection, DEFAULT_INPUTS, calculateStateTaxes,
+  runProjection, calculateStateTaxes,
   illinoisExemptionAllowance,
   CA_STD_DEDUCTION_SINGLE, CA_STD_DEDUCTION_MFJ,
   NY_STD_DEDUCTION_SINGLE, NY_STD_DEDUCTION_MFJ,
   IL_EXEMPTION_ALLOWANCE, IL_EXEMPTION_AGE_65,
   IL_EXEMPTION_AGI_LIMIT_SINGLE, IL_EXEMPTION_AGI_LIMIT_MFJ,
 } from '../calculator';
+// The reference household (the pre-469 default plan): see referenceHousehold.js.
+import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { assertKnownInputKeys } from './knownInputKeys';
 
 describe('Q-17: states subtract their own standard deduction before their rate schedule', () => {
