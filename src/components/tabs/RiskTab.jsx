@@ -84,6 +84,20 @@ const RiskTab = () => {
               <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)' }}>
                 Stress test your retirement plan against actual historical return sequences and inflation rates. Market crashes that occur in early retirement are highly damaging due to <Tooltip text="The order of returns matters, not just the average: a crash in the first retirement years does far more damage than the same crash a decade later." more="sequence-of-returns">sequence-of-returns risk</Tooltip>.
               </p>
+              {inputs.spouse2Enabled && (
+                <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: '8px' }}>
+                  Markets are one risk; a spouse dying early is another, and it changes taxes, Social Security and spending at once. The{' '}
+                  <button
+                    type="button"
+                    data-testid="survivor-stress-link"
+                    onClick={() => { if (setSettingsSubTab) setSettingsSubTab('household'); setActiveTab('settings'); }}
+                    style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-text)', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}
+                  >
+                    Survivor Stress Test
+                  </button>{' '}
+                  under Plan &rarr; Household runs the plan that way{inputs.survivorStressEnabled ? ', and is on' : ''}.
+                </p>
+              )}
             </div>
 
             {/* Lifetime Milestones chart panel */}

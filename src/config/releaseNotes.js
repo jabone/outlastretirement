@@ -26,6 +26,8 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-10-26',
     headline: 'Roth conversions up to your deductions, and a survivor keeps a larger own check',
     bullets: [
+      { title: 'How long a couple plans for, what care costs, and the trust fund', ids: [468],
+        text: 'Household shows a couple the odds at least one of them is alive when the plan ends, and Plan Feedback flags it when those odds are one in four or better. A new plan\u2019s long-term care cost is $75,000 a year, near the national median, with the medians named beside the field; saved plans keep their figures. Every plan that counts on Social Security states, under its verdict and in print, what happens with average returns if the trust fund runs out and benefits are cut. The Action Plan now reads as what the plan assumes rather than as orders.' },
       { title: 'Three defaults a planner would question', ids: [467],
         text: 'Quick Setup asks your state and taxes the plan by it; a new plan\u2019s employer match stops at 6% of pay, as real formulas do; and Medicare years carry a $4,500-a-person line for the supplement, dental, vision and out-of-pocket costs that Part B and Part D do not cover. Plans saved earlier keep their figures until you set the new fields.' },
       { title: 'Plainer about what the numbers are', ids: [466],

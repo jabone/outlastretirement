@@ -69,9 +69,9 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection, (v) => `$${v}`);
       const working = findSection(plan, 'working');
 
-      expect(labels(working)).toContain(`${inputs.spouse1Name}: save $10000/yr Pre-Tax + $5000/yr Roth`);
-      expect(labels(working)).toContain(`${inputs.spouse2Name}: save $8000/yr Pre-Tax`);
-      expect(labels(working)).toContain(`Work until age 65 (${inputs.spouse1Name}) and age 63 (${inputs.spouse2Name})`);
+      expect(labels(working)).toContain(`${inputs.spouse1Name} saves $10000/yr Pre-Tax + $5000/yr Roth`);
+      expect(labels(working)).toContain(`${inputs.spouse2Name} saves $8000/yr Pre-Tax`);
+      expect(labels(working)).toContain(`Work continues until age 65 (${inputs.spouse1Name}) and age 63 (${inputs.spouse2Name})`);
     });
 
     it('omits a spouse\'s savings line entirely when both their contributions are 0', () => {
@@ -108,7 +108,7 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection, (v) => `$${v}`);
       const working = findSection(plan, 'working');
 
-      expect(labels(working)).toContain('Keep household spending near $60000/yr while working');
+      expect(labels(working)).toContain('Household spending stays near $60000/yr while working');
     });
 
     it('falls back to the auto-derived spending line when currentSpendingMode is "auto"', () => {
@@ -117,7 +117,7 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection);
       const working = findSection(plan, 'working');
 
-      expect(labels(working)).toContain("Keep living expenses within what's left after taxes and the savings above");
+      expect(labels(working)).toContain("Living expenses fit within what's left after taxes and the savings above");
     });
   });
 
@@ -128,7 +128,7 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection);
       const retirement = findSection(plan, 'retirement');
 
-      expect(labels(retirement)).toContain('Claim Social Security at age 70');
+      expect(labels(retirement)).toContain('Social Security starts at age 70');
     });
 
     it('describes both spouses\' claiming ages for MFJ', () => {
@@ -138,7 +138,7 @@ describe('buildActionPlan', () => {
       const retirement = findSection(plan, 'retirement');
 
       expect(labels(retirement)).toContain(
-        `Claim Social Security at age 67 (${inputs.spouse1Name}) and age 70 (${inputs.spouse2Name})`
+        `Social Security starts at age 67 (${inputs.spouse1Name}) and age 70 (${inputs.spouse2Name})`
       );
     });
 
@@ -147,7 +147,7 @@ describe('buildActionPlan', () => {
       const projection = runProjection(inputs);
       const plan = buildActionPlan(inputs, projection);
       const retirement = findSection(plan, 'retirement');
-      const item = retirement.items.find((i) => i.label === 'Draw down accounts in this order:');
+      const item = retirement.items.find((i) => i.label === 'Accounts are drawn in this order:');
 
       expect(item.detail).toMatch(/Spend Roth accounts first/);
     });

@@ -82,8 +82,10 @@ export default function RetirementSpendSection() {
                       onChange={(val) => updateInput('lifestyleExpense', val)}
                     />
                     <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>
-                      In today&rsquo;s dollars &mdash; the model inflates it forward each year. Prefer to budget month by
-                      month? The Full Interview&rsquo;s Spending section offers that entry mode.
+                      In today&rsquo;s dollars &mdash; the model inflates it forward each year. Leave out what the plan
+                      charges on its own: taxes, health insurance and Medicare, long-term care, mortgage and other debt
+                      payments, gifts and one-time expenses. Prefer to budget month by month? The Full Interview&rsquo;s
+                      Spending section offers that entry mode.
                     </span>
                   </div>
                 )}

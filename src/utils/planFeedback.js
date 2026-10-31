@@ -19,6 +19,7 @@ import { reviewDue } from './annualReview';
 import { verdictBand, verdictPct, verdictPctText } from './planVerdict';
 import { stateTaxJurisdictionFor } from '../calculator';
 import { US_STATE_NAME } from '../config/usStates';
+import { coupleHorizonOdds } from './mortality';
 import { planWarningFeedback, invalidInputLines, CHECK_INPUTS_TITLE } from './planNotices';
 
 export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
@@ -70,8 +71,26 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
       });
     }
   }
+  // A couple's horizon (planner's review item 14, changelog 468): two
+  // coin-flip ages leave good odds that someone is alive after the plan
+  // says both are gone, and every year past the end is an unfunded year.
+  // Fires when the SSA table gives one in four or better; the fix runs the
+  // plan to the year one in ten couples still has someone alive.
+  if (inputs.spouse2Enabled && !inputs.mcLongevityEnabled) {
+    const odds = coupleHorizonOdds({ planYear: inputs.planYear, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: inputs.lifeExpectancy1, sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: inputs.lifeExpectancy2 });
+    if (odds && odds.reachEnd >= 0.25) {
+      const pct = Math.round(odds.reachEnd * 100);
+      findings.push({
+        type: 'warning',
+        title: 'The Plan May End While One of You Is Alive',
+        desc: `By the SSA life table there is a ${pct}% chance at least one of you is alive when this plan ends in ${odds.endYear}, and the plan funds nothing after that year. One in ten couples still has someone alive in ${odds.oneInTen.year} (ages ${odds.oneInTen.age1} and ${odds.oneInTen.age2}). The Monte Carlo can also sample lifespans instead of fixing them.`,
+        action: { tab: 'settings', subTab: 'household', label: 'Open Household \u2192' },
+        quickApply: { label: `Plan to ${odds.oneInTen.year} (ages ${odds.oneInTen.age1} and ${odds.oneInTen.age2})`, config: { lifeExpectancy1: odds.oneInTen.age1, lifeExpectancy2: odds.oneInTen.age2 } },
+      });
+    }
+  }
   const initialNestEgg = inputs.preTaxInit + inputs.rothInit + inputs.taxableInit;
-  
+
   // 1. Success Rate & Core Health
   // Only a finished Monte Carlo for THIS plan gives a success rate. Before
   // one arrives the card says what the average-returns projection shows and

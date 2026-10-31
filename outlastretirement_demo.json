@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-31T05:15:31.734Z",
+  "timestamp": "2026-10-31T14:20:12.045Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -262,12 +262,12 @@
     "healthcareBridgePremiumPct": 70,
     "hsaPreMedicarePremiumsQualified": false,
     "ltcActive1": false,
-    "ltcCost1": 60000,
+    "ltcCost1": 75000,
     "ltcStartAge1": 82,
     "ltcDurationYears1": 3,
     "ltcEndsInDeath1": false,
     "ltcActive2": false,
-    "ltcCost2": 60000,
+    "ltcCost2": 75000,
     "ltcStartAge2": 82,
     "ltcDurationYears2": 3,
     "ltcEndsInDeath2": false,
@@ -751,12 +751,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -982,10 +982,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.767Z",
+      "savedAt": "2026-10-31T14:20:12.073Z",
       "tag": "demo"
     },
     {
@@ -1250,12 +1250,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -1481,10 +1481,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.771Z",
+      "savedAt": "2026-10-31T14:20:12.082Z",
       "tag": "demo"
     },
     {
@@ -1749,12 +1749,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -1980,10 +1980,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.782Z",
+      "savedAt": "2026-10-31T14:20:12.089Z",
       "tag": "demo"
     },
     {
@@ -2248,12 +2248,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -2479,10 +2479,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.836Z",
+      "savedAt": "2026-10-31T14:20:12.099Z",
       "tag": "demo"
     },
     {
@@ -2747,12 +2747,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -2978,10 +2978,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.857Z",
+      "savedAt": "2026-10-31T14:20:12.115Z",
       "tag": "demo"
     },
     {
@@ -3246,12 +3246,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -3477,10 +3477,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.864Z",
+      "savedAt": "2026-10-31T14:20:12.124Z",
       "tag": "demo"
     },
     {
@@ -3745,12 +3745,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -3976,10 +3976,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.867Z",
+      "savedAt": "2026-10-31T14:20:12.133Z",
       "tag": "demo"
     },
     {
@@ -4244,12 +4244,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -4475,10 +4475,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.883Z",
+      "savedAt": "2026-10-31T14:20:12.141Z",
       "tag": "demo"
     },
     {
@@ -4743,12 +4743,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -4974,10 +4974,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.901Z",
+      "savedAt": "2026-10-31T14:20:12.152Z",
       "tag": "demo"
     },
     {
@@ -5242,12 +5242,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -5473,10 +5473,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.933Z",
+      "savedAt": "2026-10-31T14:20:12.168Z",
       "tag": "demo"
     },
     {
@@ -5741,12 +5741,12 @@
         "healthcareBridgePremiumPct": 70,
         "hsaPreMedicarePremiumsQualified": false,
         "ltcActive1": false,
-        "ltcCost1": 60000,
+        "ltcCost1": 75000,
         "ltcStartAge1": 82,
         "ltcDurationYears1": 3,
         "ltcEndsInDeath1": false,
         "ltcActive2": false,
-        "ltcCost2": 60000,
+        "ltcCost2": 75000,
         "ltcStartAge2": 82,
         "ltcDurationYears2": 3,
         "ltcEndsInDeath2": false,
@@ -5972,10 +5972,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 466
+        "oddsVersion": 467
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T05:15:31.957Z",
+      "savedAt": "2026-10-31T14:20:12.186Z",
       "tag": "demo"
     }
   ],

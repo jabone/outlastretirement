@@ -9,12 +9,13 @@ export function untestedRisks(inputs) {
   const couple = !!inputs.spouse2Enabled;
   if (couple && !inputs.survivorStressEnabled) out.push('a spouse dying early');
   if (!inputs.ltcActive1 && !(couple && inputs.ltcActive2) && !inputs.mcLtcEnabled) out.push('long-term care');
-  if (!inputs.ssDepletionEnabled && ((inputs.ss1 || 0) > 0 || (couple && (inputs.ss2 || 0) > 0))) out.push('a Social Security cut');
+  // A Social Security cut is no longer listed here: the trust-fund case
+  // is a standing second line under the verdict (utils/trustFundLine.js).
   if (!inputs.mcLongevityEnabled) out.push(couple ? 'living past the ages set' : 'living past the age set');
   return out;
 }
 
-// "Not tested: a spouse dying early, long-term care or a Social Security cut."
+// "Not tested: a spouse dying early, long-term care or living past the ages set."
 export function untestedRisksSentence(inputs) {
   const list = untestedRisks(inputs);
   if (list.length === 0) return '';

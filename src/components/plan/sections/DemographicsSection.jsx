@@ -5,7 +5,7 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useSimulation } from '../../../context/useSimulation';
 import { getPossessive } from '../getPossessive';
-import { SEX_OPTIONS, horizonOdds } from '../../../utils/mortality';
+import { SEX_OPTIONS, horizonOdds, coupleHorizonOdds } from '../../../utils/mortality';
 import { TAX_YEAR, getFullRetirementAge, getSSMultiplier, exactClaimAge } from '../../../calculator';
 import Tooltip from '../../Tooltip';
 import NumberInput from '../../NumberInput';
@@ -218,6 +218,19 @@ export default function DemographicsSection() {
                       <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
                         SSA table odds for a {inputs.sex2 === 'male' ? 'man' : inputs.sex2 === 'female' ? 'woman' : 'person'} of {odds.currentAge}: <strong>{Math.round(odds.reachPlanTo * 100)}%</strong> reach {odds.planToAge};
                         half reach {odds.median}, one in four reach {odds.oneInFour}, one in ten reach {odds.oneInTen}. Healthier and wealthier than average runs a few years better.
+                      </span>
+                    );
+                  })()}
+                  {(() => {
+                    // Two coin-flip ages leave good odds that one of you is alive
+                    // after the plan ends: the couple's own horizon line.
+                    const odds = coupleHorizonOdds({ planYear: Number(inputs.planYear) || TAX_YEAR, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: inputs.lifeExpectancy1, sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: inputs.lifeExpectancy2 });
+                    if (!odds) return null;
+                    const ages = (p) => `${p.age1} and ${p.age2}`;
+                    return (
+                      <span data-testid="couple-horizon-odds" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                        Together: a <strong>{Math.round(odds.reachEnd * 100)}%</strong> chance at least one of you is alive when this plan ends in {odds.endYear}.
+                        One in four couples still has someone alive in {odds.oneInFour.year} (ages {ages(odds.oneInFour)}), one in ten in {odds.oneInTen.year} (ages {ages(odds.oneInTen)}).
                       </span>
                     );
                   })()}

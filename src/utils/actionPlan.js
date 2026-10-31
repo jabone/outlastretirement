@@ -103,8 +103,8 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
     const autoLabel = AUTO_MAX_LABELS[mode];
     return {
       label: autoLabel
-        ? `${who}: contribute ${autoLabel} every working year`
-        : `${who}: save ${parts.join(' + ')}`,
+        ? `${who} contributes ${autoLabel} every working year`
+        : `${who} saves ${parts.join(' + ')}`,
       detail: autoLabel
         ? `Auto-Max is on, so this is not a fixed amount: it follows the IRS limits, which rise each year and step up again at the catch-up ages. That works out to ${parts.join(' + ')} in ${firstSavingYear.year || 'the first year'}. Until retirement at age ${retireAge}.`
         : `Until retirement at age ${retireAge}.${startYearNote}`,
@@ -130,7 +130,7 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
   // savings picture even when the fields above were right.
   if ((firstSavingYear.employerMatchAmount || 0) > 0) {
     workingItems.push({
-      label: `Collect the employer match: ${fc(firstSavingYear.employerMatchAmount)}/yr into Pre-Tax`,
+      label: `The employer match adds ${fc(firstSavingYear.employerMatchAmount)}/yr to Pre-Tax`,
       detail: `Your employer's money, on top of your own contributions.${startYearNote}`,
     });
   }
@@ -142,32 +142,32 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
   }
   if ((inputs.taxableContribution || 0) > 0) {
     workingItems.push({
-      label: `Save ${fc(inputs.taxableContribution)}/yr to your Taxable Brokerage account`,
+      label: `${fc(inputs.taxableContribution)}/yr goes to the Taxable Brokerage account`,
       detail: 'Household total, while at least one spouse is still working.',
     });
   }
   if ((firstSavingYear.hsaContribution || 0) > 0) {
     const hsaAuto = inputs.autoMaxContribution1 === 'max' || inputs.autoMaxContribution2 === 'max';
     workingItems.push({
-      label: `Contribute ${fc(firstSavingYear.hsaContribution)}/yr to your HSA`,
+      label: `${fc(firstSavingYear.hsaContribution)}/yr goes to the HSA`,
       detail: `This plan assumes HSA funds are reserved for qualified medical costs, where they come out tax-free, and spent on anything else only when every other account is empty.${hsaAuto ? ' Auto-Max sets this to the legal limit each year, so it rises with the limits and with the age-55 catch-up.' : ''}${startYearNote}`,
     });
   }
   if (inputs.currentSpendingMode === 'custom' && inputs.currentHouseholdSpendingCustom) {
     workingItems.push({
-      label: `Keep household spending near ${fc(inputs.currentHouseholdSpendingCustom)}/yr while working`,
+      label: `Household spending stays near ${fc(inputs.currentHouseholdSpendingCustom)}/yr while working`,
       detail: `Separate from your ${fc(inputs.lifestyleExpense)}/yr retirement spending target below \u2014 this is what you actually live on before retirement.`,
     });
   } else {
     workingItems.push({
-      label: "Keep living expenses within what's left after taxes and the savings above",
+      label: "Living expenses fit within what's left after taxes and the savings above",
       detail: 'This plan auto-derives your working-years spending from take-home pay rather than a fixed number; if you know your real budget, set it explicitly under Plan → Spending → Current Household Spending (Pre-Retirement).',
     });
   }
   workingItems.push({
     label: hasSpouse2
-      ? `Work until age ${inputs.retireAge1} (${spouse1}) and age ${inputs.retireAge2} (${spouse2})`
-      : `Work until age ${inputs.retireAge1}`,
+      ? `Work continues until age ${inputs.retireAge1} (${spouse1}) and age ${inputs.retireAge2} (${spouse2})`
+      : `Work continues until age ${inputs.retireAge1}`,
     detail: null,
   });
 
@@ -178,8 +178,8 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
 
   retirementItems.push({
     label: hasSpouse2
-      ? `Claim Social Security at age ${claimAgeLabel(inputs.claimingAge1, inputs.claimMonth1)} (${spouse1}) and age ${claimAgeLabel(inputs.claimingAge2, inputs.claimMonth2)} (${spouse2})`
-      : `Claim Social Security at age ${claimAgeLabel(inputs.claimingAge1, inputs.claimMonth1)}`,
+      ? `Social Security starts at age ${claimAgeLabel(inputs.claimingAge1, inputs.claimMonth1)} (${spouse1}) and age ${claimAgeLabel(inputs.claimingAge2, inputs.claimMonth2)} (${spouse2})`
+      : `Social Security starts at age ${claimAgeLabel(inputs.claimingAge1, inputs.claimMonth1)}`,
     detail: `Estimated benefit at Full Retirement Age: ${fc(inputs.ss1 || 0)}/yr${hasSpouse2 ? ` (${spouse1}), ${fc(inputs.ss2 || 0)}/yr (${spouse2})` : ''}. Claiming earlier or later than FRA changes the actual amount.`,
   });
 
@@ -227,7 +227,7 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
   }
 
   retirementItems.push({
-    label: 'Draw down accounts in this order:',
+    label: 'Accounts are drawn in this order:',
     detail: WITHDRAWAL_STRATEGY_LABELS[inputs.withdrawalStrategy] || WITHDRAWAL_STRATEGY_LABELS.TaxableFirst,
   });
 
@@ -268,7 +268,7 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
 
   if (inputs.spendingGuardrails) {
     retirementItems.push({
-      label: 'Follow spending guardrails after a down market',
+      label: 'Spending guardrails apply after a down market',
       detail: "After a year with a negative return, skip that year's inflation raise; after a crash in your first retired year, cut spending 10%. Restore both once the portfolio is back on your plan's path.",
     });
   }
@@ -403,13 +403,13 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
 
   if ((inputs.mortgagePayment || 0) > 0) {
     duringItems.push({
-      label: `Keep making mortgage payments of ${fc(inputs.mortgagePayment)}/yr`,
+      label: `Keeps up the mortgage payments of ${fc(inputs.mortgagePayment)}/yr`,
       detail: 'Until the balance is paid off.',
     });
   }
   if ((inputs.otherDebtPayment || 0) > 0) {
     duringItems.push({
-      label: `Keep making other debt payments of ${fc(inputs.otherDebtPayment)}/yr`,
+      label: `Keeps up the other debt payments of ${fc(inputs.otherDebtPayment)}/yr`,
       detail: 'Until the balance is paid off.',
     });
   }

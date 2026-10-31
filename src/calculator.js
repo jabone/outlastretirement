@@ -1336,8 +1336,13 @@ export const DEFAULT_INPUTS = {
   // Active toggle, Cost, Start Age, Duration, and "Ends in Death" setting,
   // since real LTC need varies hugely by individual (one spouse may never
   // need it, or need a very different kind/cost of care than the other).
+  // The default cost is the 2025 national median for assisted living
+  // ($74,400 a year, CareScout Cost of Care Survey, released 2026-03-02;
+  // a nursing-home room is $115,000 to $130,000), rounded. It was $60,000,
+  // below every national median (planner's review item 16, changelog
+  // 468); a plan saved before keeps its own figure.
   ltcActive1: false,
-  ltcCost1: 60000,
+  ltcCost1: 75000,
   ltcStartAge1: 82,
   // How many years the LTC cost applies for, starting at ltcStartAge1.
   // Real long-term-care episodes average ~2-3 years, not the remainder of
@@ -1351,7 +1356,7 @@ export const DEFAULT_INPUTS = {
   // are bounded, not lifelong.
   ltcEndsInDeath1: false,
   ltcActive2: false,
-  ltcCost2: 60000,
+  ltcCost2: 75000,
   ltcStartAge2: 82,
   ltcDurationYears2: 3,
   ltcEndsInDeath2: false,

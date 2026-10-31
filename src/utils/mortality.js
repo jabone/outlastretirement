@@ -107,3 +107,42 @@ export function horizonOdds({ sex, currentAge, planToAge }) {
     oneInTen: ageReachedWithProbability(sex, from, 0.10),
   };
 }
+
+// The couple's horizon (planner's review item 14): a plan for two people
+// ends in the later of their two Life Expectancy years, and the question
+// is how likely it is that SOMEONE is still alive then. Two people each
+// given a coin-flip age (half reach it) leave a three-in-four chance that
+// at least one is alive when the plan says both are gone. Everything is in
+// plan years, since the two are different ages: `endYear` is the plan's
+// last year, `reachEnd` the odds at least one is alive in it, and
+// `oneInFour` / `oneInTen` the last plan years in which those odds still
+// hold, with each person's age in that year, so a plan can be set to
+// run until the odds are small.
+export function coupleHorizonOdds({ planYear, sex1, birthYear1, lifeExpectancy1, sex2, birthYear2, lifeExpectancy2 }) {
+  const y0 = Math.floor(Number(planYear));
+  const b1 = Math.floor(Number(birthYear1));
+  const b2 = Math.floor(Number(birthYear2));
+  const le1 = Math.floor(Number(lifeExpectancy1));
+  const le2 = Math.floor(Number(lifeExpectancy2));
+  if (![y0, b1, b2, le1, le2].every(Number.isFinite) || !(b1 > 1800) || !(b2 > 1800)) return null;
+  const now1 = y0 - b1;
+  const now2 = y0 - b2;
+  if (!(now1 > 0) || !(now2 > 0)) return null;
+  const endYear = Math.max(b1 + le1, b2 + le2);
+  if (!(endYear > y0)) return null;
+  const anyAliveIn = (year) => probAnyAlive(probAliveAt(sex1, now1, year - b1), probAliveAt(sex2, now2, year - b2));
+  // The last plan year in which the joint odds are still >= prob.
+  const lastYearAtLeast = (prob) => {
+    let year = y0;
+    while (anyAliveIn(year + 1) >= prob && year - Math.min(b1, b2) < LIFE_TABLE_MAX_AGE) year++;
+    return year;
+  };
+  const yr = (year) => ({ year, age1: year - b1, age2: year - b2 });
+  return {
+    endYear,
+    reachEnd: anyAliveIn(endYear),
+    half: yr(lastYearAtLeast(0.5)),
+    oneInFour: yr(lastYearAtLeast(0.25)),
+    oneInTen: yr(lastYearAtLeast(0.10)),
+  };
+}

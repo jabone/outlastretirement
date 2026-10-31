@@ -112,7 +112,9 @@ export default function HealthcareSection() {
                 {inputs.ltcActive1 && (
                   <div style={{ borderLeft: '2.5px solid var(--accent-primary)', paddingLeft: '12px', marginBottom: '16px' }}>
                     <div className="form-group">
-                      <label htmlFor="field-ltcCost1">Long-Term Care Annual Cost ($)</label>
+                      <label htmlFor="field-ltcCost1">
+                        <Tooltip text="2025 national medians (CareScout Cost of Care Survey): assisted living $74,400 a year, a home aide 44 hours a week $80,100, a nursing home $115,000 to $130,000. Costs vary a lot by state." more="Long-Term Care Annual Cost">Long-Term Care Annual Cost ($)</Tooltip>
+                      </label>
                       <NumberInput id="field-ltcCost1" min="0" className="form-input" value={inputs.ltcCost1} onChange={(e) => updateInput('ltcCost1', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
                     </div>
                     <div className="form-group">
@@ -161,7 +163,9 @@ export default function HealthcareSection() {
                     {inputs.ltcActive2 && (
                       <div style={{ borderLeft: '2.5px solid var(--accent-secondary)', paddingLeft: '12px', marginBottom: '16px' }}>
                         <div className="form-group">
-                          <label htmlFor="field-ltcCost2">Long-Term Care Annual Cost ($)</label>
+                          <label htmlFor="field-ltcCost2">
+                        <Tooltip text="2025 national medians (CareScout Cost of Care Survey): assisted living $74,400 a year, a home aide 44 hours a week $80,100, a nursing home $115,000 to $130,000. Costs vary a lot by state." more="Long-Term Care Annual Cost">Long-Term Care Annual Cost ($)</Tooltip>
+                      </label>
                           <NumberInput id="field-ltcCost2" min="0" className="form-input" value={inputs.ltcCost2} onChange={(e) => updateInput('ltcCost2', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
                         </div>
                         <div className="form-group">

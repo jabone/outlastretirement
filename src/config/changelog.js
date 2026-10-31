@@ -29,6 +29,21 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 468,
+    date: '2026-10-31',
+    title: 'Three more things a planner would ask about: how long a couple plans for, what care costs, and the Social Security trust fund',
+    summary: 'A couple sees the odds one of them outlives the plan, long-term care defaults to the national median, and the trust-fund case is stated under every verdict. The Action Plan reads as assumptions.',
+    items: [
+      "**Odds one of you is still here.** Under the second life expectancy, Household now shows the chance at least one of you is alive when the plan ends, and the years one in four and one in ten couples still have someone living. Two coin-flip ages can leave a three-in-four chance that someone outlives the plan. Plan Feedback flags it when the odds are one in four or better, with a one-click fix that runs the plan to the one-in-ten year.",
+      "**Long-term care at the national median.** A new plan's long-term care cost is $75,000 a year, close to the 2025 median for assisted living, and the field names the medians for a home aide and a nursing home. It was $60,000, below every median. Saved plans keep their figures, and the switch is still off until you turn it on.",
+      "**The trust-fund case, always stated.** Every plan that counts on Social Security now carries a second line under Will It Last? and in the printed report: what the plan does with average returns if the trust fund runs out and benefits are cut, at the plan's own year and percentage. The switch under Plan still decides what the plan itself charges.",
+      "**The Action Plan reads as assumptions.** Its lines used to read as orders: work until 67, claim at 70, save this much. They now say what the plan assumes, since the plan is yours to change.",
+      "**What to leave out of lifestyle spending.** The field now says the plan charges taxes, health insurance and Medicare, long-term care, debt payments, gifts and one-time expenses on its own.",
+      "**Your Social Security statement assumes you keep working.** The benefit field says so, and names the statement's line to use if you stop work early.",
+      "**The Survivor Stress Test, from Risk and Stress.** A line on the Historical Stress Tests page points a couple to it, since a spouse dying early is a risk no market test covers.",
+    ],
+  },
+  {
     id: 467,
     date: '2026-10-31',
     title: 'Three defaults a planner would question: state tax, the employer match, and Medicare\u2019s leftovers',

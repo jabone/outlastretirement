@@ -23,7 +23,7 @@ const ActionPlanCard = ({ inputs, projection, formatCurrency, rothLadderHeatmap,
             To land on a projected {headline.isSuccessful ? '' : '(currently short of) '}
             <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(headline.endingBalance)}</strong>
             {headline.horizonYear ? ` ending balance in ${headline.horizonYear}` : ' ending balance'}, spending{' '}
-            <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(headline.targetSpending)}/yr</strong> in retirement, this is what the plan does:
+            <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(headline.targetSpending)}/yr</strong> in retirement, the plan assumes:
           </p>
         </div>
         <button

@@ -60,6 +60,7 @@ import { BRAND_NAME, BRAND_DOMAIN, COPYRIGHT_NOTICE, PRIVACY_PROMISE, PRIVACY_UR
 import { growthSummary, monteCarloSummary, taxBracketSummary, estateSummary } from './utils/chartSummaries';
 import { planVerdict, verdictColor, verdictClass } from './utils/planVerdict';
 import { untestedRisksSentence } from './utils/untestedRisks';
+import { trustFundLine } from './utils/trustFundLine';
 import { safeSetItem, safeRemoveItem } from './utils/safeStorage';
 import { useThemePreference } from './utils/useThemePreference';
 import { verifyPremiumJwt } from './utils/premiumJwt';
@@ -1974,6 +1975,11 @@ export default function App() {
 
   // What the verdict leaves untested (changelog 466).
   const untestedSentence = useMemo(() => untestedRisksSentence(inputs), [inputs]);
+  // The trust-fund case as a standing second line (changelog 468): one
+  // more average-returns run, on the debounced inputs the projection uses.
+  const trustFund = useMemo(() => {
+    try { return trustFundLine(debouncedInputs, rawProjection); } catch { return null; }
+  }, [debouncedInputs, rawProjection]);
 
   // The one verdict every surface states (utils/planVerdict.js). A run that
   // is under way, or that auto-run is about to start, reads as pending
@@ -2279,6 +2285,11 @@ export default function App() {
             <span className="kpi-subtext" data-testid="success-odds" aria-live="polite" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.35 }}>
               {verdict.detail}
             </span>
+            {trustFund && (
+              <span data-testid="trust-fund-line" style={{ fontSize: 'var(--fs-2xs)', color: trustFund.runsShort ? 'var(--warning)' : 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
+                {trustFund.sentence}
+              </span>
+            )}
             {untestedSentence && (
               <span data-testid="untested-risks" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
                 {untestedSentence} Each can be turned on under Plan.
@@ -4081,6 +4092,12 @@ export default function App() {
                     inflation {monteCarlo.returnModel === 'bootstrap' ? 'carried by each sampled year' : monteCarlo.inflationSampled ? 'sampled with the market' : 'held at the planned rate'};
                     lifespans {monteCarlo.longevitySampled ? `drawn from the SSA life table (${monteCarlo.beyondHorizonPct.toFixed(0)}% of trials outlived the planned horizon)` : 'fixed at the Life Expectancy ages'}.
                   </td>
+                </tr>
+              )}
+              {trustFund && (
+                <tr>
+                  <td>Social Security trust fund</td>
+                  <td>{trustFund.sentence}</td>
                 </tr>
               )}
               {untestedSentence && (
