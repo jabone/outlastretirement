@@ -14,7 +14,8 @@ const years = [{ year: 2026, shortfall: 0 }, { year: 2050, shortfall: 0 }, { yea
 describe('planVerdict', () => {
   it('the reviewer\'s case: lasts on average, 50% of markets -> At risk, not a success', () => {
     const v = planVerdict({ isSuccessful: true, years, mc: fresh(50) });
-    expect(v).toEqual({ tone: 'risk', label: 'At risk', detail: 'Lasts with average returns, but only 50% of 1,000 simulated markets last to the end of the plan.' });
+    expect(v).toMatchObject({ tone: 'risk', label: 'At risk', detail: 'Lasts with average returns, but only 50% of 1,000 simulated markets last to the end of the plan.' });
+    expect(v.plain).toMatch(/fell short in about 50 of 100 tries/);
   });
   it('bands follow the thresholds', () => {
     expect(planVerdict({ isSuccessful: true, mc: fresh(VERDICT_THRESHOLDS.good) }).label).toBe('On track');

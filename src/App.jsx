@@ -2006,7 +2006,7 @@ export default function App() {
     const v = planVerdict({ ...args, mcPending: mcLoading || (mcAutoRun && mcRange.status !== 'fresh') });
     if (v.tone !== 'pending') return v;
     const settled = planVerdict({ ...args, mcPending: false });
-    return { ...v, tone: settled.tone, label: settled.label, checking: true };
+    return { ...v, tone: settled.tone, label: settled.label, plain: settled.plain, checking: true };
   }, [kpis.isSuccessful, projection.years, projection.floorBreachYear, inputs.portfolioFloorReal, mcRange, mcLoading, mcAutoRun, verdictHistory]);
 
   // While the plan is still the built-in sample, the compact status
@@ -2301,7 +2301,7 @@ export default function App() {
               )}
             </span>
           </div>
-          <div className="glass-panel kpi-card">
+          <div className="glass-panel kpi-card kpi-verdict">
             <span className="kpi-title">Will It Last?</span>
             {/* One verdict (utils/planVerdict.js): the average-returns
                 projection and the Monte Carlo, stated together. */}
@@ -2314,6 +2314,11 @@ export default function App() {
             <span className="kpi-subtext" data-testid="success-odds" aria-live="polite" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.35 }}>
               {verdict.detail}
             </span>
+            {verdict.plain && (
+              <span data-testid="verdict-plain" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '6px', lineHeight: 1.45 }}>
+                {verdict.plain}
+              </span>
+            )}
             {trustFund && (
               <span data-testid="trust-fund-line" style={{ fontSize: 'var(--fs-2xs)', color: trustFund.runsShort ? 'var(--warning)' : 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
                 {trustFund.sentence}

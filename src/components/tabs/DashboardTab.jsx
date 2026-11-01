@@ -12,6 +12,7 @@ import MaximizeButton from '../MaximizeButton';
 // ReferenceError and do nothing the instant it was clicked.
 import { runProjection } from '../../calculator';
 import ActionPlanCard from '../ActionPlanCard';
+import ThreeChangesCard from '../ThreeChangesCard';
 import { getPlanFeedback } from '../../utils/planFeedback';
 import { firstSafeRetirementYear } from '../../utils/retirementReadiness';
 
@@ -348,6 +349,9 @@ const DashboardTab = () => {
                 grow taller than 500px when its header toggles wrap to extra
                 lines and the marker legend wraps to extra lines on a narrow
                 screen, instead of clipping/overlapping the next panel. */}
+            {/* The next step, before anything else, when the plan is not on
+                track (first-time user review). Renders nothing otherwise. */}
+            <ThreeChangesCard />
             <div className="dashboard-content" style={{ minHeight: '500px' }}>
               {renderDashboardChart(false)}
             </div>
@@ -357,7 +361,7 @@ const DashboardTab = () => {
                 controls — the Dashboard reads the plan, it does not edit it. */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
               <div className="glass-panel kpi-card" data-testid="first-safe-year">
-                <span className="kpi-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarCheck size={14} /> First safe year to retire</span>
+                <span className="kpi-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarCheck size={14} /> First year that lasts with average returns</span>
                 {!firstSafe ? (
                   <span className="kpi-subtext" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Working it out&hellip;</span>
                 ) : (<>
@@ -375,7 +379,7 @@ const DashboardTab = () => {
                         : `Your plan retires in ${firstSafe.plannedYear} and runs out; stopping work in ${firstSafe.year} (age ${firstSafe.age1}${firstSafe.age2 !== null ? ` / ${firstSafe.age2}` : ''}) is the first year that lasts.`
                   )}
                   {!firstSafe.found && `No year up to ${firstSafe.searchedTo} lasts to the end of the plan on these settings.`}
-                  {' '}With average returns only; not tested against bad markets.
+                  {' '}One steady market only; Will It Last? is the test against bad ones.
                 </span>
                 </>)}
               </div>

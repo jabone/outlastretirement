@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 472,
+    date: '2026-11-01',
+    title: 'Your answer in plain words, and three changes that would help',
+    summary: 'A plan that is not on track now says what "At risk" means in plain words, and the Dashboard opens with three changes that would help, each one click to try.',
+    items: [
+      "**What the verdict means.** Will It Last? adds a plain line when a plan is not on track, for example: with steady average returns your money lasts, but with real markets' ups and downs it fell short in about 46 of 100 tries. On a phone or tablet the card now comes first, above the four figures.",
+      "**Three changes that would help.** When the plan is not on track, the Dashboard opens with three changes: work 2 more years, spend 10% less in retirement, and start Social Security at 70, then all of them together. Each says whether it lasts with average returns; Show the odds for each tests them in the same 1,000 simulated markets as your plan. Try it changes the plan, and Undo puts it back. A change that does not apply to you is left out.",
+      "**Calmer Plan Feedback.** Two cards that read like errors now say what they mean: Spending Stays the Same in Bad Years (Spending Guardrails off) and The Same Return Every Year (Dynamic Asset Allocation off), the second now a note rather than a warning.",
+      "**An Action Plan you can act on.** Comparisons from the optimizers sit under For the curious instead of among the steps; the Roth line says how much more the heirs might keep in its first words. The beneficiaries line reads Name who inherits your accounts and says when the names are placeholders.",
+      "**Smaller wording.** First safe year to retire is now First year that lasts with average returns, since it does not test bad markets.",
+    ],
+  },
+  {
     id: 471,
     date: '2026-11-01',
     title: 'A plainer first ten minutes: one way to start, six short questions, and sample figures that say so',

@@ -309,8 +309,10 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
     if (!isActiveCombo && meaningful) {
       const bestPct = Math.round(bestCell.bracket * 100);
       retirementItems.push({
-        label: `The Roth Ladder grid projects more left after every tax with the ${bestPct}% ${bestCell.bracket === 0 ? 'tier' : 'bracket'} and ${WITHDRAWAL_STRATEGY_SHORT_LABELS[bestCell.withdrawalStrategy] || bestCell.withdrawalStrategy} withdrawals`,
-        detail: `Optimizers \u2192 Roth Ladder Optimizer tries every bracket and withdrawal order and ranks them by what your heirs keep after every tax. On the assumptions entered it projects ${fc(bestCell.afterTaxLegacy ?? bestCell.endingBalance)} for that combination, ${fc(improvement)} more than your current settings. Rankings move with the assumptions, and other measures rank differently; it is a comparison to look at, not a recommendation.`,
+        label: `Another tax setup may leave your heirs about ${fc(improvement)} more`,
+        detail: `Optimizers \u2192 Roth Ladder Optimizer tries each Roth conversion bracket and order of withdrawals and ranks them by what your heirs keep after every tax. Converting up to the ${bestPct}% ${bestCell.bracket === 0 ? 'tier' : 'bracket'} with ${WITHDRAWAL_STRATEGY_SHORT_LABELS[bestCell.withdrawalStrategy] || bestCell.withdrawalStrategy} withdrawals projects ${fc(bestCell.afterTaxLegacy ?? bestCell.endingBalance)}, ${fc(improvement)} more than your current settings. Rankings move with the assumptions, and other measures rank differently; it is a comparison to look at, not a recommendation.`,
+        // A comparison, not a step: on screen it sits under "For the curious".
+        curious: true,
       });
     }
   }
@@ -348,16 +350,18 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
       if (!inputs.spendingGuardrails && helpedIn.length > hurtIn.length) {
         let detail = `Across ${comparisons.length} historical crash scenarios tested on Risk & Stress, skipping raises after down years (and cutting 10% after a first-year crash) improved the ending balance in ${helpedIn.length} of them.`;
         if (worseScenario) {
-          detail += ` The exception was ${STRESS_SCENARIO_LABELS[worseScenario.stressType] || worseScenario.stressType},, where the rule left less behind. The Guardrails vs Fixed Withdrawals comparison there also shows how much spending the rule gave up in each.`;
+          detail += ` The exception was ${STRESS_SCENARIO_LABELS[worseScenario.stressType] || worseScenario.stressType}, where the rule left less behind. The Guardrails vs Fixed Withdrawals comparison there also shows how much spending the rule gave up in each.`;
         }
         retirementItems.push({
           label: 'Spending guardrails helped in most of the historical crashes tested',
           detail,
+          curious: true,
         });
       } else if (inputs.spendingGuardrails && hurtIn.length > helpedIn.length) {
         retirementItems.push({
           label: 'Spending guardrails left less behind in most of the historical crashes tested',
           detail: `Across ${comparisons.length} historical crash scenarios tested on Risk & Stress, skipping raises after down years (and cutting 10% after a first-year crash) left a lower ending balance in ${hurtIn.length} of them. The Guardrails vs Fixed Withdrawals comparison there shows each one.`,
+          curious: true,
         });
       }
     }
@@ -441,8 +445,8 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
   if (heirs.length > 0) {
     const defaultStrategyLabel = HEIR_STRATEGY_LABELS[inputs.heirDistributionStrategy] || HEIR_STRATEGY_LABELS.flat_10;
     legacyItems.push({
-      label: `Name beneficiaries: ${heirs.map(heirLabel).join(', ')}${equalSplit && heirs.length > 1 ? ' — equal shares' : ''}`,
-      detail: `Modeled assuming each heir will ${defaultStrategyLabel}, unless an heir has their own override set in Tax & Estate → Estate Legacy Planner.`,
+      label: `Name who inherits your accounts: ${heirs.map(heirLabel).join(', ')}${equalSplit && heirs.length > 1 ? ' — equal shares' : ''}`,
+      detail: `${heirs.some((h) => /^(Heir|Child) \d+$/.test(String(h.name || '').trim())) ? 'These are placeholder names; put in the real ones under Tax & Estate → Estate Legacy Planner. ' : ''}Modeled assuming each heir will ${defaultStrategyLabel}, unless an heir has their own override set in Tax & Estate → Estate Legacy Planner.`,
     });
   }
 

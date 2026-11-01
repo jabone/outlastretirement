@@ -104,7 +104,7 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
     findings.push({
       type: 'danger',
       title: 'Shortfall Even With Average Returns',
-      desc: `With the returns you assumed every year, the plan does not cover its spending to the end.${successRate === null ? '' : ` In the Monte Carlo, ${verdictPctText(successRate)}% of simulated markets last.`} Retiring later, claiming Social Security later, or spending less each change that; the Optimizers and Readiness tabs show by how much.`,
+      desc: `With the returns you assumed every year, the plan does not cover its spending to the end.${successRate === null ? '' : ` In the Monte Carlo, ${verdictPctText(successRate)}% of simulated markets last.`} Retiring later, claiming Social Security later, or spending less each change that; Three changes that would help, at the top of the Dashboard, shows by how much.`,
     });
   } else if (successRate === null) {
     findings.push({
@@ -129,7 +129,7 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
     findings.push({
       type: 'danger',
       title: 'At Risk in Weak Markets',
-      desc: `Lasts with average returns, but only ${verdictPctText(successRate)}% of simulated markets last. Retiring later, claiming Social Security later, or spending less each raise that; the Optimizers and Readiness tabs show by how much.`
+      desc: `Lasts with average returns, but only ${verdictPctText(successRate)}% of simulated markets last. Retiring later, claiming Social Security later, or spending less each raise that; Three changes that would help, at the top of the Dashboard, shows by how much.`
     });
   }
 
@@ -269,8 +269,8 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   if (!inputs.spendingGuardrails) {
     findings.push({
       type: 'info',
-      title: 'Spending Guardrails Disabled',
-      desc: 'Spending Guardrails are off. With them on, spending skips its inflation raise after a down year and is cut 10% after a crash in the first retired year, and both are restored once the portfolio is back on your plan’s path. That often helps a plan last through a bear market, at the cost of spending less while it runs.',
+      title: 'Spending Stays the Same in Bad Years',
+      desc: 'Your plan spends the same amount, plus inflation, whatever markets do. Many retirees tighten their belt after a bad year instead. Spending Guardrails model that: no inflation raise after a down year, and 10% less after a crash early in retirement, until savings recover. It often helps a plan last through a downturn, at the cost of spending less while it runs.',
       action: { tab: 'risk', subTab: 'stress', label: 'View Stress Scenarios →' },
       quickApply: {
         label: 'Enable Spending Guardrails',
@@ -282,9 +282,9 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   // 3. Asset Allocation & Volatility Risk
   if (!inputs.rebalancingEnabled) {
     findings.push({
-      type: 'warning',
-      title: 'Static Return Assumption Risk',
-      desc: 'You are using flat return rates (pre vs. post retirement). This models average returns but ignores market volatility. Dynamic Asset Allocation (rebalancing) derives the return and the risk from your stock/bond mix instead, under Plan → Assumptions & Risk.',
+      type: 'info',
+      title: 'The Same Return Every Year',
+      desc: 'Your plan grows savings by the same percentage every year. Real markets bounce up and down; Will It Last? already tests that with 1,000 simulated markets. If you would rather set the return from your mix of stocks and bonds, turn on Dynamic Asset Allocation under Plan → Assumptions & Risk.',
       action: { tab: 'settings', subTab: 'assumptions', label: 'View Asset Allocations →' },
       quickApply: {
         label: 'Enable Dynamic Asset Allocation',

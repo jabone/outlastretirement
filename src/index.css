@@ -1313,6 +1313,14 @@ select.form-input,
     gap: 12px;
   }
 
+  /* The answer first on a phone or tablet (first-time user review): the
+     verdict spans the row above the four figures instead of arriving
+     after them. */
+  .kpi-grid > .kpi-verdict {
+    order: -1;
+    grid-column: 1 / -1;
+  }
+
   /* minmax(0, 1fr), not plain 1fr -- same min-width:auto trap as the base
      .form-grid rule above: a lone 1fr track still won't shrink below its
      content's natural min-width, so a wide field can blow out this single

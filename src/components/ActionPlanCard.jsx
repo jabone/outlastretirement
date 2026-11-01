@@ -3,6 +3,28 @@ import { PRINT_PACKET_EVENT } from './printPacketEvents';
 import { ClipboardCheck, Printer } from 'lucide-react';
 import { buildActionPlan } from '../utils/actionPlan';
 
+function ItemList({ items }) {
+  return (
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {items.map((item, idx) => (
+        <li key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', marginTop: '7px', flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 'var(--fs-body)', fontWeight: '600', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+              {item.label}
+            </div>
+            {item.detail && (
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '3px', lineHeight: '1.5' }}>
+                {item.detail}
+              </div>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 // Always-visible on-screen version of the Action Plan / execution roadmap.
 // Shares its actual content (buildActionPlan) with the hidden print-only
 // report in App.jsx, so the two never drift apart -- this component just
@@ -44,25 +66,22 @@ const ActionPlanCard = ({ inputs, projection, formatCurrency, rothLadderHeatmap,
             </h4>
             {section.items.length === 0 ? (
               <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', margin: 0 }}>Nothing configured here.</p>
-            ) : (
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {section.items.map((item, idx) => (
-                  <li key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', marginTop: '7px', flexShrink: 0 }} />
-                    <div>
-                      <div style={{ fontSize: 'var(--fs-body)', fontWeight: '600', color: 'var(--text-primary)', lineHeight: '1.4' }}>
-                        {item.label}
-                      </div>
-                      {item.detail && (
-                        <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '3px', lineHeight: '1.5' }}>
-                          {item.detail}
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            ) : (<>
+              {section.items.some((item) => !item.curious) && (
+                <ItemList items={section.items.filter((item) => !item.curious)} />
+              )}
+              {/* Comparisons from the optimizers are not steps; a beginner
+                  does not need them to act on the plan (first-time user
+                  review), so they wait behind a fold. The print keeps them. */}
+              {section.items.some((item) => item.curious) && (
+                <details data-testid="action-plan-curious" style={{ marginTop: '12px' }}>
+                  <summary style={{ cursor: 'pointer', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 600 }}>For the curious</summary>
+                  <div style={{ marginTop: '10px' }}>
+                    <ItemList items={section.items.filter((item) => item.curious)} />
+                  </div>
+                </details>
+              )}
+            </>)}
           </div>
         ))}
       </div>

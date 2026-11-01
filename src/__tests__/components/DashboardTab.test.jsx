@@ -115,7 +115,7 @@ describe('DashboardTab — the answers row (changelog 284)', () => {
   it('answers "can I retire today?" with the first safe year, from the plan', () => {
     renderWithSimulation(<DashboardTab />);
     const card = screen.getByTestId('first-safe-year');
-    expect(within(card).getByText('First safe year to retire')).toBeInTheDocument();
+    expect(within(card).getByText('First year that lasts with average returns')).toBeInTheDocument();
     // DEFAULT_INPUTS is a working household: the value is a year, Today or Retired.
     expect(within(card).getByText(/^(\d{4}|Today|Retired|Not found)$/)).toBeInTheDocument();
   });
@@ -302,8 +302,8 @@ describe('DashboardTab — Plan Feedback', () => {
     // longer invents a 100% success rate (outside review, 2026-09-28).
     expect(screen.getByText('Lasts With Average Returns')).toBeInTheDocument();
     expect(screen.queryByText('Plan is Highly Secure')).not.toBeInTheDocument();
-    expect(screen.getByText('Spending Guardrails Disabled')).toBeInTheDocument();
-    expect(screen.getByText('Static Return Assumption Risk')).toBeInTheDocument();
+    expect(screen.getByText('Spending Stays the Same in Bad Years')).toBeInTheDocument();
+    expect(screen.getByText('The Same Return Every Year')).toBeInTheDocument();
   });
 
   // Regression guard for round 1 (no crash) AND round 2 (sub-tab honored).
@@ -340,7 +340,7 @@ describe('DashboardTab — Plan Feedback', () => {
     expect(setSettingsSubTab).toHaveBeenCalledWith('balances');
   });
 
-  it('the risk-targeted action (Spending Guardrails Disabled) still sets both the tab and the sub-tab', async () => {
+  it('the risk-targeted action (Spending Stays the Same in Bad Years) still sets both the tab and the sub-tab', async () => {
     const user = userEvent.setup({ delay: null });
     const setActiveTab = vi.fn();
     const setRiskSubTab = vi.fn();

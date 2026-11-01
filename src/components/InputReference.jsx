@@ -393,11 +393,11 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Card</span><br/><strong>Will It Last? (verdict card)</strong></td>
-              <td style={sectionStyles.td}>One verdict for the plan that combines two views: the projection at your average returns, and the share of Monte Carlo markets in which the money lasts. The sidebar badge, the phone&rsquo;s top bar, the summary bar and Plan Feedback all state the same verdict.</td>
+              <td style={sectionStyles.td}>One verdict for the plan that combines two views: the projection at your average returns, and the share of Monte Carlo markets in which the money lasts. The sidebar badge, the phone&rsquo;s top bar, the summary bar and Plan Feedback all state the same verdict. A plan that is not on track adds a line <em>In plain words</em>: how many tries in 100 fell short, and what the label means. On a phone or tablet the card comes first, above the four figures.</td>
               <td style={sectionStyles.td}>Not an input. <strong>On track</strong>: lasts at average returns and in at least 90% of markets. <strong>Mostly on track</strong>: 75&ndash;89%. <strong>At risk</strong>: under 75%. <strong>Runs short</strong>: even average returns do not cover the spending. While the Monte Carlo is still running it states what average returns already show (for example <em>Lasts on average</em>) and says the market check is under way; until a Monte Carlo result for this plan is in (during the first run, and in the phone apps, where it does not run on its own) the same bands are read from every real retirement since 1928 (&ldquo;through 84 of 98 real retirements since 1928&rdquo;), and the Monte Carlo replaces it once it has run (the 1928 count then stays as a second sentence); <em>Lasts on average</em> only when neither is available. The share is rounded to a whole percent once and the verdict is read from that same number, so 89.6% shows as 90% and <em>On track</em> on every surface, Scenarios included.</td>
             </tr>
             <tr>
-              <td style={sectionStyles.td}><span style={sectionStyles.badge}>Card</span><br/><strong>Dashboard &rarr; First safe year to retire</strong></td>
+              <td style={sectionStyles.td}><span style={sectionStyles.badge}>Card</span><br/><strong>Dashboard &rarr; First year that lasts with average returns</strong></td>
               <td style={sectionStyles.td}>The earliest year the household could stop work and the plan still lasts to its end: the app runs the plan with retirement set to this year, then next year, and so on, and reports the first success. Reads Today when stopping this year already lasts, Retired when the plan already has you retired, and Not found when no year up to the search horizon lasts.</td>
               <td style={sectionStyles.td}>Not an input. Both spouses stop in the year tried (each spouse&rsquo;s retirement age becomes their age that year); a spouse already retired today stays retired. Life expectancy and every other setting are untouched. The search runs at most 25 years out, and no further than the first spouse&rsquo;s life expectancy. The note beneath compares the year found with the plan&rsquo;s own retirement year.</td>
             </tr>
@@ -1493,7 +1493,7 @@ const InputReference = () => {
                 <strong>Every retirement age, 50 to 75</strong> (Retirement Readiness, working-longer card)
               </td>
               <td style={sectionStyles.td}>The plan run once per retirement age from 50 to 75, both spouses moving together and keeping their age gap; a bar chart of ending balances with the earliest age that lasts to the end called out. Clicking a bar changes which age the working-longer table compares; nothing else changes.</td>
-              <td style={sectionStyles.td}>Not an input. <strong>Make age N the plan's retirement age</strong> sets the Retirement Age (and a spouse&rsquo;s, keeping the gap, never below 50). Computed in the background with the other heavy results. Free. The Dashboard's First safe year to retire is the same question answered as a calendar year.</td>
+              <td style={sectionStyles.td}>Not an input. <strong>Make age N the plan's retirement age</strong> sets the Retirement Age (and a spouse&rsquo;s, keeping the gap, never below 50). Computed in the background with the other heavy results. Free. The Dashboard's First year that lasts with average returns is the same question answered as a calendar year.</td>
             </tr>
             <tr>
               <td style={sectionStyles.td}>
@@ -1897,6 +1897,11 @@ const InputReference = () => {
             </tr>
           </thead>
           <tbody>
+            <tr>
+              <td style={sectionStyles.td}><span style={sectionStyles.badge}>Card</span><br/><strong>Three changes that would help</strong><br/><em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Dashboard, top, when the plan is not on track</em></td>
+              <td style={sectionStyles.td}>Not an input. Three changes, each tried on its own and then all together: work 2 more years (each person still working, never past 75), spend 10% less in retirement (rounded to $500), and start Social Security at 70 (each person not yet claiming). A change that does not apply to the plan is left out. Each row says at once whether it lasts with average returns; <strong>Show the odds for each</strong> runs them in the same 1,000 simulated markets as the plan.</td>
+              <td style={sectionStyles.td}><strong>Try it</strong> changes the plan; <strong>Undo what you tried</strong> puts back the plan as it was before the first Try it, while the page stays open. A plan whose spending comes from a monthly or category breakdown is told to lower it there instead.</td>
+            </tr>
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Button</span><br/><strong>Suggest changes (Plan Feedback)</strong></td>
               <td style={sectionStyles.td}>Works out a set of changes that make the plan last with average returns: spending at 75% of household income (or a 4% draw on the nest egg when nobody is working), savings at 10% of income split Pre-Tax / Roth / Taxable, then retirement and claiming later for both spouses together, a year at a time, up to 70, and if that is still not enough, spending cut step by step.</td>

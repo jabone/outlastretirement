@@ -26,6 +26,9 @@
 //   tone   'good' | 'caution' | 'risk' | 'pending' | 'neutral'
 //   label  a few words for badges and the status bar
 //   detail one sentence for the Dashboard card and screen readers
+//   plain  (first-time user review, 2026-11-01) for a plan that is not on
+//          track, what the label means in words a beginner reads without
+//          a glossary; absent otherwise
 
 export const VERDICT_THRESHOLDS = Object.freeze({ good: 90, caution: 75 });
 
@@ -75,6 +78,18 @@ export function floorPhrase(floor) {
   return f > 0 ? `, keeping at least $${Math.round(f).toLocaleString('en-US')}` : '';
 }
 
+// The plain line. "Lasts with average returns" beside "At risk" reads as a
+// contradiction to someone new to this: the average path is one steady
+// market, and the label is about the bumpy ones. Said as tries out of 100.
+function plainOdds(successProbability, label) {
+  const ranOut = Math.max(1, 100 - (verdictPct(successProbability) ?? 0));
+  return `In plain words: with steady average returns your money lasts. With the ups and downs real markets have, it fell short in about ${ranOut} of 100 tries. \u201c${label}\u201d means a bad stretch of markets could leave you short.`;
+}
+function plainHistory(h, label) {
+  const ranOut = h.count - h.lasted;
+  return `In plain words: with steady average returns your money lasts. Started in each year since ${h.firstStart}, with the markets that really followed, it fell short ${ranOut} ${ranOut === 1 ? 'time' : 'times'} in ${h.count}. \u201c${label}\u201d means a bad stretch of markets could leave you short.`;
+}
+
 export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' }, mcPending = false, history = null, floor = 0, floorBreachYear = null }) {
   const keep = floorPhrase(floor);
   // With average returns the money lasts, but it may still dip below the
@@ -102,6 +117,7 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
       tone: 'risk',
       label: 'Runs short',
       detail: `Even with average returns, spending is not fully covered${when}.${odds}`,
+      plain: `In plain words: even if markets do as well as the plan assumes every year, the money runs out${short ? ` in ${short.year}` : ''}, before the plan ends.`,
     };
   }
 
@@ -118,12 +134,14 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
         tone: 'caution',
         label: 'Mostly on track',
         detail: `${lastsAvg}, and ${pctText}% of ${trials} simulated markets last ${horizon}; a poor run of markets could fall short.${alsoHist}`,
+        plain: plainOdds(mc.successProbability, 'Mostly on track'),
       };
     }
     return {
       tone: 'risk',
       label: 'At risk',
       detail: `${lastsAvg}, but only ${pctText}% of ${trials} simulated markets last ${horizon}.${alsoHist}`,
+      plain: plainOdds(mc.successProbability, 'At risk'),
     };
   }
 
@@ -147,9 +165,9 @@ export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' },
       return { tone: 'good', label: 'On track', detail: `${lastsAvg}, and through ${historyPhrase(hist, keep)}. ${tail}` };
     }
     if (hBand === 'caution') {
-      return { tone: 'caution', label: 'Mostly on track', detail: `${lastsAvg}, and through ${historyPhrase(hist, keep)}; a poor run of markets could fall short. ${tail}` };
+      return { tone: 'caution', label: 'Mostly on track', detail: `${lastsAvg}, and through ${historyPhrase(hist, keep)}; a poor run of markets could fall short. ${tail}`, plain: plainHistory(hist, 'Mostly on track') };
     }
-    return { tone: 'risk', label: 'At risk', detail: `${lastsAvg}, but through only ${historyPhrase(hist, keep)}. ${tail}` };
+    return { tone: 'risk', label: 'At risk', detail: `${lastsAvg}, but through only ${historyPhrase(hist, keep)}. ${tail}`, plain: plainHistory(hist, 'At risk') };
   }
 
   return {

@@ -325,9 +325,9 @@ describe('buildActionPlan', () => {
       const projection = runProjection(inputs);
       const plan = buildActionPlan(inputs, projection);
       const legacy = findSection(plan, 'legacy');
-      const item = legacy.items.find((i) => i.label.includes('beneficiaries'));
+      const item = legacy.items.find((i) => i.label.includes('inherits your accounts'));
 
-      expect(item.label).toBe('Name beneficiaries: Alice (60%), Bob (40%)');
+      expect(item.label).toBe('Name who inherits your accounts: Alice (60%), Bob (40%)');
     });
 
     it('equal split names every heir as a fraction, never a rounded percent (changelog 262)', () => {
@@ -342,8 +342,8 @@ describe('buildActionPlan', () => {
         ],
       };
       const plan = buildActionPlan(inputs, runProjection(inputs));
-      const item = findSection(plan, 'legacy').items.find((i) => i.label.includes('beneficiaries'));
-      expect(item.label).toBe('Name beneficiaries: Child 1 (1/3), Child 2 (1/3), Child 3 (1/3) — equal shares');
+      const item = findSection(plan, 'legacy').items.find((i) => i.label.includes('inherits your accounts'));
+      expect(item.label).toBe('Name who inherits your accounts: Child 1 (1/3), Child 2 (1/3), Child 3 (1/3) — equal shares');
       expect(item.detail).toMatch(/unless an heir has/);
     });
 
@@ -360,7 +360,7 @@ describe('buildActionPlan', () => {
       const projection = runProjection(inputs);
       const plan = buildActionPlan(inputs, projection);
       const legacy = findSection(plan, 'legacy');
-      const item = legacy.items.find((i) => i.label.includes('beneficiaries'));
+      const item = legacy.items.find((i) => i.label.includes('inherits your accounts'));
 
       expect(item.label).not.toMatch(/Zero Percent Cousin/);
     });
@@ -406,13 +406,14 @@ describe('buildActionPlan', () => {
 
       // Changelog 428: the note ranks on net to heirs after every tax.
       const best = heatmap.reduce((b, c) => (!b || c.afterTaxLegacy > b.afterTaxLegacy ? c : b), null);
-      const item = retirement.items.find((i) => i.label.includes('projects more left after every tax'));
+      const item = retirement.items.find((i) => i.label.includes('may leave your heirs'));
 
       // Changelog 466: the note appears only for a gap worth acting on
       // (over 2% of what the heirs keep; this plan's is about 4.5%), and
       // reads as a comparison, not a recommendation.
       expect(item).toBeTruthy();
-      expect(item.label).toContain(`${Math.round(best.bracket * 100)}%`);
+      expect(item.detail).toContain(`${Math.round(best.bracket * 100)}%`);
+      expect(item.curious).toBe(true);
       expect(item.detail).toContain('Roth Ladder Optimizer');
       expect(item.detail).toContain('not a recommendation');
     });
@@ -431,7 +432,7 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection, undefined, heatmap);
       const retirement = findSection(plan, 'retirement');
 
-      expect(retirement.items.find((i) => i.label.includes('projects more left after every tax'))).toBeUndefined();
+      expect(retirement.items.find((i) => i.label.includes('may leave your heirs'))).toBeUndefined();
     });
 
     it('is skipped when the gap is inside the noise of a long projection', () => {
@@ -440,7 +441,7 @@ describe('buildActionPlan', () => {
       const current = legacyAfterTaxes(inputs, projection);
       const heatmap = getRothBracketWithdrawalHeatmap(inputs).map((c) => ({ ...c, afterTaxLegacy: current * 1.01 }));
       const plan = buildActionPlan(inputs, projection, undefined, heatmap);
-      expect(findSection(plan, 'retirement').items.find((i) => i.label.includes('projects more left after every tax'))).toBeUndefined();
+      expect(findSection(plan, 'retirement').items.find((i) => i.label.includes('may leave your heirs'))).toBeUndefined();
     });
 
     it('is skipped silently when no heatmap is passed in, so existing callers keep working', () => {
@@ -450,7 +451,7 @@ describe('buildActionPlan', () => {
       expect(() => buildActionPlan(inputs, projection)).not.toThrow();
       const plan = buildActionPlan(inputs, projection);
       const retirement = findSection(plan, 'retirement');
-      expect(retirement.items.find((i) => i.label.includes('projects more left after every tax'))).toBeUndefined();
+      expect(retirement.items.find((i) => i.label.includes('may leave your heirs'))).toBeUndefined();
     });
 
     it('is skipped when the passed-in heatmap is an empty array', () => {
@@ -459,7 +460,7 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection, undefined, []);
       const retirement = findSection(plan, 'retirement');
 
-      expect(retirement.items.find((i) => i.label.includes('projects more left after every tax'))).toBeUndefined();
+      expect(retirement.items.find((i) => i.label.includes('may leave your heirs'))).toBeUndefined();
     });
   });
 
