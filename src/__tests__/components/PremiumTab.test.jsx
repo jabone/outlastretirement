@@ -14,7 +14,7 @@ import userEvent from '@testing-library/user-event';
 import PremiumTab from '../../components/tabs/PremiumTab';
 import {
   PREMIUM_FEATURES, PREMIUM_AREAS, PREMIUM_FACTS, PREMIUM_NAME,
-  CONTACT_EMAIL, REQUEST_SUBJECT, buildRequestMailto,
+  CONTACT_EMAIL, REQUEST_SUBJECT, REQUEST_BODY, buildRequestMailto,
 } from '../../config/premiumOffering';
 import { renderWithSimulation } from '../testUtils';
 
@@ -84,20 +84,35 @@ describe('PremiumTab -- free user', () => {
     for (const f of PREMIUM_FACTS) expect(screen.getByText(f.q)).toBeTruthy();
   });
 
-  // The CTA is a mailto and nothing else. If someone later swaps this for
-  // a form post, this test should fail loudly -- a form needs a server,
-  // and the no-backend architecture is a deliberate product position
+  // The way to ask is an email the visitor writes and sends from their own
+  // account, and nothing else. If someone later swaps this for a form post,
+  // this test should fail loudly -- a form needs a server, and the
+  // no-backend architecture is a deliberate product position
   // (PRODUCT_STRATEGY.md Goal 2), not an accident of being early.
-  it('the only call to action is a mailto to the real contact address', () => {
+  it('the only way to ask is an email written to the real contact address', () => {
     const { container } = renderWithSimulation(<PremiumTab />);
     // The one other link is the public Free and Premium comparison (a static
     // page on this site, changelog 312) -- information, not a way to buy.
     const all = [...container.querySelectorAll('a[href]')];
-    expect(all.filter((a) => !a.getAttribute('href').startsWith('mailto:')).map((a) => a.getAttribute('href'))).toEqual(['/premium']);
-    const links = all.filter((a) => a.getAttribute('href').startsWith('mailto:'));
-    expect(links.length).toBeGreaterThan(0);
-    for (const a of links) expect(a.getAttribute('href').startsWith('mailto:')).toBe(true);
-    expect(links.every(a => a.getAttribute('href').includes(CONTACT_EMAIL))).toBe(true);
+    const compose = all.filter((a) => /^https:\/\/(mail\.google\.com|outlook\.live\.com|compose\.mail\.yahoo\.com)\//.test(a.getAttribute('href')));
+    expect(compose.length).toBe(3);
+    for (const a of compose) {
+      const q = new URL(a.href).searchParams;
+      expect(q.get('to')).toBe(CONTACT_EMAIL);
+      expect(q.get('su') || q.get('subject')).toBe(REQUEST_SUBJECT);
+      expect(q.get('body')).toBe(REQUEST_BODY);
+      expect(a.getAttribute('target')).toBe('_blank');
+      expect(a.getAttribute('rel')).toMatch(/noopener/);
+    }
+    expect(all.filter((a) => !compose.includes(a)).map((a) => a.getAttribute('href'))).toEqual(['/premium']);
+    // Every other kind of email: the address and subject to copy.
+    const other = container.querySelector('[data-testid="request-other"]');
+    expect(other.textContent).toContain(CONTACT_EMAIL);
+    expect(other.textContent).toContain(REQUEST_SUBJECT);
+    expect(container.querySelector('[data-testid="request-copy-address"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="request-copy-subject"]')).not.toBeNull();
+    // No Request Access button any more.
+    expect(container.textContent).not.toMatch(/Request Access/);
     expect(container.querySelector('form')).toBeNull();
     expect(container.querySelector('input')).toBeNull();
   });

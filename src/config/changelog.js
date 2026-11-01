@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 473,
+    date: '2026-11-01',
+    title: 'Asking for Premium: write it in Gmail, Outlook.com or Yahoo Mail',
+    summary: 'The Premium page replaces Request Access with a section that opens your request already written in Gmail, Outlook.com or Yahoo Mail, and says what to send from any other email.',
+    items: [
+      "**What was wrong.** Request Access opened your computer's email app. If you read your mail in a browser, there usually is none set up, and the button did nothing useful.",
+      "**Write it in your web mail.** Buttons for Gmail, Outlook.com and Yahoo Mail open that service in a new tab with the address, subject and message already filled in. Read it, add a line if you like, and press Send.",
+      "**Any other email.** For Apple Mail, a work account or your phone, the section gives the address and the subject, each with a copy button, and what to say. Nothing is sent from this page.",
+    ],
+  },
+  {
     id: 472,
     date: '2026-11-01',
     title: 'Your answer in plain words, and three changes that would help',

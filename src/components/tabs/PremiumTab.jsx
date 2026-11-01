@@ -28,14 +28,14 @@ import React from 'react';
 import {
   PieChart, Lock, Mail, ShieldCheck, Link2, ArrowRight, CheckCircle2, Sparkles,
 } from 'lucide-react';
-import MailtoLink from '../MailtoLink';
+import RequestAccessPanel from '../RequestAccessPanel';
 import { useSimulation } from '../../context/useSimulation';
 import { useEntitlement } from '../../context/useEntitlement';
 import { isDemoModeActive } from '../../utils/demoMode';
 import { useDemoEntry } from '../../context/useDemoEntry';
 import {
   PREMIUM_NAME, PREMIUM_TAGLINE, PREMIUM_FEATURES, PREMIUM_AREAS,
-  PREMIUM_FACTS, CONTACT_EMAIL, REQUEST_SUBJECT, REQUEST_BODY,
+  PREMIUM_FACTS,
 } from '../../config/premiumOffering';
 
 export default function PremiumTab() {
@@ -110,16 +110,9 @@ export default function PremiumTab() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <MailtoLink
-            email={CONTACT_EMAIL}
-            subject={REQUEST_SUBJECT}
-            body={REQUEST_BODY}
-            className="btn-primary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
-          >
-            <Mail size={15} /> Request Access
-          </MailtoLink>
+        <RequestAccessPanel />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '16px' }}>
           {/* See-before-you-ask: loads the fictional demo household and
               lands on Detailed Holdings in read-only preview — the honest
               way to show what an access key actually buys (demoMode.js).
@@ -145,9 +138,6 @@ export default function PremiumTab() {
               Open the demo preview
             </button>
           )}
-          <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
-            Opens your own email app, addressed to {CONTACT_EMAIL}. Nothing is sent from this page, and if no email app opens, the page says so.
-          </span>
           <a href="/premium" className="app-disclaimer-footer-link" style={{ fontSize: 'var(--fs-xs)' }}>
             Compare Free and Premium
           </a>
@@ -240,15 +230,14 @@ export default function PremiumTab() {
         <div style={{ flex: '1 1 300px', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
           Want it? Send a note saying roughly what you are tracking and I will get back to you.
         </div>
-        <MailtoLink
-          email={CONTACT_EMAIL}
-          subject={REQUEST_SUBJECT}
-          body={REQUEST_BODY}
+        <button
+          type="button"
           className="btn-primary"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', whiteSpace: 'nowrap' }}
+          onClick={() => document.getElementById('request-access')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
         >
-          <Mail size={15} /> Request Access
-        </MailtoLink>
+          <Mail size={15} /> How to ask for it
+        </button>
       </div>
     </div>
   );
