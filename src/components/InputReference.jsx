@@ -486,7 +486,7 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Setting</span><br/><strong>Data Freshness Reminders</strong></td>
-              <td style={sectionStyles.td}>Keeps the plan&rsquo;s inputs honest: a banner reminds you to back up when the plan has changed with no backup for 14 days (5 in a Safari tab, which can erase a site&rsquo;s data after 7 days without a visit), and to import a new statement (or run Quick Update) on your chosen cadence. The sidebar status line shows both dates and turns amber when overdue.</td>
+              <td style={sectionStyles.td}>Keeps the plan&rsquo;s inputs honest: a banner reminds you to back up when the plan has changed with no backup for 14 days (5 in a Safari tab, which can erase a site&rsquo;s data after 7 days without a visit), and to import a new statement (or run Update My Numbers) on your chosen cadence. The sidebar status line shows both dates and turns amber when overdue.</td>
               <td style={sectionStyles.td}>Cadence dropdown in Preferences &rarr; Your Data: Monthly / Quarterly (default) / Never. Dismissing a banner snoozes it 7 days (the backup reminder 3 days in a Safari tab); &ldquo;Mark as current&rdquo; resets the portfolio clock without an import. Dates travel with Backup Everything.</td>
             </tr>
             <tr>
@@ -1913,7 +1913,7 @@ const InputReference = () => {
               <td style={sectionStyles.td}>Percentage, default 2.0%. With Detailed Holdings linked, it follows your Taxable holdings&rsquo; real distributions and goes read-only.</td>
             </tr>
             <tr>
-              <td style={sectionStyles.td}><span style={sectionStyles.badge}>Panel</span><br/><strong>Quick Update</strong><br/><em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Sidebar; the annual review; the data freshness reminder</em></td>
+              <td style={sectionStyles.td}><span style={sectionStyles.badge}>Panel</span><br/><strong>Update My Numbers</strong><br/><em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Sidebar; the annual review; the data freshness reminder</em></td>
               <td style={sectionStyles.td}>A short panel with only the numbers people revisit often: account balances, salary, retirement age, Social Security claiming age and, optionally, the benefit estimates. It edits the same plan fields as Plan, and shows the verdict as you type.</td>
               <td style={sectionStyles.td}>Not a separate setting. <strong>Done</strong> closes it and records the date, which the sidebar&rsquo;s status line and the freshness reminder use.</td>
             </tr>

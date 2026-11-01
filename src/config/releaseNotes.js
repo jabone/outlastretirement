@@ -26,6 +26,8 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-10-26',
     headline: 'Roth conversions up to your deductions, and a survivor keeps a larger own check',
     bullets: [
+      { title: 'A plainer first ten minutes, and an offline notice that gets out of the way', ids: [461, 471],
+        text: 'The welcome screen leads with six short questions and a sample family, Quick Setup asks only what you would know and ends with a list of what it assumed for you, and until you enter your own figures the app says the ones on screen are a sample. The spending suggestion now starts from what your pay leaves today, instead of a rule of thumb that counted taxes and health insurance twice. And when your connection drops, the offline notice shrinks to a small pill after a few seconds so it no longer covers your figures.' },
       { title: 'A planner\u2019s review: how long a couple plans for, what care and cover cost, and more', ids: [468, 469, 470],
         text: 'Household shows a couple the odds at least one of them is alive when the plan ends, and Plan Feedback flags it when those odds are one in four or better. A new plan\u2019s long-term care cost is $75,000 a year, near the national median; its health cover before 65 is priced from the marketplace benchmark for each person\u2019s age and state, so it rises with age; the Social Security spousal benefit is on; pension cost-of-living adjustments start at 0; and an annuity you own has a start age and pays a level amount unless you mark it indexed. Every plan that counts on Social Security states, under its verdict and in print, what happens with average returns if the trust fund runs out and benefits are cut. The return fields say what each is after inflation, the Action Plan reads as what the plan assumes, a new plan drops spending once one spouse\u2019s life expectancy has passed, the Monte Carlo states its margin, and saved plans keep every figure they had. The privacy policy adds a section for readers in the EU and the UK.' },
       { title: 'Three defaults a planner would question', ids: [467],
@@ -40,8 +42,6 @@ export const RELEASE_WEEKS = [
         text: 'Fill-to-bracket Roth conversions can target 0%: each year the plan converts only as much as your deductions cover, so the conversion adds no federal income tax, though it can still raise state tax, the taxable share of Social Security and Medicare surcharges. The Roth Ladder Optimizer now tries it too. Your numbers change only if you choose it.' },
       { title: 'A survivor keeps a larger own Social Security check', ids: [462],
         text: 'A widow or widower whose own Social Security is larger now keeps it, and starts the survivor benefit only in the year it pays more, at the latest unreduced at full retirement age. Before, its reduction was fixed in the first year alone, so it could never overtake their own. Your numbers will change if your plan has such a survivor; their income can only go up.' },
-      { title: 'The offline notice shrinks to a small pill', ids: [461],
-        text: 'When your connection drops, the notice that everything still works now shrinks to a small Offline pill after a few seconds, or at once with its close button, so it no longer covers your figures. Tap the pill to read it again.' },
     ],
   },
   {

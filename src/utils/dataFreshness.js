@@ -29,7 +29,7 @@ import { isSafariTab, SAFARI_BACKUP_NUDGE_DAYS } from './safariStorage';
 //     Reset by: a statement/CSV/PDF import, any deliberate holdings edit
 //     (add/edit/remove/liquidate -- NOT Live Pricing refreshes, which
 //     update prices automatically and prove nothing about share counts or
-//     missed contributions), a Quick Update session (for users who track
+//     missed contributions), a Update My Numbers session (for users who track
 //     balances rather than Detailed Holdings), and the banner's own
 //     "Mark as current" button.
 //     Nudges when: the user's chosen cadence (quarterly by default,
@@ -199,7 +199,7 @@ export function computeFreshnessStatus({ now = Date.now(), hasHoldings = false, 
     everPortfolioUpdated: !!s.lastPortfolioUpdateAt,
     portfolioOverdue,
     // The banner tailors its ask: statement upload for Detailed Holdings
-    // users, Quick Update for balance-only users.
+    // users, Update My Numbers for balance-only users.
     hasHoldings,
     anyOverdue: backupOverdue || portfolioOverdue,
   };

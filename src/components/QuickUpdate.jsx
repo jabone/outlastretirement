@@ -10,7 +10,7 @@ import ModalShell from './ModalShell';
 const LAST_UPDATE_KEY = 'retire_plan_last_quick_update';
 
 function formatLastUpdated(iso) {
-  if (!iso) return "You haven't used Quick Update yet";
+  if (!iso) return "You haven't used Update My Numbers yet";
   try {
     const d = new Date(iso);
     return `Last updated ${d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`;
@@ -51,7 +51,7 @@ const Field = ({ label, value, onChange, min = 0, max, money = false }) => {
   );
 };
 
-// Quick Update: a lightweight panel exposing only the numbers people actually
+// Update My Numbers: a lightweight panel exposing only the numbers people actually
 // revisit often (account balances, salary, retirement age, Social Security
 // claiming age, and optionally SS benefit estimates) so a routine "update my
 // numbers" doesn't require navigating the full Plan Settings / Tax & Estate /
@@ -72,7 +72,7 @@ const QuickUpdate = ({ onClose }) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem(LAST_UPDATE_KEY, new Date().toISOString());
     }
-    // A Quick Update session IS the balance-only user's version of
+    // A Update My Numbers session IS the balance-only user's version of
     // reconciling with a statement, so it satisfies the portfolio-
     // freshness reminder too (dataFreshness.js). Only "Done" counts --
     // closing with X updated nothing.
@@ -90,7 +90,7 @@ const QuickUpdate = ({ onClose }) => {
           <div>
             <h3 id="quick-update-title" style={{ fontSize: '19px', fontWeight: '700', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
               <Zap size={18} style={{ color: 'var(--accent-text)' }} />
-              Quick Update
+              Update My Numbers
             </h3>
             <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', margin: '6px 0 0', lineHeight: '1.4' }}>
               Just the numbers that actually change day to day. Everything else in your plan stays exactly as it is.

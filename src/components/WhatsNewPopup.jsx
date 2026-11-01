@@ -5,7 +5,7 @@ import { CHANGELOG, LATEST_CHANGELOG_ID } from '../config/changelog';
 import { activeAnnouncements } from '../config/announcements';
 import ChangelogEntry from './ChangelogEntry';
 import {
-  WHATS_NEW_SEEN_KEY, WHATS_NEW_SHOWN_DATE_KEY, DISMISSED_ANNOUNCE_KEY,
+  WHATS_NEW_SEEN_KEY, WHATS_NEW_SHOWN_DATE_KEY, DISMISSED_ANNOUNCE_KEY, markOldNewsSeen,
   whatsNewToday, readDismissedAnnouncements,
 } from '../utils/whatsNewGate';
 
@@ -55,7 +55,7 @@ const WhatsNewPopup = () => {
     // Unread release notes -- none for a first-time visitor (nothing missed).
     let releaseNotes = [];
     if (isFirstVisit) {
-      localStorage.setItem(SEEN_KEY, String(LATEST_CHANGELOG_ID));
+      markOldNewsSeen();
     } else {
       const lastSeenId = parseInt(storedSeenId, 10) || 0;
       if (lastSeenId < LATEST_CHANGELOG_ID) {

@@ -54,11 +54,11 @@ describe('DataFreshnessBanner', () => {
     expect(screen.getByRole('button', { name: /back up now/i })).toBeInTheDocument();
   });
 
-  it('phrases the portfolio ask around Quick Update when there are no Detailed Holdings', () => {
+  it('phrases the portfolio ask around Update My Numbers when there are no Detailed Holdings', () => {
     seedOverduePortfolio();
     renderWithSimulation(<DataFreshnessBanner />);
     expect(screen.getByText(/balances were last refreshed/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /open quick update/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open update my numbers/i })).toBeInTheDocument();
   });
 
   it('phrases the portfolio ask around statement import when Detailed Holdings exist', () => {

@@ -75,7 +75,7 @@ test.describe('first visit', () => {
     await page.goto('/app/');
     await acceptDisclaimer(page);
     const overlay = page.locator('.modal-overlay').first();
-    await overlay.getByRole('button', { name: /Quick Setup Wizard/i }).click();
+    await overlay.getByTestId('onboarding-start-quick').click();
 
     // Step 1 is Household: the birth year is the first field.
     const birthYear = page.locator('#field-birthYear1');

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // Every money input shows thousands separators ("245,000") when it is not
 // being edited: Income salaries, Social Security and pensions (also the
-// wizard's step 2, which renders these sections), Balances, Quick Update and
+// wizard's step 2, which renders these sections), Balances, Update My Numbers and
 // the Life Events amount.
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -47,7 +47,7 @@ describe('money inputs show commas', () => {
     expect(box.value).toBe('25,000');
   });
 
-  it('Quick Update: balances and salary; ages stay plain', () => {
+  it('Update My Numbers: balances and salary; ages stay plain', () => {
     renderWithSimulation(<QuickUpdate onClose={vi.fn()} />, {
       inputs: { ...DEFAULT_INPUTS, preTaxInit: 1234567, salary1: 245000, retireAge1: 65 },
     });

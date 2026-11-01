@@ -23,8 +23,8 @@ describe('HoverTooltip', () => {
   });
 
   it('`labeled`: the visible words stay the name and the tip becomes the description', () => {
-    render(<HoverTooltip text="Balances, salary and claiming age" labeled><button><span>Quick Update</span></button></HoverTooltip>);
-    const btn = screen.getByRole('button', { name: 'Quick Update' });
+    render(<HoverTooltip text="Balances, salary and claiming age" labeled><button><span>Update My Numbers</span></button></HoverTooltip>);
+    const btn = screen.getByRole('button', { name: 'Update My Numbers' });
     expect(btn).not.toHaveAttribute('aria-label');
     expect(btn).toHaveAttribute('aria-description', 'Balances, salary and claiming age');
   });

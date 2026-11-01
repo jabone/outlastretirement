@@ -114,7 +114,7 @@ export function annualReviewSteps(inputs, projection, { realYear = new Date().ge
       title: 'Bring the starting balances to the January statements',
       why: hasHoldings
         ? 'Your balances are linked to Detailed Holdings: import the year-end statements there and the plan follows.'
-        : 'Pre-Tax, Roth, Taxable, HSA and the cash reserve, as of the new year. Quick Update does all five in one place.',
+        : 'Pre-Tax, Roth, Taxable, HSA and the cash reserve, as of the new year. Update My Numbers does all five in one place.',
       auto: hasHoldings ? null : 'quickUpdate',
       autoDone: false,
       where: hasHoldings ? { tab: 'portfolio' } : { tab: 'settings', subTab: 'balances' },

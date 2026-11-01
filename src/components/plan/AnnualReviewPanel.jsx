@@ -105,7 +105,7 @@ export default function AnnualReviewPanel({ onAdvanceYear, advancing = false }) 
                       style={{ padding: '5px 10px', fontSize: 'var(--fs-xs)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
                       <Wand2 size={12} />
-                      {s.auto === 'advanceYear' ? `Advance to ${planYear + 1}` : s.auto === 'quickUpdate' ? 'Open Quick Update' : s.auto === 'carryMagi' ? 'Carry forward' : 'Save snapshot'}
+                      {s.auto === 'advanceYear' ? `Advance to ${planYear + 1}` : s.auto === 'quickUpdate' ? 'Open Update My Numbers' : s.auto === 'carryMagi' ? 'Carry forward' : 'Save snapshot'}
                     </button>
                   )}
                   {s.where && (

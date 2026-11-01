@@ -52,7 +52,7 @@ describe('Action Plan reports what the plan actually contributes (changelog 130)
     const plan = buildActionPlan(MAXER, projection);
     const working = findSection(plan, 'working');
 
-    const savings = findItem(working, 'contributes the maximum allowed');
+    const savings = findItem(working, 'the maximum allowed');
     expect(savings).toBeTruthy();
     // The label names the mode, not a frozen dollar amount, because the
     // limits move every year.
@@ -106,7 +106,7 @@ describe('Action Plan reports what the plan actually contributes (changelog 130)
     const manual = { ...MAXER, autoMaxContribution1: 'off' };
     const projection = runProjection(manual);
     const plan = buildActionPlan(manual, projection);
-    const savings = findItem(findSection(plan, 'working'), 'saves ');
+    const savings = findItem(findSection(plan, 'working'), 'save $');
 
     expect(savings.label).toContain('$5,000/yr Pre-Tax');
     expect(savings.label).toContain('$2,000/yr Roth');

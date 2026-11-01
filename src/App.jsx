@@ -60,6 +60,9 @@ import { BRAND_NAME, BRAND_DOMAIN, COPYRIGHT_NOTICE, PRIVACY_PROMISE, PRIVACY_UR
 import { growthSummary, monteCarloSummary, taxBracketSummary, estateSummary } from './utils/chartSummaries';
 import { planVerdict, verdictColor, verdictClass } from './utils/planVerdict';
 import { untestedRisksSentence } from './utils/untestedRisks';
+import { US_STATE_NAME } from './config/usStates';
+import { isSamplePlan, sampleStatus } from './utils/samplePlan';
+import { horizonOdds } from './utils/mortality';
 import { trustFundLine } from './utils/trustFundLine';
 import { safeSetItem, safeRemoveItem } from './utils/safeStorage';
 import { useThemePreference } from './utils/useThemePreference';
@@ -158,9 +161,9 @@ const ChartFallback = () => (
 );
 
 import {
-  TrendingUp, Settings,
+  Settings,
   CheckCircle,
-  XCircle, X, Coins, Trophy, Sparkles, AlertTriangle,
+  XCircle, X, Coins, AlertTriangle,
   Play, Pause, Type, Menu, Zap,
   FlaskConical, Lightbulb, Star, ChevronDown,
 } from 'lucide-react';
@@ -194,6 +197,8 @@ import {
   historicalByStockShare,
   getMinimumRequiredReturn,
   stateTaxJurisdictionFor,
+  TAX_YEAR,
+  getFullRetirementAge,
   readResidencyTimeline,
   planWideResidence,
   rmdStartAge,
@@ -2004,6 +2009,14 @@ export default function App() {
     return { ...v, tone: settled.tone, label: settled.label, checking: true };
   }, [kpis.isSuccessful, projection.years, projection.floorBreachYear, inputs.portfolioFloorReal, mcRange, mcLoading, mcAutoRun, verdictHistory]);
 
+  // While the plan is still the built-in sample, the compact status
+  // surfaces (sidebar, phone header, the one-line summary, the floating
+  // status bar) say so instead of showing the sample's verdict as if it were
+  // the visitor's (novice review 2026-11-01). The Dashboard's Will It Last?
+  // card keeps the real verdict, under a banner that names it a sample.
+  const samplePlan = useMemo(() => isSamplePlan(inputs, { demoActive }), [inputs, demoActive]);
+  const statusVerdict = useMemo(() => (samplePlan ? sampleStatus(inputs) : verdict), [samplePlan, inputs, verdict]);
+
   // The Monte Carlo in the display basis (utils/displayDollars.js). The
   // engine's percentiles are future dollars; every screen and the print
   // read this copy so they match the Dashboard's Ending Balance. The raw
@@ -2015,6 +2028,7 @@ export default function App() {
 
   const simulationState = useMemo(() => ({
     inputs, setInputs, updateInput, activeTab, setActiveTab, useRealDollars, setUseRealDollars,
+    statusVerdict, samplePlan,
     statusBarHidden, setStatusBarHidden,
     mcAutoRun, setMcAutoRun,
     roundFarDollars, setRoundFarDollars,
@@ -2043,6 +2057,7 @@ export default function App() {
     liquidations, liquidateHolding, removeLiquidation, replaceLiquidations, addLiquidations,
   }), [
     inputs, setInputs, updateInput, activeTab, setActiveTab, useRealDollars, setUseRealDollars,
+    statusVerdict, samplePlan,
     statusBarHidden, setStatusBarHidden,
     mcAutoRun, setMcAutoRun,
     roundFarDollars, setRoundFarDollars,
@@ -2105,13 +2120,13 @@ export default function App() {
             Dashboard, where the verdict card explains it. */}
         {!showDisclaimer && (
           <a
-            className={`mobile-topbar-verdict ${verdictClass(verdict.tone)}`}
+            className={`mobile-topbar-verdict ${verdictClass(statusVerdict.tone)}`}
             href={formatHash(DEFAULT_TAB)}
-            aria-label={`Plan status: ${verdict.label}. ${verdict.detail}`}
+            aria-label={`Plan status: ${statusVerdict.label}. ${statusVerdict.detail}`}
             data-testid="mobile-topbar-verdict"
           >
             <span className="mobile-topbar-verdict-dot" aria-hidden="true" />
-            {verdict.label}
+            {statusVerdict.label}
           </a>
         )}
       </div>
@@ -2162,6 +2177,20 @@ export default function App() {
         {!showDisclaimer && <PremiumExpiryBanner />}
         {/* Safari's seven-day erase (changelog 370): Safari tabs only. */}
         {!showDisclaimer && !demoActive && <SafariStorageBanner />}
+        {/* The sample plan says it is one (novice review 2026-11-01). */}
+        {!showDisclaimer && !showOnboarding && samplePlan && (
+          <div className="sample-plan-banner" role="note" data-testid="sample-plan-banner" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px 14px', padding: '12px 16px', margin: '0 0 16px', borderRadius: '10px', border: '1px solid var(--accent-primary)', background: 'rgba(42, 127, 122, 0.08)', fontSize: 'var(--fs-sm)', color: 'var(--text-primary)', lineHeight: 1.45 }}>
+            <span style={{ flex: '1 1 320px' }}>
+              <strong>These are sample figures, not yours.</strong> {sampleStatus(inputs).detail.replace(/^These are sample figures for /, 'They belong to ').replace(/, not you\. /, '. ')}
+            </span>
+            <button type="button" className="btn-primary" style={{ padding: '8px 14px', fontSize: 'var(--fs-sm)' }} onClick={() => { setOnboardingStep(1); setShowOnboarding(true); }}>
+              Enter yours: 6 questions
+            </button>
+            <button type="button" className="btn-outline" style={{ padding: '8px 14px', fontSize: 'var(--fs-sm)' }} onClick={() => enterDemoMode()}>
+              See a sample family
+            </button>
+          </div>
+        )}
         {/* KPI Banner always visible on desktop; on a phone, a one-line
             summary everywhere but the Dashboard (changelog 294). */}
         {activeTab !== 'dashboard' && (
@@ -2177,7 +2206,7 @@ export default function App() {
             <span aria-hidden="true" style={{ color: 'var(--text-muted)' }}>&middot;</span>
             <span>Ends <strong style={{ color: kpis.ending > 0 ? 'var(--success)' : 'var(--error)' }}>{compactDollars(kpis.ending)}</strong></span>
             <span aria-hidden="true" style={{ color: 'var(--text-muted)' }}>&middot;</span>
-            <span style={{ color: verdictColor(verdict.tone), fontWeight: 600 }}>{verdict.label}</span>
+            <span style={{ color: verdictColor(statusVerdict.tone), fontWeight: 600 }}>{statusVerdict.label}</span>
             <ChevronDown size={16} style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--text-muted)', transform: kpiOpenMobile ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
           </button>
         )}
@@ -2483,8 +2512,8 @@ export default function App() {
         }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Plan Status</span>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: verdictColor(verdict.tone) }}>
-              {verdict.label}
+            <span style={{ fontSize: '14px', fontWeight: '600', color: verdictColor(statusVerdict.tone) }}>
+              {statusVerdict.label}
             </span>
           </div>
           <div className="sticky-summary-bar-divider" style={{ width: '1px', height: '30px', background: 'var(--card-border)' }} />
@@ -2518,7 +2547,7 @@ export default function App() {
 
       </main>
 
-      {/* Quick Update Modal */}
+      {/* Update My Numbers Modal */}
       {showQuickUpdate && (
         <QuickUpdate onClose={() => setShowQuickUpdate(false)} />
       )}
@@ -2736,83 +2765,59 @@ export default function App() {
                 initializer above), never via the sidebar's "Interactive
                 Setup Wizard" button, which explicitly requests the Quick
                 Setup path and jumps straight to Step 1. */}
-            {onboardingStep === 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Welcome to {BRAND_NAME}!</h3>
+            {onboardingStep === 0 && (() => {
+              // One recommended way in (novice review 2026-11-01): a beginner
+              // saw four equal doors with overlapping names (Quick Setup, Full
+              // Guided Interview, and later Guided view and Update My Numbers) and
+              // could not tell which was for them. Quick Setup leads, the demo
+              // is the second choice, and the other two sit underneath.
+              const finishOnboarding = () => { localStorage.setItem('retire_plan_onboarding_completed', 'true'); setShowOnboarding(false); };
+              const card = (primary) => ({ padding: '20px', borderRadius: '12px', border: `2px solid ${primary ? 'var(--accent-primary)' : 'var(--card-border)'}`, background: primary ? 'rgba(78,130,195,0.10)' : 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s ease' });
+              const keyed = (fn) => (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } };
+              const startQuick = () => setOnboardingStep(1);
+              const startDemo = () => { localStorage.setItem('retire_plan_onboarding_completed', 'true'); enterDemoMode(); };
+              const startInterview = () => { finishOnboarding(); setActiveTab('interview'); };
+              return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} data-testid="onboarding-chooser">
+                <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Welcome. Let&rsquo;s see if your money will last.</h3>
                 <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
-                  How would you like to start? Every door leads to the exact same plan, so you can always switch approaches later — nothing you enter is ever lost.
+                  Answer a few questions about you and the app works out, year by year, whether your savings carry you through retirement. Nothing leaves this device, and you can change any answer later.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginTop: '4px' }}>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setOnboardingStep(1)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOnboardingStep(1); } }}
-                    style={{ padding: '20px', borderRadius: '12px', border: '2px solid var(--accent-primary)', background: 'rgba(78,130,195,0.10)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s ease' }}
-                  >
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginTop: '4px' }}>
+                  <div role="button" tabIndex={0} onClick={startQuick} onKeyDown={keyed(startQuick)} style={card(true)} data-testid="onboarding-start-quick">
                     <Zap size={22} style={{ color: 'var(--accent-text)' }} />
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>Quick Setup Wizard</div>
-                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent-text)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>~2 minutes</div>
-                    <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-                      A fast, 6-step pass — ages, income, balances, spending, and savings rate. Get a baseline plan on screen right away.
+                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent-text)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Start here · about 5 minutes</div>
+                    <div style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-primary)' }}>Answer six short questions</div>
+                    <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.45' }}>
+                      Your age, pay, savings and spending. Rough numbers are fine. We fill in the rest and show you what we assumed.
                     </p>
                   </div>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => { localStorage.setItem('retire_plan_onboarding_completed', 'true'); setShowOnboarding(false); setActiveTab('interview'); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); localStorage.setItem('retire_plan_onboarding_completed', 'true'); setShowOnboarding(false); setActiveTab('interview'); } }}
-                    style={{ padding: '20px', borderRadius: '12px', border: '2px solid var(--card-border)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s ease' }}
-                  >
-                    <Sparkles size={22} style={{ color: 'var(--accent-text)' }} />
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>Full Guided Interview</div>
-                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Comprehensive</div>
-                    <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-                      A thorough, section-by-section walkthrough of every planning decision — taxes, Roth conversions, long-term care, estate planning, and more. Skips anything that doesn't apply to you.
-                    </p>
-                  </div>
-                  {/* Third door: explore before entering anything. Marks
-                      onboarding complete FIRST so the wizard doesn't
-                      re-trigger over the demo after the reload (the
-                      completed flag is deliberately not part of backups or
-                      the demo snapshot, so it survives enter AND exit).
-                      demoMode.js snapshots the starter plan and restores
-                      it on exit, so this is fully reversible. */}
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => { localStorage.setItem('retire_plan_onboarding_completed', 'true'); enterDemoMode(); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); localStorage.setItem('retire_plan_onboarding_completed', 'true'); enterDemoMode(); } }}
-                    style={{ padding: '20px', borderRadius: '12px', border: '2px solid var(--card-border)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s ease' }}
-                  >
+                  {/* Marks onboarding complete FIRST so the wizard doesn't
+                      re-trigger over the demo after the reload; demoMode.js
+                      snapshots the starter plan and restores it on exit. */}
+                  <div role="button" tabIndex={0} onClick={startDemo} onKeyDown={keyed(startDemo)} style={card(false)} data-testid="onboarding-start-demo">
                     <FlaskConical size={22} style={{ color: 'var(--accent-text)' }} />
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>Explore the Demo First</div>
-                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>No typing required</div>
-                    <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-                      Load a complete fictional household — Sam &amp; Riley Carter — and see every feature working with realistic numbers. Exit any time from the top banner; your fresh plan will be waiting, and the Setup Wizard is always available in Preferences.
-                    </p>
-                  </div>
-                  {/* Fourth card (was a lone button below the grid, which
-                      left an unbalanced empty cell — the owner's call): skipping
-                      is a first-class choice, presented with the same
-                      weight as the other three doors. */}
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => { localStorage.setItem('retire_plan_onboarding_completed', 'true'); setShowOnboarding(false); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); localStorage.setItem('retire_plan_onboarding_completed', 'true'); setShowOnboarding(false); } }}
-                    style={{ padding: '20px', borderRadius: '12px', border: '2px solid var(--card-border)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s ease' }}
-                  >
-                    <Settings size={22} style={{ color: 'var(--text-secondary)' }} />
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>Skip — I'll Set It Up Myself</div>
-                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Straight to the app</div>
-                    <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-                      Jump right in with a neutral starter plan and enter your numbers at your own pace. The wizard, the interview, and the demo all stay one click away if you change your mind.
+                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>No typing</div>
+                    <div style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-primary)' }}>See a sample family first</div>
+                    <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.45' }}>
+                      Look around a made-up couple&rsquo;s finished plan, Sam and Riley Carter. Leave from the banner at the top whenever you&rsquo;re ready for your own.
                     </p>
                   </div>
                 </div>
+                <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }} data-testid="onboarding-other-ways">
+                  Other ways to start:{' '}
+                  <button type="button" className="link-button" onClick={startInterview} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-text)', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>
+                    the full interview
+                  </button>{' '}
+                  (every detail, section by section, about 30 minutes), or{' '}
+                  <button type="button" className="link-button" onClick={finishOnboarding} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-text)', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>
+                    go straight to the app
+                  </button>{' '}
+                  with sample figures you replace yourself.
+                </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* Steps 1-5 (changelog 257): the Plan's own sections, shown at
                 the wizard's density. Each step names the handful of keys
@@ -2838,15 +2843,15 @@ export default function App() {
               const ssEstimate2 = inputs.spouse2Enabled ? estimateSS(inputs.salary2) : 0;
               return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Pre-Retirement Income & Social Security</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Your pay and Social Security</h3>
                 <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0 }}>
-                  Enter your current working income, then the Social Security benefit at full retirement age from your statement on <a href="https://www.ssa.gov" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-text)' }}>ssa.gov</a>. No statement handy? Use the estimate below.
+                  Your yearly pay before tax, then the Social Security figure from your statement at <a href="https://www.ssa.gov" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-text)' }}>ssa.gov</a> (sign in with your Social Security account). No statement handy? Use the estimate below. Leave Pension at 0 unless an employer will pay you one.
                 </p>
                 <GuidedSection only={WIZARD_FIELDS.salaries}><SalariesSection /></GuidedSection>
                 <GuidedSection only={WIZARD_FIELDS.income}><SocialSecuritySection forceOpen /><AnnuitiesPensionsSection forceOpen /></GuidedSection>
                 {ssEstimate1 > 0 && (
                   <div style={{ padding: '14px', borderRadius: '8px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--card-border)', fontSize: 'var(--fs-sm)' }}>
-                    <Lightbulb size={14} style={{ verticalAlign: '-2px', color: 'var(--accent-text)' }} /> <strong>Rough Social Security estimate:</strong> about 32% of salary, capped at $45,000 — {formatCurrency(ssEstimate1)}/yr for {inputs.spouse1Name || 'Primary'}{inputs.spouse2Enabled ? ` and ${formatCurrency(ssEstimate2)}/yr for ${inputs.spouse2Name || 'Spouse'}` : ''}. Your SSA statement is better.
+                    <Lightbulb size={14} style={{ verticalAlign: '-2px', color: 'var(--accent-text)' }} /> <strong>Rough Social Security estimate:</strong> about 32% of salary, capped at $45,000 — {formatCurrency(ssEstimate1)}/yr for {inputs.spouse1Name && inputs.spouse1Name !== 'Primary' ? inputs.spouse1Name : 'you'}{inputs.spouse2Enabled ? ` and ${formatCurrency(ssEstimate2)}/yr for ${inputs.spouse2Name || 'Spouse'}` : ''}. Your SSA statement is better.
                     <button
                       onClick={() => {
                         updateInput('ss1', ssEstimate1);
@@ -2865,33 +2870,47 @@ export default function App() {
 
             {onboardingStep === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Current Savings (Nest Egg)</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>What you have saved</h3>
                 <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0 }}>
-                  Enter the approximate balances you currently have saved. Enter 0 if you're just starting out—it's okay to start from scratch!
+                  Rough balances are fine, and 0 is fine. Three kinds, because each is taxed differently when you take money out:
                 </p>
+                <ul style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0, paddingLeft: '20px' }}>
+                  <li><strong>Pre-Tax:</strong> most 401(k), 403(b) and traditional IRA money. Taxed when you take it out.</li>
+                  <li><strong>Roth:</strong> any account with &ldquo;Roth&rdquo; in its name. Tax-free when you take it out.</li>
+                  <li><strong>Taxable:</strong> a brokerage account and savings set aside for retirement. Not your everyday checking.</li>
+                </ul>
                 <GuidedSection only={WIZARD_FIELDS.balances}><InitialBalancesSection /></GuidedSection>
               </div>
             )}
 
             {onboardingStep === 4 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Retirement Lifestyle spending</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>What you will spend in retirement</h3>
                 <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0 }}>
-                  What is your target spending in retirement? A common starting point is 70% to 80% of your pre-retirement working salary. Replace it with your own figure. Want to build it up month by month instead? Use the Spending step of Plan (Guided).
+                  Your everyday spending each year once retired, in today&rsquo;s dollars: groceries, utilities, insurance, travel, the lot. Leave out taxes, health insurance and Medicare, and mortgage or loan payments; the plan adds those itself.
                 </p>
                 <GuidedSection only={WIZARD_FIELDS.spending}><RetirementSpendSection /></GuidedSection>
                 {(() => {
-                  const totalSalary = (Number(inputs.salary1) || 0) + (inputs.spouse2Enabled ? (Number(inputs.salary2) || 0) : 0);
-                  const suggestedExpense = totalSalary > 0 ? Math.round(totalSalary * 0.75) : 48000;
+                  // The honest starting point is what the paycheck leaves today
+                  // (novice review 2026-11-01): pay, less tax and the savings in
+                  // this plan, less the debt payments the plan charges on their
+                  // own line. A "75% of income" rule includes taxes and health
+                  // cover, which this field leaves out, so it double-counted.
+                  const y0 = rawProjection?.years?.[0];
+                  if (!y0 || !(y0.salary > 0)) return null;
+                  const takeHome = Math.max(0, (y0.salary || 0) - (y0.totalTaxesPaid || 0) - (y0.totalContributions || 0));
+                  const debt = Math.max(0, Number(inputs.mortgagePayment) || 0) + Math.max(0, Number(inputs.otherDebtPayment) || 0);
+                  const suggested = Math.max(0, Math.round((takeHome - debt) / 500) * 500);
+                  if (!(suggested > 0)) return null;
                   return (
-                    <div style={{ padding: '14px', borderRadius: '8px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--card-border)', fontSize: 'var(--fs-sm)' }}>
-                      <Lightbulb size={14} style={{ verticalAlign: '-2px', color: 'var(--accent-text)' }} /> <strong>A common starting point:</strong> many retirement rules of thumb begin at about 75% of pre-retirement income. For an income of {formatCurrency(totalSalary)}, that is <strong>{formatCurrency(suggestedExpense)}</strong>. Your own spending is the better guide if you know it.
+                    <div data-testid="wizard-spending-suggestion" style={{ padding: '14px', borderRadius: '8px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--card-border)', fontSize: 'var(--fs-sm)' }}>
+                      <Lightbulb size={14} style={{ verticalAlign: '-2px', color: 'var(--accent-text)' }} /> <strong>Start from what you spend now.</strong> Your pay leaves about <strong>{formatCurrency(takeHome)}</strong> a year after tax and the savings in this plan{debt > 0 ? `, ${formatCurrency(debt)} of it for debt payments the plan charges separately` : ''}. That makes <strong>{formatCurrency(suggested)}</strong> a reasonable first figure; retirement often costs a little less (no commuting, no saving) or more (travel, hobbies).
                       <button
-                        onClick={() => updateInput('lifestyleExpense', suggestedExpense)}
+                        onClick={() => updateInput('lifestyleExpense', suggested)}
                         className="btn-outline"
                         style={{ padding: '4px 10px', fontSize: 'var(--fs-xs)', marginTop: '8px', display: 'block' }}
                       >
-                        Use 75%: {formatCurrency(suggestedExpense)}
+                        Use {formatCurrency(suggested)}
                       </button>
                     </div>
                   );
@@ -2901,9 +2920,9 @@ export default function App() {
 
             {onboardingStep === 5 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Savings Rate & Contributions</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>What you save each year</h3>
                 <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0 }}>
-                  How much are you planning to save each year while you work? A common rule of thumb is 10% of household income; enter what you actually expect to save.
+                  What you put away each year while you work, from your own pay. Your employer&rsquo;s match is added on top; the next screen says what we assumed for it.
                 </p>
                 <GuidedSection only={WIZARD_FIELDS.savings}><ContributionsSection /></GuidedSection>
                 {(() => {
@@ -2941,44 +2960,63 @@ export default function App() {
               </div>
             )}
 
-            {onboardingStep === 6 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Quick Tour: How to use the app</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
-                  You are all set. Here is where things live in the sidebar:
+            {onboardingStep === 6 && (() => {
+              // What Quick Setup did not ask, said plainly (novice review
+              // 2026-11-01): a beginner should know which answers are ours.
+              const couple = !!inputs.spouse2Enabled;
+              const pct = (v) => `${Number(v) || 0}%`;
+              const matchLine = (() => {
+                if (inputs.employerMatchMode1 === 'percent') {
+                  const cap = Number(inputs.employerMatchCapPayPct1) || 0;
+                  return `Your employer adds ${pct(inputs.employerMatchRateA1)} of what you save${cap > 0 ? `, up to ${cap}% of your pay` : ''}.`;
+                }
+                const flat = Number(inputs.employerMatch1) || 0;
+                return flat > 0 ? `Your employer adds ${formatCurrency(flat)} a year.` : 'No employer match.';
+              })();
+              const stateName = US_STATE_NAME[inputs.stateOfResidence] || inputs.stateOfResidence || 'your state';
+              const noStateTax = stateTaxJurisdictionFor(inputs.stateOfResidence) === 'none';
+              // The odds come from the SSA table for this person's own age.
+              const planYear = Number(inputs.planYear) || TAX_YEAR;
+              const longer = (sex, birthYear, le) => {
+                const o = horizonOdds({ sex, currentAge: planYear - (Number(birthYear) || planYear), planToAge: le });
+                const p = Math.round((o.reachPlanTo || 0) * 100);
+                return p > 0 ? `About ${p} in 100 people your age live to ${le} or beyond.` : '';
+              };
+              const assumed = [
+                ['How long', couple
+                  ? `The plan runs until you are ${inputs.lifeExpectancy1} and your spouse is ${inputs.lifeExpectancy2}. ${longer(inputs.sex1, inputs.birthYear1, inputs.lifeExpectancy1)}`
+                  : `The plan runs until you are ${inputs.lifeExpectancy1}. ${longer(inputs.sex1, inputs.birthYear1, inputs.lifeExpectancy1)}`],
+                ['Social Security', (() => {
+                  const atFull = (age, by) => Number(age) === Math.floor(getFullRetirementAge(by));
+                  if (couple) return `Starts at ${inputs.claimingAge1} for you and ${inputs.claimingAge2} for your spouse${atFull(inputs.claimingAge1, inputs.birthYear1) && atFull(inputs.claimingAge2, inputs.birthYear2) ? ', the age each full benefit is paid' : ''}.`;
+                  return `Starts at ${inputs.claimingAge1}${atFull(inputs.claimingAge1, inputs.birthYear1) ? ', the age the full benefit is paid' : ''}.`;
+                })()],
+                ['Employer match', matchLine],
+                ['Prices', `Rise ${pct(inputs.inflationRate)} a year. Every figure is shown in today's dollars.`],
+                ['Investments', `Grow ${pct(inputs.preRetireReturn)} a year while you work and ${pct(inputs.postRetireReturn)} once retired, before inflation, with the ups and downs of real markets tested separately.`],
+                ['Health cover', `Before 65, ${inputs.healthcareBridgeSource === 'benchmark' ? 'marketplace insurance priced for your age and state' : `${formatCurrency(Number(inputs.healthcareBridgeCost) || 0)} a person a year`}. From 65, Medicare premiums${(Number(inputs.medicareSupplementCost) || 0) > 0 ? ` plus ${formatCurrency(Number(inputs.medicareSupplementCost))} a person a year for what Medicare does not cover` : ''}.`],
+                ['Taxes', noStateTax ? `Federal income tax, worked out every year. ${stateName} has no state income tax.` : `Federal and ${stateName} income tax, worked out every year.`],
+              ];
+              return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }} data-testid="wizard-assumed">
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>What we assumed for you</h3>
+                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
+                  You answered the questions only you can. For the rest the plan starts from these, and every one can be changed under Plan:
                 </p>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '8px' }}>
-                  <div className="glass-panel" style={{ padding: '12px', borderLeft: '4px solid var(--accent-primary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', marginBottom: '4px' }}>
-                      <Settings size={14} style={{ color: 'var(--accent-text)' }}/> Plan
-                    </div>
-                    <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)' }}>Every input: income, savings, balances, spending, taxes and life events. You just filled in the essentials; Ctrl+K (Cmd+K on a Mac) finds any setting by name.</span>
-                  </div>
-                  
-                  <div className="glass-panel" style={{ padding: '12px', borderLeft: '4px solid var(--success)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', marginBottom: '4px' }}>
-                      <TrendingUp size={14} style={{ color: 'var(--success)' }}/> Dashboard and Year by Year
-                    </div>
-                    <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)' }}>The headline figures and the portfolio chart, then every year in detail, including the cash-flow map.</span>
-                  </div>
-
-                  <div className="glass-panel" style={{ padding: '12px', borderLeft: '4px solid var(--accent-secondary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', marginBottom: '4px' }}>
-                      <CheckCircle size={14} style={{ color: 'var(--accent-text)' }}/> Retirement Readiness
-                    </div>
-                    <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)' }}>Straight answers to the big questions: could you walk away now, what a market drop does, and the earliest age that works.</span>
-                  </div>
-
-                  <div className="glass-panel" style={{ padding: '12px', borderLeft: '4px solid var(--warning)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', marginBottom: '4px' }}>
-                      <Trophy size={14} style={{ color: 'var(--warning)' }}/> Explore more
-                    </div>
-                    <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-secondary)' }}>Optimizers, Risk &amp; Stress, Tax &amp; Estate, Scenarios, What Will You Do? and Preferences, one click below the main entries.</span>
-                  </div>
+                <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'minmax(110px, auto) 1fr', gap: '8px 14px', fontSize: 'var(--fs-sm)', lineHeight: 1.45 }}>
+                  {assumed.map(([k, v]) => (
+                    <React.Fragment key={k}>
+                      <dt style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{k}</dt>
+                      <dd style={{ margin: 0, color: 'var(--text-secondary)' }}>{v}</dd>
+                    </React.Fragment>
+                  ))}
+                </dl>
+                <div className="glass-panel" style={{ padding: '12px 14px', borderLeft: '4px solid var(--accent-primary)', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--text-primary)' }}>Where to look first:</strong> the Dashboard&rsquo;s <strong>Will It Last?</strong> card answers the big question. <strong>Retirement Readiness</strong> answers the next ones in plain words, and <strong>What Will You Do?</strong> (under Explore more) is about the life, not the money.
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* Footer Buttons -- the Step 0 choice screen above has its own
                 self-contained "Skip" button and card clicks, so this

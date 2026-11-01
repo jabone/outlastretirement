@@ -111,14 +111,14 @@ test.describe('OutlastRetirement app', () => {
     // input[type=number].first(). It used to be the latter, which was
     // correct when "Basic Parameters" was the default section and salary
     // sat near the top of it. After the 2026-08-19 regroup the default
-    // section is Household, whose first number input is Primary's Birth
+    // section is Household, whose first number input is Your Birth
     // Year -- so this test was quietly setting a birth year to 150000,
     // producing a nonsense projection and an empty Dashboard. It failed on
     // the LAST assertion, several steps from the actual mistake.
     // exact: true -- without it this also matches the Plan Settings nav
     // item, whose aria-label mentions "income".
     await page.getByRole('button', { name: 'Income', exact: true }).click();
-    const salaryInput = page.getByLabel(/Primary.*Salary/i).first();
+    const salaryInput = page.getByLabel(/Your.*Salary/i).first();
     await salaryInput.fill('150000');
 
     // Navigate back to dashboard to ensure it didn't crash

@@ -23,6 +23,20 @@ export function readDismissedAnnouncements() {
   }
 }
 
+// A first visit is caught up: every release is marked seen, and so is
+// every active announcement not meant for new visitors, so a later check
+// in the same session (after Quick Setup, say) does not treat the person
+// as a returning visitor and show them news from before they arrived
+// (novice review 2026-11-01).
+export function markOldNewsSeen(now = new Date()) {
+  localStorage.setItem(WHATS_NEW_SEEN_KEY, String(LATEST_CHANGELOG_ID));
+  const notForNew = activeAnnouncements(now).filter((a) => a.showToNewVisitors === false).map((a) => a.id);
+  if (notForNew.length === 0) return;
+  const dismissed = readDismissedAnnouncements();
+  notForNew.forEach((id) => dismissed.add(id));
+  localStorage.setItem(DISMISSED_ANNOUNCE_KEY, JSON.stringify([...dismissed]));
+}
+
 // true: mount the popup (it decides). false: nothing to show today.
 //
 // A first-time visitor is caught up to the latest release silently -- the
@@ -36,10 +50,8 @@ export function whatsNewMayShow(now = new Date()) {
     const announcements = activeAnnouncements(now)
       .filter((a) => !dismissed.has(a.id))
       .filter((a) => (isFirstVisit ? a.showToNewVisitors !== false : true));
-    if (isFirstVisit && announcements.length === 0) {
-      localStorage.setItem(WHATS_NEW_SEEN_KEY, String(LATEST_CHANGELOG_ID));
-      return false;
-    }
+    if (isFirstVisit) markOldNewsSeen(now);
+    if (isFirstVisit && announcements.length === 0) return false;
     if (localStorage.getItem(WHATS_NEW_SHOWN_DATE_KEY) === now.toISOString().slice(0, 10)) return false;
     if (announcements.length > 0) return true;
     return (parseInt(seen, 10) || 0) < LATEST_CHANGELOG_ID;

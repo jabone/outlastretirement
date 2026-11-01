@@ -69,9 +69,9 @@ describe('buildActionPlan', () => {
       const plan = buildActionPlan(inputs, projection, (v) => `$${v}`);
       const working = findSection(plan, 'working');
 
-      expect(labels(working)).toContain(`${inputs.spouse1Name} saves $10000/yr Pre-Tax + $5000/yr Roth`);
+      expect(labels(working)).toContain(`You save $10000/yr Pre-Tax + $5000/yr Roth`);
       expect(labels(working)).toContain(`${inputs.spouse2Name} saves $8000/yr Pre-Tax`);
-      expect(labels(working)).toContain(`Work continues until age 65 (${inputs.spouse1Name}) and age 63 (${inputs.spouse2Name})`);
+      expect(labels(working)).toContain(`Work continues until age 65 (You) and age 63 (${inputs.spouse2Name})`);
     });
 
     it('omits a spouse\'s savings line entirely when both their contributions are 0', () => {
@@ -138,7 +138,7 @@ describe('buildActionPlan', () => {
       const retirement = findSection(plan, 'retirement');
 
       expect(labels(retirement)).toContain(
-        `Social Security starts at age 67 (${inputs.spouse1Name}) and age 70 (${inputs.spouse2Name})`
+        `Social Security starts at age 67 (You) and age 70 (${inputs.spouse2Name})`
       );
     });
 

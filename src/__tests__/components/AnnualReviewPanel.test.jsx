@@ -24,7 +24,7 @@ describe('AnnualReviewPanel', () => {
     expect(step('income').querySelector('button[aria-pressed]')).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('Advance calls the Plan Year flow; Quick Update opens the dialog; Go there routes to the sub-tab', () => {
+  it('Advance calls the Plan Year flow; Update My Numbers opens the dialog; Go there routes to the sub-tab', () => {
     const onAdvanceYear = vi.fn();
     const setShowQuickUpdate = vi.fn();
     const setActiveTab = vi.fn();
@@ -33,7 +33,7 @@ describe('AnnualReviewPanel', () => {
     renderWithSimulation(<AnnualReviewPanel onAdvanceYear={onAdvanceYear} />, { inputs, setShowQuickUpdate, setActiveTab, setSettingsSubTab, projection: runProjection(inputs) });
     fireEvent.click(screen.getByRole('button', { name: /Advance to/ }));
     expect(onAdvanceYear).toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Open Quick Update' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open Update My Numbers' }));
     expect(setShowQuickUpdate).toHaveBeenCalledWith(true);
     fireEvent.click(step('income').querySelector('.btn-outline'));
     expect(setActiveTab).toHaveBeenCalledWith('settings');

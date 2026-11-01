@@ -97,9 +97,9 @@ export default function DemographicsSection() {
 
                 <div className="form-group">
                   <label htmlFor="field-spouse1Name">Your Name</label>
-                  <input id="field-spouse1Name" type="text" className="form-input" placeholder="Primary" aria-describedby="field-spouse1Name-help" value={inputs.spouse1Name || ''} onChange={(e) => updateInput('spouse1Name', e.target.value)} />
+                  <input id="field-spouse1Name" type="text" className="form-input" placeholder="Your first name" aria-describedby="field-spouse1Name-help" value={inputs.spouse1Name && inputs.spouse1Name !== 'Primary' ? inputs.spouse1Name : ''} onChange={(e) => updateInput('spouse1Name', e.target.value)} />
                   <span id="field-spouse1Name-help" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                    Optional. It only labels your screens and printouts and stays on this device; left blank, the plan says Primary.
+                    Optional. It only labels your screens and printouts and stays on this device; left blank, the plan just says &ldquo;you&rdquo;.
                   </span>
                 </div>
                 <div className="form-group">

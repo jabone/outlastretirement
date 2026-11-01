@@ -120,7 +120,7 @@ describe('Sidebar accessible names (WCAG 2.5.3, label in name)', () => {
 
   it('the captioned buttons keep their captions as names, with the tip as a description', () => {
     renderWithSimulation(<Sidebar {...baseProps} />);
-    expect(screen.getByRole('button', { name: 'Quick Update' })).toHaveAttribute('aria-description', expect.stringMatching(/balances, salary/));
+    expect(screen.getByRole('button', { name: 'Update My Numbers' })).toHaveAttribute('aria-description', expect.stringMatching(/balances, salary/));
     expect(screen.getByRole('button', { name: 'Backup Everything' })).toHaveAttribute('aria-description', expect.stringMatching(/restore your plan on this or another browser/));
     expect(screen.getByRole('button', { name: 'Restore Backup' })).toHaveAttribute('aria-description', expect.stringMatching(/Backup Everything/));
   });
@@ -128,6 +128,6 @@ describe('Sidebar accessible names (WCAG 2.5.3, label in name)', () => {
   it('minimized, where the rail hides the words, the same words become the aria-label', () => {
     renderWithSimulation(<Sidebar {...baseProps} isSidebarOpen={false} />);
     expect(screen.getByRole('button', { name: 'Dashboard' })).toHaveAttribute('aria-label', 'Dashboard');
-    expect(screen.getByRole('button', { name: 'Quick Update' })).toHaveAttribute('aria-label', 'Quick Update');
+    expect(screen.getByRole('button', { name: 'Update My Numbers' })).toHaveAttribute('aria-label', 'Update My Numbers');
   });
 });

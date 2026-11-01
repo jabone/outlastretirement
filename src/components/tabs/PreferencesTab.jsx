@@ -717,7 +717,7 @@ const PreferencesTab = () => {
             </div>
             <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: '0 0 10px', lineHeight: 1.5 }}>
               A projection is only as honest as its inputs. When a new brokerage statement should have arrived,
-              a banner reminds you to import it (or refresh balances in Quick Update); a separate reminder appears
+              a banner reminds you to import it (or refresh balances in Update My Numbers); a separate reminder appears
               when the plan has changed but hasn&rsquo;t been backed up for two weeks. Dismissing either snoozes it
               for a week &mdash; it never goes away for good, on purpose.
             </p>

@@ -48,7 +48,7 @@ export default function InitialBalancesSection() {
                   <NumberInput id="field-rothBasisInit" commas step="1000" min="0" className="form-input" value={inputs.rothBasisInit} onChange={(e) => updateInput('rothBasisInit', (e.target.value === '' ? '' : Math.max(0, parseFloat(e.target.value))))} />
                   <label htmlFor="field-rothRecentConversionsInit" style={{ marginTop: '8px', display: 'block', fontSize: 'var(--fs-xs)' }}>Converted to Roth in the Last 4 Years ($, optional)</label>
                   <NumberInput id="field-rothRecentConversionsInit" commas step="1000" min="0" className="form-input" value={inputs.rothRecentConversionsInit} onChange={(e) => updateInput('rothRecentConversionsInit', (e.target.value === '' ? '' : Math.max(0, parseFloat(e.target.value))))} />
-                  <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                  <span data-hint-for="rothRecentConversionsInit" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
                     Conversions still inside their five-year clock (assumed spread evenly over those years). Older conversions are already penalty-free — count them as contribution basis above. Conversions this plan makes are tracked automatically.
                   </span>
                 </div>

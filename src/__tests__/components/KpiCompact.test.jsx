@@ -34,7 +34,7 @@ describe('KPI strip on a phone', () => {
     const line = screen.getByTestId('kpi-compact');
     expect(line.textContent).toMatch(/\/yr/);
     expect(line.textContent).toMatch(/Ends \$/);
-    expect(line.textContent).toMatch(/On track|Mostly on track|At risk|Runs short|Checking markets|Lasts on average/);
+    expect(line.textContent).toMatch(/On track|Mostly on track|At risk|Runs short|Checking markets|Lasts on average|Sample plan/);
     expect(line.getAttribute('aria-expanded')).toBe('false');
     expect(document.getElementById('kpi-grid').className).toMatch(/kpi-collapsed/);
     fireEvent.click(line);

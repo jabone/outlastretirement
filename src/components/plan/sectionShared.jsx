@@ -6,7 +6,7 @@ import { MONTH_NAMES, paymentMonths, spendingCalendar } from '../../utils/spendi
 import MaximizeButton from '../MaximizeButton';
 import { SPENDING_CADENCES, SPENDING_CATEGORIES, SPENDING_HEALTH_BRIDGE_ID, essentialShareOf, readSpendingBlueprint, spendingBlueprintDerived } from '../../calculator';
 import { spendingCadence } from '../../utils/spendingCadence';
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { isGuidedCore, stripSpouseSuffix } from '../../config/guidedCore';
 import NumberInput from '../NumberInput';
 import PremiumMount from '../../premium/PremiumMount';
@@ -706,20 +706,46 @@ const GuidedSection = ({ children, only = null }) => {
   const [hidden, setHidden] = useState(0);
   const onlySet = only ? new Set(only) : null;
   const wanted = (k) => !!onlySet && (onlySet.has(k) || onlySet.has(stripSpouseSuffix(k)));
-  // Runs after EVERY render on purpose (no deps): it measures the DOM the
-  // section just rendered. It sets state only when the count changed, so it
-  // settles after at most one extra render.
+  // Measures and folds the DOM the section rendered. Runs after EVERY
+  // render on purpose (no deps), and again whenever the section's own
+  // content changes underneath it: the wizard's sections are lazy-loaded
+  // inside their own Suspense, so the first pass can run before they exist
+  // and nothing re-renders this component when they arrive (the fields
+  // showed unfolded for several seconds, novice review 2026-11-01). It sets
+  // state only when the count changed, so it settles after at most one
+  // extra render.
+  const applyRef = useRef(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useLayoutEffect(() => {
+  useLayoutEffect(() => { if (applyRef.current) applyRef.current(); });
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof MutationObserver === 'undefined') return undefined;
+    // childList only: the class toggles below are attribute changes, so
+    // folding never re-triggers itself.
+    const observer = new MutationObserver(() => { if (applyRef.current) applyRef.current(); });
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+  applyRef.current = () => {
     const root = rootRef.current;
     if (!root) return;
     let n = 0;
     if (onlySet) {
       const keep = (el) => [...el.querySelectorAll('[id^="field-"], [id^="toggle-"]')].some((c) => wanted(keyOf(c)));
-      [...root.children].forEach((child) => {
-        if (child.classList.contains('guided-more')) return;
-        child.classList.toggle('guided-hidden', !keep(child));
-      });
+      // Every block with no wanted control folds, at any depth, not only at
+      // the top: a section's notes, buttons and subheadings sit beside its
+      // fields inside wrappers (Print for review, a strategy heading and its
+      // paragraph). A form group is left to the group pass below, so a
+      // field's own hint stays with it.
+      const prune = (el) => {
+        [...el.children].forEach((child) => {
+          if (child.classList.contains('guided-more')) return;
+          const k = keep(child);
+          child.classList.toggle('guided-hidden', !k);
+          if (k && !child.classList.contains('form-group')) prune(child);
+        });
+      };
+      prune(root);
       root.querySelectorAll('.form-group').forEach((group) => {
         group.classList.toggle('guided-hidden', !keep(group));
       });
@@ -733,6 +759,11 @@ const GuidedSection = ({ children, only = null }) => {
         const housing = c.closest('.custom-switch');
         if (housing) housing.classList.toggle('guided-hidden', off);
       });
+      // A hint that belongs to one control inside a shared group says so
+      // with data-hint-for, and folds with it.
+      root.querySelectorAll('[data-hint-for]').forEach((h) => {
+        h.classList.toggle('guided-hidden', !wanted(h.getAttribute('data-hint-for')));
+      });
       return;
     }
     root.querySelectorAll('.form-group').forEach((group) => {
@@ -744,7 +775,7 @@ const GuidedSection = ({ children, only = null }) => {
       group.classList.toggle('guided-hidden', advanced && !open);
     });
     if (n !== hidden) setHidden(n);
-  });
+  };
   return (
     <div ref={rootRef} className={`guided-section${open ? ' guided-open' : ''}${onlySet ? ' guided-only' : ''}`}>
       {children}

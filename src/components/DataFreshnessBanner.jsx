@@ -51,7 +51,7 @@ const DataFreshnessBanner = () => {
     messages.push(
       status.hasHoldings
         ? `Your holdings were last reconciled ${formatAgeDays(status.portfolioAgeDays)} — if a new statement has arrived this ${cadenceWord}, import it so the numbers stay real.`
-        : `Your balances were last refreshed ${formatAgeDays(status.portfolioAgeDays)} — a minute in Quick Update keeps the projection honest.`
+        : `Your balances were last refreshed ${formatAgeDays(status.portfolioAgeDays)} — a minute in Update My Numbers keeps the projection honest.`
     );
   }
 
@@ -63,7 +63,7 @@ const DataFreshnessBanner = () => {
   };
   const handleGoUpdate = () => {
     // Detailed Holdings users land on the Portfolio tab's import; balance-
-    // only users get Quick Update -- the Portfolio tab is premium-gated,
+    // only users get Update My Numbers -- the Portfolio tab is premium-gated,
     // so don't send non-holdings users there.
     if (status.hasHoldings) setActiveTab('portfolio');
     else setShowQuickUpdate(true);
@@ -113,7 +113,7 @@ const DataFreshnessBanner = () => {
             <>
               <button type="button" className="btn-primary" onClick={handleGoUpdate}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-xs)', padding: '6px 12px' }}>
-                {status.hasHoldings ? 'Import a statement' : 'Open Quick Update'}
+                {status.hasHoldings ? 'Import a statement' : 'Open Update My Numbers'}
               </button>
               <HoverTooltip text="Already up to date? Reset the reminder without importing anything." labeled>
                 <button type="button" className="btn-outline" onClick={handleMarkCurrent}

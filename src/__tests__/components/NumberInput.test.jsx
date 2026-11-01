@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 //
 // NumberInput is the one validated number field for the Plan form, the
-// Setup Wizard, Quick Update and the Life Events form. These pin the rules
+// Setup Wizard, Update My Numbers and the Life Events form. These pin the rules
 // a reviewer broke the old bare <input type="number"> with: a cleared
 // balance stored '' (and the nest egg became a string concatenation), "1e9"
 // became a billion, "-5000" became 5000, "48.000,50" became 48.0005, and

@@ -58,7 +58,8 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
     ? formatCurrency
     : (v) => `$${Math.round(v || 0).toLocaleString()}`;
 
-  const spouse1 = inputs.spouse1Name || 'Primary';
+  // An unnamed first person is the reader (novice review 2026-11-01).
+  const spouse1 = inputs.spouse1Name && inputs.spouse1Name !== 'Primary' ? inputs.spouse1Name : 'You';
   const spouse2 = inputs.spouse2Name || 'Spouse';
   const hasSpouse2 = !!inputs.spouse2Enabled;
 
@@ -103,8 +104,8 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
     const autoLabel = AUTO_MAX_LABELS[mode];
     return {
       label: autoLabel
-        ? `${who} contributes ${autoLabel} every working year`
-        : `${who} saves ${parts.join(' + ')}`,
+        ? `${who} ${who === 'You' ? 'contribute' : 'contributes'} ${autoLabel} every working year`
+        : `${who} ${who === 'You' ? 'save' : 'saves'} ${parts.join(' + ')}`,
       detail: autoLabel
         ? `Auto-Max is on, so this is not a fixed amount: it follows the IRS limits, which rise each year and step up again at the catch-up ages. That works out to ${parts.join(' + ')} in ${firstSavingYear.year || 'the first year'}. Until retirement at age ${retireAge}.`
         : `Until retirement at age ${retireAge}.${startYearNote}`,

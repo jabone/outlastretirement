@@ -1,4 +1,4 @@
-import { CONTACT_EMAIL } from './premiumOffering';
+import { CONTACT_EMAIL, REQUEST_SUBJECT } from './premiumOffering';
 // Announcements: timed broadcast messages shown through the What's New popup,
 // kept SEPARATE from the permanent CHANGELOG (release notes) on purpose
 // (changelog 150). Two reasons they are not just changelog entries:
@@ -44,14 +44,21 @@ export const ANNOUNCEMENTS = [
     id: 'welcome-2026-09-30',
     tone: 'notice',
     title: 'Welcome to OutlastRetirement',
-    summary: 'We’re in beta, and Premium is invite-only and free while we are. Email us for an access key.',
+    // The address and what to ask are in the summary, which shows without
+    // opening Details (2026-11-01).
+    summary: `We’re in beta, and Premium is invite-only and free while we are. To ask for it, email ${CONTACT_EMAIL} with the subject “${REQUEST_SUBJECT}”.`,
     items: [
-      `**Premium** adds four areas to the free planner: **Detailed Holdings**, **Retirement Spending**, **Readiness in Full**, and **Relocation & Residency**. Email **${CONTACT_EMAIL}** and we’ll send the steps to turn it on.`,
-      'An access key lasts 30 days and is renewed by email.',
+      `**Premium** adds four areas to the free planner: **Detailed Holdings**, **Retirement Spending**, **Readiness in Full**, and **Relocation & Residency**.`,
+      `**To ask for it:** email **${CONTACT_EMAIL}** from the address you want the key sent to, with the subject **${REQUEST_SUBJECT}**. A line on what you hope to use it for helps but is not needed. Nothing else is required: no name, no account, no figures from your plan.`,
+      'We reply with your access key and the steps to turn it on. A key lasts 30 days and is renewed by email.',
       'Feedback is welcome at the same address; we read every note.',
     ],
     showFrom: '2026-09-30',
-    showToNewVisitors: true,
+    // Not on a first visit (novice review 2026-11-01): a newcomer has just
+    // passed the disclaimer and the "how would you like to start" screen, and
+    // a third pop-up about Premium keys means nothing to them yet. The
+    // Premium page and the home page say the same thing where it is wanted.
+    showToNewVisitors: false,
   },
 ];
 

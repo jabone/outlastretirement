@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useDialogBehavior } from './useDialogBehavior';
 
-// The one shell every overlay in the app opens in: Quick Update, the
+// The one shell every overlay in the app opens in: Update My Numbers, the
 // disclaimer (first visit and "Read the full disclaimer"), the Print / PDF
 // chooser, the Setup Wizard and onboarding chooser, suggested plan changes,
 // the maximized chart. It gives each the same behavior AppDialog has:

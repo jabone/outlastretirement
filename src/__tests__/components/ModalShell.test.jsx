@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 //
-// Every overlay (Quick Update, the disclaimer, Print / PDF, the Setup
+// Every overlay (Update My Numbers, the disclaimer, Print / PDF, the Setup
 // Wizard, suggested changes, the maximized chart) opens in ModalShell. Before
 // it, Escape did nothing, focus stayed on the button behind the overlay, Tab
 // walked the page underneath, and the page behind still scrolled.

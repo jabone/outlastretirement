@@ -2,7 +2,7 @@ import React, { useId, useRef, useState } from 'react';
 import { parseNumberText, rangeMessage, fmt } from './numberText';
 
 // One validated number field for the whole Plan form, the Setup Wizard,
-// Quick Update and the Life Events form.
+// Update My Numbers and the Life Events form.
 //
 // It replaces bare <input type="number">, which let a cleared balance store
 // '' (and '' + 15000 + 2000000 is a string, not a sum: a cleared Pre-Tax box

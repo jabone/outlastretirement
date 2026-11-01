@@ -17,8 +17,10 @@ import { computeFreshnessStatus, formatAgeDays } from '../../utils/dataFreshness
 const NAV_ICONS = { TrendingUp, Settings, Gauge, FileText, PieChart, Sparkles, HelpCircle, Trophy, ShieldAlert, BarChart2, Copy, Compass, SlidersHorizontal };
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavOpen, setIsMobileNavOpen }) => {
-  const { activeTab, setActiveTab, kpis, verdict: sharedVerdict, scenarios, handleSaveScenario, isSavingScenario, setShowQuickUpdate, showPrompt } = useSimulation();
-  const verdict = sharedVerdict || planVerdict({ isSuccessful: kpis?.isSuccessful });
+  const { activeTab, setActiveTab, kpis, verdict: sharedVerdict, statusVerdict, scenarios, handleSaveScenario, isSavingScenario, setShowQuickUpdate, showPrompt } = useSimulation();
+  // statusVerdict says "Sample plan" while the plan is the built-in sample
+  // (novice review 2026-11-01); otherwise it is the shared verdict.
+  const verdict = statusVerdict || sharedVerdict || planVerdict({ isSuccessful: kpis?.isSuccessful });
   const { isPremium } = useEntitlement();
   const restoreFileInputRef = useRef(null);
 
@@ -145,13 +147,13 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavO
         </div>
         )}
 
-        {/* Quick Update: the handful of numbers people actually change day-to-day,
+        {/* Update My Numbers: the handful of numbers people actually change day-to-day,
             without having to dig through the full Plan Settings pages. */}
-        <HoverTooltip text="Quick Update: balances, salary, retirement age & SS claiming age" labeled>
+        <HoverTooltip text="Update My Numbers: balances, salary, retirement age & SS claiming age" labeled>
           <button
             className="btn-primary"
             onClick={() => setShowQuickUpdate(true)}
-            aria-label={minimizedName('Quick Update')}
+            aria-label={minimizedName('Update My Numbers')}
             style={{
               width: '100%',
               padding: '12px 16px',
@@ -164,7 +166,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavO
             }}
           >
             <Zap size={16} />
-            <span>Quick Update</span>
+            <span>Update My Numbers</span>
           </button>
         </HoverTooltip>
 
@@ -323,17 +325,19 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, showDisclaimer, isMobileNavO
           {(() => {
             const fresh = computeFreshnessStatus();
             const stale = fresh.backupOverdue || fresh.portfolioOverdue;
+            // Plain words (novice review 2026-11-01): "Never backed up · data
+            // never reconciled" read as two alarms and a word nobody uses.
             const backupText = fresh.everBackedUp
-              ? `Backed up ${formatAgeDays(fresh.backupAgeDays)}`
-              : 'Never backed up';
+              ? `Last backup ${formatAgeDays(fresh.backupAgeDays)}.`
+              : 'Back up to keep a copy.';
             const portfolioText = fresh.everPortfolioUpdated
-              ? `data updated ${formatAgeDays(fresh.portfolioAgeDays)}`
-              : 'data never reconciled';
+              ? ` Balances updated ${formatAgeDays(fresh.portfolioAgeDays)}.`
+              : '';
             return (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: 'var(--fs-xs)', color: stale ? 'var(--warning)' : 'var(--text-secondary)', opacity: stale ? 1 : 0.8, marginTop: '4px', textAlign: 'center' }}>
+              <div data-testid="sidebar-save-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: 'var(--fs-xs)', color: stale ? 'var(--warning)' : 'var(--text-secondary)', opacity: stale ? 1 : 0.8, marginTop: '4px', textAlign: 'center' }}>
                 {stale ? <ShieldAlert size={12} style={{ flexShrink: 0 }} /> : <CheckCircle size={12} style={{ flexShrink: 0 }} />}
                 <span>
-                  {`${backupText} · ${portfolioText} — auto-saved to this browser only`}
+                  {`Saved in this browser only. ${backupText}${portfolioText}`}
                 </span>
               </div>
             );

@@ -15,9 +15,9 @@ describe('phone top bar verdict', () => {
   const bar = app.slice(app.indexOf('<div className="mobile-topbar">'), app.indexOf('</div>', app.indexOf('<div className="mobile-topbar">')));
 
   it('shows the shared verdict’s label, named for screen readers, and links to the Dashboard', () => {
-    expect(bar).toMatch(/className=\{`mobile-topbar-verdict \$\{verdictClass\(verdict\.tone\)\}`\}/);
-    expect(bar).toMatch(/<span className="mobile-topbar-verdict-dot" aria-hidden="true" \/>\s*\{verdict\.label\}\s*<\/a>/);
-    expect(bar).toMatch(/aria-label=\{`Plan status: \$\{verdict\.label\}\. \$\{verdict\.detail\}`\}/);
+    expect(bar).toMatch(/className=\{`mobile-topbar-verdict \$\{verdictClass\(statusVerdict\.tone\)\}`\}/);
+    expect(bar).toMatch(/<span className="mobile-topbar-verdict-dot" aria-hidden="true" \/>\s*\{statusVerdict\.label\}\s*<\/a>/);
+    expect(bar).toMatch(/aria-label=\{`Plan status: \$\{statusVerdict\.label\}\. \$\{statusVerdict\.detail\}`\}/);
     expect(bar).toMatch(/href=\{formatHash\(DEFAULT_TAB\)\}/);
   });
 

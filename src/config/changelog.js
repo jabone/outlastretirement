@@ -29,6 +29,21 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 471,
+    date: '2026-11-01',
+    title: 'A plainer first ten minutes: one way to start, six short questions, and sample figures that say so',
+    summary: 'The welcome screen leads with six short questions, Quick Setup asks only what you know and ends with what it assumed, and sample figures are labeled as a sample until you enter yours.',
+    items: [
+      "**Sample figures say so.** Until you enter your own birth year, pay, savings or spending, a banner says the figures belong to a made-up person, and the plan status reads Sample plan instead of the sample's verdict.",
+      "**One way to start.** The welcome screen now leads with six short questions, offers a sample family second, and keeps the full interview and the skip-ahead underneath.",
+      "**Quick Setup asks only what you know.** For a few seconds after it opened, it showed every field in each section, from filing status to the five-year Roth clock; it now shows only its own questions from the start. The steps are in plain words, and the last one lists what the plan assumed for you (how long it runs, when Social Security starts, the employer match, inflation, returns, health cover and taxes).",
+      "**A better spending suggestion.** It starts from what your pay leaves today after tax and saving. The old 75%-of-income suggestion included taxes and health insurance, which this figure leaves out, so it counted them twice.",
+      "**You are \u201cyou\u201d.** With no name entered, labels read \u201cYour birth year\u201d and the Action Plan says \u201cYou save\u201d, instead of \u201cPrimary\u201d.",
+      "**Fewer pop-ups.** A first visit no longer ends with a third pop-up about Premium keys, during that visit or after Quick Setup.",
+      "**Plain words in the sidebar.** The save note reads \u201cSaved in this browser only. Back up to keep a copy.\u201d, and Quick Update is now Update My Numbers.",
+    ],
+  },
+  {
     id: 470,
     date: '2026-10-31',
     title: 'A widow\u2019s spending falls in the plan itself, the Monte Carlo states its margin, and the privacy policy speaks to Europe',

@@ -625,7 +625,7 @@ input:checked + .slider-round:before {
   user-select: none;
 }
 
-/* First group sits directly under the Quick Update button, so it doesn't
+/* First group sits directly under the Update My Numbers button, so it doesn't
    need the extra breathing room the later two do. */
 .nav-group-label:first-child {
   margin-top: 4px;
@@ -1913,7 +1913,7 @@ select.form-input,
 
   /* The sidebar itself becomes a full-height off-canvas drawer, hidden by
      sliding it out of view to the left by default. Everything inside it
-     (Quick Update, Reset Plan, Save Scenario, the nav links, theme toggle,
+     (Update My Numbers, Reset Plan, Save Scenario, the nav links, theme toggle,
      etc.) is unchanged -- it's the same full sidebar, just presented as an
      overlay instead of stacked inline above the page content. */
   .sidebar {
@@ -1923,7 +1923,7 @@ select.form-input,
        width -- that's what was scrambling the drawer's visible stacking
        order (nav links ending up last, below every other button). Force it
        back to a plain top-to-bottom column here so content renders in the
-       same order it's written in Sidebar.jsx: logo, status, Quick Update,
+       same order it's written in Sidebar.jsx: logo, status, Update My Numbers,
        nav links, then the secondary/footer actions. */
     display: flex !important;
     flex-direction: column !important;
@@ -2279,7 +2279,9 @@ select.form-input,
 
 /* Guided density (IA Phase 3): fields outside the first pass fold away
    until "More options" is pressed. See GuidedSection in sectionShared.jsx. */
-.guided-section .guided-hidden { display: none; }
+/* !important: a label or hint with an inline display style would otherwise
+   stay visible beside its folded control (novice review 2026-11-01). */
+.guided-section .guided-hidden { display: none !important; }
 
 
 /* Section prints (changelog 297): utils/printSection marks
