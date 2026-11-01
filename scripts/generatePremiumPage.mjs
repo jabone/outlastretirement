@@ -14,9 +14,10 @@ import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const { FREE_GROUPS } = await import(pathToFileURL(join(root, 'src/config/freeOffering.js')).href);
-const { PREMIUM_AREAS, CONTACT_EMAIL } = await import(pathToFileURL(join(root, 'src/config/premiumOffering.js')).href);
+const { PREMIUM_AREAS } = await import(pathToFileURL(join(root, 'src/config/premiumOffering.js')).href);
 const { SITE_NAV } = await import(pathToFileURL(join(root, 'src/config/siteNav.js')).href);
 const { ANALYTICS_SENDS } = await import(pathToFileURL(join(root, 'src/config/analyticsDisclosure.js')).href);
+const { requestAccessHtml, REQUEST_ACCESS_CSS, syncIndexHtml, readIndex, INDEX_PATH } = await import(pathToFileURL(join(root, 'scripts/requestAccessHtml.mjs')).href);
 
 const esc = (s) => String(s)
   .replace(/--/g, '—')
@@ -40,11 +41,8 @@ head = head
     .tier .blurb { color: var(--muted); font-size: 14px; margin: 0 0 10px; }
     .tier ul { margin: 0; }
     .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-text); margin-bottom: 6px; }
-    .mailto-note { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin: 8px 0 14px; color: var(--muted); font-size: 14px; line-height: 1.5; }
-    .mailto-note--nothing { border-color: #e07a5f; }
-    .mailto-note-text { flex: 1 1 260px; }
-    .mailto-note strong { color: var(--text); }
     .btn-ghost { border: 2px solid var(--border); color: var(--text); }
+${REQUEST_ACCESS_CSS.split('\n').map((l) => `    ${l}`).join('\n')}
   </style>`);
 
 const list = (points) => `<ul>\n${points.map((p) => `          <li>${esc(p)}</li>`).join('\n')}\n        </ul>`;
@@ -91,7 +89,8 @@ ${free}
     </div>
 
     <h2>Premium</h2>
-    <p>One Premium, not a menu of add-ons. It is <strong>invite-only and free while we are in beta</strong>: there is no checkout and no payment. You are invited. Email <a href="mailto:${esc(CONTACT_EMAIL)}?subject=Premium%20access" data-mailto-fallback>${esc(CONTACT_EMAIL)}</a> from your usual email and we will send the steps to turn it on; nothing is sent from this page. An access key lasts 30 days and is renewed by email.</p>
+    <p>One Premium, not a menu of add-ons. It is <strong>invite-only and free while we are in beta</strong>: there is no checkout and no payment. You are invited: ask by email, as below, and we will send the steps to turn it on. An access key lasts 30 days and is renewed by email.</p>
+${requestAccessHtml('    ')}
     <div class="tiers">
 ${premium}
     </div>
@@ -109,7 +108,7 @@ ${premium}
       <p>© 2026 OutlastRetirement LLC. All rights reserved.</p>
     </footer>
   </div>
-  <script src="/mailto-fallback.js"></script>
+  <script src="/copy-text.js"></script>
 </body>
 </html>
 `;
@@ -119,8 +118,13 @@ if (process.argv.includes('--check')) {
   let current = '';
   try { current = readFileSync(out, 'utf8'); } catch { /* missing counts as stale */ }
   if (current !== html) { console.error('public/premium.html is stale: run node scripts/generatePremiumPage.mjs'); process.exit(1); }
-  console.log('premium.html is current');
+  const index = readIndex();
+  if (syncIndexHtml(index) !== index) { console.error('index.html\'s request-access block is stale: run node scripts/generatePremiumPage.mjs'); process.exit(1); }
+  console.log('premium.html and the home page\'s request block are current');
 } else {
   writeFileSync(out, html);
   console.log('wrote public/premium.html');
+  // The home page carries the same block between its markers.
+  writeFileSync(INDEX_PATH, syncIndexHtml(readIndex()));
+  console.log('updated the request block in index.html');
 }

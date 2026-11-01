@@ -110,8 +110,11 @@ describe('landing page privacy posture', () => {
   it('loads nothing from another origin', () => {
     // The site's own absolute URL is allowed -- <link rel="canonical"> and
     // og:url have to be absolute. Anything on a different host is not.
+    // A link a reader clicks to open in a new tab (the Ask for Premium
+    // block's web mail buttons) is not something the page loads.
     const remote = [...landing.matchAll(/(?:src|href)="(https?:)?\/\/([^/"]+)[^"]*"/g)]
       .filter((m) => !['outlastretirement.com', 'www.outlastretirement.com'].includes(m[2]))
+      .filter((m) => !/target="_blank"/.test(landing.slice(Math.max(0, m.index - 200), m.index + 200)))
       .map((m) => m[0]);
     expect(remote).toEqual([]);
   });

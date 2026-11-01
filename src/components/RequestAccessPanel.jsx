@@ -34,14 +34,14 @@ export default function RequestAccessPanel({ id = 'request-access' }) {
           <Mail size={16} style={{ color: 'var(--accent-text)' }} aria-hidden="true" /> Ask for Premium by email
         </h3>
         <p style={{ margin: '6px 0 0', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Send it from the address you want your key sent to. Nothing is sent from this page.
+          Send it from the address you want your key sent to. Nothing is sent from this page, and nothing else is asked.
         </p>
       </div>
 
       <div style={{ padding: '14px 16px', borderRadius: '10px', border: '1px solid var(--card-border)', background: 'var(--bg-secondary)' }}>
         <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>If you use Gmail, Outlook.com or Yahoo Mail</div>
         <p style={{ margin: '0 0 10px', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Your mail opens in a new tab with the message already written and addressed. Read it, add a line if you like, and press Send.
+          Your mail opens in a new tab with the message already written and addressed. Check it and press Send.
         </p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {WEBMAIL_SERVICES.map((s, i) => (
@@ -73,10 +73,29 @@ export default function RequestAccessPanel({ id = 'request-access' }) {
             Use the subject <strong style={{ color: 'var(--text-primary)' }}>{REQUEST_SUBJECT}</strong>{' '}
             <CopyButton text={REQUEST_SUBJECT} label="Copy the subject" testId="request-copy-subject" />
           </li>
-          <li>If you like, say in a line what you hope to use it for. No name, account or figures from your plan are needed.</li>
-          <li>Send it from the address you want the key sent to. The reply has your key and how to turn it on.</li>
+          <li>Nothing else is needed: no name, no account, no figures from your plan.</li>
+          <li>Send it from the address you want the key sent to. The reply has your key and how to turn it on. To reach us about anything else, write to the same address.</li>
         </ol>
       </div>
     </section>
+  );
+}
+
+// The same choices in one sentence, for a small notice (the Premium key
+// renewal banner): the three web mail links, or the address to copy.
+export function WebmailInline({ subject, body }) {
+  return (
+    <span data-testid="webmail-inline">
+      Write it in{' '}
+      {WEBMAIL_SERVICES.map((s, i) => (
+        <React.Fragment key={s.id}>
+          {i > 0 && (i === WEBMAIL_SERVICES.length - 1 ? ' or ' : ', ')}
+          <a href={s.url(CONTACT_EMAIL, subject, body)} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-text)', fontWeight: 600 }}>{s.label}</a>
+        </React.Fragment>
+      ))}
+      , or email <strong>{CONTACT_EMAIL}</strong>
+      <CopyButton text={CONTACT_EMAIL} label="Copy the address" testId="webmail-inline-copy" />
+      {' '}with the subject <em>{subject}</em>
+    </span>
   );
 }

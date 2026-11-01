@@ -228,7 +228,7 @@ export default function PremiumTab() {
       <div className="glass-panel" style={{ padding: '22px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
         <Sparkles size={18} style={{ color: 'var(--accent-text)', flexShrink: 0 }} />
         <div style={{ flex: '1 1 300px', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Want it? Send a note saying roughly what you are tracking and I will get back to you.
+          Want it? Ask by email and we will send your key. To reach us about anything else, write to the same address.
         </div>
         <button
           type="button"

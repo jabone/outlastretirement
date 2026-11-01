@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useEntitlement } from '../context/useEntitlement';
 import { AlertTriangle, Clock, X } from 'lucide-react';
-import MailtoLink from './MailtoLink';
-import { CONTACT_EMAIL, PREMIUM_NAME } from '../config/premiumOffering';
+import { WebmailInline } from './RequestAccessPanel';
+import { PREMIUM_NAME } from '../config/premiumOffering';
 import {
   shouldShowPremiumExpiryBanner,
   dismissPremiumExpiry,
@@ -40,7 +40,7 @@ const PremiumExpiryBanner = () => {
   const dateText = status.expiresAt ? status.expiresAt.toLocaleDateString() : '';
   const dayWord = (n) => (n === 1 ? 'day' : 'days');
 
-  // MailtoLink encodes these for the mailto: address itself.
+  // The compose links encode these themselves.
   const subject = `${PREMIUM_NAME} key renewal`;
   const body = expired
     ? `Hello,\n\nMy ${PREMIUM_NAME} key expired on ${dateText}. Could I have a new one?\n\nThank you.`
@@ -89,10 +89,7 @@ const PremiumExpiryBanner = () => {
             ? 'Nothing has been deleted: your holdings and every other figure are still in this browser exactly as you left them, and they come straight back when a new key is entered. Only the paid features are locked in the meantime.'
             : 'Nothing will be deleted when it does — your holdings stay in this browser and come straight back with a new key. Only the paid features lock until then.'}
           {' '}
-          <MailtoLink email={CONTACT_EMAIL} subject={subject} body={body} style={{ color: 'var(--accent-text)' }}>
-            Email {CONTACT_EMAIL}
-          </MailtoLink>{' '}
-          for a new key, then paste it into Preferences &rarr; {PREMIUM_NAME}.
+          To get a new key: <WebmailInline subject={subject} body={body} />. Then paste the key into Preferences &rarr; {PREMIUM_NAME}.
         </div>
       </div>
 

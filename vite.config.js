@@ -177,7 +177,7 @@ export default defineConfig({
           'index.html', '404.html', 'privacy.html', 'verify.html', 'terms.html', 'premium.html', 'accessibility.html', 'changelog.html', 'how-the-math-works.html', 'pricing-script.html',
           // The Learn lessons are the website's, read online: never stored.
           'learn.html', 'learn/**',
-          'home-installed.js', 'home-returning.js', 'pricing-script.js', 'mailto-fallback.js',
+          'home-installed.js', 'home-returning.js', 'pricing-script.js', 'copy-text.js',
           'brand/**',
           'icons.svg', 'icon-1024.jpg',
           'assets/pdf-*.js', 'assets/pdf.worker*', 'assets/PortfolioTab-*.js',

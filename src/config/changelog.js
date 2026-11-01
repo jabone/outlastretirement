@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 474,
+    date: '2026-11-01',
+    title: 'The same way to ask for Premium on every page',
+    summary: 'The home page, the Free and Premium page and the key-renewal notice now ask for Premium the way the app does: written for you in Gmail, Outlook.com or Yahoo Mail, or the address and subject to copy.',
+    items: [
+      "**On the website.** Both the home page and the Free and Premium page replace their email links with the app's Ask for Premium by email section: buttons that open the request already written in Gmail, Outlook.com or Yahoo Mail, and for any other email the address and subject, each with a copy button. The home page's question How do I get Premium in beta? points to it.",
+      "**The key-renewal notice** in the app offers the same three web mail links, or the address to copy, instead of a link to your computer's email app.",
+      "**One subject everywhere.** Every request now uses the subject OutlastRetirement Premium access request; the site's pages used Premium access before.",
+      "**Nothing asked.** The written request no longer asks about your situation; it just asks for Premium. To reach us about anything else, write to the same address.",
+    ],
+  },
+  {
     id: 473,
     date: '2026-11-01',
     title: 'Asking for Premium: write it in Gmail, Outlook.com or Yahoo Mail',

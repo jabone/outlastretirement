@@ -58,7 +58,12 @@ describe('PremiumExpiryBanner placement', () => {
   it('still says how long is left, and where to write', () => {
     renderWithExpiry(inDays(3));
     expect(screen.getByRole('status').textContent).toMatch(/3 days from now/);
-    expect(screen.getByRole('link').getAttribute('href')).toMatch(/^mailto:/);
+    const links = screen.getAllByRole('link').map((a) => a.getAttribute('href'));
+    expect(links.some((h) => h.startsWith('https://mail.google.com/mail/?'))).toBe(true);
+    expect(links.some((h) => h.startsWith('https://outlook.live.com/'))).toBe(true);
+    expect(links.some((h) => h.startsWith('https://compose.mail.yahoo.com/'))).toBe(true);
+    expect(screen.getByRole('status').textContent).toMatch(/support@outlastretirement\.com/);
+    expect(screen.getByRole('status').textContent).toMatch(/key renewal/);
   });
 
   it('reads as past tense once the key has expired', () => {

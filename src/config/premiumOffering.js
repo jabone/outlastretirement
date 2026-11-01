@@ -292,16 +292,12 @@ export const PREMIUM_FACTS = [
   },
 ];
 
-// Pre-filled request. Kept short on purpose: a long template reads as a
-// form to fill out, and the useful signal is just "who, and roughly what
-// are you tracking".
+// Pre-filled request. Asks nothing: the request is the whole message, and
+// anyone who wants to say more knows they can write to the same address.
 export const REQUEST_SUBJECT = 'OutlastRetirement Premium access request';
 
 export const REQUEST_BODY = [
   'Hi — I would like access to Premium.',
-  '',
-  'A bit about my situation (what I am tracking, or what I am trying to work out):',
-  '',
   '',
   'Thanks!',
 ].join('\n');

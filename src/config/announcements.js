@@ -49,7 +49,7 @@ export const ANNOUNCEMENTS = [
     summary: `We’re in beta, and Premium is invite-only and free while we are. To ask for it, email ${CONTACT_EMAIL} with the subject “${REQUEST_SUBJECT}”.`,
     items: [
       `**Premium** adds four areas to the free planner: **Detailed Holdings**, **Retirement Spending**, **Readiness in Full**, and **Relocation & Residency**.`,
-      `**To ask for it:** email **${CONTACT_EMAIL}** from the address you want the key sent to, with the subject **${REQUEST_SUBJECT}**. A line on what you hope to use it for helps but is not needed. Nothing else is required: no name, no account, no figures from your plan.`,
+      `**To ask for it:** email **${CONTACT_EMAIL}** from the address you want the key sent to, with the subject **${REQUEST_SUBJECT}**. Nothing else is needed: no name, no account, no figures from your plan.`,
       'We reply with your access key and the steps to turn it on. A key lasts 30 days and is renewed by email.',
       'Feedback is welcome at the same address; we read every note.',
     ],
