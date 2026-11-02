@@ -103,10 +103,17 @@ jobs:
         with:
           fetch-depth: 0
       - name: One identity in the whole history
+        # The LLC's address was outlastretirement@gmail.com until 2026-11-02
+        # and is hello@outlastretirement.com from then on (Vercel matches a
+        # production commit's email to a GitHub account). Either address,
+        # never anyone else, and author and committer always the same.
         run: |
           ids=$(git log --format='%an <%ae> / %cn <%ce>' | sort -u)
           echo "$ids"
-          test "$ids" = "OutlastRetirement LLC <outlastretirement@gmail.com> / OutlastRetirement LLC <outlastretirement@gmail.com>"
+          ok='^OutlastRetirement LLC <(outlastretirement@gmail\.com|hello@outlastretirement\.com)> / OutlastRetirement LLC <(outlastretirement@gmail\.com|hello@outlastretirement\.com)>$'
+          bad=$(echo "$ids" | grep -Ev "$ok" || true)
+          test -z "$bad" || { echo "Not the LLC: $bad"; exit 1; }
+          echo "$ids" | grep -q 'hello@outlastretirement\.com' || echo "note: no commit under hello@ yet"
       - name: No provenance manifest in any image
         run: |
           ! grep -rlaE 'c2pa|caBX|<x:xmpmeta' --include='*.png' --include='*.webp' --include='*.jpg' --include='*.ico' --include='*.svg' . --exclude-dir=node_modules --exclude-dir=.git
