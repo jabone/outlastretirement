@@ -23,7 +23,7 @@ beforeEach(() => {
 });
 
 const nestEggText = () => {
-  const title = [...document.querySelectorAll('.kpi-title')].find((el) => el.textContent === 'Initial Nest Egg');
+  const title = [...document.querySelectorAll('.kpi-title')].find((el) => el.textContent === 'Savings today');
   return title.parentElement.querySelector('.kpi-value').textContent;
 };
 

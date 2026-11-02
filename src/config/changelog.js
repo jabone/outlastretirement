@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 475,
+    date: '2026-11-01',
+    title: 'Plain words, and a glossary for the rest',
+    summary: 'A new Help page, What does this mean?, explains the retirement words the app uses in plain English, and the Dashboard and home page use plainer words of their own.',
+    items: [
+      "**What does this mean?** A new page under Help explains 24 retirement words in plain English, from Roth and RMD to simulated markets and today\u2019s dollars, with where to find each in the app. A word with a dotted underline on the Dashboard shows its meaning when you point at it or tap it, with a link to the full entry.",
+      "**Plainer Dashboard.** Initial Nest Egg is now Savings today, Peak Portfolio Worth is Savings at their highest, and the Likely range (P10\u2013P90) under Ending Balance now reads In 8 of 10 market paths. The chart says it shows your savings over time by account, and each account type explains itself.",
+      "**Plainer home page.** The list of what is free now leads with what each feature does for you, for example testing your plan in 1,000 possible stock markets, and keeps the technical names in brackets.",
+      "**Help starts with one line.** Getting Started opens with what to do first: answer the six short questions, then read Will It Last?",
+      "**Readable links.** The Terms of Use and Privacy Policy links on the first-visit notice, and any other plain link, were the browser\u2019s default blue, which nearly vanished on the dark theme. They now use the app\u2019s own link color in both themes.",
+    ],
+  },
+  {
     id: 474,
     date: '2026-11-01',
     title: 'The same way to ask for Premium on every page',

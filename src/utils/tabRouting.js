@@ -70,7 +70,7 @@ export const ROUTES = {
   premium: { subTabKey: null, subTabs: [], defaultSubTab: null },
   guide: {
     subTabKey: 'guideSubTab',
-    subTabs: ['guide', 'dictionary', 'howfigured', 'whatsnew'],
+    subTabs: ['guide', 'glossary', 'dictionary', 'howfigured', 'whatsnew'],
     defaultSubTab: 'guide',
   },
 };

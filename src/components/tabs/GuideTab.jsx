@@ -4,6 +4,7 @@ import { BRAND_NAME } from '../../config/branding';
 import { FEEDBACK_EMAIL } from '../../config/premiumOffering';
 import { useSimulation } from '../../context/useSimulation';
 import InputReference from '../InputReference';
+import GlossaryTab from '../GlossaryTab';
 import WhatsNewHistory from '../WhatsNewHistory';
 import { lazyWithRetry } from '../../utils/lazyWithRetry';
 import {
@@ -106,11 +107,13 @@ const GuideTab = () => {
 
             <div className="sub-tab-container">
               <button className={`sub-tab-button ${guideSubTab === 'guide' ? 'active' : ''}`} onClick={() => setGuideSubTab('guide')}>Guide</button>
+              <button className={`sub-tab-button ${guideSubTab === 'glossary' ? 'active' : ''}`} onClick={() => setGuideSubTab('glossary')}>What does this mean?</button>
               <button className={`sub-tab-button ${guideSubTab === 'dictionary' ? 'active' : ''}`} onClick={() => setGuideSubTab('dictionary')}>Input Dictionary</button>
               <button className={`sub-tab-button ${guideSubTab === 'howfigured' ? 'active' : ''}`} onClick={() => setGuideSubTab('howfigured')}>How the numbers are figured</button>
               <button className={`sub-tab-button ${guideSubTab === 'whatsnew' ? 'active' : ''}`} onClick={() => setGuideSubTab('whatsnew')}>What's New</button>
             </div>
 
+            {guideSubTab === 'glossary' && <GlossaryTab />}
             {guideSubTab === 'dictionary' && <InputReference />}
 
             {guideSubTab === 'howfigured' && (
@@ -130,6 +133,9 @@ const GuideTab = () => {
                 subtitle: 'How to begin building your retirement plan',
                 content: (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: 'var(--fs-body)', color: 'var(--text-secondary)' }}>
+                    <p data-testid="guide-new-here" style={{ lineHeight: '1.6', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}>
+                      <strong>New here?</strong> Answer the six short questions (Preferences &rarr; Re-run the Setup Wizard if you skipped them), then read <strong>Will It Last?</strong> on the Dashboard. A word you do not know? <strong>What does this mean?</strong>, next to this Guide, explains it in plain English.
+                    </p>
                     <p style={{ lineHeight: '1.6' }}>
                       Welcome to {BRAND_NAME}! There are three ways to get your numbers in, and you can freely mix them — they all read and write the exact same plan, so nothing is lost switching between them.
                     </p>
@@ -145,7 +151,7 @@ const GuideTab = () => {
                       <li><strong>Plan (Advanced):</strong> The exhaustive option, always available &mdash; every input in the app, all at once, grouped by life domain, for when you already know exactly what you want to change. It is the <strong>Advanced</strong> view of the same Plan entry; the Guided / Advanced switch at the top of either view moves you across and keeps your section. Collapsible sections open by themselves when your plan uses them, and remember whether you opened or closed them. Number fields accept digits with optional commas, a leading $ or a trailing %; an entry that is out of range or not a number is refused when you leave the field, with a message under it, and the previous value stays. Emptying a money field sets it to $0.</li>
                       <li><strong>A packet for a planner:</strong> <strong>Print / PDF Report</strong> in the sidebar asks what to include: the analysis report, every plan setting, an account summary (balances and holdings by tax type, with no account names or numbers), the spending review, a checklist of what a planner will also ask for, the estate documents checklist and your What Will You Do? answers, with an option to leave out names. The Print / PDF Report buttons on Readiness and on the Action Plan open the same list. Save as PDF to send it; the app sends nothing itself.</li>
                       <li><strong>Print for review:</strong> On Plan &rarr; Spending, <strong>Print for review</strong> puts every budget line on paper &mdash; how often it is paid, the amount, a box to tick and room to write a change &mdash; for a spouse or anyone who would rather check it with a pen. Only that sheet prints; Save as PDF in the print dialog to send it.</li>
-                      <li><strong>On a phone:</strong> The five headline cards (Annual Lifestyle, Nest Egg, Peak, Ending Balance, Will It Last?) show in full on the Dashboard. On every other page they fold into one line &mdash; your yearly spending, the ending balance and the verdict &mdash; that you tap to open, slider included. It stays open or closed the way you left it.</li>
+                      <li><strong>On a phone:</strong> The five headline cards (Annual Lifestyle, Savings today, Savings at their highest, Ending Balance, Will It Last?) show in full on the Dashboard. On every other page they fold into one line &mdash; your yearly spending, the ending balance and the verdict &mdash; that you tap to open, slider included. It stays open or closed the way you left it.</li>
                       <li><strong>The label in the phone&rsquo;s top bar:</strong> the plan&rsquo;s verdict in a word or two (On track, Mostly on track, At risk, Runs short), the same one the sidebar and the Will It Last? card give. It is about the plan, not about your connection. Tap it to open the Dashboard.</li>
                       <li><strong>Find a setting:</strong> The search box at the top of either Plan view. Type part of a field&rsquo;s name and pick a result to land on it &mdash; the right sub-tab or Guided step, the section opened, the field highlighted. Press <strong>Ctrl+K</strong> (Cmd+K on a Mac) from any page to get there. When you would rather read about a term than edit it, the last result searches the Input Dictionary instead.</li>
                     </ul>
@@ -169,7 +175,7 @@ const GuideTab = () => {
                       The <strong>Dashboard</strong> reads your plan and answers four things in order: where you are (the figures at the top), where it is going (the projection chart), what is in the way (Plan Feedback) and what to do (Your Action Plan). It edits nothing; every setting lives on Plan, and every stress test on Risk &amp; Stress.
                     </p>
                     <div style={{ padding: '14px', borderRadius: '10px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--card-border)' }}>
-                      <strong style={{ color: 'var(--text-primary)' }}>The range behind the headline:</strong> the <strong>Ending Balance</strong> card at the top of every page is one path out of many. Once you have run the Monte Carlo for this plan, the card shows the <strong>P10&ndash;P90 band</strong> beneath the figure &mdash; eight trials in ten ended inside it, in the same dollars as the figure &mdash; and the <strong>Will It Last?</strong> card gives one verdict that combines the two views: the plan run with your
+                      <strong style={{ color: 'var(--text-primary)' }}>The range behind the headline:</strong> the <strong>Ending Balance</strong> card at the top of every page is one path out of many. Once you have run the Monte Carlo for this plan, the card shows <strong>In 8 of 10 market paths</strong> beneath the figure, a range &mdash; eight trials in ten ended inside it, in the same dollars as the figure &mdash; and the <strong>Will It Last?</strong> card gives one verdict that combines the two views: the plan run with your
                       average returns, and the share of simulated markets that last. <em>On track</em> means it lasts on average and in
                       at least 90% of markets; <em>Mostly on track</em>, 75&ndash;89%; <em>At risk</em>, under 75%; <em>Runs short</em>
                       means even average returns do not cover the spending. The share is rounded to a whole percent once and the verdict is read from that same whole number, so a plan at 89.6% shows 90% and <em>On track</em> everywhere, Scenarios included. While the simulation is still running the card states

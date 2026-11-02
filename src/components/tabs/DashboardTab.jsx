@@ -4,6 +4,7 @@ import { useSimulation } from '../../context/useSimulation';
 import { Loader2, AlertTriangle, Sparkles, CalendarCheck, Landmark, X } from 'lucide-react';
 import HoverTooltip from '../HoverTooltip';
 import Tooltip from '../Tooltip';
+import Term from '../Term';
 import MaximizeButton from '../MaximizeButton';
 // runProjection was missing entirely -- autoCalibratePlan below calls it
 // directly (not through the shared projection in context, since it needs
@@ -270,7 +271,7 @@ const DashboardTab = () => {
               </span>
             )}
           </div>
-          <p style={{ fontSize: isSplit ? '11px' : '13px', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>Stacked growth of Pre-Tax, Roth, and Taxable Brokerage accounts with average returns{growthBand ? <>; the shaded band is where total savings ended in <Tooltip text="The Monte Carlo's 10th to 90th percentile for each year: eight simulated markets in ten left savings inside the band, one in ten below it and one in ten above. The typical spread, not the odds of success." more="8 of 10 simulated markets">8 of 10 simulated markets</Tooltip></> : ''}</p>
+          <p style={{ fontSize: isSplit ? '11px' : '13px', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>Your savings over time, by account: <Term id="pretax">Pre-Tax</Term>, <Term id="roth">Roth</Term> and <Term id="taxable">Taxable</Term>, with <Term id="average-returns">average returns</Term>{growthBand ? <>; the shaded band is where total savings ended in <Tooltip text="The Monte Carlo's 10th to 90th percentile for each year: eight simulated markets in ten left savings inside the band, one in ten below it and one in ten above. The typical spread, not the odds of success." more="8 of 10 simulated markets">8 of 10 simulated markets</Tooltip></> : ''}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0, marginLeft: 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

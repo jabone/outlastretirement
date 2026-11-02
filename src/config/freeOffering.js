@@ -13,7 +13,7 @@ export const FREE_GROUPS = Object.freeze([
       'A guided interview, or every setting on one Plan page, with Find a setting (Ctrl+K) to jump to any field',
       'One person or a couple: salaries, savings, account balances, pensions, annuities and rental income',
       'Social Security by the rules: claiming age, spousal and survivor benefits, and the earnings test',
-      'Federal income tax, Social Security taxation, Medicare IRMAA, ACA premium credits and required minimum distributions',
+      'Federal income tax, the tax on Social Security, Medicare\u2019s income surcharge (IRMAA), marketplace health-insurance credits (ACA) and the withdrawals the law requires from age 73 or 75 (RMDs)',
       'State income tax for all 50 states and DC, each by its own 2026 rules (or a flat rate you set), including moves between states',
       'Life events: home, debts, big purchases, gifts, long-term care and a spending category ledger',
     ],
@@ -29,9 +29,9 @@ export const FREE_GROUPS = Object.freeze([
   {
     title: 'Stress and strategy',
     points: [
-      'Monte Carlo with 1,000 trials, historical crashes from 1929 to 2008, every real retirement since 1928 and the most you could spend to last through all of them, sensitivity analysis and spending guardrails',
-      'Optimizers: the Social Security claiming grid, Roth conversion ladders and withdrawal order',
-      'Tax & Estate: your tax brackets year by year, IRMAA tiers, heirs and the inherited-IRA 10-year rule, and an estate checklist',
+      'Your plan tested in 1,000 possible stock markets (a Monte Carlo), in the real crashes from 1929 to 2008, and as if you had retired in each year since 1928, with the most you could spend to last through all of them; which assumptions move the answer most; and spending guardrails, a rule for spending less after bad years',
+      'Optimizers: when to start Social Security, how much to move into a Roth each year, and which account to spend first',
+      'Tax & Estate: your tax brackets year by year, the Medicare surcharge tiers, what your heirs keep after tax, and an estate checklist',
       'Scenarios: save versions of the plan and compare them, or change one thing and see exactly what it does',
     ],
   },

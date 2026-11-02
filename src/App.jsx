@@ -22,7 +22,7 @@ const DieWithZeroChart = lazyWithRetry(() => import('./components/LazyCharts').t
 const AgeFinderChart = lazyWithRetry(() => import('./components/LazyCharts').then(m => ({ default: m.AgeFinderChart })));
 const EstateLegacyChart = lazyWithRetry(() => import('./components/LazyCharts').then(m => ({ default: m.EstateLegacyChart })));
 const CashFlowSankeyChart = lazyWithRetry(() => import('./components/LazyCharts').then(m => ({ default: m.CashFlowSankeyChart })));
-import Tooltip from './components/Tooltip';
+import Term from './components/Term';
 import ErrorBoundary from './components/ErrorBoundary';
 import ForeignYearsNotice from './components/ForeignYearsNoticeLoader';
 import QuickUpdate from './components/QuickUpdate';
@@ -419,6 +419,14 @@ export default function App() {
   const openDictionary = useCallback((term) => {
     setDictionaryQuery(String(term || ''));
     setGuideSubTab('dictionary');
+    setActiveTab('guide');
+  }, []);
+  // A <Term> on screen opens Help -> What does this mean? at its entry
+  // (src/config/glossary.js); seq makes a second click scroll again.
+  const [glossaryTarget, setGlossaryTarget] = useState(null);
+  const openGlossary = useCallback((id) => {
+    setGlossaryTarget((prev) => ({ id: String(id || ''), seq: (prev?.seq || 0) + 1 }));
+    setGuideSubTab('glossary');
     setActiveTab('guide');
   }, []);
   // "How is this figured?" links beside tax figures open Help -> How the
@@ -1145,7 +1153,7 @@ export default function App() {
     [holdings, bucketExcludedKey] // eslint-disable-line react-hooks/exhaustive-deps
   );
   // Typed-in balances that no longer match the holdings -- see
-  // unlinkedBalanceGap. Read by the Initial Nest Egg card and the Holdings
+  // unlinkedBalanceGap. Read by the Savings today card and the Holdings
   // sub-tab so a holdings change that can't reach the plan says so.
   // Not in the demo: the Carters' sample holdings are illustrative and were
   // never meant to sum to their plan balances, and the fix the note offers
@@ -2040,7 +2048,7 @@ export default function App() {
     pricingSource, setPricingSource, pricingScriptOutOfDate, scriptAckVersion, acknowledgeScriptUpdate,
     guideSubTab, setGuideSubTab, portfolioSubTab, setPortfolioSubTab,
     yearledgerSubTab, setYearledgerSubTab,
-    dictionaryQuery, openDictionary, howFiguredTarget, openHowFigured,
+    dictionaryQuery, openDictionary, howFiguredTarget, openHowFigured, glossaryTarget, openGlossary,
     setShowDisclaimerReview,
     taxestateSubTab, setTaxestateSubTab,
     stressChartView, setStressChartView, kpis, handleReset, handleSaveScenario, isSavingScenario, theme, toggleTheme, largeTextMode, setLargeTextMode,
@@ -2069,7 +2077,7 @@ export default function App() {
     pricingSource, setPricingSource, pricingScriptOutOfDate, scriptAckVersion, acknowledgeScriptUpdate,
     guideSubTab, setGuideSubTab, portfolioSubTab, setPortfolioSubTab,
     yearledgerSubTab, setYearledgerSubTab,
-    dictionaryQuery, openDictionary, howFiguredTarget, openHowFigured,
+    dictionaryQuery, openDictionary, howFiguredTarget, openHowFigured, glossaryTarget, openGlossary,
     setShowDisclaimerReview,
     taxestateSubTab, setTaxestateSubTab,
     stressChartView, setStressChartView, kpis, handleReset, handleSaveScenario, isSavingScenario, theme, toggleTheme, largeTextMode, setLargeTextMode,
@@ -2252,10 +2260,10 @@ export default function App() {
             />
           </div>
           <div className="glass-panel kpi-card">
-            <span className="kpi-title">Initial Nest Egg</span>
+            <span className="kpi-title"><Term id="savings-today">Savings today</Term></span>
             <span className="kpi-value">{formatCurrency(kpis.initialNestEgg)}</span>
             <span className="kpi-subtext" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.35 }}>
-              Pre-Tax, Roth and Taxable today
+              Your 401(k)s, IRAs, Roth and other investment accounts, added up
             </span>
             {balanceGap && (
               <span className="kpi-subtext" data-testid="nest-egg-gap" style={{ fontSize: 'var(--fs-xs)', color: 'var(--warning)', marginTop: '6px', lineHeight: 1.35 }}>
@@ -2264,7 +2272,7 @@ export default function App() {
             )}
           </div>
           <div className="glass-panel kpi-card">
-            <span className="kpi-title">Peak Portfolio Worth</span>
+            <span className="kpi-title">Savings at their highest</span>
             <span className="kpi-value" style={{ color: 'var(--accent-text)' }}>{formatPeak(kpis.peak)}</span>
             {/* The dollar frame, said on the card (changelog 412): a figure
                 decades out is in that year's dollars unless Today's Dollars
@@ -2274,7 +2282,7 @@ export default function App() {
             </span>
           </div>
           <div className="glass-panel kpi-card">
-            <span className="kpi-title">Ending Balance</span>
+            <span className="kpi-title"><Term id="ending-balance">Ending Balance</Term></span>
             <span className="kpi-value" style={{ color: kpis.ending > 0 ? 'var(--success)' : 'var(--error)' }}>
               {formatEnding(kpis.ending)}
             </span>
@@ -2287,7 +2295,7 @@ export default function App() {
                 the figure above (see monteCarloRange). */}
             <span className="kpi-subtext" data-testid="ending-range" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.35 }}>
               {mcRange.status === 'fresh' && (
-                <>Likely range {formatEnding(Math.round(mcRange.p10))} &ndash; {formatEnding(Math.round(mcRange.p90))} <Tooltip text="The 10th to 90th percentile of the Monte Carlo's ending balances: eight trials in ten ended inside this band, one in ten below it and one in ten above. It is the typical spread, not the odds of success." more="8 of 10 simulated markets">(P10&ndash;P90)</Tooltip></>
+                <><Term id="likely-range">In 8 of 10 market paths</Term>: {formatEnding(Math.round(mcRange.p10))} &ndash; {formatEnding(Math.round(mcRange.p90))}</>
               )}
               {mcRange.status === 'stale' && (
                 <button type="button" onClick={() => { setActiveTab('risk'); setRiskSubTab('montecarlo'); }} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--warning)', cursor: 'pointer', font: 'inherit', textAlign: 'left' }}>
@@ -3691,7 +3699,7 @@ export default function App() {
             <div className="val">{formatEnding(projection.endingBalance)}</div>
           </div>
           <div className="print-metric-card">
-            <div className="label">Peak Portfolio Worth</div>
+            <div className="label">Savings at Their Highest</div>
             <div className="val">{formatPeak(projection.peakPortfolioWorth)}</div>
           </div>
           <div className="print-metric-card">

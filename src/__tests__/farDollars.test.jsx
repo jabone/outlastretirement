@@ -84,7 +84,7 @@ describe('the headline surfaces round; the ledger does not', () => {
     expect(src).toMatch(/import \{ farFormatter, peakYearOf, ROUND_FAR_DOLLARS_KEY, ROUND_FAR_DOLLARS_DEFAULT \} from '\.\/utils\/farDollars';/);
     expect(src).toMatch(/kpi-value" style=\{\{ color: 'var\(--accent-text\)' \}\}>\{formatPeak\(kpis\.peak\)\}/);
     expect(src).toMatch(/\{formatEnding\(kpis\.ending\)\}/);
-    expect(src).toMatch(/Likely range \{formatEnding\(Math\.round\(mcRange\.p10\)\)\} &ndash; \{formatEnding\(Math\.round\(mcRange\.p90\)\)\}/);
+    expect(src).toMatch(/In 8 of 10 market paths<\/Term>: \{formatEnding\(Math\.round\(mcRange\.p10\)\)\} &ndash; \{formatEnding\(Math\.round\(mcRange\.p90\)\)\}/);
     expect(src).toMatch(/<div className="val">\{formatEnding\(projection\.endingBalance\)\}<\/div>/);
     expect(src).toMatch(/<div className="val">\{formatPeak\(projection\.peakPortfolioWorth\)\}<\/div>/);
     for (const k of ['totalTaxesPaid', 'totalIRMAAPaid', 'totalRMDsForced']) expect(src).toContain(`<td>{formatEnding(projection.${k})}</td>`);

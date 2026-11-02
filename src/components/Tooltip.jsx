@@ -38,7 +38,7 @@ const GAP = 8;
 const Z = 1500; // above the sidebar (950) and status bar, below modals (1999+)
 const CLOSE_DELAY_MS = 350;
 
-export default function Tooltip({ text, children, position = 'top', more }) {
+export default function Tooltip({ text, children, position = 'top', more, glossary }) {
   const [isVisible, setIsVisible] = useState(false);
   const triggerRef = useRef(null);
   const popupRef = useRef(null);
@@ -48,7 +48,11 @@ export default function Tooltip({ text, children, position = 'top', more }) {
   const openDictionary = sim && sim.openDictionary;
   // `more` may be the search term itself or `true` for the label text.
   const term = more === true ? (typeof children === 'string' ? children : null) : more;
-  const showMore = Boolean(term && openDictionary);
+  // `glossary` (a glossary id, set by <Term>) links to Help → What does this
+  // mean? instead of the Input Dictionary.
+  const openGlossary = sim && sim.openGlossary;
+  const toGlossary = Boolean(glossary && openGlossary);
+  const showMore = toGlossary || Boolean(term && openDictionary);
   const scheduleClose = () => {
     if (!showMore) { setIsVisible(false); return; }
     clearTimeout(closeTimer.current);
@@ -149,7 +153,7 @@ export default function Tooltip({ text, children, position = 'top', more }) {
               ref={moreRef}
               type="button"
               className="tooltip-more"
-              onClick={(e) => { e.stopPropagation(); setIsVisible(false); openDictionary(term); }}
+              onClick={(e) => { e.stopPropagation(); setIsVisible(false); if (toGlossary) openGlossary(glossary); else openDictionary(term); }}
               onFocus={cancelClose}
               onBlur={scheduleClose}
               onKeyDown={(e) => {
@@ -157,7 +161,7 @@ export default function Tooltip({ text, children, position = 'top', more }) {
               }}
               style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontSize: '13px', color: 'var(--accent-text)', cursor: 'pointer', textDecoration: 'underline' }}
             >
-              Look it up in the Input Dictionary
+              {toGlossary ? 'More in What does this mean?' : 'Look it up in the Input Dictionary'}
             </button>
           </div>
         )}

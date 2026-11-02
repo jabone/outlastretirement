@@ -414,7 +414,7 @@ const ScenariosTab = () => {
                           <th style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>Retirement Ages</th>
                           <th style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>Ending Balance</th>
                           <th style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>Success Probability</th>
-                          <th style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>Peak Portfolio Worth</th>
+                          <th style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>Savings at Their Highest</th>
                           <th style={{ padding: '12px 10px', color: 'var(--text-secondary)', textAlign: 'right' }}>Actions</th>
                         </tr>
                       </thead>
@@ -572,7 +572,7 @@ const ScenariosTab = () => {
                             ))}
                           </tr>
                           <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
-                            <td style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>Peak Portfolio Worth</td>
+                            <td style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>Savings at Their Highest</td>
                             {comparisonItems.map(item => (
                               <td key={item.id} style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>{formatCurrency(item.metrics.peakPortfolioWorth || 0)}</td>
                             ))}

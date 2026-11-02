@@ -1078,7 +1078,7 @@ const InputReference = () => {
                 <strong>Round far-future dollars</strong>
               </td>
               <td style={sectionStyles.td}>Switch, Exact / Rounded (default Exact), under Preferences &rarr; Display. Rounded shows headline figures that sit more than ten years past the plan's first year to three significant figures: $3,408,199 as $3,410,000, $916,432 as $916,000. Kept per browser, like the theme; not part of the plan or its backups.</td>
-              <td style={sectionStyles.td}>Not a plan input. Applies to the Dashboard's Peak Portfolio Worth and Ending Balance cards and the P10&ndash;P90 range beneath, the Readiness tab's ending balances and lifetime taxes, and the printed report's summary and lifetime totals. The Initial Nest Egg, the first years' money, the Year by Year ledger and every chart keep the exact figure. Figures under $100 are never rounded.</td>
+              <td style={sectionStyles.td}>Not a plan input. Applies to the Dashboard's Savings at their highest and Ending Balance cards and the In 8 of 10 market paths range beneath, the Readiness tab's ending balances and lifetime taxes, and the printed report's summary and lifetime totals. The Initial Nest Egg, the first years' money, the Year by Year ledger and every chart keep the exact figure. Figures under $100 are never rounded.</td>
             </tr>
             <tr>
               <td style={sectionStyles.td}>

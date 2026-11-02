@@ -2071,6 +2071,16 @@ select.form-input,
   line-height: 1.5;
 }
 
+/* A link with no style of its own (the first-visit notice's Terms of Use
+   and Privacy Policy, links in help text) used the browser's default blue
+   and purple, which nearly vanish on the dark theme. :where() keeps this at
+   zero specificity, so any class or inline color still wins. */
+:where(a):link,
+:where(a):visited {
+  color: var(--accent-text);
+  text-underline-offset: 2px;
+}
+
 .app-disclaimer-footer-link {
   background: none;
   border: none;
