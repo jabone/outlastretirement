@@ -25,6 +25,9 @@ import {
 // the 2026 thresholds apply throughout.
 const JUST_RETIRED = {
   ...DEFAULT_INPUTS,
+  // On Medicare from 65 (a new plan delays it while working, changelog 477).
+  medicareEmployerCoverage1: 'none',
+  medicareEmployerCoverage2: 'none',
   planYear: 2026,
   spouse2Enabled: false,
   filingStatus: 'Single',

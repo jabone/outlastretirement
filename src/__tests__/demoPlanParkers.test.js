@@ -45,7 +45,7 @@ describe('the Parkers: the story the lessons tell', () => {
     expect(runsOut(scenario('Demo: Spend $500 a month less in retirement'))).toMatchObject({ lasts: false, rayAge: 89 });
     expect(runsOut(scenario('Demo: Save $500 a month more'))).toMatchObject({ lasts: false, rayAge: 89 });
     // Ray's own plan ends at 92; the shortfall arrives in Angie's last years.
-    expect(runsOut(scenario('Demo: Work two more years'))).toMatchObject({ lasts: false, angieAge: 91 });
+    expect(runsOut(scenario('Demo: Work two more years'))).toMatchObject({ lasts: false, angieAge: 92 });
   });
 
   it('all three together last on average, and read "Mostly on track"', () => {

@@ -85,16 +85,17 @@ export default function HealthcareSection() {
                   </div>
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     {[1, 2].filter((who) => who === 1 || inputs.spouse2Enabled).map((who) => {
-                      const name = (who === 1 ? inputs.spouse1Name : inputs.spouse2Name) || (who === 1 ? 'Primary' : 'Spouse');
-                      const other = (who === 1 ? inputs.spouse2Name : inputs.spouse1Name) || (who === 1 ? 'Spouse' : 'Primary');
+                      const nameOf = (n, fallback) => (n && n !== 'Primary' ? n : fallback);
+                      const name = who === 1 ? nameOf(inputs.spouse1Name, 'You') : nameOf(inputs.spouse2Name, 'Spouse');
+                      const other = who === 1 ? nameOf(inputs.spouse2Name, 'Spouse') : nameOf(inputs.spouse1Name, 'You');
                       const key = `medicareEmployerCoverage${who}`;
                       return (
                         <div key={who} className="form-group" style={{ flex: '1 1 240px', marginBottom: 0 }}>
                           <label htmlFor={`field-${key}`} style={{ fontSize: 'var(--fs-sm)' }}>{name}</label>
                           <select id={`field-${key}`} className="form-input" value={inputs[key] || 'none'} onChange={(e) => updateInput(key, e.target.value)}>
                             <option value="none">Enroll at 65</option>
-                            <option value="own">Delay: covered through {name === 'Primary' || name === 'Spouse' ? 'own' : `${getPossessive(name)} own`} job</option>
-                            {inputs.spouse2Enabled && <option value="spouse">Delay: covered through {getPossessive(other)} job</option>}
+                            <option value="own">Delay: covered through {name === 'You' ? 'your own' : name === 'Spouse' ? 'own' : `${getPossessive(name)} own`} job</option>
+                            {inputs.spouse2Enabled && <option value="spouse">Delay: covered through {other === 'You' ? 'your' : getPossessive(other)} job</option>}
                           </select>
                         </div>
                       );

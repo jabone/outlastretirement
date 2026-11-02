@@ -27,7 +27,7 @@ test.describe('offline', () => {
     await openPlanSettings(page);
     await expect(page.getByRole('button', { name: 'Household', exact: true })).toBeVisible();
     await clickNav(page, 'Year by Year');
-    await expect(page.getByText('Lifestyle Exp').first()).toBeVisible();
+    await expect(page.locator('.year-ledger-table th', { hasText: 'Spending' }).first()).toBeVisible();
     await clickNav(page, 'Help');
     await expect(page.getByRole('heading', { name: 'Help', level: 1 })).toBeVisible();
     await clickNav(page, 'Risk & Stress');

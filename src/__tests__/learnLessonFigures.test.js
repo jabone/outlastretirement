@@ -278,11 +278,11 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     pin('my-plan-runs-short', 4, 'ends in 2054, when Ray is 82', planEnds);
 
     const workTwoMore = shortRow('Demo: Work two more years');
-    pin('my-plan-runs-short', 4, 'ends in 2065, when Angie is 91', workTwoMore.year);
-    expect(workTwoMore.age2).toBe(91);
+    pin('my-plan-runs-short', 4, 'ends in 2066, when Angie is 92', workTwoMore.year);
+    expect(workTwoMore.age2).toBe(92);
     const { text: slide4 } = lessonSlide('my-plan-runs-short', 4);
-    expect(slide4).toContain('eleven more years');
-    expect(workTwoMore.year - planEnds, 'slide 4 says "eleven more years"').toBe(11);
+    expect(slide4).toContain('twelve more years');
+    expect(workTwoMore.year - planEnds, 'slide 4 says "twelve more years"').toBe(12);
 
     const spendLess = shortRow('Demo: Spend $500 a month less in retirement');
     pin('my-plan-runs-short', 5, '$40,000 a year in retirement, down from $46,000', scenario('Demo: Spend $500 a month less in retirement').lifestyleExpense);
@@ -299,7 +299,7 @@ describe('the figures the lessons quote are the ones the app shows', () => {
 
     // The five-bar summary names all four dates again.
     pin('my-plan-runs-short', 9, 'The plan as it stands: 2054', planEnds);
-    pin('my-plan-runs-short', 9, 'Work two more years: 2065', workTwoMore.year);
+    pin('my-plan-runs-short', 9, 'Work two more years: 2066', workTwoMore.year);
     pin('my-plan-runs-short', 9, 'Spend $500 less: 2061', spendLess.year, 1, 'last');
     pin('my-plan-runs-short', 9, 'Save $500 more: 2061', saveMore.year, 1, 'last');
   });
@@ -318,14 +318,14 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     expect(contributingYears, 'the "for eleven years" on slide 7').toBe(11);
   });
 
-  it('the two verdicts: 83 of 100 and 92 of 100 simulated futures (lesson 6 slide 10)', () => {
+  it('the two verdicts: 84 of 100 and 94 of 100 simulated futures (lesson 6 slide 10)', () => {
     // The Monte Carlo is seeded, so the same plan gives the same 1,000
     // futures every run; the slide quotes the whole-percent rate the
     // verdict prints (utils/planVerdict.js).
     const allThree = verdictPct(runMonteCarlo(scenario('Demo: All three changes together')).successProbability);
     const waitSS = verdictPct(runMonteCarlo(scenario('Demo: All three, and wait longer for Social Security')).successProbability);
-    pin('my-plan-runs-short', 10, '83 of 100', allThree);
-    pin('my-plan-runs-short', 10, '92 of 100', waitSS);
+    pin('my-plan-runs-short', 10, '84 of 100', allThree);
+    pin('my-plan-runs-short', 10, '94 of 100', waitSS);
     // "about four out of five possible futures" in the narration.
     says('my-plan-runs-short', 10, 'four out of five');
     expect(Math.round(allThree / 20)).toBe(4);
@@ -376,8 +376,8 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     expect(plan.retireAge1 - 62).toBe(3);
     const allThree = verdictPct(runMonteCarlo(scenario('Demo: All three changes together')).successProbability);
     const waitSS = scenario('Demo: All three, and wait longer for Social Security');
-    pin('start-social-security', 5, '83 of 100', allThree);
-    pin('start-social-security', 6, '92 of 100', verdictPct(runMonteCarlo(waitSS).successProbability));
+    pin('start-social-security', 5, '84 of 100', allThree);
+    pin('start-social-security', 6, '94 of 100', verdictPct(runMonteCarlo(waitSS).successProbability));
     pin('start-social-security', 6, 'Angie claims at 67', waitSS.claimingAge2);
     pin('start-social-security', 6, 'Ray waits to 70', waitSS.claimingAge1);
     pin('start-social-security', 5, 'Ray to 67', waitSS.retireAge1);

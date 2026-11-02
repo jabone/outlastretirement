@@ -83,6 +83,9 @@ export function buildDemoInputs() {
     // The couple's budget runs unchanged after one death outside the
     // stress test (changelog 470 drops it for new plans).
     survivorExpenseDropInPlan: false,
+    // Medicare waits for each person's own job to end (changelog 477).
+    medicareEmployerCoverage1: 'own',
+    medicareEmployerCoverage2: 'own',
     planYear: TAX_YEAR,
 
     // -- Who they are ------------------------------------------------------

@@ -88,23 +88,36 @@ describe('StrategyTab — Tax Optimizer Hub', () => {
 
     const otherCard = screen.getByText('Roth First').closest('.glass-panel');
     expect(within(otherCard).queryByText('Selected')).not.toBeInTheDocument();
-    expect(within(otherCard).getByRole('button', { name: 'Apply Strategy' })).toBeInTheDocument();
+    expect(within(otherCard).getByRole('button', { name: 'Use this strategy…' })).toBeInTheDocument();
   });
 
-  it('Apply Strategy merges that strategy\'s config into inputs via setInputs', async () => {
+  it('Use this strategy asks first, then merges that strategy\'s config into inputs, and offers an Undo', async () => {
     const user = userEvent.setup();
     const setInputs = vi.fn();
-    renderWithSimulation(<StrategyTab />, { optimizerResults, setInputs });
+    const showConfirm = vi.fn(async () => true);
+    renderWithSimulation(<StrategyTab />, { optimizerResults, setInputs, showConfirm });
 
     const otherCard = screen.getByText('Roth First').closest('.glass-panel');
-    await user.click(within(otherCard).getByRole('button', { name: 'Apply Strategy' }));
+    await user.click(within(otherCard).getByRole('button', { name: 'Use this strategy…' }));
 
+    expect(showConfirm).toHaveBeenCalledWith(expect.stringMatching(/Change your plan to "Roth First"/), expect.objectContaining({ confirmLabel: 'Change my plan' }));
     expect(setInputs).toHaveBeenCalledWith(expect.any(Function));
+    expect(screen.getByTestId('strategy-undo').textContent).toMatch(/Roth First/);
     const updater = setInputs.mock.calls[0][0];
     expect(updater({ withdrawalStrategy: 'TaxableFirst', otherField: 1 })).toEqual({
       withdrawalStrategy: 'RothFirst',
       otherField: 1,
     });
+  });
+
+  it('a declined confirmation changes nothing', async () => {
+    const user = userEvent.setup();
+    const setInputs = vi.fn();
+    renderWithSimulation(<StrategyTab />, { optimizerResults, setInputs, showConfirm: vi.fn(async () => false) });
+    const otherCard = screen.getByText('Roth First').closest('.glass-panel');
+    await user.click(within(otherCard).getByRole('button', { name: 'Use this strategy…' }));
+    expect(setInputs).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('strategy-undo')).toBeNull();
   });
 
   it('shows the "calculating strategy comparisons" note while results are still loading', () => {

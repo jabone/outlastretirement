@@ -29,6 +29,33 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 477,
+    date: '2026-11-01',
+    title: 'Medicare starts when your work health plan ends',
+    summary: 'A new plan no longer charges Medicare and a supplement while you are still covered by a health plan at work; they start the year that job ends. Plans saved earlier are unchanged.',
+    items: [
+      "**What changed.** Someone still working at 65 with health insurance through a job usually delays Medicare Part B and a supplement until the job ends, without penalty. A new plan now does the same for each person: no Part B or Part D premium, no income surcharge and no supplement while their job covers them, and all of them from the year they retire.",
+      "**Why it mattered.** Before, a plan charged both the work health plan (inside the paycheck) and Medicare from 65. In the sample plan that was about $18,700 a year at 65 and 66, which cut saving by $17,000 in each of those years and set off the budget warning on Year by Year.",
+      "**Your plan.** A plan saved before today keeps enrolling at 65. To change it, use Medicare while still on an employer plan under Plan → Spending, in Special Expenses. It applies only to an employer with 20 or more employees; below that, Medicare pays first at 65 and delaying Part B brings a lifetime penalty.",
+      "**The sample families too.** The Carters and the Parkers now delay Medicare the same way. For Ray and Angie, working two more years now lasts to 2066, when Angie is 92, and all three changes hold in 84 of 100 simulated futures (94 with later Social Security); lessons 6 and 8 say so.",
+      "**Easier to read.** Year by Year has more room above its column buttons, and the home page shows a fresh picture of the Dashboard.",
+    ],
+  },
+  {
+    id: 476,
+    date: '2026-11-01',
+    title: 'Calmer deeper screens: Year by Year, Readiness, the Optimizers and the home page',
+    summary: 'Year by Year opens on a short summary and warns only about real budget gaps, strategy cards say what they leave your heirs and ask first, and the home page starts with the lessons.',
+    items: [
+      "**Year by Year opens on a summary.** On every screen the table now shows one group of columns at a time (Summary, Income & spending, Taxes, Accounts), with Every column for the full table. Before, a computer showed about twenty columns at once.",
+      "**A warning only when it matters.** The budget warning appears only when a working year's pay falls short of its spending, taxes and saving by more than 3% of that year's pay, and it now says in plain words what happened and by how much.",
+      "**Spending, not Lifestyle Exp.** The column is now Spending, and says it is today's budget while you work and your retirement spending once you retire.",
+      "**Strategies say what they leave.** The withdrawal-strategy cards no longer grade themselves Best, Great or Moderate; each says how much less it leaves your heirs than the top card, or that it leaves them the most. Use this strategy asks before changing your plan and offers Undo.",
+      "**Readiness answers come first.** On Retirement Readiness, the Premium note sits at the end of each card instead of between the free answers, and the page links to What Will You Do?",
+      "**The home page starts with the lessons.** Right under the opening question come the lessons for beginners; the privacy details sit lower, in one place. The buttons say who they are for: New to this? See a sample family first, or Ready? Start your own plan.",
+    ],
+  },
+  {
     id: 475,
     date: '2026-11-01',
     title: 'Plain words, and a glossary for the rest',

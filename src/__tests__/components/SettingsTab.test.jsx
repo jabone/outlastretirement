@@ -918,7 +918,9 @@ describe('SettingsTab', () => {
 
     it('closes a section again on a second header click', async () => {
       const user = userEvent.setup();
-      renderSettings('spending');
+      // A new plan's settings, so the section starts closed (the shared test
+      // household enrolls in Medicare at 65, a choice that opens it).
+      renderSettings('spending', { inputs: { ...DEFAULT_INPUTS, medicareEmployerCoverage1: 'own', medicareEmployerCoverage2: 'own' } });
       const header = screen.getByText('Special Expenses');
       await user.click(header);
       expect(screen.getByText('Enable Three-Phase Lifestyle Curve')).toBeInTheDocument();

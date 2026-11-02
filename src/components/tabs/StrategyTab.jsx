@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { gridCompactDollars } from '../../utils/compactDollars';
 import { heatCellBg } from '../../utils/heatCell';
+import { strategyMeasure } from '../../utils/strategyMeasure';
 import { useSimulation } from '../../context/useSimulation';
 import { CheckCircle, Loader2, Layers, Trophy, Coins, Dices, AlertTriangle, CheckCircle2, Lightbulb, Star, XCircle } from 'lucide-react';
 import { getSSMultiplier, getFullRetirementAge, runMonteCarlo, getContributionSplitOptimizer, runProjection, rothTargetNoun } from '../../calculator';
@@ -79,11 +80,27 @@ const StrategyTab = () => {
       ...(opt.searchSpouse2 ? { preTaxContribution2: opt.best.preTax2, rothContribution2: opt.best.roth2 } : {}),
     }));
   };
+  // Apply on a withdrawal-strategy card (first-time user review, round D):
+  // it rewrites the plan's withdrawal order and conversions in one click, so
+  // it says what will change and asks first, and keeps the previous plan
+  // for an Undo while the page is open.
+  const [strategyUndo, setStrategyUndo] = useState(null);
+  const applyStrategy = async (strat) => {
+    const confirmed = await showConfirm(
+      `Change your plan to "${strat.name}"?\n\nThis changes the order your accounts are drawn from and any Roth conversions the plan makes. Everything else stays as it is, and Undo puts your settings back.`,
+      { title: 'Use this strategy', confirmLabel: 'Change my plan' }
+    );
+    if (!confirmed) return;
+    const before = inputs;
+    setStrategyUndo((u) => u || { before, name: strat.name });
+    setInputs((prev) => ({ ...prev, ...strat.config }));
+  };
   // These results now arrive asynchronously from a background worker
   // (see heavyComputeWorker.js) — only show a "Calculating..." note before
   // the first result has ever arrived, not on every subsequent recompute
   // (stale-while-revalidate: keep showing the last good data while new data
   // is on the way, rather than flashing a loader on every keystroke).
+  const bestLegacy = optimizerResults.reduce((m, r) => (r.ranking !== 'Shortfall' && Number.isFinite(r.afterTaxLegacy) ? Math.max(m, r.afterTaxLegacy) : m), -Infinity);
   const heatmapStillLoading = heavyResultsLoading && ssClaimingHeatmapData.length === 0;
   const optimizerStillLoading = heavyResultsLoading && optimizerResults.length === 0;
   const rothLadderStillLoading = heavyResultsLoading && rothBracketHeatmapData.length === 0;
@@ -217,12 +234,21 @@ const StrategyTab = () => {
                   <Loader2 className="animate-spin" size={14} /> Calculating strategy comparisons&hellip;
                 </p>
               )}
+              {strategyUndo && (
+                <div data-testid="strategy-undo" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
+                  <span>Your plan now uses &ldquo;{strategyUndo.name}&rdquo;.</span>
+                  <button type="button" className="btn-outline" onClick={() => { setInputs(strategyUndo.before); setStrategyUndo(null); }} style={{ padding: '4px 12px', fontSize: 'var(--fs-sm)' }}>
+                    Undo
+                  </button>
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                 {optimizerResults.map((strat) => {
+                  // The measure, not a grade (first-time user review): "Great"
+                  // and "Moderate" read as advice to someone new. Each card
+                  // says what it leaves the heirs against the top card.
                   let rankingColor = 'var(--text-secondary)';
                   if (strat.ranking === 'Best') rankingColor = 'var(--success)';
-                  else if (strat.ranking === 'Great') rankingColor = 'var(--success)';
-                  else if (strat.ranking === 'Worst') rankingColor = 'var(--warning)';
                   else if (strat.ranking === 'Shortfall') rankingColor = 'var(--error)';
 
                   const active = isApplied(strat);
@@ -254,17 +280,17 @@ const StrategyTab = () => {
                               Selected
                             </span>
                           )}
-                          <span style={{ 
-                            fontSize: 'var(--fs-xs)', 
-                            fontWeight: '700', 
-                            textTransform: 'uppercase', 
-                            padding: '3px 8px', 
-                            borderRadius: '6px', 
-                            backgroundColor: 'var(--bg-secondary)', 
-                            color: rankingColor, 
-                            border: `1px solid ${rankingColor}`
+                          <span data-testid="strategy-measure" style={{
+                            fontSize: 'var(--fs-xs)',
+                            fontWeight: '700',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            backgroundColor: 'var(--bg-secondary)',
+                            color: rankingColor,
+                            border: `1px solid ${rankingColor}`,
+                            whiteSpace: 'nowrap',
                           }}>
-                            {strat.ranking === 'Best' && <Trophy size={12} style={{ verticalAlign: '-2px', marginRight: '4px' }} />}{strat.ranking}
+                            {strategyMeasure(strat, bestLegacy, formatCurrency)}
                           </span>
                         </div>
                       </div>
@@ -314,17 +340,12 @@ const StrategyTab = () => {
                           Active Strategy
                         </button>
                       ) : (
-                        <button 
-                          className="btn-outline" 
-                          onClick={() => {
-                            setInputs(prev => ({
-                              ...prev,
-                              ...strat.config
-                            }));
-                          }}
+                        <button
+                          className="btn-outline"
+                          onClick={() => applyStrategy(strat)}
                           style={{ width: '100%', fontSize: 'var(--fs-body)', padding: '8px' }}
                         >
-                          Apply Strategy
+                          Use this strategy&hellip;
                         </button>
                       )}
                     </div>

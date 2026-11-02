@@ -253,6 +253,11 @@ export default function ReadinessTab() {
       <p data-testid="readiness-intro" style={{ ...hint, marginTop: 0, marginBottom: '14px' }}>
         The questions a retiree actually asks, answered from your own plan rather than a rule of thumb. Every figure
         here is one the projection already produced &mdash; change the plan and these change with it.
+        {' '}The money is half of it:{' '}
+        <button type="button" data-testid="readiness-lifeplan-link" onClick={() => setActiveTab('lifeplan')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent-text)', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>
+          What Will You Do?
+        </button>{' '}
+        helps you picture the days, the people and the purpose a retirement needs.
       </p>
 
       {/* The horizon every card below assumes, and the odds behind it
@@ -294,17 +299,17 @@ export default function ReadinessTab() {
           <MonteCarloLine mcRange={mcRange} monteCarlo={monteCarlo} setActiveTab={setActiveTab} framing="of this plan lasted to the end" />
         )}
 
-        <PremiumMount
-          id="readinessDetail"
-          section="walkAway"
-          walkAway={walkAway}
-          locked={(
-            <LockedDetail
-              what="The full comparison: your budget against the most a standing-start retirement supports, the first year's tax on top, and whether the income that arrives regardless covers the part of your spending you said you could not cut."
-              onOpenPremium={openPremium}
-            />
-          )}
-        />
+        {/* The Premium detail follows the free answers for someone without
+            it (first-time user review): a lock in the middle of a card made
+            the free answer look unfinished. */}
+        {isPremium && (
+          <PremiumMount
+            id="readinessDetail"
+            section="walkAway"
+            walkAway={walkAway}
+            locked={null}
+          />
+        )}
         <SpendingCeiling
           inputs={inputs}
           dieWithZeroResults={dieWithZeroResults}
@@ -324,6 +329,12 @@ export default function ReadinessTab() {
           whatIfFundingMethod={whatIfFundingMethod}
           setWhatIfFundingMethod={setWhatIfFundingMethod}
         />
+        {!isPremium && (
+          <LockedDetail
+            what="The full comparison: your budget against the most a standing-start retirement supports, the first year's tax on top, and whether the income that arrives regardless covers the part of your spending you said you could not cut."
+            onOpenPremium={openPremium}
+          />
+        )}
       </CardShell>
 
 
@@ -345,10 +356,6 @@ export default function ReadinessTab() {
                     : <>Your plan does not retire inside its horizon, so working longer has no retirement years to trade.</>}
                 </p>
               )}
-              <LockedDetail
-                what="What those years buy: ending balance, lifetime taxes and the size of your first year's withdrawal, side by side, for one, two, three or five more years."
-                onOpenPremium={openPremium}
-              />
             </>
           )}
         />
@@ -362,6 +369,12 @@ export default function ReadinessTab() {
           onApply={applyRetirementAge}
           setMaximizedComponent={setMaximizedComponent}
         />
+        {!isPremium && (
+          <LockedDetail
+            what="What those years buy: ending balance, lifetime taxes and the size of your first year's withdrawal, side by side, for one, two, three or five more years."
+            onOpenPremium={openPremium}
+          />
+        )}
       </CardShell>
 
 

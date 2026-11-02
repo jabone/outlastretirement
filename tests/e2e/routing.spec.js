@@ -127,7 +127,7 @@ test.describe('URL routing', () => {
     // '#/ledger' predates the 2026-08-19 split. A bookmark saved then
     // should still work rather than silently landing on Dashboard.
     await openAt(page, '/#/ledger');
-    await expect(page.getByText('Lifestyle Exp').first()).toBeVisible();
+    await expect(page.locator('.year-ledger-table th', { hasText: 'Spending' }).first()).toBeVisible();
     await expect(page).toHaveURL(/#\/yearledger$/);
   });
 

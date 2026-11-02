@@ -34,7 +34,7 @@ describe('YearLedgerTab — Yearly Ledger Spreadsheet', () => {
   it('renders the table with real projection data and no optional columns when their features are disabled (the DEFAULT_INPUTS state)', () => {
     renderWithSimulation(<YearLedgerTab />);
 
-    ['Year', 'Salary', 'Lifestyle Exp', 'Income Tax', 'Ending Portfolio'].forEach(label => {
+    ['Year', 'Salary', 'Spending', 'Income Tax', 'Ending Portfolio'].forEach(label => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
     // Every optional column is gated behind a feature flag that's off by
@@ -56,14 +56,14 @@ describe('YearLedgerTab — Yearly Ledger Spreadsheet', () => {
     renderWithSimulation(<YearLedgerTab />, {
       projection: { years: [makeYear({ lifestyleDeficit: 5000 })], endingBalance: 170000, isSuccessful: true, peakPortfolioWorth: 200000 },
     });
-    expect(screen.getByText(/Budget Warning:/)).toBeInTheDocument();
+    expect(screen.getByText(/Pay does not cover the budget:/)).toBeInTheDocument();
   });
 
   it('does not show the budget warning banner when no year has a deficit', () => {
     renderWithSimulation(<YearLedgerTab />, {
       projection: { years: [makeYear()], endingBalance: 170000, isSuccessful: true, peakPortfolioWorth: 200000 },
     });
-    expect(screen.queryByText(/Budget Warning:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Pay does not cover the budget:/)).not.toBeInTheDocument();
   });
 
   // The split's own regression guard: the scenario-saving half used to live
@@ -165,9 +165,9 @@ describe('YearLedgerTab — balances view, matched to where the money goes', () 
 
   it('shades the shared columns and says which they are', () => {
     show(base);
-    expect(screen.getByTestId('uses-legend').textContent).toMatch(/Lifestyle Exp, Health and Income Tax/);
+    expect(screen.getByTestId('uses-legend').textContent).toMatch(/Spending, Health and Income Tax/);
     const shaded = [...document.querySelectorAll('thead th.col-uses')].map((th) => th.textContent);
-    expect(shaded).toEqual(['Lifestyle Exp', 'Health', 'Income Tax']);
+    expect(shaded).toEqual(['Spending', 'Health', 'Income Tax']);
     expect(screen.queryByText('Med / IRMAA')).toBeNull();
   });
 

@@ -25,6 +25,9 @@ export const REFERENCE_INPUTS = Object.freeze({
   annuityIncomeStartAge: 0,
   // And before 470: the couple's budget held after one death in the plan.
   survivorExpenseDropInPlan: false,
+  // And before 477: Medicare from 65 even while still working.
+  medicareEmployerCoverage1: 'none',
+  medicareEmployerCoverage2: 'none',
 });
 
 export const REFERENCE_ENDING_BALANCE = 36762.2363;

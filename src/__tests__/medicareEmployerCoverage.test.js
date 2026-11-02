@@ -18,6 +18,9 @@ const couple = {
   spouse2Enabled: true, birthYear2: START - 61, retireAge2: 61, lifeExpectancy2: 92,
   salary1: 200000, salary2: 0, preTaxInit: 1500000, taxableInit: 600000, rothInit: 200000,
   lifestyleExpense: 110000, stateOfResidence: 'TX', stateTaxState: 'none',
+  // Enrolling at 65 is the baseline here; a new plan delays on its own job
+  // (changelog 477), and he retires before 65 anyway.
+  medicareEmployerCoverage1: 'none', medicareEmployerCoverage2: 'none',
 };
 const at = (proj, age2) => proj.years.find((y) => y.age2 === age2);
 
@@ -25,9 +28,9 @@ describe('Medicare while still on an employer plan', () => {
   const enroll = runProjection(plan(couple));
   const delay = runProjection(plan({ ...couple, medicareEmployerCoverage2: 'spouse' }));
 
-  it('is off by default: Medicare from 65, exactly as before', () => {
-    expect(DEFAULT_INPUTS.medicareEmployerCoverage1).toBe('none');
-    expect(DEFAULT_INPUTS.medicareEmployerCoverage2).toBe('none');
+  it('enrolling at 65 charges Medicare from 65 (a new plan delays on its own job instead, changelog 477)', () => {
+    expect(DEFAULT_INPUTS.medicareEmployerCoverage1).toBe('own');
+    expect(DEFAULT_INPUTS.medicareEmployerCoverage2).toBe('own');
     expect(at(enroll, 65).irmaaCost).toBeGreaterThan(0);
     expect(at(enroll, 65).medicareDeferred2).toBe(false);
   });

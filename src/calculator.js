@@ -190,6 +190,10 @@ export function migratePersistedInputs(persisted) {
     // A plan saved before changelog 470 keeps the couple's full budget
     // after one death outside the stress test, as it was projected.
     if (raw.survivorExpenseDropInPlan === undefined) raw = { ...raw, survivorExpenseDropInPlan: false };
+    // And Medicare from 65 even while still at work, as it was before
+    // changelog 477 delayed it on a new plan's own employer cover.
+    if (raw.medicareEmployerCoverage1 === undefined) raw = { ...raw, medicareEmployerCoverage1: 'none' };
+    if (raw.medicareEmployerCoverage2 === undefined) raw = { ...raw, medicareEmployerCoverage2: 'none' };
   }
 
   return { schemaVersion: INPUTS_SCHEMA_VERSION, fromVersion, inputs: { ...DEFAULT_INPUTS, ...raw } };
@@ -1896,17 +1900,21 @@ export const DEFAULT_INPUTS = {
 
   // Delaying Medicare on employer coverage (changelog 241, the owner 2026-09-24:
   // "if I still have medical insurance through work, we can defer my spouse's
-  // obligation to enroll"). Per spouse: 'none' (default -- Medicare from 65,
-  // exactly as before), 'own' (covered through their own current job) or
-  // 'spouse' (through the other spouse's current job). While the covering
-  // job lasts, that spouse pays no Part B / Part D premium and no IRMAA;
-  // premiums start the year the covering worker retires. Real only when the
-  // employer has 20 or more employees -- below that Medicare is primary at
-  // 65 and delaying Part B brings a lifetime penalty -- which is why it is
-  // off by default: the plan cannot know the employer's size. Their cover in
-  // the meantime is the employer plan, already inside the paycheck.
-  medicareEmployerCoverage1: 'none',
-  medicareEmployerCoverage2: 'none',
+  // obligation to enroll"). Per spouse: 'none' (Medicare from 65), 'own'
+  // (covered through their own current job) or 'spouse' (through the other
+  // spouse's current job). While the covering job lasts, that spouse pays no
+  // Part B / Part D premium, no IRMAA and no Medicare supplement; premiums
+  // start the year the covering worker retires. Real only when the employer
+  // has 20 or more employees -- below that Medicare is primary at 65 and
+  // delaying Part B brings a lifetime penalty -- and the setting says so.
+  // A new plan delays on its own job (changelog 477, the owner 2026-11-01:
+  // "if someone is covered by work they should delay Medicare Part B and
+  // buying supplemental until they stop working"); before that it was 'none',
+  // which charged a 65-year-old still at work both their employer plan
+  // (inside the paycheck) and Medicare. A plan saved earlier keeps 'none'
+  // (migratePersistedInputs).
+  medicareEmployerCoverage1: 'own',
+  medicareEmployerCoverage2: 'own',
 
   // State Income Tax Modeling (Ultimate Upgrade)
   stateTaxState: 'none', // 'none', 'TX_FL' (0%), 'flat_5' (5%), 'state_rules' (stateOfResidence's own rules), 'ca', 'ny', 'il', 'co', 'pa', 'va', 'wa'

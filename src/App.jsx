@@ -3007,7 +3007,7 @@ export default function App() {
                 ['Employer match', matchLine],
                 ['Prices', `Rise ${pct(inputs.inflationRate)} a year. Every figure is shown in today's dollars.`],
                 ['Investments', `Grow ${pct(inputs.preRetireReturn)} a year while you work and ${pct(inputs.postRetireReturn)} once retired, before inflation, with the ups and downs of real markets tested separately.`],
-                ['Health cover', `Before 65, ${inputs.healthcareBridgeSource === 'benchmark' ? 'marketplace insurance priced for your age and state' : `${formatCurrency(Number(inputs.healthcareBridgeCost) || 0)} a person a year`}. From 65, Medicare premiums${(Number(inputs.medicareSupplementCost) || 0) > 0 ? ` plus ${formatCurrency(Number(inputs.medicareSupplementCost))} a person a year for what Medicare does not cover` : ''}.`],
+                ['Health cover', `Before 65, ${inputs.healthcareBridgeSource === 'benchmark' ? 'marketplace insurance priced for your age and state' : `${formatCurrency(Number(inputs.healthcareBridgeCost) || 0)} a person a year`}. From 65, Medicare premiums${(Number(inputs.medicareSupplementCost) || 0) > 0 ? ` plus ${formatCurrency(Number(inputs.medicareSupplementCost))} a person a year for what Medicare does not cover` : ''}${(inputs.medicareEmployerCoverage1 || 'none') !== 'none' ? ', starting when you stop working if that is later, since a job\u2019s health plan covers you until then' : ''}.`],
                 ['Taxes', noStateTax ? `Federal income tax, worked out every year. ${stateName} has no state income tax.` : `Federal and ${stateName} income tax, worked out every year.`],
               ];
               return (

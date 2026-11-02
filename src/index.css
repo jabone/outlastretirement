@@ -2792,24 +2792,22 @@ html.status-bar-on .main-content {
   background-image: linear-gradient(rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.08));
 }
 .year-ledger-table .ledger-year-ages { display: none; }
-.ledger-presets { display: none; }
 
-/* On a phone: one group of columns at a time (Summary, Income & spending,
-   Taxes, Accounts), chosen with the buttons above the table; the ages ride
-   under the year. */
-@media screen and (max-width: 768px) {
-  .ledger-presets { display: flex; }
-  .year-ledger-table .lg { display: none; }
-  .year-ledger-table.preset-sum .g-sum,
-  .year-ledger-table.preset-inc .g-inc,
-  .year-ledger-table.preset-tax .g-tax,
-  .year-ledger-table.preset-acc .g-acc { display: table-cell; }
-  .year-ledger-table .ledger-year-ages {
-    display: block;
-    font-size: var(--fs-2xs);
-    font-weight: 400;
-    color: var(--text-muted);
-  }
+/* One group of columns at a time (Summary, Income & spending, Taxes,
+   Accounts), chosen with the buttons above the table, on every screen
+   since the first-time user review: about twenty columns at once was a
+   wall for a beginner. Every column shows them all. The ages ride under
+   the year whenever the Ages column is folded away. */
+.year-ledger-table:not(.preset-all) .lg { display: none; }
+.year-ledger-table.preset-sum .g-sum,
+.year-ledger-table.preset-inc .g-inc,
+.year-ledger-table.preset-tax .g-tax,
+.year-ledger-table.preset-acc .g-acc { display: table-cell; }
+.year-ledger-table:not(.preset-all) .ledger-year-ages {
+  display: block;
+  font-size: var(--fs-2xs);
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 

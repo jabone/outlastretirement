@@ -11,6 +11,7 @@
 import React, { useMemo, useState } from 'react';
 import { useSimulation } from '../../context/useSimulation';
 import CashFlowExplorer from '../CashFlowExplorer';
+import { budgetShortYears, isBudgetShortYear, budgetCut } from '../../utils/budgetWarning';
 import { useEntitlement } from '../../context/useEntitlement';
 import { whereMoneyGoes, buildMoneyGoesCsv, moneyGoesYear } from '../../utils/whereMoneyGoes';
 import { Download, AlertTriangle } from 'lucide-react';
@@ -34,6 +35,7 @@ const LEDGER_PRESETS = [
   { id: 'inc', label: 'Income & spending' },
   { id: 'tax', label: 'Taxes' },
   { id: 'acc', label: 'Accounts' },
+  { id: 'all', label: 'Every column' },
 ];
 const LEDGER_PRESET_KEY = 'retire_plan_ledger_preset';
 function readLedgerPreset() {
@@ -70,6 +72,7 @@ const YearLedgerTab = () => {
   // Essentials / Flexible is Premium (the spending categories that create it
   // are); every other column is free, like the balances view.
   const uses = useMemo(() => whereMoneyGoes(projection, { split: isPremium }), [projection, isPremium]);
+  const shortYears = useMemo(() => budgetShortYears(projection?.years), [projection]);
 
   const hasDebt = (inputs.mortgageBalance > 0 && inputs.mortgagePayment > 0) || (inputs.otherDebtBalance > 0 && inputs.otherDebtPayment > 0);
   // Same reasoning as hasDebt above -- only show the harvested-loss
@@ -207,13 +210,13 @@ const YearLedgerTab = () => {
               />
             )}
             {view === 'balances' && (<>
-            <p data-testid="uses-legend" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: 0 }}>
+            <p data-testid="uses-legend" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: 0, marginBottom: '14px', lineHeight: 1.8 }}>
               <span aria-hidden="true" className="col-uses" style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', verticalAlign: 'middle', marginRight: '6px', backgroundColor: 'color-mix(in srgb, var(--accent-primary) 25%, transparent)' }} />
-              Shaded columns &mdash; Lifestyle Exp, Health and Income Tax &mdash; show the same figures as{' '}
+              Shaded columns &mdash; Spending, Health and Income Tax &mdash; show the same figures as{' '}
               <button type="button" className="btn-outline" style={{ padding: '1px 8px', fontSize: 'var(--fs-xs)' }} onClick={() => setView('uses')}>Where the money goes</button>
               , which also splits out life events, debt, gifts and what you saved.
             </p>
-            <p data-testid="how-figured-links" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '4px 14px' }}>
+            <p data-testid="how-figured-links" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: 0, marginBottom: '20px', display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '4px 14px' }}>
               <span>How is this figured?</span>
               <HowFiguredLink rule="federal-brackets" topic="federal income tax" style={{ fontSize: 'var(--fs-sm)' }}>Federal income tax</HowFiguredLink>
               <HowFiguredLink rule={STATE_RULE[inputs.stateTaxState] || 'state-none-or-flat'} topic="state income tax" style={{ fontSize: 'var(--fs-sm)' }}>State income tax</HowFiguredLink>
@@ -221,16 +224,16 @@ const YearLedgerTab = () => {
               <HowFiguredLink rule="irmaa" topic="Medicare and IRMAA" style={{ fontSize: 'var(--fs-sm)' }}>Medicare and IRMAA</HowFiguredLink>
               <HowFiguredLink rule="rmd" topic="RMD, the required minimum distribution" style={{ fontSize: 'var(--fs-sm)' }}>RMD</HowFiguredLink>
             </p>
-            {projection?.years?.some(y => y.lifestyleDeficit > 0 || y.savingsDeficit > 0) && (
-              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {shortYears.length > 0 && (
+              <div data-testid="budget-warning" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <AlertTriangle size={20} color="var(--error)" style={{ flexShrink: 0 }} />
                 <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-primary)' }}>
-                  <strong>Budget Warning:</strong> In one or more working years, your expenses, taxes, and savings exceeded your salary. The engine automatically reduced your savings and/or lifestyle targets to prevent premature portfolio drawdown (as configured in Settings).
+                  <strong>Pay does not cover the budget:</strong> in {shortYears.length === 1 ? `${shortYears[0].year}` : `${shortYears.length} working years (first ${shortYears[0].year})`}, your pay did not cover that year&rsquo;s spending, taxes and saving, so the plan saved less instead (up to {formatCurrency(Math.max(...shortYears.map(budgetCut)))} in a year). Those years are marked in the Year column. What gets cut is set by Pre-Retirement Deficit Strategy, on Plan &rarr; Savings.
                 </div>
               </div>
             )}
 
-            <div className="month-filter-row ledger-presets" role="group" aria-label="Columns to show" style={{ marginBottom: '10px' }}>
+            <div className="month-filter-row ledger-presets" role="group" aria-label="Columns to show" style={{ marginTop: '4px', marginBottom: '14px' }}>
               {LEDGER_PRESETS.map((p) => (
                 <button
                   key={p.id}
@@ -258,7 +261,7 @@ const YearLedgerTab = () => {
                     {hasCashFloor && <th className="lg g-acc"><Tooltip position="bottom" text="Year-end cash reserve. Spent first in a down-market retirement year (a draw), refilled in an up year, and built from leftover cash flow while working when that option is on (a +)." more="Cash Reserve">Cash Reserve</Tooltip></th>}
                     {hasNQDC && <th className="lg g-acc"><Tooltip position="bottom" text="Both spouses' deferred compensation balance, an unsecured account separate from your other buckets. A payout this year shows beside the balance; it is not included in Salary." more="NQDC">NQDC Balance</Tooltip></th>}
                     <th className="lg g-inc">SS + Pens</th>
-                    <th className="lg g-sum g-inc col-uses">Lifestyle Exp</th>
+                    <th className="lg g-sum g-inc col-uses"><Tooltip position="bottom" text="What you spend on living each year. While you work it is today's budget, grown with inflation; once you retire it becomes your retirement spending (the Dashboard's Annual Lifestyle). Health and income tax are in their own columns.">Spending</Tooltip></th>
                     <th className="lg g-inc col-uses"><Tooltip position="bottom" text="Everything health costs this year: cover before Medicare, Medicare premiums with IRMAA, long-term care and cover abroad, including care the HSA paid. The largest part is named under the figure." more="Health, Income Tax, shading">Health</Tooltip></th>
                     {hasAcaCheck && <th className="lg g-tax"><Tooltip position="bottom" text="For pre-65 retirement years in a non-expansion state: GAP means income fell below the poverty level, qualifying for neither Medicaid nor a subsidy. A + is the conversion made to lift income to the floor." more="ACA / FPL">ACA / FPL</Tooltip></th>}
                     <th className="lg g-sum g-tax col-uses"><Tooltip position="bottom" text="Federal and state income tax, and payroll tax while working — the same figure as Income tax in Where the money goes. Property tax is not here: it is part of Housing in your lifestyle budget.">Income Tax</Tooltip></th>
@@ -315,7 +318,7 @@ const YearLedgerTab = () => {
                       bgStyle = { backgroundColor: 'rgba(255,255,255,0.01)' };
                     }
 
-                    const hasBudgetWarning = row.lifestyleDeficit > 0 || row.savingsDeficit > 0;
+                    const hasBudgetWarning = isBudgetShortYear(row);
                     // Year is in the ACA coverage gap (below 100% FPL, no
                     // subsidy) -- either Protection is off, or it ran out of
                     // pre-tax balance to convert. Mirrors Dashboard's card.
@@ -336,7 +339,7 @@ const YearLedgerTab = () => {
                               size={13}
                               color="var(--error)"
                               style={{ marginLeft: '5px', verticalAlign: 'text-top', cursor: 'help' }}
-                              title="Budget Warning: this year's expenses, taxes, and savings exceeded your salary. The engine automatically reduced your savings and/or lifestyle targets to prevent premature portfolio drawdown (as configured in Settings)."
+                              title="Pay did not cover this year's spending, taxes and saving, so the plan saved less this year."
                             />
                           )}
                           {hasAcaGap && (

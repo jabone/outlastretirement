@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-10-31T20:21:48.996Z",
+  "timestamp": "2026-11-02T03:24:39.830Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -450,8 +450,8 @@
     "irmaaLifeChangeEventYear": 0,
     "irmaaLifeChangeEventType": "",
     "irmaaLifeChangeAppealEnabled": false,
-    "medicareEmployerCoverage1": "none",
-    "medicareEmployerCoverage2": "none",
+    "medicareEmployerCoverage1": "own",
+    "medicareEmployerCoverage2": "own",
     "stateTaxState": "ny",
     "stateTaxSocialSecurityTaxable": false,
     "stateTaxPensionTaxable": true,
@@ -943,8 +943,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -990,10 +990,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.031Z",
+      "savedAt": "2026-11-02T03:24:39.866Z",
       "tag": "demo"
     },
     {
@@ -1446,8 +1446,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -1493,10 +1493,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.035Z",
+      "savedAt": "2026-11-02T03:24:39.870Z",
       "tag": "demo"
     },
     {
@@ -1949,8 +1949,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "none",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -1996,10 +1996,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.046Z",
+      "savedAt": "2026-11-02T03:24:39.887Z",
       "tag": "demo"
     },
     {
@@ -2452,8 +2452,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -2499,10 +2499,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.073Z",
+      "savedAt": "2026-11-02T03:24:39.913Z",
       "tag": "demo"
     },
     {
@@ -2955,8 +2955,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -3002,10 +3002,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.084Z",
+      "savedAt": "2026-11-02T03:24:39.940Z",
       "tag": "demo"
     },
     {
@@ -3458,8 +3458,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -3505,10 +3505,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.088Z",
+      "savedAt": "2026-11-02T03:24:39.948Z",
       "tag": "demo"
     },
     {
@@ -3961,8 +3961,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -4008,10 +4008,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.091Z",
+      "savedAt": "2026-11-02T03:24:39.958Z",
       "tag": "demo"
     },
     {
@@ -4464,8 +4464,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -4511,10 +4511,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.100Z",
+      "savedAt": "2026-11-02T03:24:39.974Z",
       "tag": "demo"
     },
     {
@@ -4967,8 +4967,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -5014,10 +5014,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.114Z",
+      "savedAt": "2026-11-02T03:24:40.000Z",
       "tag": "demo"
     },
     {
@@ -5470,8 +5470,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -5517,10 +5517,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.129Z",
+      "savedAt": "2026-11-02T03:24:40.033Z",
       "tag": "demo"
     },
     {
@@ -5973,8 +5973,8 @@
         "irmaaLifeChangeEventYear": 0,
         "irmaaLifeChangeEventType": "",
         "irmaaLifeChangeAppealEnabled": false,
-        "medicareEmployerCoverage1": "none",
-        "medicareEmployerCoverage2": "none",
+        "medicareEmployerCoverage1": "own",
+        "medicareEmployerCoverage2": "own",
         "stateTaxState": "ny",
         "stateTaxSocialSecurityTaxable": false,
         "stateTaxPensionTaxable": true,
@@ -6020,10 +6020,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 470
+        "oddsVersion": 477
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-10-31T20:21:49.145Z",
+      "savedAt": "2026-11-02T03:24:40.052Z",
       "tag": "demo"
     }
   ],

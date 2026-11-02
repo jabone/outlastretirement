@@ -54,18 +54,18 @@ test.describe('landing page', () => {
   // if '/app/' resolved to nothing -- which is exactly the bug this covers:
   // a bare '/app' in the dev server falls back to the landing page, so the
   // button silently reloads this same page.
-  test('clicking Open the app actually leaves the landing page', async ({ page }) => {
+  test('clicking Start your own plan actually leaves the landing page', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Open the app' }).first().click();
+    await page.getByRole('link', { name: 'Ready? Start your own plan' }).first().click();
     await expect(page.locator('#root')).toHaveCount(1);
     await expect(page).toHaveURL(/\/app\//);
   });
 
   test('the primary CTA reaches the app', async ({ page }) => {
     await page.goto('/');
-    const cta = page.getByRole('link', { name: 'Try the Demo Plan' }).first();
+    const cta = page.getByRole('link', { name: 'New to this? See a sample family first' }).first();
     await expect(cta).toHaveAttribute('href', '/app/?demo=1');
-    const secondary = page.getByRole('link', { name: 'Open the app' }).first();
+    const secondary = page.getByRole('link', { name: 'Ready? Start your own plan' }).first();
     await expect(secondary).toHaveAttribute('href', '/app/');
   });
 

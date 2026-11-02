@@ -32,6 +32,9 @@ import { runProjection, DEFAULT_INPUTS, IRMAA_STANDARD_PREMIUM } from '../calcul
 // engine -- income gone, for a reason it has no way to represent.
 const INCOME_GONE_NO_EVENT = {
   ...DEFAULT_INPUTS,
+  // On Medicare from 65 (a new plan delays it while working, changelog 477).
+  medicareEmployerCoverage1: 'none',
+  medicareEmployerCoverage2: 'none',
   planYear: 2026,
   spouse2Enabled: false,
   filingStatus: 'Single',
