@@ -1872,10 +1872,10 @@ describe('SettingsTab', () => {
         inputs: { rebalancingEnabled: true, stockAllocationPre: 80, stockAllocationPost: 60, volatilityPre: 15, volatilityPost: 8 },
       });
       expect(screen.queryByLabelText(/Market Volatility .* Working/)).not.toBeInTheDocument();
-      // 80/20 -> 13.8%, 60/40 -> 11.6%, from 16% stock / 5% bond.
+      // 80/20 -> 15.6%, 60/40 -> 12.1%, from 19.3% stock / 7.9% bond, correlation 0.02.
       const note = screen.getByText(/Set automatically while Dynamic Asset Allocation is on/);
-      expect(note).toHaveTextContent('13.8%');
-      expect(note).toHaveTextContent('11.6%');
+      expect(note).toHaveTextContent('15.6%');
+      expect(note).toHaveTextContent('12.1%');
     });
   });
 

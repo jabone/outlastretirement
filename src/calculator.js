@@ -46,16 +46,44 @@ import { finalBalanceFactor, yearEndFactor } from './utils/displayDollars';
 import { STATE_TAX_RULES } from './config/stateTaxRules';
 import { sanitizeAnswers } from './utils/planAnswers';
 
-// Volatility the Monte Carlo derives from a stock/bond mix (16% stock /
-// 5% bond -- long-run US annual figures), used by the Dynamic Asset
-// Allocation branch of runMonteCarlo and, since changelog 247, as the
-// retired default for the flat branch too. Percent in, percent out.
-export const STOCK_VOLATILITY_PCT = 16.0;
-export const BOND_VOLATILITY_PCT = 5.0;
+// Volatility the Monte Carlo derives from a stock/bond mix, used by the
+// Dynamic Asset Allocation branch of runMonteCarlo and, since changelog
+// 247, as the retired default for the flat branch too. Percent in,
+// percent out.
+//
+// DIY-planner review (2026-11-02): the figures are measured from the
+// app's own history table (config/historicalReturns.js, 1928-2025): the
+// S&P 500's annual total return has a standard deviation of 19.3%, the
+// 10-year Treasury's 7.9%, and the two are almost uncorrelated (0.02). A
+// mix blends them as a portfolio does, sqrt(w^2 s^2 + (1-w)^2 b^2 +
+// 2 w (1-w) rho s b), which gives 12.1% at 60/40 -- the 60/40 figure
+// measured from the same table. The constants were 16% and 5% added in a
+// straight line (as if perfectly correlated) until then: about right at
+// 60/40 by coincidence, but 16% for an all-stock mix against history's
+// 19.3%, so a stock-heavy plan's Monte Carlo assumed a calmer market than
+// the record shows.
+export const STOCK_VOLATILITY_PCT = 19.3;
+export const BOND_VOLATILITY_PCT = 7.9;
+export const STOCK_BOND_CORRELATION = 0.02;
+function blendVolatility(stockPct) {
+  const w = Math.min(1, Math.max(0, stockPct / 100));
+  const sv = STOCK_VOLATILITY_PCT;
+  const bv = BOND_VOLATILITY_PCT;
+  return Math.sqrt(w * w * sv * sv + (1 - w) * (1 - w) * bv * bv + 2 * w * (1 - w) * STOCK_BOND_CORRELATION * sv * bv);
+}
+// The straight-line 16% / 5% blend in use until 2026-11-02, frozen for the
+// one migration that read it (a pre-247 plan still on the old 8% default
+// is lifted to what it would have been given then), so loading an old
+// plan never moves with the constants above.
+function legacyDerivedVolatility(stockAllocationPct) {
+  const stock = Number(stockAllocationPct);
+  const s = Number.isFinite(stock) ? Math.min(100, Math.max(0, stock)) : 60;
+  return Math.round(((s * 16 + (100 - s) * 5) / 100) * 10) / 10;
+}
 export function derivedVolatility(stockAllocationPct) {
   const stock = Number(stockAllocationPct);
   const s = Number.isFinite(stock) ? Math.min(100, Math.max(0, stock)) : 60;
-  return Math.round(((s * STOCK_VOLATILITY_PCT + (100 - s) * BOND_VOLATILITY_PCT) / 100) * 10) / 10;
+  return Math.round(blendVolatility(s) * 10) / 10;
 }
 
 // The plan's stock share for one projection year, in percent: the Working
@@ -363,7 +391,7 @@ function migrateVersion1Shapes(raw) {
   // other value keeps it. monteCarloSeed is the version marker: every plan
   // saved after 247 carries it, so this runs at most once per plan.
   if (raw.monteCarloSeed === undefined && Number(raw.volatilityPost) === 8) {
-    raw = { ...raw, volatilityPost: derivedVolatility(raw.stockAllocationPost) };
+    raw = { ...raw, volatilityPost: legacyDerivedVolatility(raw.stockAllocationPost) };
   }
 
   if (raw.lifeInsuranceEnabled1 === undefined && raw.lifeInsuranceEnabled !== undefined) {
@@ -570,6 +598,10 @@ export const DEFAULT_INPUTS = {
   // toggling that option no longer changes the assumed retirement risk by
   // half. migrateInputs lifts plans still on the old 8% default.
   volatilityPre: 15.0,
+  // 11.6% at the default 60/40 mix: the figure the straight-line stock/bond
+  // blend gave until 2026-11-02. The measured blend now gives 12.1% (see
+  // derivedVolatility); the flat default stays put until the return
+  // defaults are settled together, so no published figure moves with it.
   volatilityPost: 11.6,
   // Monte Carlo trials are reproducible (changelog 247): the same plan and
   // the same seed give the same 1,000 lifetimes and the same success
@@ -6973,6 +7005,28 @@ const HISTORY_BY_YEAR = new Map([...HISTORICAL_RETURNS_PRE1928, ...HISTORICAL_RE
 // (Damodaran's table), or 1871 when the plan asks for Robert Shiller's
 // longer record.
 export const HISTORY_FROM_CHOICES = Object.freeze([HISTORY_FIRST_YEAR, PRE1928_FIRST_YEAR]);
+
+// The inflation that moves prices from replayed year Y-1 to year Y
+// (DIY-planner review, 2026-11-02). The two tables measure it differently:
+//   * 1928 on (Damodaran / Minneapolis Fed): annual-average CPI, so row Y
+//     is average prices in Y over average prices in Y-1 -- exactly the
+//     step into year Y, and row Y is the right figure.
+//   * Before 1928 (Shiller): January Y to January Y+1, inflation DURING Y,
+//     which reaches a year's spending only in year Y+1. Row Y-1 is the
+//     step into year Y. Applying row Y raised a year's spending for
+//     inflation that had not happened yet: the 1909 surge hit 1909, a 1910
+//     fall arrived a year early, and three starts (1907, 1910, 1911) ran
+//     short that last when each year's inflation lands when it happened.
+// At the splice, 1928 takes its own annual-average row, so Shiller's 1927
+// (January 1927 to January 1928, -1.1%) is the one figure not applied.
+export function historyInflationInto(year) {
+  if (year < HISTORY_FIRST_YEAR) {
+    const prev = HISTORY_BY_YEAR.get(year - 1);
+    if (prev) return prev[3];
+  }
+  const row = HISTORY_BY_YEAR.get(year);
+  return row ? row[3] : null;
+}
 export function historyFirstYear(inputs) {
   return Number(inputs?.historyFromYear) === PRE1928_FIRST_YEAR ? PRE1928_FIRST_YEAR : HISTORY_FIRST_YEAR;
 }
@@ -7582,7 +7636,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           returnRate = override.recenter ? recenterReturn(raw, historicalGeometricMean(stockShareNow), baseReturnRate) : raw;
         } else {
           const volatility = inputs.rebalancingEnabled
-            ? (stockShareNow * STOCK_VOLATILITY_PCT + (100 - stockShareNow) * BOND_VOLATILITY_PCT) / 100
+            ? blendVolatility(stockShareNow)
             : (isRetired ? inputs.volatilityPost : inputs.volatilityPre);
           const { m, s: sd } = lognormalReturnParams(baseReturnRate / 100, volatility / 100);
           returnRate = m > 0 ? (m * Math.exp(sd * override.z) - 1) * 100 : -100;
@@ -7636,7 +7690,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         if (row) {
           const stockShare = planStockShareForYear(inputs, isRetired, year, householdRetirementYear);
           returnRate = historicalPortfolioReturn(row, stockShare);
-          activeInflationRate = row[3];
+          activeInflationRate = historyInflationInto(replayYear);
           stressInflationOverrideActive = true;
         }
       } else if (inputs.stressType === 'crashYear') {
@@ -13711,6 +13765,12 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
     // Changelog 448: the "keep at least" floor these counts respect, in
     // today's dollars (0 = none).
     floor: Math.max(0, Number(inputs.portfolioFloorReal) || 0),
+    // The mix every start is tested at (DIY-planner review, 2026-11-02):
+    // the retired stock share, walked down by the glide when it is on. The
+    // flat return assumption plays no part; each year earns what the
+    // market did.
+    stockShare: planStockShareForYear(inputs, true, retirementYear, retirementYear),
+    glide: !!(inputs.rebalancingEnabled && inputs.glideAllocationEnabled),
     rules: summaries,
     starts,
   };

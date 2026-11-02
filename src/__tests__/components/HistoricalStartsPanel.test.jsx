@@ -34,6 +34,12 @@ const data = (inPlan) => ({
 });
 
 describe('HistoricalStartsPanel', () => {
+  it('names the stock and bond mix every start is tested at (DIY-planner review)', () => {
+    render(<HistoricalStartsPanel data={{ ...data('fixed'), stockShare: 60, glide: false }} onOpenPremium={() => {}} />, false);
+    const t = screen.getByTestId('historical-mix').textContent;
+    expect(t).toMatch(/Tested at 60% stocks and 40% bonds, rebalanced each year/);
+    expect(t).toMatch(/average-return setting plays no part/);
+  });
   it('free, fixed spending: the count and the hardest start, and the rest locked', () => {
     render(<HistoricalStartsPanel data={data('fixed')} onOpenPremium={() => {}} />, false);
     expect(screen.getByTestId('historical-headline').textContent).toMatch(/lasted in 50 of 66 real retirements/);

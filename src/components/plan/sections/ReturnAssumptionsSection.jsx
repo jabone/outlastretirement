@@ -286,9 +286,9 @@ export default function ReturnAssumptionsSection() {
                   {inputs.rebalancingEnabled ? (
                     <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', margin: '0', fontStyle: 'italic' }}>
                       Set automatically while Dynamic Asset Allocation is on: volatility is derived from your
-                      stock/bond mix instead &mdash; currently about <strong>{((inputs.stockAllocationPre * 16 + (100 - inputs.stockAllocationPre) * 5) / 100).toFixed(1)}%</strong> working
-                      and <strong>{((inputs.stockAllocationPost * 16 + (100 - inputs.stockAllocationPost) * 5) / 100).toFixed(1)}%</strong> retired,
-                      from an assumed 16% for stocks and 5% for bonds.
+                      stock/bond mix instead &mdash; currently about <strong>{derivedVolatility(inputs.stockAllocationPre).toFixed(1)}%</strong> working
+                      and <strong>{derivedVolatility(inputs.stockAllocationPost).toFixed(1)}%</strong> retired,
+                      from stocks at 19.3% and bonds at 7.9%, nearly uncorrelated, as measured from 1928&ndash;2025.
                     </p>
                   ) : (
                     <>
@@ -304,7 +304,7 @@ export default function ReturnAssumptionsSection() {
                             value={inputs.volatilityPre}
                             onChange={(e) => updateInput('volatilityPre', (e.target.value === '' ? '' : parseFloat(e.target.value)))}
                           />
-                          <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>A stock-heavy portfolio has historically run around 15&ndash;18%.</span>
+                          <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>Since 1928, an 80/20 mix has run about 15.6% and all stocks about 19%.</span>
                         </div>
                         <div className="form-group">
                           <label htmlFor="field-volatilityPost">Market Volatility &mdash; Retired (%)</label>
@@ -317,7 +317,7 @@ export default function ReturnAssumptionsSection() {
                             value={inputs.volatilityPost}
                             onChange={(e) => updateInput('volatilityPost', (e.target.value === '' ? '' : parseFloat(e.target.value)))}
                           />
-                          <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>Lower, for a more conservative retired mix. A 60/40 portfolio has historically run around 10&ndash;12%.</span>
+                          <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)' }}>Lower, for a more conservative retired mix. A 60/40 mix has run about 12% since 1928.</span>
                         </div>
                       </div>
                       {/* Worth saying out loud: lowering these makes the
@@ -351,7 +351,8 @@ export default function ReturnAssumptionsSection() {
                     from blocks of consecutive real years, {HISTORY_FIRST_YEAR}&ndash;{HISTORY_LAST_YEAR}, at your stock/bond mix &mdash; so bad years
                     come in runs, the left tail is as fat as it was, and a year like 1974 brings its 11% inflation with
                     it. Re-centered on your own return and inflation assumptions by default, so the model changes the
-                    shape of the uncertainty, not your view of the future.
+                    shape of the uncertainty, not your view of the future. It uses the record from {HISTORY_FIRST_YEAR} even
+                    when the historical starts reach back to 1871.
                   </p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
                     <div className="form-group" style={{ margin: 0 }}>

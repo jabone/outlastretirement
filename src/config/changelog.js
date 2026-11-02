@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 479,
+    date: '2026-11-02',
+    title: 'History checks that match a calculator you can rebuild',
+    summary: 'The record from 1871 now applies each year\u2019s inflation when it happened, the history panel names the stock and bond mix it tests, and the Monte Carlo\u2019s stock and bond swings match history.',
+    items: [
+      "**Checked against an independent calculation.** We rebuilt the historical test from scratch: $1,000,000 in a 60/40 mix, $40,000 a year rising with inflation, 30 years. From 1928 the app matched to the dollar and to the start year. From 1871 it did not, and that was a mistake here.",
+      "**Inflation before 1928 arrived a year early.** The figures before 1928 measure prices from one January to the next, so a year's inflation should raise the next year's spending. The app raised the same year's, charging 1909's 10.7% jump a year too soon. Three starts (1907, 1910 and 1911) ran short that last when each year's inflation lands when it happened. If your plan uses the record from 1871, its count of starts that lasted may rise.",
+      "**Which mix is tested.** Every retirement since 1928 (or 1871) replays real stock and bond returns at your retired stock allocation, whether or not Dynamic Asset Allocation is on; your average-return setting plays no part there. The panel now says so, with the mix.",
+      "**Comparing with FI Calc or FIRECalc.** They raise each year's spending by the previous year's inflation; from 1928 the app uses the same year's, because its figures are yearly averages. That puts the most you could spend a few percent below theirs for the same plan. The panel and the Input Dictionary now explain it.",
+      "**Stock and bond swings, measured.** With Dynamic Asset Allocation on, the Monte Carlo assumed stocks swing 16% a year and bonds 5%, added in a straight line. The app's own history since 1928 shows 19.3% and 7.9%, almost unrelated to each other. It now uses those, blended the way a portfolio blends them: 12.1% at 60/40 (11.6% before), 15.6% at 80/20 (13.8%). A stock-heavy plan with that switch on will show lower odds. With the switch off, nothing changes.",
+    ],
+  },
+  {
     id: 478,
     date: '2026-11-02',
     title: 'When a survivor starts Social Security, and Medicare and HSA rules a benefits counselor would check',

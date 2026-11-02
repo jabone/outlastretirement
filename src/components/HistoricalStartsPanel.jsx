@@ -57,6 +57,12 @@ function SafeMaxLine({ data, guarded }) {
         tax, with your Social Security, pensions, accounts, stock and bond mix and horizon, so it can sit well above or
         below the rule.
       </span>
+      <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginTop: '4px' }} data-testid="historical-safemax-timing">
+        Checking it against FI Calc or FIRECalc? Expect this to read a few percent lower for the same plan. From 1928 the
+        inflation figures are averages for each year, so each year&rsquo;s spending rises by that same year&rsquo;s
+        inflation; those calculators raise it by the year before&rsquo;s. Both are fair readings of the record. This
+        plan also pays tax, Medicare and fees, which they leave out.
+      </span>
     </p>
   );
 }
@@ -133,6 +139,15 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
         {data.firstStart}, starting the year you retire. These are real sequences, not averages: the scenarios above
         replay a few crash years, while this replays whole retirements.
       </p>
+      {Number.isFinite(data.stockShare) && (
+        <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: 0 }} data-testid="historical-mix">
+          Tested at {Math.round(data.stockShare)}% stocks and {100 - Math.round(data.stockShare)}% bonds, rebalanced each
+          year{data.glide ? ', moving toward bonds as your glide sets' : ''}: the S&amp;P 500 and the 10-year Treasury. Each
+          year earns what that mix earned then, so your average-return setting plays no part here. The mix is the Retired
+          stock allocation under Plan &rarr; Assumptions &amp; Risk, in Dynamic Asset Allocation, and applies here whether
+          that switch is on or off.
+        </p>
+      )}
       <p style={{ fontSize: 'var(--fs-body)', margin: 0 }} data-testid="historical-headline">
         Your plan lasted in <strong>{h.lasted} of {h.count}</strong> real retirements{floorPhrase(h.floor)}.{' '}
         {h.worstFloorBreachYear && (!h.worstRunsOutYear || h.worstFloorBreachYear < h.worstRunsOutYear)

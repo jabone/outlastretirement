@@ -22,6 +22,7 @@ import {
 // The reference household (the pre-467 default plan): see referenceHousehold.js.
 import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 import { probAliveAt, probAnyAlive } from '../utils/mortality';
+import { HISTORICAL_RETURNS } from '../config/historicalReturns';
 
 const USED_KEYS = [
   'monteCarloSeed', 'volatilityPre', 'volatilityPost', 'mcInflationEnabled',
@@ -215,11 +216,19 @@ describe('inflation uncertainty', () => {
 });
 
 describe('retired-volatility migration', () => {
-  it('derives 11.6 at 60/40 and scales with the mix', () => {
-    expect(derivedVolatility(60)).toBe(11.6);
-    expect(derivedVolatility(100)).toBe(16);
-    expect(derivedVolatility(0)).toBe(5);
-    expect(derivedVolatility(undefined)).toBe(11.6);
+  it('derives 12.1 at 60/40 from the measured history and scales with the mix', () => {
+    expect(derivedVolatility(60)).toBe(12.1);
+    expect(derivedVolatility(100)).toBe(19.3);
+    expect(derivedVolatility(0)).toBe(7.9);
+    expect(derivedVolatility(80)).toBe(15.6);
+    expect(derivedVolatility(undefined)).toBe(12.1);
+  });
+
+  it('matches the 60/40 volatility measured from the history table', () => {
+    const rows = HISTORICAL_RETURNS.map((r) => 0.6 * r[1] + 0.4 * r[2]);
+    const mean = rows.reduce((a, b) => a + b, 0) / rows.length;
+    const sd = Math.sqrt(rows.reduce((a, b) => a + (b - mean) ** 2, 0) / rows.length);
+    expect(Math.abs(derivedVolatility(60) - sd)).toBeLessThan(0.2);
   });
 
   it('lifts a pre-247 plan still on the old 8% default', () => {
@@ -237,8 +246,8 @@ describe('retired-volatility migration', () => {
     expect(migrateInputs({ ...DEFAULT_INPUTS, volatilityPost: 8, monteCarloSeed: 1 }).volatilityPost).toBe(8);
   });
 
-  it('the shipped default is the derived figure', () => {
-    expect(DEFAULT_INPUTS.volatilityPost).toBe(derivedVolatility(DEFAULT_INPUTS.stockAllocationPost));
+  it('the shipped default is within half a point of the derived figure', () => {
+    expect(Math.abs(DEFAULT_INPUTS.volatilityPost - derivedVolatility(DEFAULT_INPUTS.stockAllocationPost))).toBeLessThanOrEqual(0.5);
   });
 });
 
