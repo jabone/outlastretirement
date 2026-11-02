@@ -11,7 +11,7 @@ const START = DEFAULT_INPUTS.planYear;
 // but the stress test has them die at 66, so the household is retired
 // from Spouse 1's 65 instead of waiting for Spouse 2.
 const couple = {
-  ...DEFAULT_INPUTS, spouse2Enabled: true, filingStatus: 'MFJ',
+  ...DEFAULT_INPUTS, rebalancingEnabled: false, spouse2Enabled: true, filingStatus: 'MFJ',
   birthYear1: START - 62, birthYear2: START - 60, retireAge1: 65, retireAge2: 70,
   lifeExpectancy1: 90, lifeExpectancy2: 90, salary1: 120000, salary2: 120000,
   preTaxInit: 1500000, taxableInit: 400000, rothInit: 200000, lifestyleExpense: 110000,

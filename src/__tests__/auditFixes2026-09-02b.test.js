@@ -35,7 +35,7 @@ describe('Q-21: inherited IRA annual RMDs (Reg. 1.401(a)(9)-5(d))', () => {
 
   it('is the default schedule: small required minimums in years 1-9, the balance in year 10', () => {
     expect(DEFAULT_INPUTS.heirDistributionStrategy).toBe('rmd_10');
-    const res = calculateHeirEstateTax({ ...DEFAULT_INPUTS, spouse2Enabled: false, heirs: [{ id: 1, name: 'H', filingStatus: 'Single', income: 100000, splitPct: 100, relationship: 'child', age: 20 }] }, 1000000, 0, 0);
+    const res = calculateHeirEstateTax({ ...DEFAULT_INPUTS, rebalancingEnabled: false, spouse2Enabled: false, heirs: [{ id: 1, name: 'H', filingStatus: 'Single', income: 100000, splitPct: 100, relationship: 'child', age: 20 }] }, 1000000, 0, 0);
     const h = res.perHeir[0];
     expect(h.distributionStrategy).toBe('rmd_10');
     const w = h.annualWithdrawals.map(r => r.withdrawal);

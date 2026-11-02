@@ -12,7 +12,7 @@ const D = DEFAULT_INPUTS;
 // A retired single person, no SS, no healthcare, zero return/inflation, no
 // state tax. Every key here exists in DEFAULT_INPUTS (checked below).
 const blank = (over = {}) => ({
-  ...D,
+  ...D, rebalancingEnabled: false,
   planYear: 2026, birthYear1: 1956, retireAge1: 65, lifeExpectancy1: 90, claimingAge1: 70,
   spouse2Enabled: false, filingStatus: 'Single',
   preTaxInit: 0, rothInit: 0, taxableInit: 0, hsaInit: 0,

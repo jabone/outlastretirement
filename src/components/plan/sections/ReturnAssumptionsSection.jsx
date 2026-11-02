@@ -5,7 +5,7 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useSimulation } from '../../../context/useSimulation';
 import { HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from '../../../config/historicalReturns';
-import { derivedVolatility, lognormalReturnParams } from '../../../calculator';
+import { derivedVolatility, lognormalReturnParams, planReturnRates } from '../../../calculator';
 import NumberInput from '../../NumberInput';
 import { feePct } from '../../../utils/feeCardLabels';
 import SwitchRow from '../../SwitchRow';
@@ -112,18 +112,21 @@ export default function ReturnAssumptionsSection() {
                 <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', borderBottom: '1px solid var(--card-border)', paddingBottom: '8px' }}>
                   Return Assumptions
                 </h3>
-                <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '-8px', marginBottom: '16px' }}>
-                  The flat average annual return the projection uses, before and after retirement. These apply whenever
-                  Dynamic Asset Allocation below is switched <strong>off</strong> &mdash; which is the default. The two
-                  &ldquo;Investment Return&rdquo; sliders on the Dashboard are shortcuts to these same two fields.
+                <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '-8px', marginBottom: '12px' }}>
+                  Your plan&rsquo;s return comes from your stock and bond mix (Your Stock and Bond Mix):{' '}
+                  {(() => {
+                    const r = planReturnRates({ ...inputs, rebalancingEnabled: true });
+                    const f = (v) => `${(Math.round(v * 10) / 10).toFixed(1)}%`;
+                    return <><strong>{f(r.working)}</strong> a year while you work and <strong>{f(r.retired)}</strong> retired, before inflation and fees.</>;
+                  })()}{' '}
+                  If you would rather set one average return yourself, turn this on.
                 </p>
-                {inputs.rebalancingEnabled && (
-                  <div style={{ padding: '8px 12px', borderRadius: '6px', backgroundColor: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)', fontSize: '12.5px', color: 'var(--warning)', marginBottom: '12px', fontWeight: '500' }}>
-                    <AlertTriangle size={14} style={{ verticalAlign: '-2px', color: 'var(--warning)' }} /> Currently Overridden: Dynamic Asset Allocation (below) is enabled, so your return is being derived
-                    from your stock/bond mix instead of these two figures. Turn it off to use these again.
-                  </div>
-                )}
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', opacity: inputs.rebalancingEnabled ? 0.6 : 1 }}>
+                <SwitchRow id="toggle-rebalancingEnabled" checked={!inputs.rebalancingEnabled} onChange={(v) => updateInput('rebalancingEnabled', !v)}>
+                  Use my own average return instead
+                </SwitchRow>
+                {inputs.rebalancingEnabled ? null : (
+                <div data-testid="own-return-fields" style={{ marginTop: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
                   <div className="form-group">
                     <label htmlFor="field-preRetireReturn">Investment Return &mdash; Working (%)</label>
                     <NumberInput
@@ -150,7 +153,7 @@ export default function ReturnAssumptionsSection() {
                 {/* Changelog 469: the same figures after inflation, and a
                     word when they run past what planners assume. These
                     are compound rates before fees; fees come off below. */}
-                {!inputs.rebalancingEnabled && (() => {
+                {(() => {
                   const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
                   const infl = n(inputs.inflationRate);
                   const pre = n(inputs.preRetireReturn), post = n(inputs.postRetireReturn);
@@ -189,21 +192,14 @@ export default function ReturnAssumptionsSection() {
                     tell apart. The internal key keeps its original name --
                     renaming it would break every saved plan and backup
                     file that already carries these three keys. */}
-                <div style={{ marginTop: '18px', borderTop: '1px solid var(--card-border)', paddingTop: '14px', opacity: inputs.rebalancingEnabled ? 0.6 : 1 }}>
-                  <SwitchRow id="toggle-equityGlidePathEnabled" checked={inputs.equityGlidePathEnabled} onChange={(v) => updateInput('equityGlidePathEnabled', v)} disabled={inputs.rebalancingEnabled}>Get more conservative each year in retirement</SwitchRow>
+                <div style={{ marginTop: '18px', borderTop: '1px solid var(--card-border)', paddingTop: '14px' }}>
+                  <SwitchRow id="toggle-equityGlidePathEnabled" checked={inputs.equityGlidePathEnabled} onChange={(v) => updateInput('equityGlidePathEnabled', v)}>Get more conservative each year in retirement</SwitchRow>
                   <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '8px', marginBottom: '0' }}>
                     Instead of holding the retired return flat for life, reduce it a little each year you&rsquo;re
                     retired &mdash; the usual reason being a portfolio that shifts toward bonds and cash as you age.
                     It stops at the floor you set and stays there.
                   </p>
-                  {inputs.rebalancingEnabled && (
-                    <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', marginTop: '8px', marginBottom: '0', fontStyle: 'italic' }}>
-                      Unavailable while Dynamic Asset Allocation is on. Use <strong>Glide Allocation</strong> in that
-                      section instead &mdash; it does the same thing by reducing your stock percentage, which is the
-                      figure driving your return once that model is active.
-                    </p>
-                  )}
-                  {inputs.equityGlidePathEnabled && !inputs.rebalancingEnabled && (
+                  {inputs.equityGlidePathEnabled && (
                     <>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', marginTop: '12px' }}>
                         <div className="form-group">
@@ -251,6 +247,9 @@ export default function ReturnAssumptionsSection() {
                   )}
                 </div>
 
+                </div>
+                )}
+
                 {/* volatilityPre / volatilityPost. Same story as the glide
                     control above — wired into the engine, never given a
                     control — but with one important difference: these are
@@ -275,20 +274,20 @@ export default function ReturnAssumptionsSection() {
                     lognormal around the stated COMPOUND rate, and each run
                     is reproducible for its seed (Risk & Stress → Monte
                     Carlo). */}
-                <div style={{ marginTop: '18px', borderTop: '1px solid var(--card-border)', paddingTop: '14px', opacity: inputs.rebalancingEnabled ? 0.6 : 1 }}>
+                <div style={{ marginTop: '18px', borderTop: '1px solid var(--card-border)', paddingTop: '14px' }}>
                   <h4 style={{ fontSize: 'var(--fs-body)', fontWeight: '600', margin: '0 0 6px' }}>Market Volatility</h4>
                   <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: '0 0 12px' }}>
                     How much returns swing year to year, as a standard deviation. This is the single biggest influence
                     on your Monte Carlo success probability, and it affects nothing else: only the Monte Carlo
                     simulation reads these (Risk &amp; Stress &rarr; Monte Carlo Probability). Your main projection, the Dashboard,
-                    and the year-by-year ledger all use the flat return figures above and never see them.
+                    and the year-by-year ledger all use the average returns above and never see them.
                   </p>
                   {inputs.rebalancingEnabled ? (
                     <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', margin: '0', fontStyle: 'italic' }}>
-                      Set automatically while Dynamic Asset Allocation is on: volatility is derived from your
-                      stock/bond mix instead &mdash; currently about <strong>{derivedVolatility(inputs.stockAllocationPre).toFixed(1)}%</strong> working
+                      Worked out from your stock and bond mix &mdash; currently about <strong>{derivedVolatility(inputs.stockAllocationPre).toFixed(1)}%</strong> working
                       and <strong>{derivedVolatility(inputs.stockAllocationPost).toFixed(1)}%</strong> retired,
                       from stocks at 19.3% and bonds at 7.9%, nearly uncorrelated, as measured from 1928&ndash;2025.
+                      To set it yourself, turn on Use my own average return above.
                     </p>
                   ) : (
                     <>
@@ -336,7 +335,7 @@ export default function ReturnAssumptionsSection() {
                     each year&rsquo;s return so that the <em>middle</em> trial grows at exactly that rate &mdash; the same
                     growth your main projection shows &mdash; while the swings above and below follow the volatility
                     here. The simple average of the trials is a little higher than the stated rate (about
-                    {' '}<strong>{(lognormalReturnParams((Number(inputs.postRetireReturn) || 0) / 100, (inputs.rebalancingEnabled ? derivedVolatility(inputs.stockAllocationPost) : (Number(inputs.volatilityPost) || 0)) / 100).mean * 100).toFixed(1)}%</strong>
+                    {' '}<strong>{(lognormalReturnParams(planReturnRates(inputs).retired / 100, (inputs.rebalancingEnabled ? derivedVolatility(inputs.stockAllocationPost) : (Number(inputs.volatilityPost) || 0)) / 100).mean * 100).toFixed(1)}%</strong>
                     {' '}retired at these figures), which is how a compound rate and an arithmetic mean relate.
                   </p>
                 </div>

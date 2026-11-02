@@ -160,6 +160,24 @@ export function netReturnPct(grossPct, inputs) {
   return ((1 + (Number(grossPct) || 0) / 100) * (1 - f) - 1) * 100;
 }
 
+// The plan's return before fees and inflation, working and retired, from
+// whichever model is active (changelog 480): the stock/bond mix, or the
+// "Use my own average return" override. Every display of "the return the
+// plan assumes" reads this, so none of them can quote a field the engine
+// is not using. The retired figure is the first retired year's (a glide
+// lowers later years).
+export function planReturnRates(inputs) {
+  const n = (v, d) => (Number.isFinite(Number(v)) && v !== '' && v !== null ? Number(v) : d);
+  if (inputs && inputs.rebalancingEnabled) {
+    const sr = n(inputs.stockReturnRate, DEFAULT_INPUTS.stockReturnRate);
+    const br = n(inputs.bondReturnRate, DEFAULT_INPUTS.bondReturnRate);
+    const pre = Math.min(100, Math.max(0, n(inputs.stockAllocationPre, DEFAULT_INPUTS.stockAllocationPre)));
+    const post = Math.min(100, Math.max(0, n(inputs.stockAllocationPost, DEFAULT_INPUTS.stockAllocationPost)));
+    return { fromMix: true, working: (pre * sr + (100 - pre) * br) / 100, retired: (post * sr + (100 - post) * br) / 100, stockPre: pre, stockPost: post };
+  }
+  return { fromMix: false, working: n(inputs?.preRetireReturn, DEFAULT_INPUTS.preRetireReturn), retired: n(inputs?.postRetireReturn, DEFAULT_INPUTS.postRetireReturn) };
+}
+
 export function lognormalReturnParams(g, sigma) {
   const m = 1 + g;
   if (!(m > 0)) return { m: 0, mu: -Infinity, s: 0, mean: -1 };
@@ -222,6 +240,12 @@ export function migratePersistedInputs(persisted) {
     // changelog 477 delayed it on a new plan's own employer cover.
     if (raw.medicareEmployerCoverage1 === undefined) raw = { ...raw, medicareEmployerCoverage1: 'none' };
     if (raw.medicareEmployerCoverage2 === undefined) raw = { ...raw, medicareEmployerCoverage2: 'none' };
+    // One return model (changelog 480): a new plan's return comes from its
+    // stock/bond mix at 6.5% stocks and 4.5% bonds. A plan saved before
+    // keeps the model and the figures it was saved with.
+    if (raw.rebalancingEnabled === undefined) raw = { ...raw, rebalancingEnabled: false };
+    if (raw.stockReturnRate === undefined) raw = { ...raw, stockReturnRate: 8.0 };
+    if (raw.bondReturnRate === undefined) raw = { ...raw, bondReturnRate: 4.0 };
   }
 
   return { schemaVersion: INPUTS_SCHEMA_VERSION, fromVersion, inputs: { ...DEFAULT_INPUTS, ...raw } };
@@ -2053,8 +2077,15 @@ export const DEFAULT_INPUTS = {
   pension2LumpSumValue: 250000,
   pension2LumpSumRollover: false,
 
-  // Rebalancing & Dynamic Asset Allocation
-  rebalancingEnabled: false,
+  // Where the return comes from (changelog 480, "one return model"). The
+  // key's name is historical: true means each year's return is the stock
+  // share times stockReturnRate plus the rest times bondReturnRate, with
+  // the Monte Carlo volatility derived from the same mix -- the model the
+  // historical starts, the bootstrap and the dividend split always used.
+  // false is the "Use my own average return" override: the flat
+  // preRetireReturn / postRetireReturn pair and the volatility fields.
+  // True for a new plan; a plan saved before changelog 480 keeps false.
+  rebalancingEnabled: true,
   stockAllocationPre: 80.0,
   stockAllocationPost: 60.0,
   // 'manual' | 'holdings' -- same link/unlink pattern as
@@ -2068,8 +2099,17 @@ export const DEFAULT_INPUTS = {
   // See App.jsx's stockAllocationSource sync effect and
   // PortfolioTab.jsx's handleSyncStockAllocation.
   stockAllocationSource: 'manual',
-  stockReturnRate: 8.0,
-  bondReturnRate: 4.0,
+  // Compound (median) annual returns before inflation and fees, 6.5% for
+  // stocks and 4.5% for bonds since changelog 480 (stocks were 8%, bonds
+  // 4%). With 2.5% inflation that is 4.0% and 2.0% a year after inflation.
+  // Both sit inside the major firms' published long-term outlooks as of
+  // late 2026 (J.P. Morgan 2027 LTCMA: US large cap 7.5%, intermediate
+  // Treasuries 4.6%; Vanguard VCMM at Sept 30, 2026: US equities 4.8-6.8%,
+  // US aggregate bonds 5.1-6.1%; Schwab 2026: 5.9% and 4.8%), and the bond
+  // figure sits just under the ~5% 10-year Treasury yield. A 60/40 mix
+  // comes to 5.7%, an 80/20 one 6.1%. See TAX_RULES_SPEC.md 1.6.
+  stockReturnRate: 6.5,
+  bondReturnRate: 4.5,
   // Investment fees (changelog 447), charged on the invested accounts --
   // Pre-Tax, Roth, Taxable and HSA -- every year, after the year's return:
   // growth is (1 + return) x (1 - fees). Two settings so an advisor's fee is

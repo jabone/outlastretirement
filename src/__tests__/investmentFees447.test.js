@@ -10,7 +10,7 @@ import {
 // A retired single person with no income, no spending, no tax and flat
 // prices: each account just grows, so a year's change is growth and fees.
 const still = (over = {}) => ({
-  ...DEFAULT_INPUTS,
+  ...DEFAULT_INPUTS, rebalancingEnabled: false,
   planYear: 2026, birthYear1: 1956, retireAge1: 65, lifeExpectancy1: 90, claimingAge1: 70,
   spouse2Enabled: false, filingStatus: 'Single',
   preTaxInit: 100000, rothInit: 50000, taxableInit: 40000, taxableBasisInit: 40000, hsaInit: 0,

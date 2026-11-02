@@ -284,10 +284,10 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
     findings.push({
       type: 'info',
       title: 'The Same Return Every Year',
-      desc: 'Your plan grows savings by the same percentage every year. Real markets bounce up and down; Will It Last? already tests that with 1,000 simulated markets. If you would rather set the return from your mix of stocks and bonds, turn on Dynamic Asset Allocation under Plan → Assumptions & Risk.',
-      action: { tab: 'settings', subTab: 'assumptions', label: 'View Asset Allocations →' },
+      desc: 'Your plan uses an average return you set yourself, the same every year. A new plan takes its return from your mix of stocks and bonds instead, so the projection, the simulated markets and the real historical starts all rest on the same mix. To switch, turn off Use my own average return under Plan → Assumptions & Risk.',
+      action: { tab: 'settings', subTab: 'assumptions', label: 'View Your Stock and Bond Mix →' },
       quickApply: {
-        label: 'Enable Dynamic Asset Allocation',
+        label: 'Use my stock and bond mix',
         config: { rebalancingEnabled: true }
       }
     });

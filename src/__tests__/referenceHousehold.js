@@ -28,6 +28,11 @@ export const REFERENCE_INPUTS = Object.freeze({
   // And before 477: Medicare from 65 even while still working.
   medicareEmployerCoverage1: 'none',
   medicareEmployerCoverage2: 'none',
+  // And before 480: the flat 7% / 5% return, and stocks at 8% when the
+  // stock/bond model is switched on.
+  rebalancingEnabled: false,
+  stockReturnRate: 8.0,
+  bondReturnRate: 4.0,
 });
 
 export const REFERENCE_ENDING_BALANCE = 36762.2363;

@@ -54,7 +54,9 @@ describe('fieldIndex.js', () => {
     expect(byKey.taxLossHarvesting.folds.map((f) => f.id)).not.toContain('specialExpenses');
     expect(byKey.healthcareBridgeCost.step).toBe('healthcare');
     expect(byKey.healthcareBridgeCost.folds.map((f) => f.id)).toContain('specialExpenses');
-    // Dynamic allocation is Plan Settings only: no step, so Guided switches.
-    expect(byKey.rebalancingEnabled.step).toBeNull();
+    // The stock and bond mix is where the return comes from (changelog
+    // 480), so the Interview's market step asks it.
+    expect(byKey.stockReturnRate.step).toBe('risk');
+    expect(byKey.rebalancingEnabled.step).toBe('risk');
   });
 });

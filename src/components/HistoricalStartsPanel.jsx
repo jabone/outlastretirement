@@ -144,8 +144,8 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
           Tested at {Math.round(data.stockShare)}% stocks and {100 - Math.round(data.stockShare)}% bonds, rebalanced each
           year{data.glide ? ', moving toward bonds as your glide sets' : ''}: the S&amp;P 500 and the 10-year Treasury. Each
           year earns what that mix earned then, so your average-return setting plays no part here. The mix is the Retired
-          stock allocation under Plan &rarr; Assumptions &amp; Risk, in Dynamic Asset Allocation, and applies here whether
-          that switch is on or off.
+          stock allocation under Plan &rarr; Assumptions &amp; Risk, in Your Stock and Bond Mix, and applies here even if
+          you set your own average return.
         </p>
       )}
       <p style={{ fontSize: 'var(--fs-body)', margin: 0 }} data-testid="historical-headline">

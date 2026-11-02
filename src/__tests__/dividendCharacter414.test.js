@@ -54,7 +54,7 @@ describe('the free default follows the stock/bond split', () => {
     expect(planStockShareForYear({ ...DEFAULT_INPUTS, stockAllocationPre: '' }, false, START, null)).toBe(80);
     expect(planStockShareForYear({ ...DEFAULT_INPUTS, stockAllocationPost: 140 }, true, START, START)).toBe(100);
     // The glide needs both rebalancing and the glide switched on.
-    const glide = { ...DEFAULT_INPUTS, stockAllocationPost: 60, glideAllocationEnabled: true, glideAllocationRate: 1, glideAllocationFloor: 40 };
+    const glide = { ...DEFAULT_INPUTS, rebalancingEnabled: false, stockAllocationPost: 60, glideAllocationEnabled: true, glideAllocationRate: 1, glideAllocationFloor: 40 };
     expect(planStockShareForYear(glide, true, START + 10, START)).toBe(60);
     expect(planStockShareForYear({ ...glide, rebalancingEnabled: true }, true, START + 10, START)).toBe(50);
   });

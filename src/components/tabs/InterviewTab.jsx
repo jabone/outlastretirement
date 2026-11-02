@@ -34,6 +34,7 @@ import LifeEventsSection from '../plan/sections/LifeEventsSection';
 import DebtSection from '../plan/sections/DebtSection';
 import LifeInsuranceSection from '../plan/sections/LifeInsuranceSection';
 import ReturnAssumptionsSection from '../plan/sections/ReturnAssumptionsSection';
+import DynamicAllocationSection from '../plan/sections/DynamicAllocationSection';
 import GranularInflationSection from '../plan/sections/GranularInflationSection';
 import StateTaxesSection from '../plan/sections/StateTaxesSection';
 import DeductionsSection from '../plan/sections/DeductionsSection';
@@ -370,6 +371,7 @@ const InterviewTab = () => {
         <>
           <SectionHeader Icon={ClipboardCheck} title="Taxes, State & Market Assumptions" subtitle="The growth, inflation and state-tax assumptions your whole projection is built on." />
           <G><ReturnAssumptionsSection /></G>
+          <G><DynamicAllocationSection /></G>
           <G><GranularInflationSection /></G>
           <G><StateTaxesSection /></G>
           <G><DeductionsSection /></G>

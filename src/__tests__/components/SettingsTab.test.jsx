@@ -1408,16 +1408,20 @@ describe('SettingsTab', () => {
       expect(updateInput).toHaveBeenCalledWith('employerMatchTierBEnabled1', true);
     });
 
-    it('Glide Allocation is disabled while Dynamic Rebalancing is off, and enabled once it is already on (data-driven)', async () => {
+    it('the mix glide is set aside while Use my own average return is on, and live otherwise', async () => {
       renderSettings('assumptions', { inputs: { rebalancingEnabled: false } });
-      expect(screen.getByLabelText('Glide Allocation (reduces stock %)')).toBeDisabled();
+      expect(screen.getByLabelText('Move toward bonds each year in retirement')).toBeDisabled();
+      expect(screen.getByTestId('allocation-override-note')).toBeInTheDocument();
+      // The mix itself stays editable: the historical starts use it.
+      expect(document.getElementById('field-stockAllocationPost')).not.toBeDisabled();
     });
 
-    it('clicking Enable Dynamic Asset Allocation calls updateInput', async () => {
+    it('Use my own average return switches the model both ways (changelog 480)', async () => {
       const updateInput = vi.fn();
-      renderSettings('assumptions', { updateInput, inputs: { rebalancingEnabled: false } });
-      fireEvent.click(screen.getByLabelText('Enable Dynamic Asset Allocation (Stock/Bond Rebalancing)'));
-      expect(updateInput).toHaveBeenCalledWith('rebalancingEnabled', true);
+      renderSettings('assumptions', { updateInput, inputs: { rebalancingEnabled: true } });
+      expect(screen.queryByTestId('own-return-fields')).toBeNull();
+      fireEvent.click(screen.getByLabelText('Use my own average return instead'));
+      expect(updateInput).toHaveBeenCalledWith('rebalancingEnabled', false);
     });
 
     premiumIt('holdings')('renders read-only, linked-status Initial Balances fields when initialBalancesSource is "holdings"', async () => {
@@ -1822,14 +1826,12 @@ describe('SettingsTab', () => {
     // The control claims Dynamic Asset Allocation supersedes it. The
     // calculator genuinely ignores it in that case (asserted in
     // calculator.test.js), so the UI must not invite input it will drop.
-    it('is disabled, with an explanation, while Dynamic Asset Allocation is on', () => {
+    it('is not shown while the return comes from the stock and bond mix', () => {
       renderSettings('assumptions', {
         inputs: { rebalancingEnabled: true, equityGlidePathEnabled: true, postRetireReturn: 5, equityGlidePathRate: 0.5, equityGlidePathFloor: 3 },
       });
-      expect(screen.getByLabelText(GLIDE_LABEL)).toBeDisabled();
-      expect(screen.getByText(/Unavailable while Dynamic Asset Allocation is on/)).toBeInTheDocument();
-      // And its fields stay hidden, so nothing can be typed into a setting
-      // the engine will ignore.
+      // Nothing can be typed into a setting the engine will ignore.
+      expect(screen.queryByLabelText(GLIDE_LABEL)).not.toBeInTheDocument();
       expect(screen.queryByLabelText('Annual Return Reduction (%)')).not.toBeInTheDocument();
     });
   });
@@ -1867,13 +1869,13 @@ describe('SettingsTab', () => {
       expect(screen.getByText(/isn.t any safer/)).toBeInTheDocument();
     });
 
-    it('replaces the fields with the derived figures when Dynamic Asset Allocation is on', () => {
+    it('replaces the fields with the derived figures while the return comes from the mix', () => {
       renderSettings('assumptions', {
         inputs: { rebalancingEnabled: true, stockAllocationPre: 80, stockAllocationPost: 60, volatilityPre: 15, volatilityPost: 8 },
       });
       expect(screen.queryByLabelText(/Market Volatility .* Working/)).not.toBeInTheDocument();
       // 80/20 -> 15.6%, 60/40 -> 12.1%, from 19.3% stock / 7.9% bond, correlation 0.02.
-      const note = screen.getByText(/Set automatically while Dynamic Asset Allocation is on/);
+      const note = screen.getByText(/Worked out from your stock and bond mix/);
       expect(note).toHaveTextContent('15.6%');
       expect(note).toHaveTextContent('12.1%');
     });

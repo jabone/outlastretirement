@@ -44,6 +44,13 @@ export function buildParkersInputs() {
     // And ACA Cliff Protection stays as it was when the story was written
     // (changelog 443 turned it on for new plans).
     acaCliffProtectionEnabled: false,
+    // And their own average return, 7% while working and 5% retired, as
+    // the lessons were written (changelog 480 took a new plan's return from
+    // its stock/bond mix at 6.5% stocks and 4.5% bonds, as it does for any
+    // plan saved before that change).
+    rebalancingEnabled: false,
+    stockReturnRate: 8.0,
+    bondReturnRate: 4.0,
     // And no investment fees, as the story was written (changelog 447
     // charges 0.10% fund expenses by default). Re-tune before the lessons'
     // pictures are next re-recorded.

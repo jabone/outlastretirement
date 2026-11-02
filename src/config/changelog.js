@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 480,
+    date: '2026-11-02',
+    title: 'Your return now comes from your stock and bond mix',
+    summary: 'A new plan grows at what its mix of stocks and bonds earns, at returns inside published long-term outlooks, and Will It Last? says what return it assumes after inflation. Saved plans keep theirs.',
+    items: [
+      "**One return, not two.** The app used to keep two separate return settings: a flat average (7% while working, 5% retired) and, behind a switch, one built from your stock and bond mix. The historical starts, the simulated markets' swings and the dividend tax always used the mix, so the same plan could rest on two different returns at once. A new plan now takes its return from the mix: your share in stocks times the stock return, plus the rest times the bond return, rebalanced each year. The section is called Your Stock and Bond Mix, under Plan → Assumptions & Risk.",
+      "**The default returns, and where they come from.** Stocks 6.5% a year and bonds 4.5%, before inflation and fees. That is 6.1% while you work (80% in stocks) and 5.7% once retired (60%). Both sit inside the major firms' published long-term outlooks as of this fall: J.P. Morgan expects 7.5% for US stocks and 4.6% for intermediate Treasuries, Vanguard 4.8% to 6.8% for US stocks and 5.1% to 6.1% for bonds, Schwab 5.9% and 4.8%. The 10-year Treasury pays about 5% today. Change them to what you expect.",
+      "**Use my own average return.** If you would rather set one figure yourself, turn this on under Return Assumptions: your working and retired returns, the yearly step-down and the volatility fields come back. The mix still sets the historical starts.",
+      "**What Will It Last? assumes.** Under the verdict, a new line says what return the simulated markets assume once you retire, after inflation and fees, beside what a mix like yours earned after inflation from 1928 to 2025 (5.2% a year at 60/40). The count of real retirements since 1928 that your plan lasted through appears with it once that check has run.",
+      "**Your plan.** A plan saved before today keeps the returns it had, with Use my own average return switched on, so none of its numbers move. Plan Feedback offers a one-click switch to the mix. The sample families keep their own average return too, so the lessons' figures stand.",
+    ],
+  },
+  {
     id: 479,
     date: '2026-11-02',
     title: 'History checks that match a calculator you can rebuild',

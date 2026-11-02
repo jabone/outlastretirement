@@ -30,6 +30,9 @@
 //          track, what the label means in words a beginner reads without
 //          a glossary; absent otherwise
 
+import { planReturnRates, netReturnPct } from '../calculator';
+import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from '../config/historicalReturns';
+
 export const VERDICT_THRESHOLDS = Object.freeze({ good: 90, caution: 75 });
 
 // The one comparison rule. Every surface that prints a Monte Carlo success
@@ -197,4 +200,36 @@ export function verdictColor(tone) {
 // The sidebar-status class for a tone (index.css).
 export function verdictClass(tone) {
   return { good: 'success', caution: 'warning', risk: 'danger' }[tone] || 'neutral';
+}
+
+// The return the verdict rests on, in today's terms, beside what the same
+// mix really earned (DIY-planner review, changelog 480). A reader comparing
+// "56% of simulated markets" with "62 of 69 real retirements" needs to know
+// the first assumes a lower return than the second replays.
+export function returnAssumptionSentence(inputs) {
+  if (!inputs) return null;
+  const r = planReturnRates(inputs);
+  const infl = Number.isFinite(Number(inputs.inflationRate)) ? Number(inputs.inflationRate) : 2.5;
+  const net = netReturnPct(r.retired, inputs);
+  const real = ((1 + net / 100) / (1 + infl / 100) - 1) * 100;
+  const share = Math.round(Math.min(100, Math.max(0, Number(inputs.stockAllocationPost) || 0)));
+  const hist = historicalRealReturn(share);
+  const f = (v) => `${(Math.round(v * 10) / 10).toFixed(1)}%`;
+  const own = r.fromMix ? '' : ' (your own average return)';
+  const histPart = hist !== null
+    ? ` A ${share}/${100 - share} mix of stocks and bonds grew ${f(hist)} a year after inflation from ${HISTORY_FIRST_YEAR} to ${HISTORY_LAST_YEAR}.`
+    : '';
+  return `The simulated markets assume your savings grow ${f(r.retired)} a year once you retire${own}: ${f(real)} after inflation and fees.${histPart}`;
+}
+
+// The compound real return of a stock/bond mix rebalanced every year over
+// the history table, before fees.
+export function historicalRealReturn(stockSharePct) {
+  const w = Math.min(1, Math.max(0, stockSharePct / 100));
+  if (!HISTORICAL_RETURNS.length) return null;
+  let logSum = 0;
+  for (const [, s, b, cpi] of HISTORICAL_RETURNS) {
+    logSum += Math.log((1 + (w * s + (1 - w) * b) / 100) / (1 + cpi / 100));
+  }
+  return (Math.exp(logSum / HISTORICAL_RETURNS.length) - 1) * 100;
 }

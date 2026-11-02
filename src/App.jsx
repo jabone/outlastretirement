@@ -58,7 +58,7 @@ import BrandMark from './components/BrandMark';
 import MigrationNotice from './components/MigrationNotice';
 import { BRAND_NAME, BRAND_DOMAIN, COPYRIGHT_NOTICE, PRIVACY_PROMISE, PRIVACY_URL, TERMS_URL, ACCESSIBILITY_URL } from './config/branding';
 import { growthSummary, monteCarloSummary, taxBracketSummary, estateSummary } from './utils/chartSummaries';
-import { planVerdict, verdictColor, verdictClass } from './utils/planVerdict';
+import { planVerdict, verdictColor, verdictClass, returnAssumptionSentence } from './utils/planVerdict';
 import { untestedRisksSentence } from './utils/untestedRisks';
 import { US_STATE_NAME } from './config/usStates';
 import { isSamplePlan, sampleStatus } from './utils/samplePlan';
@@ -202,6 +202,7 @@ import {
   readResidencyTimeline,
   planWideResidence,
   rmdStartAge,
+  planReturnRates,
 } from './calculator';
 import { hasStateRules, stateRulesName, stateRulesRate } from './utils/stateRulesSummary';
 
@@ -2023,6 +2024,9 @@ export default function App() {
   // the visitor's (novice review 2026-11-01). The Dashboard's Will It Last?
   // card keeps the real verdict, under a banner that names it a sample.
   const samplePlan = useMemo(() => isSamplePlan(inputs, { demoActive }), [inputs, demoActive]);
+  // Changelog 480: the return the verdict rests on, after inflation and
+  // fees, beside what the same mix earned since 1928.
+  const returnAssumption = useMemo(() => returnAssumptionSentence(inputs), [inputs]);
   const statusVerdict = useMemo(() => (samplePlan ? sampleStatus(inputs) : verdict), [samplePlan, inputs, verdict]);
 
   // The Monte Carlo in the display basis (utils/displayDollars.js). The
@@ -2325,6 +2329,11 @@ export default function App() {
             {verdict.plain && (
               <span data-testid="verdict-plain" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '6px', lineHeight: 1.45 }}>
                 {verdict.plain}
+              </span>
+            )}
+            {returnAssumption && (
+              <span data-testid="verdict-assumes" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
+                {returnAssumption}
               </span>
             )}
             {trustFund && (
@@ -3006,7 +3015,7 @@ export default function App() {
                 })()],
                 ['Employer match', matchLine],
                 ['Prices', `Rise ${pct(inputs.inflationRate)} a year. Every figure is shown in today's dollars.`],
-                ['Investments', `Grow ${pct(inputs.preRetireReturn)} a year while you work and ${pct(inputs.postRetireReturn)} once retired, before inflation, with the ups and downs of real markets tested separately.`],
+                ['Investments', (() => { const r = planReturnRates(inputs); return r.fromMix ? `${r.stockPre}% in stocks while you work and ${r.stockPost}% once retired, the rest in bonds. With stocks growing ${pct(inputs.stockReturnRate)} a year and bonds ${pct(inputs.bondReturnRate)}, before inflation, that is ${pct(Math.round(r.working * 10) / 10)} and ${pct(Math.round(r.retired * 10) / 10)}; the ups and downs of real markets are tested separately.` : `Grow ${pct(inputs.preRetireReturn)} a year while you work and ${pct(inputs.postRetireReturn)} once retired, before inflation, with the ups and downs of real markets tested separately.`; })()],
                 ['Health cover', `Before 65, ${inputs.healthcareBridgeSource === 'benchmark' ? 'marketplace insurance priced for your age and state' : `${formatCurrency(Number(inputs.healthcareBridgeCost) || 0)} a person a year`}. From 65, Medicare premiums${(Number(inputs.medicareSupplementCost) || 0) > 0 ? ` plus ${formatCurrency(Number(inputs.medicareSupplementCost))} a person a year for what Medicare does not cover` : ''}${(inputs.medicareEmployerCoverage1 || 'none') !== 'none' ? ', starting when you stop working if that is later, since a job\u2019s health plan covers you until then' : ''}.`],
                 ['Taxes', noStateTax ? `Federal income tax, worked out every year. ${stateName} has no state income tax.` : `Federal and ${stateName} income tax, worked out every year.`],
               ];
@@ -3871,9 +3880,7 @@ export default function App() {
                 <tr>
                   <td>Growth Rates (Pre / Post)</td>
                   <td>
-                    {inputs.rebalancingEnabled
-                      ? `Rebalanced Stock/Bond Return (see Portfolio Allocation below)`
-                      : `${inputs.preRetireReturn}% / ${inputs.postRetireReturn}%`}
+                    {(() => { const r = planReturnRates(inputs); const f = (v) => `${Math.round(v * 10) / 10}%`; return r.fromMix ? `${f(r.working)} / ${f(r.retired)}, from the stock and bond mix below` : `${inputs.preRetireReturn}% / ${inputs.postRetireReturn}% (your own average return)`; })()}
                   </td>
                 </tr>
                 <tr>
@@ -3881,16 +3888,16 @@ export default function App() {
                   <td>
                     {inputs.rebalancingEnabled ? (
                       <>
-                        {inputs.stockAllocationPre}% stocks / {100 - inputs.stockAllocationPre}% bonds while working, shifting to {inputs.stockAllocationPost}% stocks / {100 - inputs.stockAllocationPost}% bonds at retirement (age {inputs.retireAge1}{inputs.spouse2Enabled ? ` / ${inputs.retireAge2}` : ''}) — a standard "glide path" that gets more conservative as you age.
+                        {inputs.stockAllocationPre}% stocks / {100 - inputs.stockAllocationPre}% bonds while working, shifting to {inputs.stockAllocationPost}% stocks / {100 - inputs.stockAllocationPost}% bonds at retirement (age {inputs.retireAge1}{inputs.spouse2Enabled ? ` / ${inputs.retireAge2}` : ''}), rebalanced each year.
                         <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.8, marginTop: '4px' }}>
                           Assumed returns: {inputs.stockReturnRate}% stocks, {inputs.bondReturnRate}% bonds.
                         </div>
                       </>
                     ) : (
                       <>
-                        Fixed blended return ({inputs.preRetireReturn}% / {inputs.postRetireReturn}%) — no age-based stock/bond rebalancing is modeled.
+                        Your own average return ({inputs.preRetireReturn}% / {inputs.postRetireReturn}%) is in use. The historical starts still test {inputs.stockAllocationPost}% stocks / {100 - inputs.stockAllocationPost}% bonds.
                         <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.8, marginTop: '4px' }}>
-                          To model a glide path that shifts to a more conservative mix at retirement, turn on Dynamic Asset Allocation under Plan → Assumptions &amp; Risk.
+                          To take the return from your stock and bond mix instead, turn off Use my own average return under Plan → Assumptions &amp; Risk.
                         </div>
                       </>
                     )}

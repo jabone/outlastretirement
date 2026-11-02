@@ -28,6 +28,8 @@ export const RELEASE_WEEKS = [
     bullets: [
       { title: 'When a widow or widower starts the survivor benefit', ids: [478],
         text: 'Each of you now has a survivor benefit start age under Plan \u2192 Income \u2192 Social Security, as soon as possible unless you choose a later one. Compare start ages for this plan runs your plan once for each age and shows the yearly check, the savings left at the end, any years the money runs short and when waiting pays back, and marks the best age for your plan.' },
+      { title: 'Your return comes from your stock and bond mix', ids: [480],
+        text: 'A new plan grows at what its mix of stocks and bonds earns, at 6.5% for stocks and 4.5% for bonds before inflation, inside the major firms\u2019 published long-term outlooks; Use my own average return sets one figure instead. Will It Last? now says what return it assumes after inflation, beside what a mix like yours earned since 1928. Saved plans and the sample families keep their returns.' },
       { title: 'History checks you can rebuild yourself', ids: [479],
         text: 'Checked against an independent calculation, the historical test matched from 1928 to the dollar; from 1871 each year\u2019s inflation now reaches spending when it happened, not a year early, which lets three more starts last. The history panel names the stock and bond mix it tests and explains why its most-you-could-spend figure reads a little below FI Calc\u2019s, and the Monte Carlo\u2019s stock and bond swings now match history.' },
       { title: 'Medicare, HSAs and a former spouse\u2019s record', ids: [478],
