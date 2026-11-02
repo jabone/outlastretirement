@@ -266,7 +266,9 @@ describe('InterviewTab — guided density (GuidedSection)', () => {
     renderWithSimulation(<InterviewTab />, { inputs: { ...DEFAULT_INPUTS, spouse2Enabled: true } });
     // Spouse fields rendered on mount: sex2 is advanced and folded too.
     expect(field('field-sex2').closest('.form-group').classList.contains('guided-hidden')).toBe(true);
-    await user.click(screen.getByRole('button', { name: /More options/ }));
+    // The section's own More options button: every Guided section with
+    // folded fields has one.
+    await user.click(within(field('field-sex2').closest('.guided-section')).getByRole('button', { name: /More options/ }));
     expect(field('field-sex2').closest('.form-group').classList.contains('guided-hidden')).toBe(false);
   });
 });

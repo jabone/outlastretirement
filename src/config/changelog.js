@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 478,
+    date: '2026-11-02',
+    title: 'When a survivor starts Social Security, and Medicare and HSA rules a benefits counselor would check',
+    summary: 'Choose when a widow or widower starts the survivor benefit and compare what each age does. A spouse with no paycheck starts Medicare at 65, and HSA contributions stop once Medicare starts.',
+    items: [
+      "**Choosing when a widow or widower's check begins.** A widow or widower can start a survivor benefit on the other's Social Security record from 60, at 71.5% of it, rising to 100% at full retirement age (less if the one who died claimed early). The plan always started it as soon as possible. Now Plan → Income → Social Security has a start age for each of you, and Compare start ages for this plan runs your plan once for each age and shows the yearly check, the Social Security collected, the savings left at the end, any years the money runs short and when waiting pays back. Someone with little else to live on may need the check at once; someone who can wait may come out ahead. The best age for your plan is marked, and Use this sets it. Plans keep starting it as soon as possible until you choose otherwise.",
+      "**A job that pays.** Since yesterday a new plan delays Medicare while each person is still working. It counted someone as working by age alone, so a spouse at home whose retirement age was later than 65 had her Medicare delayed with no work health plan behind it; in real life that brings a lifetime Part B penalty. Now only a job with a salary counts, and she can still delay on her spouse's job if the plan says so.",
+      "**HSA contributions stop with Medicare.** Once any part of Medicare starts, the law allows no more HSA contributions. The plan kept making them until retirement. Now they stop at 65 for someone who enrolls then, or, for someone delaying Medicare on a job's cover, in the year they claim Social Security, which enrolls them in Part A. Your numbers will change if your plan contributes to an HSA after 65.",
+      "**A former spouse's record.** If you were married 10 years or more and have not remarried, you may be able to claim on your former spouse's record. The plan cannot see it; the Social Security section now says to ask Social Security for that figure and enter it if it pays more.",
+    ],
+  },
+  {
     id: 477,
     date: '2026-11-01',
     title: 'Medicare starts when your work health plan ends',

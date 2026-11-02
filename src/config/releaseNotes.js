@@ -23,6 +23,16 @@ export const RELEASE_NOTES_WEEKS = 6;
 
 export const RELEASE_WEEKS = [
   {
+    weekOf: '2026-11-02',
+    headline: 'When a survivor starts Social Security, and Medicare and HSA rules a benefits counselor would check',
+    bullets: [
+      { title: 'When a widow or widower starts the survivor benefit', ids: [478],
+        text: 'Each of you now has a survivor benefit start age under Plan \u2192 Income \u2192 Social Security, as soon as possible unless you choose a later one. Compare start ages for this plan runs your plan once for each age and shows the yearly check, the savings left at the end, any years the money runs short and when waiting pays back, and marks the best age for your plan.' },
+      { title: 'Medicare, HSAs and a former spouse\u2019s record', ids: [478],
+        text: 'A spouse with no paycheck now starts Medicare at 65 rather than waiting on a job she does not have, and HSA contributions stop once Medicare starts, at 65 for someone who enrolls then, or the year Social Security is claimed for someone still on a work health plan. The Social Security section says what to do if a former spouse\u2019s record pays more. Your numbers will change if your plan contributes to an HSA after 65.' },
+    ],
+  },
+  {
     weekOf: '2026-10-26',
     headline: 'Roth conversions up to your deductions, and a survivor keeps a larger own check',
     bullets: [
@@ -132,26 +142,6 @@ export const RELEASE_WEEKS = [
         text: 'Importing a brokerage statement now uses a reader built for that brokerage (Fidelity, Morgan Stanley / E*TRADE, PNC Investments, T. Rowe Price, Vanguard employer plans), imports a statement with several accounts one account at a time, and checks the rows against the statement’s own total. The importers open at the top of Holdings instead of below the table. You can now type a holding’s price yourself, by clicking it in the Live Price column, to correct a wrong quote. Imports read spreadsheet-style numbers like $1,250.10 and sales take shares from the right lots. The time of the last price refresh is shown. The holdings CSV adds a ticker column, shows correct share counts for holdings tracked by lot, and explains why a 401(k) fund priced through a proxy ticker has a different price than the proxy.' },
     ],
   },
-  {
-    weekOf: '2026-09-21',
-    headline: 'Retirement Readiness, a better Monte Carlo, and a simpler Plan',
-    bullets: [
-      { title: 'Retirement Readiness', ids: [214, 216, 217, 218, 219, 220, 229, 236, 237, 238, 239, 248, 254, 255, 285],
-        text: 'A new tab answers the questions people actually ask: could you walk away today, what a 20% fall right after you retire would do (with a new, optional withdrawal-rate guardrail), what your retirement “paycheck” looks like and how much tax to set aside each quarter, how a big expense in the early years hits, and how likely each of you is to reach the plan’s final age. The headline answers are free; the detail behind each answer is Readiness in Full (Premium).' },
-      { title: 'A steadier Monte Carlo', ids: [247, 249, 266, 267, 268, 269],
-        text: 'It gives the same answer every run and centers its trials on the return you entered. It can draw from real market history (1928 to 2025) and can model uncertain inflation, lifespan and long-term care costs. It re-runs on its own after you edit and its result survives a refresh. Most success rates moved.' },
-      { title: 'Retirement abroad, 13 more countries', ids: [198, 199, 200, 201, 202, 203, 209, 210, 211, 212, 213], premium: true,
-        text: 'Italy, Spain, France, Germany, Ireland, Greece, Malaysia, Thailand, the Philippines, Belize, Uruguay, the United Kingdom and Australia, for 17 in all. Also new: special tax regimes that end, inheritance tax for each heir, what heirs receive if you stay versus move, a move in any month with local living costs, and Action Plan steps for the move.' },
-      { title: 'Taxes and income', ids: [208, 230, 231, 241, 243, 250, 259, 260, 261, 263, 265],
-        text: 'Interest and non-qualified dividends are taxed as ordinary income, and reinvested dividends are no longer taxed twice. Survivor Social Security follows the actual rules, heirs pay income tax in the state they live in, Roth conversions can stay under a Medicare surcharge tier, and Medicare can be delayed while you are on an employer plan. You can also choose what your dividends do once you retire. Some numbers will change.' },
-      { title: 'A simpler Plan', ids: [221, 222, 223, 224, 225, 226, 227, 228, 240, 242, 251, 252, 256, 257, 258, 262, 264, 270, 284, 286, 287, 290],
-        text: 'One Plan page with a Guided / Advanced switch, Find a setting (Ctrl+K or Cmd+K), a shorter sidebar, and a Dashboard focused on the main answers. New: an annual review checklist, a Where the money goes view in Year by Year, and budget lines that say how often each bill is paid, with a month-by-month view.' },
-      { title: 'Print, phones and accessibility', ids: [215, 232, 253, 271, 272, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 288, 289, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306],
-        text: 'Print / PDF Report can now be a packet for your planner: the Readiness answers, every plan setting, an account summary, your spending for review, and an option to leave out names. Also a phone layout pass, screen-reader names for every control, better text contrast, an accessibility statement, and consistent switches, help popups and chart hover cards.' },
-      { title: 'Detailed Holdings', ids: [204, 205, 206, 207, 233, 234, 235, 245], premium: true,
-        text: 'Morgan Stanley at Work lot lists now import, an import can start a new holding, the app says when your plan is not using your holdings, and Wealth Milestones growth figures were corrected.' },
-    ],
-  },
 ];
 
 // Older history, a quarter at a time. `through` is the last day the summary
@@ -161,7 +151,7 @@ export const RELEASE_QUARTERS = [
     quarter: '2026-Q3',
     label: 'July – September 2026',
     from: '2026-07-24',
-    through: '2026-09-20',
+    through: '2026-09-27',
     headline: 'The core planner, Detailed Holdings, and a full tax-engine audit',
     ids: [
       ...Array.from({ length: 27 }, (_, i) => i + 1),
@@ -180,8 +170,18 @@ export const RELEASE_QUARTERS = [
       147, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 171,
       // Week of September 14
       195, 196, 197, 178, 179, 180, 185, 186, 176, 182, 189, 177, 181, 184, 187, 190, 191, 192, 193, 183, 188, 194,
+      // Week of September 21
+      214, 216, 217, 218, 219, 220, 229, 236, 237, 238, 239, 248, 254, 255, 285,
+      247, 249, 266, 267, 268, 269,
+      198, 199, 200, 201, 202, 203, 209, 210, 211, 212, 213,
+      208, 230, 231, 241, 243, 250, 259, 260, 261, 263, 265,
+      221, 222, 223, 224, 225, 226, 227, 228, 240, 242, 251, 252, 256, 257, 258, 262, 264, 270, 284, 286, 287, 290,
+      215, 232, 253, 271, 272, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 288, 289, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306,
+      204, 205, 206, 207, 233, 234, 235, 245,
     ],
     bullets: [
+      { title: 'Retirement Readiness and a steadier Monte Carlo',
+        text: 'A Retirement Readiness tab answers the questions people actually ask: could you walk away today, what a 20% fall right after you retire would do, what your retirement paycheck looks like, and how likely each of you is to reach the plan\u2019s final age. The Monte Carlo gives the same answer every run, can draw from real market history, and can model uncertain inflation, lifespan and care costs. Plan became one page with a Guided / Advanced switch and Find a setting; Print / PDF Report became a packet for a planner; and 13 more countries joined Retirement abroad (Premium).' },
       { title: 'The core planner',
         text: 'A step-by-step Action Plan and a printable report; a Full Interview or quick setup; optimizers for Roth conversion ladders, Social Security claiming and the Pre-Tax versus Roth split; a solver for the minimum return your plan needs; and modeling for RSUs, deferred compensation, concentrated stock, life insurance, long-term care, federal estate tax, a cash reserve and possible changes in the law.' },
       { title: 'Detailed Holdings', premium: true,

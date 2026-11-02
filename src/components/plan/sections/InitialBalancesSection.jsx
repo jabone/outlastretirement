@@ -58,7 +58,7 @@ export default function InitialBalancesSection() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="field-hsaInit">
-                    <Tooltip text="A fourth account with a triple tax advantage: deductible going in, tax-free growth, tax-free out for qualified medical costs (here, the healthcare bridge, long-term care and IRMAA)." more="HSA">
+                    <Tooltip text="A fourth account with a triple tax advantage: deductible going in, tax-free growth, tax-free out for qualified medical costs (here, the healthcare bridge, long-term care and IRMAA)." more="HSA Savings">
                       HSA (Health Savings Account) ($)
                     </Tooltip>
                   </label>

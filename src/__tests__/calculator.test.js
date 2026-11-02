@@ -3625,14 +3625,17 @@ describe('calculator.js core logic', () => {
       expect(family.years[0].hsaContribution).toBeCloseTo(getHSAContributionLimit(y1self.age1, true), 6);
     });
 
-    it('treats 65+ as Medicare-enrolled: HSA falls back to the manual amount', () => {
-      // Spouse working to 70, already 66 in year 0: max mode still governs
-      // the 401(k)/IRA pieces but must NOT max the HSA.
+    it('treats 65+ as Medicare-enrolled: no HSA contribution at all', () => {
+      // Spouse working to 70, already 66 in year 0, enrolled in Medicare at
+      // 65: max mode still governs the 401(k)/IRA pieces, but Medicare ends
+      // HSA eligibility (IRS Pub. 969), so neither the max nor the manual
+      // amount goes in.
       const proj = runProjection({
         ...DEFAULT_INPUTS, birthYear1: TAX_YEAR - 66, retireAge1: 70,
         autoMaxContribution1: 'max', hsaContribution: 1234,
+        medicareEmployerCoverage1: 'none',
       });
-      expect(proj.years[0].hsaContribution).toBeCloseTo(1234, 6);
+      expect(proj.years[0].hsaContribution).toBeCloseTo(0, 6);
     });
 
     it('advisory grades the imputed max split, not the stale manual fields', () => {

@@ -1014,6 +1014,14 @@ export const DEFAULT_INPUTS = {
   // them is alone overstated spending in exactly the years taxes went up.
   // On for a new plan; a plan saved before keeps the full budget (off).
   survivorExpenseDropInPlan: true,
+  // The age each spouse starts a survivor benefit if the other dies first
+  // (benefits-specialist review, 2026-11-02). 0 = as soon as possible: the
+  // first alone year from 60 it pays more than their own benefit, which is
+  // what every plan did before this setting. A later age (61-67) waits for
+  // a smaller reduction; a survivor already past it at the death starts at
+  // once. See utils/survivorStart.js for the comparison that picks one.
+  survivorStartAge1: 0,
+  survivorStartAge2: 0,
 
   // Savings / Contributions (annual limits). Pre-Tax and Roth are tracked
   // per spouse (preTaxContribution1/2, rothContribution1/2) since two
@@ -8038,10 +8046,14 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     }) * ssDepletionFactor;
     const own1Now = age1 >= inputs.claimingAge1 ? ss1Benefit : 0;
     const own2Now = age2 >= inputs.claimingAge2 ? ss2Benefit : 0;
+    // The earliest age each spouse's survivor benefit may start: 60, or the
+    // later start age the plan chose (survivorStartAge1/2).
+    const survStartGate1 = Math.max(60, Math.min(70, Number(inputs.survivorStartAge1) || 0));
+    const survStartGate2 = Math.max(60, Math.min(70, Number(inputs.survivorStartAge2) || 0));
     const ssIfOnly1 = inputs.spouse2Enabled
-      ? Math.max(own1Now, age1 >= 60 ? survivorOn2(age1) : 0)
+      ? Math.max(own1Now, age1 >= survStartGate1 ? survivorOn2(age1) : 0)
       : own1Now;
-    const ssIfOnly2 = inputs.spouse2Enabled ? Math.max(own2Now, age2 >= 60 ? survivorOn1(age2) : 0) : 0;
+    const ssIfOnly2 = inputs.spouse2Enabled ? Math.max(own2Now, age2 >= survStartGate2 ? survivorOn1(age2) : 0) : 0;
 
     // What a survivor year actually pays this spouse (own or survivor
     // benefit, whichever is larger) and which of the two it is -- the
@@ -8052,6 +8064,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let survivorPaid2 = 0;
     let survivorBenefitPaying1 = false;
     let survivorBenefitPaying2 = false;
+    // The survivor benefit in payment this year, before any earnings-test
+    // withholding; 0 when none is paid (or the survivor's own is larger).
+    let survivorBenefitGross1 = 0;
+    let survivorBenefitGross2 = 0;
 
     if (spouse1Alive && spouse2Alive) {
       if (age1 >= inputs.claimingAge1) ssIncome += ss1Benefit;
@@ -8085,22 +8101,24 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // simply the first alone year: a survivor whose own check is larger
       // has not filed for it, and can still file later, e.g. at FRA for the
       // unreduced amount (changelog 462).
-      if (survivorClaimAge1 === null && age1 >= 60 && survivorOn2(age1) > own1Now) survivorClaimAge1 = age1;
+      if (survivorClaimAge1 === null && age1 >= survStartGate1 && survivorOn2(age1) > own1Now) survivorClaimAge1 = age1;
       const survClaimEff1 = (survivorClaimAge1 !== null && age1 >= ssFra1)
         ? ssEffectiveClaimingAge(survivorClaimAge1, ssEarningsTestSurvMonths1, ssFra1)
         : survivorClaimAge1;
       const survBenefit1 = survClaimEff1 !== null ? survivorOn2(survClaimEff1) : 0;
       survivorPaid1 = Math.max(own1Now, survBenefit1);
       survivorBenefitPaying1 = survBenefit1 > own1Now;
+      survivorBenefitGross1 = survivorBenefitPaying1 ? survBenefit1 : 0;
       ssIncome += survivorPaid1;
     } else if (spouse2Alive) {
-      if (survivorClaimAge2 === null && age2 >= 60 && survivorOn1(age2) > own2Now) survivorClaimAge2 = age2;
+      if (survivorClaimAge2 === null && age2 >= survStartGate2 && survivorOn1(age2) > own2Now) survivorClaimAge2 = age2;
       const survClaimEff2 = (survivorClaimAge2 !== null && age2 >= ssFra2)
         ? ssEffectiveClaimingAge(survivorClaimAge2, ssEarningsTestSurvMonths2, ssFra2)
         : survivorClaimAge2;
       const survBenefit2 = survClaimEff2 !== null ? survivorOn1(survClaimEff2) : 0;
       survivorPaid2 = Math.max(own2Now, survBenefit2);
       survivorBenefitPaying2 = survBenefit2 > own2Now;
+      survivorBenefitGross2 = survivorBenefitPaying2 ? survBenefit2 : 0;
       ssIncome += survivorPaid2;
     }
 
@@ -8956,8 +8974,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // Changelog 241: a spouse over 65 still on a current employer's plan
     // delays Part B/D. The covering job lasts while its worker is alive and
     // has not reached their retirement age.
-    const stillWorking1 = spouse1Alive && age1 < inputs.retireAge1;
-    const stillWorking2 = !!inputs.spouse2Enabled && spouse2Alive && age2 < inputs.retireAge2;
+    // Covered by a job means a job that pays: someone before their
+    // retirement age with no salary (a spouse at home, say) has no employer
+    // plan to delay Medicare on, and would owe the lifetime Part B penalty
+    // if they did (benefits-specialist review, 2026-11-02).
+    const stillWorking1 = spouse1Alive && age1 < inputs.retireAge1 && (Number(inputs.salary1) || 0) > 0;
+    const stillWorking2 = !!inputs.spouse2Enabled && spouse2Alive && age2 < inputs.retireAge2 && (Number(inputs.salary2) || 0) > 0;
     const employerCovered = (who) => {
       const src = who === 1 ? inputs.medicareEmployerCoverage1 : inputs.medicareEmployerCoverage2;
       if (src === 'own') return who === 1 ? stillWorking1 : stillWorking2;
@@ -9067,12 +9089,24 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // age 55+ catch-up keyed to the oldest qualifying 'max' spouse. With
       // no qualifying 'max' spouse this falls back to the manual amount,
       // exactly the pre-existing behavior.
+      //
+      // HSA eligibility ends with Medicare (benefits-specialist review,
+      // 2026-11-02): a working spouse can contribute before 65, or after it
+      // only while their Medicare is delayed on a job's cover AND they have
+      // not claimed Social Security -- claiming at 65 or later enrolls them
+      // in Part A automatically, and any part of Medicare ends HSA
+      // contributions (IRS Pub. 969). Before, a manual contribution ran to
+      // the retirement age whatever Medicare said.
+      const hsaEligible = (working, age, deferred, claimingAge) => working
+        && (age < 65 || (deferred && age < (Number(claimingAge) || 0)));
+      const hsaOk1 = hsaEligible(spouse1Working, age1, medicareDeferred1, inputs.claimingAge1);
+      const hsaOk2 = hsaEligible(spouse2Working, age2, medicareDeferred2, inputs.claimingAge2);
       const hsaMaxAges = [];
-      if (spouse1Working && inputs.autoMaxContribution1 === 'max' && age1 < 65) hsaMaxAges.push(age1);
-      if (spouse2Working && inputs.autoMaxContribution2 === 'max' && age2 < 65) hsaMaxAges.push(age2);
+      if (hsaOk1 && inputs.autoMaxContribution1 === 'max') hsaMaxAges.push(age1);
+      if (hsaOk2 && inputs.autoMaxContribution2 === 'max') hsaMaxAges.push(age2);
       if (hsaMaxAges.length > 0) {
         hsaContribution += getHSAContributionLimit(Math.max(...hsaMaxAges), !!inputs.hsaFamilyCoverage, statutoryInflFactor);
-      } else {
+      } else if (hsaOk1 || hsaOk2) {
         hsaContribution += (inputs.hsaContribution || 0);
       }
     }
@@ -9767,8 +9801,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (inputs.rothConversionIrmaaCapEnabled && convertAmount > 0) {
         const alive1In2 = spouse1Alive && (age1 + 2) <= inputs.lifeExpectancy1;
         const alive2In2 = !!inputs.spouse2Enabled && spouse2Alive && (age2 + 2) <= inputs.lifeExpectancy2;
-        const working1In2 = alive1In2 && (age1 + 2) < inputs.retireAge1;
-        const working2In2 = alive2In2 && (age2 + 2) < inputs.retireAge2;
+        const working1In2 = alive1In2 && (age1 + 2) < inputs.retireAge1 && (Number(inputs.salary1) || 0) > 0;
+        const working2In2 = alive2In2 && (age2 + 2) < inputs.retireAge2 && (Number(inputs.salary2) || 0) > 0;
         const deferredIn2 = (who) => {
           const src = who === 1 ? inputs.medicareEmployerCoverage1 : inputs.medicareEmployerCoverage2;
           if (src === 'own') return who === 1 ? working1In2 : working2In2;
@@ -11540,6 +11574,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       ssIfBoth: ssIfBothPaid,
       ssIfOnly1: ssIfOnly1Paid,
       ssIfOnly2: ssIfOnly2Paid,
+      // The survivor benefit each spouse draws this year (gross of the
+      // earnings test), and the age it started (null until it has).
+      survivorBenefit1: survivorBenefitGross1,
+      survivorBenefit2: survivorBenefitGross2,
+      survivorStartedAt1: survivorClaimAge1,
+      survivorStartedAt2: survivorClaimAge2,
       // Retirement Earnings Test (42 U.S.C. 403). `ssEarningsTestWithheld`
       // is the benefit held back THIS year because of wages; the months it
       // represents are credited back at FRA, which is what

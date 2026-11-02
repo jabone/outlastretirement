@@ -5,7 +5,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.outlastretirement.com/</loc>
-    <lastmod>2026-11-01</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -41,7 +41,7 @@
   </url>
   <url>
     <loc>https://www.outlastretirement.com/changelog</loc>
-    <lastmod>2026-11-01</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -101,7 +101,7 @@
   </url>
   <url>
     <loc>https://www.outlastretirement.com/learn/my-plan-runs-short</loc>
-    <lastmod>2026-10-24</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -113,7 +113,7 @@
   </url>
   <url>
     <loc>https://www.outlastretirement.com/learn/start-social-security</loc>
-    <lastmod>2026-10-24</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

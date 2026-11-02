@@ -169,6 +169,14 @@ export const NOT_ASKED_IN_INTERVIEW = [
     keys: ['annuityIncomeStartAge', 'annuityIncomeIndexed'],
   },
   {
+    id: 'survivorStartAge',
+    title: 'When a widow or widower starts the survivor benefit',
+    blurb: 'The age each of you would start a survivor benefit on the other\u2019s Social Security record, as soon as possible unless you choose a later one, and a comparison of what each start age does to the plan. It lives on Plan Settings \u2192 Income, at the end of Social Security.',
+    domain: 'income',
+    interviewSection: 'income',
+    keys: ['survivorStartAge1', 'survivorStartAge2'],
+  },
+  {
     id: 'survivorStress',
     title: 'Survivor Stress Test',
     blurb: 'What happens to the plan if one spouse dies early — surviving income, the switch to single filing, and how much spending actually drops.',

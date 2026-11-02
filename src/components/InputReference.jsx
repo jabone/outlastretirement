@@ -1296,6 +1296,14 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}>
+                <span style={sectionStyles.badge}>Dropdown + Comparison</span><br/>
+                <strong>Survivor benefit start age (per spouse)</strong>
+              </td>
+              <td style={sectionStyles.td}>When a widow or widower starts the survivor benefit on the other spouse&rsquo;s record. It can start from 60 at 71.5% of the benefit, rising to 100% at the survivor&rsquo;s full retirement age; if the one who died claimed early, it is capped at the larger of what they were paid and 82.5% of their full benefit, so waiting past the age that reaches the cap only gives up checks. &ldquo;As soon as possible&rdquo; starts it in the first year alone, from 60, in which it pays more than the survivor&rsquo;s own benefit; a later age waits for it, and a survivor already past that age when the spouse dies starts at once. Compare start ages for this plan runs the plan once for each start age and shows the yearly check, the Social Security collected to the end, the savings left at the end, any years the money runs short and the age by which waiting pays back, in today&rsquo;s dollars; the best start age has the fewest short years, then the most left at the end. Who dies and when comes from the plan: Life Expectancy, or the Survivor Stress Test when it is on.</td>
+              <td style={sectionStyles.td}>As soon as possible (default), or 61 to full retirement age, per spouse; shown only when a spouse is enabled, at the end of Plan &rarr; Income &rarr; Social Security. Changes nothing when the survivor is already at full retirement age when the spouse dies, or when their own benefit is larger.</td>
+            </tr>
+            <tr>
+              <td style={sectionStyles.td}>
                 <span style={sectionStyles.badge}>Text Input &times; 2</span><br/>
                 <strong>Roth Contribution Basis Today / Converted to Roth in the Last 4 Years</strong>
               </td>
@@ -1846,8 +1854,8 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Dropdown (per person)</span><br/><strong>Medicare while still on an employer plan</strong><br/><em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Plan &rarr; Spending, below Healthcare Bridge Cost</em></td>
-              <td style={sectionStyles.td}>Lets someone who turns 65 while covered by a current employer&rsquo;s group health plan &mdash; their own job or their spouse&rsquo;s &mdash; delay Part B and Part D, as the rules allow for an employer of 20 or more employees. While the covering job lasts, that person pays no Medicare premium or IRMAA in the plan; premiums start the year the covering worker reaches their retirement age.</td>
-              <td style={sectionStyles.td}><strong>Enroll at 65</strong> (default), <strong>Delay: covered through own job</strong>, or <strong>Delay: covered through the spouse&rsquo;s job</strong>. Does not model the Part B penalty an employer under 20 employees would cause, the family premium (already inside the paycheck), or the eight-month enrollment window. Year by Year notes &ldquo;Medicare delayed&rdquo; in the affected years.</td>
+              <td style={sectionStyles.td}>Lets someone who turns 65 while covered by a current employer&rsquo;s group health plan &mdash; their own job or their spouse&rsquo;s &mdash; delay Part B and Part D, as the rules allow for an employer of 20 or more employees. While the covering job lasts, that person pays no Medicare premium or IRMAA in the plan; premiums start the year the covering worker reaches their retirement age. Only a job that pays counts: someone with no salary enrolls at 65 whatever this says. While Medicare is delayed, HSA contributions can continue until Social Security is claimed, which enrolls the person in Part A.</td>
+              <td style={sectionStyles.td}><strong>Delay: covered through own job</strong> (a new plan&rsquo;s default; an older saved plan keeps <strong>Enroll at 65</strong>), <strong>Enroll at 65</strong>, or <strong>Delay: covered through the spouse&rsquo;s job</strong>. Does not model the Part B penalty an employer under 20 employees would cause, the family premium (already inside the paycheck), or the eight-month enrollment window. Year by Year notes &ldquo;Medicare delayed&rdquo; in the affected years.</td>
             </tr>
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Toggle</span><br/><strong>Assume a Form SSA-44 IRMAA appeal after retiring</strong><br/><em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Plan &rarr; Taxes &amp; Roth &rarr; Medicare Premiums (IRMAA)</em></td>
@@ -1960,7 +1968,7 @@ const InputReference = () => {
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Layout</span><br/><strong>Plan &rarr; Spending, the four sections</strong></td>
               <td style={sectionStyles.td}>Retirement Spending Target, Current Household Spending (Pre-Retirement), Special Expenses (the spending phases, go-go bumps, healthcare and long-term care) and Withdrawals &amp; Taxable Account (withdrawal order, the taxable account&rsquo;s basis and dividends, tax-loss harvesting and the cash reserve) stack full width, one above the other, each foldable by its heading, so the ledger gets the whole width of the window.</td>
-              <td style={sectionStyles.td}>Click a heading to fold or unfold, or Tab to it and press Enter or Space. The first two start open; Special Expenses opens itself when your plan uses any of the features in it (three-phase curve, go-go bump, long-term care, or delaying Medicare on an employer plan), and Withdrawals &amp; Taxable Account opens itself when tax-loss harvesting, a withdrawal order other than Taxable First, or the cash reserve is on.</td>
+              <td style={sectionStyles.td}>Click a heading to fold or unfold, or Tab to it and press Enter or Space. The first two start open; Special Expenses opens itself when your plan uses any of the features in it (three-phase curve, go-go bump, long-term care, or a Medicare choice other than a new plan&rsquo;s), and Withdrawals &amp; Taxable Account opens itself when tax-loss harvesting, a withdrawal order other than Taxable First, or the cash reserve is on.</td>
             </tr>
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Dropdown</span><br/><strong>Retirement Spending ledger &rarr; how often a line is paid</strong></td>

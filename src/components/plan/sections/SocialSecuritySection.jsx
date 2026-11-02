@@ -11,6 +11,7 @@ import { useFoldState } from '../foldState';
 import Tooltip from '../../Tooltip';
 import SwitchRow from '../../SwitchRow';
 import NumberInput from '../../NumberInput';
+import SurvivorStartSection from './SurvivorStartSection';
 
 export default function SocialSecuritySection({ forceOpen = false }) {
   const { inputs, updateInput } = useSimulation();
@@ -29,6 +30,12 @@ export default function SocialSecuritySection({ forceOpen = false }) {
                     &ldquo;if you stop working now&rdquo; line, or the ssa.gov calculator with your retirement age, is the
                     figure to use.
                   </span>
+                  <span data-testid="ss-divorced-note" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                    Divorced after a marriage of 10 years or more, and not remarried? From 62 you may be able to
+                    claim on your former spouse&rsquo;s record instead, up to half of their full benefit, or all of it
+                    as a survivor. The plan cannot see that record: if it pays more, ask Social Security for the
+                    figure and enter it here.
+                  </span>
                   {inputs.spouse2Enabled && (
                     <SwitchRow id="toggle-ssSpousalEnabled1" size="sm" style={{ marginTop: '6px' }} checked={inputs.ssSpousalEnabled1 || false} onChange={(on) => updateInput('ssSpousalEnabled1', on)}>
                       Use the <Tooltip text="Tops a lower earner up to half of the other spouse's full-retirement-age benefit, once that spouse has filed. Changes nothing if this spouse's own benefit is already at least half." more="spousal benefit">spousal benefit</Tooltip> if higher
@@ -44,6 +51,7 @@ export default function SocialSecuritySection({ forceOpen = false }) {
                     </SwitchRow>
                   </div>
                 )}
+                <SurvivorStartSection />
                 </>
                 )}
     </>

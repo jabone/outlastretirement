@@ -103,7 +103,7 @@ export default function HealthcareSection() {
                   </div>
                   <span style={{ fontSize: 'var(--fs-xs)', opacity: 0.7, display: 'block', marginTop: '6px' }}>
                     Only with an employer of 20 or more employees: below that, Medicare pays first at 65 and delaying Part B
-                    brings a lifetime penalty. Enrolling in any part of Medicare &mdash; including Part A, which claiming
+                    brings a lifetime penalty. Only a job that pays counts: someone with no salary in the plan enrolls at 65. Enrolling in any part of Medicare &mdash; including Part A, which claiming
                     Social Security starts automatically &mdash; ends contributions to an HSA. The first premiums after the job
                     ends are priced on income from two years earlier, which is what the Form SSA-44 appeal (Taxes &amp; Roth) is for.
                   </span>
