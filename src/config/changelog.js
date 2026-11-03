@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 485,
+    date: '2026-11-03',
+    title: 'Where should my bonds go? now starts from your plan as it is',
+    summary: 'The bond placement comparison now puts your plan, exactly as it is, beside the same plan with its bonds in Pre-Tax first, following your mix year by year. Holdings can be filtered by tax type.',
+    items: [
+      "**Your plan as it is.** The comparison used to hold your mix today for the whole plan, so a plan that moves toward bonds at retirement showed a different ending balance from its own. Its first column is now your plan exactly, and Bonds in Pre-Tax first follows the same overall mix every year (your working mix, then your retired mix and any yearly move toward bonds), placing each year\u2019s bonds in Pre-Tax first, then Taxable, then HSA, then Roth. A plan that sets its own mix for each account still sees its placement beside an even mix and Bonds in Pre-Tax first. Premium.",
+      "**Filter holdings by tax type.** The account filter on Detailed Holdings now also offers All Pre-Tax, All Roth, All Taxable and All HSA, so every 401(k) and IRA can be seen together. Premium.",
+    ],
+  },
+  {
     id: 484,
     date: '2026-11-03',
     title: 'A stock and bond mix for each account',

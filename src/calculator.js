@@ -119,7 +119,7 @@ export const MIX_ACCOUNTS = ['preTax', 'roth', 'taxable', 'hsa'];
 // return comes from the stock/bond mix (the "Use my own average return"
 // override has no mix to split).
 export function perAccountMixActive(inputs) {
-  return !!(inputs && inputs.rebalancingEnabled && inputs.perAccountMixEnabled);
+  return !!(inputs && inputs.rebalancingEnabled && (inputs.perAccountMixEnabled || inputs.bondPlacementRule === 'preTaxFirst'));
 }
 
 // One account's stock share for one year, in percent. The share is the
@@ -2181,6 +2181,14 @@ export const DEFAULT_INPUTS = {
   // (each account type's stock share of its stock, bond and cash value)
   // when linked -- same pattern as stockAllocationSource.
   accountStockShareSource: 'manual',
+  // How the comparison of bond placements (computeAssetLocationComparison)
+  // models "bonds in Pre-Tax first": '' (off) or 'preTaxFirst'. With it
+  // set, each year's account shares come from the plan's own household
+  // share for that year (Working, Retired, the glide) with the bonds that
+  // share implies placed in Pre-Tax first, then Taxable, then HSA, then
+  // Roth, by the year's opening balances -- not from the four fields
+  // above. Not a setting on screen; the comparison sets it on its own run.
+  bondPlacementRule: '',
   // Compound (median) annual returns before inflation and fees, 6.5% for
   // stocks and 4.5% for bonds since changelog 480 (stocks were 8%, bonds
   // 4%). With 2.5% inflation that is 4.0% and 2.0% a year after inflation.
@@ -7869,8 +7877,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (perAccountMixActive(inputs)) {
       accountStockShares = {};
       accountReturns = {};
+      // Bonds in Pre-Tax first, following the plan's own share this year
+      // (bondPlacementRule; the comparison's run only).
+      const placed = inputs.bondPlacementRule === 'preTaxFirst'
+        ? usualBondPlacement(planStockShareForYear(inputs, isRetired, year, householdRetirementYear), yearOpeningBalances)
+        : null;
       for (const a of MIX_ACCOUNTS) {
-        const sh = accountStockShareForYear(inputs, a, isRetired, year, householdRetirementYear);
+        const sh = placed ? placed[a] : accountStockShareForYear(inputs, a, isRetired, year, householdRetirementYear);
         accountStockShares[a] = sh;
         let r;
         if (mixSource.kind === 'uniform') {
@@ -14294,22 +14307,25 @@ export function computeFeeComparison(rawInputs = DEFAULT_INPUTS, { historical = 
 }
 
 // ---------------------------------------------------------------------------
-// Where should my bonds go? (asset location). The plan run three ways at
-// the same overall stock share today -- the household's share across its
-// four invested accounts, weighted by their starting balances:
-//   same     every account at that share
-//   usual    the usual advice: bonds go to Pre-Tax first, then Taxable,
-//            then HSA, then Roth, so Roth (never taxed) holds the most
-//            stocks
-//   yours    the plan's own shares (only when it sets a mix per account)
-// Each is a full projection with a mix for each account, so taxes, required
-// withdrawals, Medicare surcharges and the heirs' tax all follow. Numbers,
-// not advice. Dollars are today's.
+// Where should my bonds go? (asset location). The plan beside the same
+// plan with its bonds placed in Pre-Tax first, at the same overall mix:
+//   plan     the plan exactly as it is (its ending balance is the one the
+//            plan shows)
+//   usual    the same household stock share every year -- Working, then
+//            Retired, then the glide, as the plan has them -- with that
+//            year's bonds placed in Pre-Tax first, then Taxable, then HSA,
+//            then Roth (bondPlacementRule 'preTaxFirst')
+// For a plan that already sets a mix for each account, 'plan' is its own
+// placement, and 'usual' and a 'same' row (every account at one share)
+// hold the plan's overall share today for the whole plan, since its own
+// shares have no Working/Retired schedule to follow.
+// Each is a full projection, so taxes, required withdrawals, Medicare and
+// the heirs' tax all follow. Numbers, not advice. Dollars are today's.
 export const BOND_PLACEMENT_ORDER = ['preTax', 'taxable', 'hsa', 'roth'];
 
 export function usualBondPlacement(stockSharePct, balances) {
   const total = MIX_ACCOUNTS.reduce((t, a) => t + Math.max(0, Number(balances[a]) || 0), 0);
-  let bonds = total * (1 - Math.min(100, Math.max(0, stockSharePct)) / 100);
+  let bonds = total * (1 - Math.min(100, Math.max(0, Number(stockSharePct) || 0)) / 100);
   const shares = {};
   for (const a of BOND_PLACEMENT_ORDER) {
     const b = Math.max(0, Number(balances[a]) || 0);
@@ -14335,53 +14351,74 @@ function placementSummary(inputs) {
   const finalFactor = finalBalanceFactor(years);
   const out = years.find((y) => (y.shortfall || 0) > 0.01);
   const last = years[years.length - 1] || {};
+  // Each account's stock share in the first year and the first retired
+  // year, for the table.
+  const sharesAt = (y) => (y && y.accountStockShares ? { ...y.accountStockShares } : null);
+  const firstRetired = years.find((y) => y.isRetired);
   return {
     lifetimeTaxes: taxes,
     lifetimeIrmaa: irmaa,
     lifetimeRmds: rmds,
     endingBalance: (Number(proj.endingBalance) || 0) / finalFactor,
+    endingBalanceNominal: Number(proj.endingBalance) || 0,
     afterTaxLegacy: (legacyAfterTaxes(inputs, proj) || 0) / finalFactor,
     endingPreTax: (Number(last.preTaxEnd) || 0) / finalFactor,
     endingRoth: (Number(last.rothEnd) || 0) / finalFactor,
+    sharesNow: sharesAt(years[0]),
+    sharesRetired: firstRetired && firstRetired !== years[0] ? sharesAt(firstRetired) : null,
+    householdNow: years[0] ? (years[0].householdStockShare ?? null) : null,
+    householdRetired: firstRetired ? (firstRetired.householdStockShare ?? null) : null,
     runsOutYear: out ? out.year : null,
     isSuccessful: !!proj.isSuccessful,
   };
 }
 
 export function computeAssetLocationComparison(rawInputs = DEFAULT_INPUTS, { historical = false } = {}) {
-  const inputs = sanitizeInputs({ ...rawInputs, stressType: 'none' });
+  const inputs = sanitizeInputs({ ...rawInputs, stressType: 'none', bondPlacementRule: '' });
   if (!inputs.rebalancingEnabled) return { available: false, reason: 'ownReturn' };
   const balances = { preTax: inputs.preTaxInit, roth: inputs.rothInit, taxable: inputs.taxableInit, hsa: inputs.hsaInit };
   const funded = MIX_ACCOUNTS.filter((a) => (Number(balances[a]) || 0) > 0);
   if (funded.length < 2) return { available: false, reason: 'oneAccount' };
   const yours = perAccountMixActive(inputs);
-  // The household's share this year: a per-account plan's balance-weighted
-  // share, else the Working share while working and the Retired share once
-  // retired (a one-share-for-life comparison either way).
-  const first = (_runProjectionPreSanitized(inputs).years || [])[0];
-  const overall = yours
+  const base = _runProjectionPreSanitized(inputs);
+  const first = (base.years || [])[0];
+  const firstRetired = (base.years || []).find((y) => y.isRetired);
+  const round1 = (v) => Math.round(v * 10) / 10;
+  // The household's share today, and once retired (one-mix plans).
+  const shareNow = yours
     ? planReturnRates(inputs).stockPre
     : (first && first.isRetired
       ? planStockShareForYear(inputs, true, first.year, first.year)
       : planStockShareForYear(inputs, false, first ? first.year : 0, null));
-  const share = Math.round(overall * 10) / 10;
-  const fields = (sh) => Object.fromEntries(MIX_ACCOUNTS.map((a) => [ACCOUNT_STOCK_SHARE_FIELDS[a], sh[a]]));
-  const evenShares = Object.fromEntries(MIX_ACCOUNTS.map((a) => [a, share]));
-  const usualShares = usualBondPlacement(share, balances);
-  const variants = [
-    { key: 'same', shares: evenShares },
-    { key: 'usual', shares: usualShares },
-  ];
+  const shareRetired = !yours && firstRetired
+    ? planStockShareForYear(inputs, true, firstRetired.year, firstRetired.year)
+    : null;
+
+  const variants = [];
   if (yours) {
-    variants.push({ key: 'yours', shares: Object.fromEntries(MIX_ACCOUNTS.map((a) => [a, Number(inputs[ACCOUNT_STOCK_SHARE_FIELDS[a]]) || 0])) });
+    // Every account and both phases at the plan's overall share today.
+    const s = round1(shareNow);
+    const flat = { stockAllocationPre: s, stockAllocationPost: s };
+    const fields = Object.fromEntries(MIX_ACCOUNTS.map((a) => [ACCOUNT_STOCK_SHARE_FIELDS[a], s]));
+    variants.push({ key: 'same', inputs: { ...inputs, ...flat, perAccountMixEnabled: true, ...fields } });
+    variants.push({ key: 'usual', inputs: { ...inputs, ...flat, perAccountMixEnabled: false, bondPlacementRule: 'preTaxFirst' } });
+    variants.push({ key: 'plan', inputs });
+  } else {
+    variants.push({ key: 'plan', inputs });
+    variants.push({ key: 'usual', inputs: { ...inputs, bondPlacementRule: 'preTaxFirst' } });
   }
   const rows = variants.map((v) => {
-    const inp = { ...inputs, perAccountMixEnabled: true, ...fields(v.shares) };
-    const row = { key: v.key, shares: v.shares, ...placementSummary(inp) };
-    if (historical) row.historical = historicalLastedCount(inp);
+    const row = { key: v.key, ...placementSummary(v.inputs) };
+    if (historical) row.historical = historicalLastedCount(v.inputs);
     return row;
   });
-  return { available: true, overallStockShare: share, perAccount: yours, rows };
+  return {
+    available: true,
+    perAccount: yours,
+    overallStockShare: round1(shareNow),
+    retiredStockShare: shareRetired === null ? null : round1(shareRetired),
+    rows,
+  };
 }
 
 // Re-prices runOptimizer's strategy list into today's dollars when the
@@ -14490,7 +14527,11 @@ function getEffectivePostRetireReturn(inputs) {
   if (inputs.rebalancingEnabled) {
     // An heir inherits the Pre-Tax account, so with a mix for each account
     // it grows at Pre-Tax's own share.
-    const stockAlloc = perAccountMixActive(inputs)
+    // Under the comparison's bonds-in-Pre-Tax-first run, Pre-Tax holds the
+    // bonds the retired share implies, placed by the starting balances.
+    const stockAlloc = inputs.bondPlacementRule === 'preTaxFirst' && !inputs.perAccountMixEnabled
+      ? usualBondPlacement(inputs.stockAllocationPost, { preTax: inputs.preTaxInit, roth: inputs.rothInit, taxable: inputs.taxableInit, hsa: inputs.hsaInit }).preTax
+      : perAccountMixActive(inputs)
       ? Math.min(100, Math.max(0, Number.isFinite(Number(inputs.stockSharePreTax)) && inputs.stockSharePreTax !== '' && inputs.stockSharePreTax !== null ? Number(inputs.stockSharePreTax) : inputs.stockAllocationPost))
       : inputs.stockAllocationPost;
     const bondAlloc = 100 - stockAlloc;

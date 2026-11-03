@@ -108,24 +108,37 @@ describe('where should my bonds go?', () => {
     expect(sh).toEqual({ preTax: 0, taxable: 66.7, hsa: 100, roth: 100 });
   });
 
-  it('runs the same overall mix two ways, and the plan\'s own when it sets one', () => {
+  it('puts the plan beside bonds in Pre-Tax first, and adds an even mix for a per-account plan', () => {
     const one = computeAssetLocationComparison(base);
     expect(one.available).toBe(true);
-    expect(one.rows.map((r) => r.key)).toEqual(['same', 'usual']);
-    const own = computeAssetLocationComparison(located);
-    expect(own.rows.map((r) => r.key)).toEqual(['same', 'usual', 'yours']);
-    const [same, usual] = own.rows;
+    expect(one.rows.map((r) => r.key)).toEqual(['plan', 'usual']);
     // Bonds in Pre-Tax: smaller required withdrawals.
-    expect(usual.lifetimeRmds).toBeLessThan(same.lifetimeRmds);
+    expect(one.rows[1].lifetimeRmds).toBeLessThan(one.rows[0].lifetimeRmds);
+    const own = computeAssetLocationComparison(located);
+    expect(own.rows.map((r) => r.key)).toEqual(['same', 'usual', 'plan']);
   });
 
-  it('the same-mix row is the plan with one mix', () => {
-    const r = computeAssetLocationComparison(base);
-    expect(r.overallStockShare).toBe(60);
-    const plain = runProjection(base);
-    const factor = plain.years[plain.years.length - 1].inflFactor;
-    expect(r.rows[0].endingBalance).toBeGreaterThan(0);
-    expect(Math.abs(r.rows[0].endingBalance * factor - plain.endingBalance) / plain.endingBalance).toBeLessThan(0.05);
+  it('the plan row is the plan exactly as it is', () => {
+    const inp = { ...base, stockAllocationPre: 90, stockAllocationPost: 50 };
+    const r = computeAssetLocationComparison(inp);
+    expect(r.rows[0].endingBalanceNominal).toBeCloseTo(runProjection(inp).endingBalance, 4);
+    expect(r.overallStockShare).toBe(90);
+  });
+
+  it('bonds in Pre-Tax first follows the plan\'s own share year by year', () => {
+    const inp = { ...base, stockAllocationPre: 90, stockAllocationPost: 50 };
+    const r = computeAssetLocationComparison(inp);
+    const usual = r.rows[1];
+    expect(usual.householdNow).toBeCloseTo(90, 0);
+    expect(usual.householdRetired).toBeCloseTo(50, 0);
+    // Pre-Tax holds the bonds first.
+    expect(usual.sharesRetired.preTax).toBeLessThan(usual.sharesRetired.roth);
+  });
+
+  it('with no bonds there is nothing to place, so the two rows match', () => {
+    const inp = { ...base, stockAllocationPre: 100, stockAllocationPost: 100 };
+    const r = computeAssetLocationComparison(inp);
+    expect(r.rows[1].endingBalance).toBeCloseTo(r.rows[0].endingBalance, 2);
   });
 
   it('is not offered with your own average return, or with savings in one account', () => {

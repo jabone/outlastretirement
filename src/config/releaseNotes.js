@@ -28,8 +28,8 @@ export const RELEASE_WEEKS = [
     bullets: [
       { title: 'When a widow or widower starts the survivor benefit', ids: [478],
         text: 'Each of you now has a survivor benefit start age under Plan \u2192 Income \u2192 Social Security, as soon as possible unless you choose a later one. Compare start ages for this plan runs your plan once for each age and shows the yearly check, the savings left at the end, any years the money runs short and when waiting pays back, and marks the best age for your plan.' },
-      { title: 'A stock and bond mix for each account', ids: [484, 483],
-        text: 'Pre-Tax, Roth, Taxable and HSA can each have their own stock share, so the plan shows what holding bonds in Pre-Tax and stocks in Roth does to taxes, required withdrawals and what heirs keep. Premium compares placements and fills the shares in from your holdings, where a balanced or target-date fund now counts by its own split.' },
+      { title: 'A stock and bond mix for each account', ids: [485, 484, 483],
+        text: 'Pre-Tax, Roth, Taxable and HSA can each have their own stock share, so the plan shows what holding bonds in Pre-Tax and stocks in Roth does to taxes, required withdrawals and what heirs keep. Premium puts your plan beside the same plan with its bonds in Pre-Tax first, fills the shares in from your holdings, where a balanced or target-date fund now counts by its own split, and filters holdings by tax type.' },
       { title: 'Variable percentage withdrawal', ids: [482],
         text: 'The comparison of spending rules over every real retirement adds VPW, the Bogleheads method whose share of savings rises with age so the money is spent down by 100.' },
       { title: 'A shorter answer to Will It Last?', ids: [481],

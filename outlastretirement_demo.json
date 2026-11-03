@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-11-03T05:21:16.616Z",
+  "timestamp": "2026-11-03T12:34:24.821Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -488,6 +488,7 @@
     "stockShareTaxable": 60,
     "stockShareHsa": 60,
     "accountStockShareSource": "manual",
+    "bondPlacementRule": "",
     "stockReturnRate": 8,
     "bondReturnRate": 4,
     "fundExpenseRatioPct": 0,
@@ -989,6 +990,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -1006,10 +1008,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.650Z",
+      "savedAt": "2026-11-03T12:34:24.856Z",
       "tag": "demo"
     },
     {
@@ -1500,6 +1502,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -1517,10 +1520,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.660Z",
+      "savedAt": "2026-11-03T12:34:24.869Z",
       "tag": "demo"
     },
     {
@@ -2011,6 +2014,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -2028,10 +2032,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.667Z",
+      "savedAt": "2026-11-03T12:34:24.876Z",
       "tag": "demo"
     },
     {
@@ -2522,6 +2526,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -2539,10 +2544,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.678Z",
+      "savedAt": "2026-11-03T12:34:24.888Z",
       "tag": "demo"
     },
     {
@@ -3033,6 +3038,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -3050,10 +3056,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.693Z",
+      "savedAt": "2026-11-03T12:34:24.905Z",
       "tag": "demo"
     },
     {
@@ -3544,6 +3550,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -3561,10 +3568,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.699Z",
+      "savedAt": "2026-11-03T12:34:24.912Z",
       "tag": "demo"
     },
     {
@@ -4055,6 +4062,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -4072,10 +4080,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.706Z",
+      "savedAt": "2026-11-03T12:34:24.925Z",
       "tag": "demo"
     },
     {
@@ -4566,6 +4574,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -4583,10 +4592,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.723Z",
+      "savedAt": "2026-11-03T12:34:24.953Z",
       "tag": "demo"
     },
     {
@@ -5077,6 +5086,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -5094,10 +5104,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.741Z",
+      "savedAt": "2026-11-03T12:34:24.971Z",
       "tag": "demo"
     },
     {
@@ -5588,6 +5598,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -5605,10 +5616,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.753Z",
+      "savedAt": "2026-11-03T12:34:24.988Z",
       "tag": "demo"
     },
     {
@@ -6099,6 +6110,7 @@
         "stockShareTaxable": 60,
         "stockShareHsa": 60,
         "accountStockShareSource": "manual",
+        "bondPlacementRule": "",
         "stockReturnRate": 8,
         "bondReturnRate": 4,
         "fundExpenseRatioPct": 0,
@@ -6116,10 +6128,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 484
+        "oddsVersion": 485
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T05:21:16.774Z",
+      "savedAt": "2026-11-03T12:34:25.008Z",
       "tag": "demo"
     }
   ],
