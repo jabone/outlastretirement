@@ -8,6 +8,8 @@ export const RULE_LABELS = {
   // Changelog 451, compared over the same starts (Premium table).
   pct: 'Percent of portfolio',
   clyatt: 'The 95% rule (Clyatt)',
+  // Changelog 482.
+  vpw: 'Variable percentage (VPW)',
 };
 
 export function historicalHeadline(data) {

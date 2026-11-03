@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 482,
+    date: '2026-11-02',
+    title: 'Variable percentage withdrawal in the historical comparison',
+    summary: 'The comparison of spending rules over every real retirement since 1928 adds VPW, the Bogleheads method that spends a share of savings rising with age.',
+    items: [
+      "**What VPW does.** Each year it spends a share of what is left, and the share rises as you age: about 4.9% at 65 and 10.9% at 90 for a 60/40 mix, so the money is spent down by 100 rather than left over. Spending moves with the markets, but less unevenly late in life than a fixed percentage. It is the Bogleheads community's method, at its table's assumptions of 5.0% a year after inflation for stocks and 1.9% for bonds.",
+      "**How it is compared.** Like percent of portfolio and the 95% rule, it starts from your plan's own first-year spending and its share of your savings, then follows the VPW curve from there. The comparison of every rule over the same real retirements is part of Premium; Risk & Stress shows it under Every retirement since 1928.",
+    ],
+  },
+  {
     id: 481,
     date: '2026-11-02',
     title: 'A shorter answer to Will It Last?',

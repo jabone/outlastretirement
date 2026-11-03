@@ -43,7 +43,7 @@ describe('the rules in the engine', () => {
 
 describe('in the historical comparison', () => {
   it('both rules run over the same starts, are never the plan, and are priced against fixed spending', () => {
-    expect(HISTORICAL_START_RULES.map((r) => r.key)).toEqual(['fixed', 'crash', 'wr', 'both', 'pct', 'clyatt']);
+    expect(HISTORICAL_START_RULES.map((r) => r.key)).toEqual(['fixed', 'crash', 'wr', 'both', 'pct', 'clyatt', 'vpw']);
     const h = runHistoricalStarts(DEFAULT_INPUTS);
     const pct = h.rules.find((r) => r.key === 'pct');
     const clyatt = h.rules.find((r) => r.key === 'clyatt');

@@ -2140,10 +2140,13 @@ export const DEFAULT_INPUTS = {
   // A spending rule only the historical comparison uses (changelog 451):
   // 'none' (the plan's own spending, with any guardrails it has on),
   // 'pctPortfolio' (spend the same share of the portfolio every retired
-  // year, so spending rises and falls with it) or 'clyatt95' (Bob Clyatt's
+  // year, so spending rises and falls with it), 'clyatt95' (Bob Clyatt's
   // 95% rule: the larger of that share of the portfolio and 95% of last
-  // year's spending). Both start from the plan's own first retired year's
-  // spending and its share of the portfolio then. Not a plan setting.
+  // year's spending) or 'vpw' (changelog 482, variable percentage
+  // withdrawal: a share that rises with age along the Bogleheads VPW curve,
+  // so the portfolio is spent down by 100). All start from the plan's own
+  // first retired year's spending and its share of the portfolio then. Not
+  // a plan setting.
   spendingRule: 'none',
   glideAllocationEnabled: false,
   glideAllocationRate: 1.0, // reduction in stock % per year retired
@@ -7454,8 +7457,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // Changelog 451: the comparison-only spending rules. ruleRate is the
   // plan's first retired year's lifestyle spending over the portfolio it
   // started that year with; rulePrevSpend is last year's ruled spending.
-  const spendingRule = inputs.spendingRule === 'pctPortfolio' || inputs.spendingRule === 'clyatt95' ? inputs.spendingRule : null;
+  const spendingRule = ['pctPortfolio', 'clyatt95', 'vpw'].includes(inputs.spendingRule) ? inputs.spendingRule : null;
   let ruleRate = null;
+  // VPW's curve value in the first retired year, which the plan's own
+  // first-year share is scaled from.
+  let ruleVpwStart = null;
   let rulePrevSpend = null;
   // The plan's own path, which both guardrails measure against (changelog
   // 335). Only built when one of them is on.
@@ -8909,13 +8915,22 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       const prevRow = year > startYear ? years[year - startYear - 1] : null;
       const opening = prevRow ? investedEnd(prevRow)
         : (inputs.preTaxInit || 0) + (inputs.rothInit || 0) + (inputs.taxableInit || 0) + (inputs.hsaInit || 0);
+      // VPW's age is the younger living spouse's, as in the Bogleheads
+      // table; its return is the year's own stock share at the table's
+      // real returns.
+      const vpwNow = spendingRule === 'vpw'
+        ? vpwRate(Math.min(...[spouse1Alive ? age1 : Infinity, spouse2Alive ? age2 : Infinity]), vpwRealReturn(planStockShareForYear(inputs, true, year, householdRetirementYear)))
+        : null;
       if (ruleRate === null) {
         ruleRate = opening > 0 ? lifestyleCost / opening : 0;
+        ruleVpwStart = vpwNow;
       } else {
         const byPortfolio = ruleRate * Math.max(0, opening);
         lifestyleCost = spendingRule === 'clyatt95'
           ? Math.max(byPortfolio, 0.95 * (rulePrevSpend || 0))
-          : byPortfolio;
+          : spendingRule === 'vpw' && ruleVpwStart > 0
+            ? Math.min(Math.max(0, opening), byPortfolio * (vpwNow / ruleVpwStart))
+            : byPortfolio;
       }
       rulePrevSpend = lifestyleCost;
     }
@@ -13697,9 +13712,31 @@ export const HISTORICAL_START_RULES = [
   // over the same starts. Never the plan's own rule.
   { key: 'pct', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'pctPortfolio' } },
   { key: 'clyatt', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'clyatt95' } },
+  { key: 'vpw', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'vpw' } },
 ];
 
 // The start years with a full retirement's worth of history behind them.
+// Variable percentage withdrawal (changelog 482), after the Bogleheads VPW
+// method: the share of the portfolio to spend this year is the payment that
+// spends a balance down to nothing by age 100 at the portfolio's expected
+// real return, paid at the start of each year: PMT(r, n, -1, 0, 1) with n =
+// 100 - age + 1. The Bogleheads table assumes 5.0% a year after inflation
+// for stocks and 1.9% for bonds (its global-portfolio figures); the curve's
+// shape, rising from about 4% at 60 to 100% at 100, is what the comparison
+// uses, scaled to start at the plan's own first-year share.
+export const VPW_STOCK_REAL_PCT = 5.0;
+export const VPW_BOND_REAL_PCT = 1.9;
+export function vpwRealReturn(stockSharePct) {
+  const w = Math.min(100, Math.max(0, Number(stockSharePct) || 0)) / 100;
+  return (w * VPW_STOCK_REAL_PCT + (1 - w) * VPW_BOND_REAL_PCT) / 100;
+}
+export function vpwRate(age, realReturn) {
+  const n = Math.max(1, Math.floor(100 - (Number(age) || 0) + 1));
+  const r = Number(realReturn) || 0;
+  if (Math.abs(r) < 1e-9) return 1 / n;
+  return r / ((1 + r) * (1 - Math.pow(1 + r, -n)));
+}
+
 export function historicalStartYears(horizonYears, firstYear = HISTORY_FIRST_YEAR) {
   const years = [];
   for (let start = firstYear; start + horizonYears - 1 <= HISTORY_LAST_YEAR; start += 1) years.push(start);

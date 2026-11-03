@@ -28,6 +28,8 @@ export const RELEASE_WEEKS = [
     bullets: [
       { title: 'When a widow or widower starts the survivor benefit', ids: [478],
         text: 'Each of you now has a survivor benefit start age under Plan \u2192 Income \u2192 Social Security, as soon as possible unless you choose a later one. Compare start ages for this plan runs your plan once for each age and shows the yearly check, the savings left at the end, any years the money runs short and when waiting pays back, and marks the best age for your plan.' },
+      { title: 'Variable percentage withdrawal', ids: [482],
+        text: 'The comparison of spending rules over every real retirement adds VPW, the Bogleheads method whose share of savings rises with age so the money is spent down by 100.' },
       { title: 'A shorter answer to Will It Last?', ids: [481],
         text: 'The Dashboard card gives a one-line answer with the two numbers behind it; what it means, what it assumes and what it leaves out open in What this means.' },
       { title: 'Your return comes from your stock and bond mix', ids: [480],
