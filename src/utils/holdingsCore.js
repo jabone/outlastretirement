@@ -91,7 +91,12 @@ export const ASSET_CLASSES = [
   { value: 'stock', label: 'Stock' },
   { value: 'bond', label: 'Bond' },
   { value: 'cash', label: 'Cash Equivalent' },
-  { value: 'other', label: 'Other / Mixed' },
+  // A fund that holds more than one kind, such as a balanced, target-date
+  // or allocation fund: its own split (mixStockPct/mixBondPct/mixCashPct)
+  // divides its value among stock, bond and cash. Until a split is set it
+  // counts as Other, exactly as it did before this choice existed.
+  { value: 'mixed', label: 'Mixed fund' },
+  { value: 'other', label: 'Other' },
 ];
 
 const ASSET_CLASS_VALUES = ASSET_CLASSES.map((c) => c.value);
@@ -153,6 +158,51 @@ export function getEffectiveAssetClass(holding) {
   return isValidAssetClass(holding?.assetClass) ? holding.assetClass : guessAssetClass(holding);
 }
 
+// A mixed fund's split, as whole percentages that total 100, or null when
+// none is set (all three blank or zero). The three fields are scaled to
+// 100 if they don't quite add up, so a split typed as 60/40/1 still counts
+// in full rather than leaving a sliver unclassified.
+export function holdingMixSplit(holding) {
+  const n = (v) => { const x = Number(v); return Number.isFinite(x) && x > 0 ? x : 0; };
+  const stock = n(holding?.mixStockPct);
+  const bond = n(holding?.mixBondPct);
+  const cash = n(holding?.mixCashPct);
+  const sum = stock + bond + cash;
+  if (!(sum > 0)) return null;
+  return { stock: (stock / sum) * 100, bond: (bond / sum) * 100, cash: (cash / sum) * 100 };
+}
+
+// What share of a holding's value is stock, bond, cash and other, as
+// fractions that total 1. A single-class holding is all one class; a mixed
+// fund is divided by its split, and one with no split yet is all Other.
+export function assetClassShares(holding) {
+  const shares = { stock: 0, bond: 0, cash: 0, other: 0 };
+  const cls = getEffectiveAssetClass(holding);
+  if (cls === 'mixed') {
+    const split = holdingMixSplit(holding);
+    if (!split) { shares.other = 1; return shares; }
+    shares.stock = split.stock / 100;
+    shares.bond = split.bond / 100;
+    shares.cash = split.cash / 100;
+    return shares;
+  }
+  shares[cls] = 1;
+  return shares;
+}
+
+// A short label for a holding's class: "Mixed 60/40" (stocks/bonds, with
+// cash added when there is any) for a mixed fund with a split.
+export function assetClassLabel(holding) {
+  const cls = getEffectiveAssetClass(holding);
+  if (cls === 'mixed') {
+    const split = holdingMixSplit(holding);
+    if (!split) return 'Mixed (no split set)';
+    const r = (v) => Math.round(v);
+    return `Mixed ${r(split.stock)}/${r(split.bond)}${split.cash >= 0.5 ? `/${r(split.cash)}` : ''}`;
+  }
+  return ASSET_CLASSES.find((c) => c.value === cls)?.label || 'Stock';
+}
+
 export function createHolding(overrides = {}) {
   const { id: _ignoredId, ...rest } = overrides;
   return {
@@ -171,6 +221,11 @@ export function createHolding(overrides = {}) {
     // baking in a guess at creation time would only make it harder to tell
     // "reviewed and confirmed Stock" apart from "never looked at."
     assetClass: null,
+    // A mixed fund's split, in percent (see holdingMixSplit). Blank on
+    // everything else.
+    mixStockPct: null,
+    mixBondPct: null,
+    mixCashPct: null,
     shares: 0,
     avgBuyPrice: 0,
     currentPrice: 0,
@@ -354,6 +409,13 @@ export function taxCharacterForHolding(holding) {
 // carry their own split and do not come through here.
 export function ordinaryIncomeShareForHolding(holding) {
   const character = taxCharacterForHolding(holding);
+  // A mixed fund whose kind of income was never set: its bond and cash
+  // part pays interest, taxed as ordinary income, and its stock part
+  // qualified dividends. Split by value, the same way the mix is.
+  if (character === 'unspecified' && getEffectiveAssetClass(holding) === 'mixed') {
+    const shares = assetClassShares(holding);
+    return shares.bond + shares.cash;
+  }
   if (character === 'ordinaryDividend' || character === 'interest') return 1;
   if (character === 'mixed') return 0.5;
   return 0;
@@ -974,8 +1036,9 @@ export function computeAssetClassMix(holdings = []) {
   for (const h of holdings) {
     const value = computeMarketValue(h);
     total += value;
-    const assetClass = getEffectiveAssetClass(h);
-    totals[assetClass] += value;
+    // A mixed fund's value is divided by its split (assetClassShares).
+    const shares = assetClassShares(h);
+    for (const k of Object.keys(totals)) totals[k] += value * shares[k];
   }
 
   const classifiedTotal = totals.stock + totals.bond + totals.cash;

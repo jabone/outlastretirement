@@ -1,11 +1,11 @@
 import {
   TAX_TREATMENTS, computeMarketValue, getTotalCostBasis, getEffectiveAssetClass, ASSET_CLASSES,
+  assetClassShares, assetClassLabel,
 } from '../utils/portfolioHoldings';
 
 // The data behind the planner-packet Account summary (AccountsSummarySheet.jsx).
 
 const BUCKET_LABEL = Object.fromEntries(TAX_TREATMENTS.map((t) => [t.value, t.label]));
-const CLASS_LABEL = Object.fromEntries(ASSET_CLASSES.map((c) => [c.value, c.label]));
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
 export function accountsSummaryModel(inputs = {}, holdings = []) {
@@ -41,7 +41,7 @@ export function accountsSummaryModel(inputs = {}, holdings = []) {
     const bySym = new Map();
     for (const h of inBucket) {
       const k = (h.symbol || h.name || 'Unnamed').toUpperCase();
-      const cur = bySym.get(k) || { symbol: h.symbol || '', name: h.name || '', assetClass: getEffectiveAssetClass(h), value: 0, cost: 0 };
+      const cur = bySym.get(k) || { symbol: h.symbol || '', name: h.name || '', assetClass: getEffectiveAssetClass(h), className: assetClassLabel(h), value: 0, cost: 0 };
       cur.value += computeMarketValue(h);
       cur.cost += getTotalCostBasis(h);
       bySym.set(k, cur);
@@ -54,13 +54,20 @@ export function accountsSummaryModel(inputs = {}, holdings = []) {
     const differs = planBalance > 0 && Math.abs(total - planBalance) > Math.max(100, planBalance * 0.01);
     buckets.push({
       id: t.value, label: BUCKET_LABEL[t.value], total, showGain: t.value === 'taxable', planBalance, differs,
-      rows: rows.map((r) => ({ ...r, pct: total > 0 ? (r.value / total) * 100 : 0, gain: r.cost > 0 ? r.value - r.cost : null, className: CLASS_LABEL[r.assetClass] || 'Other' })),
+      rows: rows.map((r) => ({ ...r, pct: total > 0 ? (r.value / total) * 100 : 0, gain: r.cost > 0 ? r.value - r.cost : null, className: r.className || 'Other' })),
     });
   }
   const mix = {};
   let mixTotal = 0;
-  for (const h of list) { const v = computeMarketValue(h); const c = getEffectiveAssetClass(h); mix[c] = (mix[c] || 0) + v; mixTotal += v; }
-  const assetMix = ASSET_CLASSES.map((c) => ({ label: c.label, value: mix[c.value] || 0, pct: mixTotal > 0 ? ((mix[c.value] || 0) / mixTotal) * 100 : 0 })).filter((c) => c.value > 0.5);
+  // A mixed fund's value is divided by its split; 'mixed' itself never
+  // appears as a slice.
+  for (const h of list) {
+    const v = computeMarketValue(h);
+    const shares = assetClassShares(h);
+    for (const [c, f] of Object.entries(shares)) if (f > 0) mix[c] = (mix[c] || 0) + v * f;
+    mixTotal += v;
+  }
+  const assetMix = ASSET_CLASSES.filter((c) => c.value !== 'mixed').map((c) => ({ label: c.label, value: mix[c.value] || 0, pct: mixTotal > 0 ? ((mix[c.value] || 0) / mixTotal) * 100 : 0 })).filter((c) => c.value > 0.5);
   return { own, investable, other, owe, netWorth, buckets, assetMix, holdingsTotal: mixTotal };
 }
 

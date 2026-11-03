@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 483,
+    date: '2026-11-02',
+    title: 'Balanced and target-date funds count by their split',
+    summary: 'In Detailed Holdings, a fund that holds both stocks and bonds can be set to Mixed fund with its split, such as 60/40, and the portfolio mix divides it that way.',
+    items: [
+      "**Mixed fund.** Edit a holding and pick Mixed fund under Asset Class to enter its Stocks %, Bonds % and Cash %. The fund's fact sheet, or the Portfolio or Composition page of the fund company's website, lists them. A target-date fund's split changes over the years, so update it now and then.",
+      "**Where it counts.** The holding's value is divided by its split in the Portfolio Mix, the stock share Link to Working Allocation sends to your plan, the Asset Class chart and the planner packet's account summary. In a taxable account, the bond and cash part of its income is taxed as ordinary income unless you set the kind of income it pays.",
+      "**Your holdings.** Nothing changes until you set a split. Other / Mixed is now just Other, and a holding set to it before stays there, counted outside the stock and bond split as before. Detailed Holdings is part of Premium.",
+    ],
+  },
+  {
     id: 482,
     date: '2026-11-02',
     title: 'Variable percentage withdrawal in the historical comparison',
