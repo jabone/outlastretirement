@@ -70,7 +70,7 @@ import { verifyPremiumJwt } from './utils/premiumJwt';
 import { usePortfolioHoldings } from './context/usePortfolioHoldings';
 import PremiumMount from './premium/PremiumMount';
 import { relevantBrackets, allBracketsOn, sameBrackets, relevantIrmaaTiers, sameIrmaaTiers, allIrmaaOn, readBracketPref, writeBracketPref, clearBracketPref } from './utils/relevantTaxBrackets';
-import { computeConcentratedStockLinkValues, computeBucketTotals, computeTaxableCostBasis, computeTaxableDistributionYield, canSyncFromHoldings, computeCashReserveFromHoldings, unlinkedBalanceGap } from './utils/holdingsCore';
+import { computeConcentratedStockLinkValues, computeBucketTotals, computeTaxableCostBasis, computeTaxableDistributionYield, canSyncFromHoldings, computeCashReserveFromHoldings, unlinkedBalanceGap, computeAccountStockShares } from './utils/holdingsCore';
 import { recordPlanChange, requestPersistentStorage } from './utils/dataFreshness';
 import { isDemoModeActive, enterDemoMode, fillScenarioOdds } from './utils/demoMode';
 import { ODDS_VERSION, scenarioNeedsOdds } from './utils/scenarioOdds';
@@ -1153,6 +1153,12 @@ export default function App() {
     () => computeBucketTotals(holdings, { excludeHoldingIds: bucketExcludedIds }),
     [holdings, bucketExcludedKey] // eslint-disable-line react-hooks/exhaustive-deps
   );
+  // Each account type's stock share from the holdings, for the per-account
+  // mix link (accountStockShareSource) -- same exclusions as the balances.
+  const holdingsAccountStockShares = useMemo(
+    () => computeAccountStockShares(holdings, { excludeHoldingIds: bucketExcludedIds }),
+    [holdings, bucketExcludedKey] // eslint-disable-line react-hooks/exhaustive-deps
+  );
   // Typed-in balances that no longer match the holdings -- see
   // unlinkedBalanceGap. Read by the Savings today card and the Holdings
   // sub-tab so a holdings change that can't reach the plan says so.
@@ -1269,6 +1275,26 @@ export default function App() {
     const rounded = Math.round(assetClassMix.stockPctOfClassified);
     setInputs((prev) => (Math.round(prev.stockAllocationPre) === rounded ? prev : { ...prev, stockAllocationPre: rounded }));
   }, [inputs.stockAllocationSource, assetClassMix, inputs.stockAllocationPre]);
+
+  // A mix for each account <-> Detailed Holdings: each account's stock
+  // share follows what is held in that account type. An account type with
+  // nothing classified keeps its typed share; an empty holdings list
+  // changes nothing (canSyncFromHoldings).
+  useEffect(() => {
+    if (inputs.accountStockShareSource !== 'holdings') return;
+    if (!canSyncFromHoldings(holdings)) return;
+    const fields = { preTax: 'stockSharePreTax', roth: 'stockShareRoth', taxable: 'stockShareTaxable', hsa: 'stockShareHsa' };
+    setInputs((prev) => {
+      let next = prev;
+      for (const [a, key] of Object.entries(fields)) {
+        const v = holdingsAccountStockShares[a];
+        if (v === null || v === undefined) continue;
+        const rounded = Math.round(v);
+        if (Math.round(Number(next[key])) !== rounded) next = { ...next, [key]: rounded };
+      }
+      return next;
+    });
+  }, [inputs.accountStockShareSource, holdings, holdingsAccountStockShares]);
 
   // Concentrated Stock Position <-> Detailed Holdings live sync -- same
   // link/unlink pattern as the three effects above, but scoped to ONE
@@ -2066,7 +2092,7 @@ export default function App() {
     rothBracketHeatmapData, rothLadderScheduleHeatmapData, guardrailsComparisonData, historicalStartsData, feeComparisonData,
     whatIfRetireAge, setWhatIfRetireAge, whatIfSpend, setWhatIfSpend, whatIfFundingMethod, setWhatIfFundingMethod,
     calibrationResults, setCalibrationResults, calibrationUndo, undoCalibration,
-    holdings, addHolding, updateHolding, removeHolding, addHoldings, replaceHoldings, bucketTotals, taxableCostBasis, assetClassMix, balanceGap,
+    holdings, addHolding, updateHolding, removeHolding, addHoldings, replaceHoldings, bucketTotals, taxableCostBasis, assetClassMix, balanceGap, holdingsAccountStockShares,
     liquidations, liquidateHolding, removeLiquidation, replaceLiquidations, addLiquidations,
   }), [
     inputs, setInputs, updateInput, activeTab, setActiveTab, useRealDollars, setUseRealDollars,
@@ -2095,7 +2121,7 @@ export default function App() {
     rothBracketHeatmapData, rothLadderScheduleHeatmapData, guardrailsComparisonData, historicalStartsData, feeComparisonData,
     whatIfRetireAge, setWhatIfRetireAge, whatIfSpend, setWhatIfSpend, whatIfFundingMethod, setWhatIfFundingMethod,
     calibrationResults, setCalibrationResults, calibrationUndo, undoCalibration,
-    holdings, addHolding, updateHolding, removeHolding, addHoldings, replaceHoldings, bucketTotals, taxableCostBasis, assetClassMix, balanceGap,
+    holdings, addHolding, updateHolding, removeHolding, addHoldings, replaceHoldings, bucketTotals, taxableCostBasis, assetClassMix, balanceGap, holdingsAccountStockShares,
     liquidations, liquidateHolding, removeLiquidation, replaceLiquidations, addLiquidations,
   ]);
 

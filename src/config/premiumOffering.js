@@ -219,6 +219,20 @@ export const PREMIUM_AREAS = [
           'Every start year, one row each, with whether the money lasts and how deep any cut went, opened in Year by Year or saved as a spreadsheet',
         ],
       },
+      {
+        // A mix for each account (asset location). The setting is free on
+        // Your Stock and Bond Mix; the comparison and the holdings link are
+        // Premium.
+        id: 'bondPlacement',
+        title: 'Where Should My Bonds Go?',
+        blurb:
+          'Set a stock share for each account free. This shows what placing your bonds differently would do, at the same overall mix.',
+        points: [
+          'Your plan three ways at the same overall mix: the same mix in every account, bonds in Pre-Tax first (the usual advice), and your own placement',
+          'Lifetime taxes, required withdrawals, Medicare premiums, what is left and what your heirs keep after tax, and how many real retirements since 1928 each lasts in',
+          'Each account\u2019s stock share filled in from what you actually hold in it, kept up to date',
+        ],
+      },
     ],
   },
   {

@@ -62,6 +62,7 @@ export const LINK_STATE_KEYS = [
   'taxableBasisSource',
   'taxableDividendYieldSource',
   'stockAllocationSource',
+  'accountStockShareSource',
   'cashFloorSource',
   'concentratedStockSource',
   'concentratedStockHoldingId',
@@ -274,6 +275,14 @@ export const NOT_ASKED_IN_INTERVIEW = [
     domain: 'assumptions',
     interviewSection: 'risk',
     keys: ['glideAllocationEnabled', 'glideAllocationRate', 'glideAllocationFloor'],
+  },
+  {
+    id: 'perAccountMix',
+    title: 'A stock and bond mix for each account',
+    blurb: 'Give Pre-Tax, Roth, Taxable and HSA each their own stock share, so bonds can sit in one account and stocks in another. It lives on Plan Settings \u2192 Assumptions & Risk, under Your Stock and Bond Mix.',
+    domain: 'assumptions',
+    interviewSection: 'risk',
+    keys: ['perAccountMixEnabled', 'stockSharePreTax', 'stockShareRoth', 'stockShareTaxable', 'stockShareHsa'],
   },
   {
     id: 'returnGlide',

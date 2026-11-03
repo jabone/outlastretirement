@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 484,
+    date: '2026-11-03',
+    title: 'A stock and bond mix for each account',
+    summary: 'You can now give Pre-Tax, Roth, Taxable and HSA each their own stock share, so the plan shows what holding bonds in one account and stocks in another does to your taxes and savings.',
+    items: [
+      "**Set a mix for each account.** Under Plan \u2192 Assumptions & Risk \u2192 Your Stock and Bond Mix, turn on Set a mix for each account and enter a stock share for Pre-Tax, Roth, Taxable and HSA. Each account then grows at its own mix, rebalanced every year. It starts every account at the share your plan uses now, so nothing moves until you change one.",
+      "**Why it matters.** Bonds grow more slowly than stocks. Held in Pre-Tax, that slower growth is in the account whose withdrawals are all taxed, so required withdrawals, the taxes on them and what your heirs owe on an inherited IRA are all smaller, while Roth, which is never taxed, holds the faster-growing stocks. Bonds in Taxable pay interest taxed every year as ordinary income; the plan now taxes Taxable\u2019s dividends by its own mix.",
+      "**Your overall mix drifts.** With a mix per account, your overall stock share follows the balances, and changes as accounts grow and are spent at different rates. The section says where it stands now, when you retire and late in the plan, and Year by Year shows it with each account\u2019s return, in the table and the spreadsheet.",
+      "**Where should my bonds go? (Premium).** Runs your plan at the same overall mix three ways: the same mix in every account, bonds in Pre-Tax first (the usual advice), and your own placement, with lifetime taxes, required withdrawals, what is left, what your heirs keep and how many real retirements since 1928 each lasts in. Use my holdings fills each account\u2019s share in from Detailed Holdings and keeps it up to date.",
+      "**Your plan.** Nothing changes unless you turn it on; one mix for everything is still the default. In the Monte Carlo, a plan with a mix per account draws stock and bond returns separately each year, at their measured swings.",
+    ],
+  },
+  {
     id: 483,
     date: '2026-11-02',
     title: 'Balanced and target-date funds count by their split',

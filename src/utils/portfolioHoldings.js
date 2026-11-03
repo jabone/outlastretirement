@@ -75,6 +75,7 @@ export {
   holdingMixSplit,
   assetClassShares,
   assetClassLabel,
+  computeAccountStockShares,
   holdingTerm,
   isValidAssetClass,
   isValidDistributionCharacter,

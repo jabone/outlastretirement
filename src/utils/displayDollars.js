@@ -48,7 +48,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'priceIndex', 'inflFactor', 'ssColaFactor', 'medicalInflFactor', 'ltcInflFactor',
     'partBInflFactor', 'partDInflFactor', 'irmaaThresholdFactor', 'taxBracketInflationFactor', 'statutoryInflFactor',
     // Rates, shares and multipliers
-    'growthRate', 'feeRatePct', 'marginalBracket', 'lifestyleMultiplier', 'housingMultiplier', 'medicalMultiplier',
+    'growthRate', 'householdStockShare', 'accountReturns', 'accountStockShares', 'feeRatePct', 'marginalBracket', 'lifestyleMultiplier', 'housingMultiplier', 'medicalMultiplier',
     'phaseMultiplier', 'essentialShare', 'concentratedStockConcentrationPct',
     'concentratedStock2ConcentrationPct', 'cashReserveMonthsCovered',
     'wrGuardrailRate', 'wrGuardrailMultiplier', 'wrGuardrailPlannedRate',

@@ -1059,6 +1059,36 @@ export function computeAssetClassMix(holdings = []) {
   };
 }
 
+// Each account type's own stock share, for a plan with a mix for each
+// account (calculator.js's perAccountMixEnabled): stock value over stock,
+// bond and cash value among the holdings tagged Pre-Tax, Roth, Taxable or
+// HSA, with a mixed fund divided by its split and Other left out, as in
+// computeAssetClassMix. An account type with nothing classified is null,
+// so a link leaves that account's typed share alone. The same holdings the
+// Initial Balances link leaves out (a linked concentrated position, the
+// cash reserve) are left out here too.
+export function computeAccountStockShares(holdings = [], { excludeHoldingIds = [] } = {}) {
+  const exclude = new Set(excludeHoldingIds.filter(Boolean));
+  const sums = {};
+  for (const t of TAX_TREATMENT_VALUES) sums[t] = { stock: 0, classified: 0, value: 0 };
+  for (const h of holdings || []) {
+    if (!h || exclude.has(h.id) || !sums[h.taxTreatment]) continue;
+    const v = computeMarketValue(h);
+    if (!(v > 0)) continue;
+    const sh = assetClassShares(h);
+    const acc = sums[h.taxTreatment];
+    acc.stock += v * sh.stock;
+    acc.classified += v * (sh.stock + sh.bond + sh.cash);
+    acc.value += v;
+  }
+  const out = {};
+  for (const t of TAX_TREATMENT_VALUES) {
+    const a = sums[t];
+    out[t] = a.classified > 0 ? (a.stock / a.classified) * 100 : null;
+  }
+  return out;
+}
+
 // The three real numbers calculator.js's Concentrated Stock Position model
 // (concentratedStockLabel/Init/CostBasisPct) needs from a single holding
 // the user has designated as their concentrated position -- see

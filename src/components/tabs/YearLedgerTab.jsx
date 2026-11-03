@@ -571,7 +571,16 @@ const YearLedgerTab = () => {
                           {hasShortfall ? `Shortfall: ${formatCurrency(row.shortfall)}` : formatCurrency(row.totalPortfolioEnding)}
                         </td>
                         <td className="lg g-acc" style={{ color: hasPositiveReturn ? 'var(--success)' : 'var(--text-muted)' }}>
-                          {row.growthRate}%
+                          {Math.round(row.growthRate * 100) / 100}%
+                          {row.accountReturns && (
+                            <span style={{ display: 'block', fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', whiteSpace: 'nowrap' }} title="Each account's return this year, at its own stock share">
+                              {Math.round(row.householdStockShare)}% stocks overall
+                              <br />
+                              Pre-Tax {Math.round(row.accountReturns.preTax * 10) / 10}% · Roth {Math.round(row.accountReturns.roth * 10) / 10}%
+                              <br />
+                              Taxable {Math.round(row.accountReturns.taxable * 10) / 10}% · HSA {Math.round(row.accountReturns.hsa * 10) / 10}%
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );

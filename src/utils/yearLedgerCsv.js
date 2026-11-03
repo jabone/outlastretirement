@@ -53,7 +53,13 @@ export const YEAR_LEDGER_CSV_HEADERS = [
   // Investment fees paid that year (changelog 447), appended for the same
   // reason. Investment Growth (derived) is after them.
   'Fund expenses', 'Advisor fee',
+  // A mix for each account: the household's overall stock share and each
+  // account's return that year (blank with one mix). Appended for the
+  // same reason.
+  'Stock Share % (all accounts)', 'PreTax Return %', 'Roth Return %', 'Taxable Return %', 'HSA Return %',
 ];
+
+const pct2 = (v) => (Number.isFinite(v) ? Math.round(v * 100) / 100 : '');
 
 export function buildYearLedgerCsvRows(projection) {
   const years = projection?.years || [];
@@ -108,6 +114,11 @@ export function buildYearLedgerCsvRows(projection) {
     round(y.hsaGeneralDrawTax || 0),
     round(y.fundExpensesPaid || 0),
     round(y.advisorFeesPaid || 0),
+    pct2(y.householdStockShare),
+    pct2(y.accountReturns?.preTax),
+    pct2(y.accountReturns?.roth),
+    pct2(y.accountReturns?.taxable),
+    pct2(y.accountReturns?.hsa),
   ]);
 }
 

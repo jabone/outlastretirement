@@ -21,6 +21,9 @@ export const MOUNT_POINTS = Object.freeze({
   spendingImport: 'spending',
   readinessDetail: 'readiness',
   historicalStarts: 'readiness',
+  // A plain addition: a module that does not fill it leaves the locked
+  // teaser, so the version stays 1.0 and an older module still loads.
+  bondPlacement: 'readiness',
   relocationCompare: 'relocation',
   residencyTimeline: 'relocation',
 });

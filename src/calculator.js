@@ -105,6 +105,60 @@ export function planStockShareForYear(inputs, isRetired, year, householdRetireme
   return Math.min(100, Math.max(0, share));
 }
 
+// The four invested accounts and the input holding each one's stock share
+// when the plan sets a mix for each account (perAccountMixEnabled).
+export const ACCOUNT_STOCK_SHARE_FIELDS = {
+  preTax: 'stockSharePreTax',
+  roth: 'stockShareRoth',
+  taxable: 'stockShareTaxable',
+  hsa: 'stockShareHsa',
+};
+export const MIX_ACCOUNTS = ['preTax', 'roth', 'taxable', 'hsa'];
+
+// True when each account grows at its own mix: the setting is on and the
+// return comes from the stock/bond mix (the "Use my own average return"
+// override has no mix to split).
+export function perAccountMixActive(inputs) {
+  return !!(inputs && inputs.rebalancingEnabled && inputs.perAccountMixEnabled);
+}
+
+// One account's stock share for one year, in percent. The share is the
+// same working and retired; with the glide on, a retired year lowers it by
+// the glide rate per year retired, down to the floor, and a share already
+// at or below the floor is left where it is (the floor is a lower bound,
+// never a target that raises an account). A blank field reads as the
+// household's own share for the year.
+export function accountStockShareForYear(inputs, account, isRetired, year, householdRetirementYear) {
+  const raw = inputs[ACCOUNT_STOCK_SHARE_FIELDS[account]];
+  if (!(Number.isFinite(Number(raw)) && raw !== '' && raw !== null)) {
+    return planStockShareForYear(inputs, isRetired, year, householdRetirementYear);
+  }
+  let share = Math.min(100, Math.max(0, Number(raw)));
+  if (isRetired && householdRetirementYear !== null && householdRetirementYear !== undefined
+    && inputs.glideAllocationEnabled) {
+    const floor = Number(inputs.glideAllocationFloor) || 0;
+    if (share > floor) {
+      const yearsRetired = Math.max(0, year - householdRetirementYear);
+      share = Math.max(floor, share - yearsRetired * (Number(inputs.glideAllocationRate) || 0));
+    }
+  }
+  return Math.min(100, Math.max(0, share));
+}
+
+// The household's stock share across the four accounts, weighted by their
+// balances. Falls back to an even average when every balance is zero.
+export function householdStockShareFromAccounts(shares, balances) {
+  let total = 0;
+  let stock = 0;
+  for (const a of MIX_ACCOUNTS) {
+    const b = Math.max(0, Number(balances[a]) || 0);
+    total += b;
+    stock += b * shares[a];
+  }
+  if (total > 0) return stock / total;
+  return MIX_ACCOUNTS.reduce((t, a) => t + shares[a], 0) / MIX_ACCOUNTS.length;
+}
+
 // The qualified share of a taxable account's yield when it follows the
 // stock/bond split (changelog 441): the stock side's share of the INCOME,
 // not of the balance. Bonds yield more than stocks -- about 4% against
@@ -171,9 +225,17 @@ export function planReturnRates(inputs) {
   if (inputs && inputs.rebalancingEnabled) {
     const sr = n(inputs.stockReturnRate, DEFAULT_INPUTS.stockReturnRate);
     const br = n(inputs.bondReturnRate, DEFAULT_INPUTS.bondReturnRate);
-    const pre = Math.min(100, Math.max(0, n(inputs.stockAllocationPre, DEFAULT_INPUTS.stockAllocationPre)));
-    const post = Math.min(100, Math.max(0, n(inputs.stockAllocationPost, DEFAULT_INPUTS.stockAllocationPost)));
-    return { fromMix: true, working: (pre * sr + (100 - pre) * br) / 100, retired: (post * sr + (100 - post) * br) / 100, stockPre: pre, stockPost: post };
+    let pre = Math.min(100, Math.max(0, n(inputs.stockAllocationPre, DEFAULT_INPUTS.stockAllocationPre)));
+    let post = Math.min(100, Math.max(0, n(inputs.stockAllocationPost, DEFAULT_INPUTS.stockAllocationPost)));
+    // A mix for each account: the household's share today, weighted by the
+    // starting balances (it drifts from there; Year by Year shows how).
+    if (perAccountMixActive(inputs)) {
+      const shares = {};
+      for (const a of MIX_ACCOUNTS) shares[a] = Math.min(100, Math.max(0, n(inputs[ACCOUNT_STOCK_SHARE_FIELDS[a]], post)));
+      pre = householdStockShareFromAccounts(shares, { preTax: inputs.preTaxInit, roth: inputs.rothInit, taxable: inputs.taxableInit, hsa: inputs.hsaInit });
+      post = pre;
+    }
+    return { fromMix: true, perAccount: perAccountMixActive(inputs), working: (pre * sr + (100 - pre) * br) / 100, retired: (post * sr + (100 - post) * br) / 100, stockPre: pre, stockPost: post };
   }
   return { fromMix: false, working: n(inputs?.preRetireReturn, DEFAULT_INPUTS.preRetireReturn), retired: n(inputs?.postRetireReturn, DEFAULT_INPUTS.postRetireReturn) };
 }
@@ -2099,6 +2161,26 @@ export const DEFAULT_INPUTS = {
   // See App.jsx's stockAllocationSource sync effect and
   // PortfolioTab.jsx's handleSyncStockAllocation.
   stockAllocationSource: 'manual',
+  // A stock share for each account (asset location). Off by default: every
+  // account grows at the household mix above, exactly as before. On (and
+  // only with the stock/bond mix model, rebalancingEnabled), each of
+  // Pre-Tax, Roth, Taxable and HSA earns its own share of stocks times the
+  // stock return plus the rest times the bond return, rebalanced within the
+  // account each year, and the Working/Retired allocation above is not
+  // used. The household's overall share then follows from the balances and
+  // drifts as the accounts grow and are spent at different rates. With the
+  // glide on, every account above the floor steps down by the same points
+  // each retired year, never below the floor (an account already below it
+  // is left alone). See accountStockShareForYear.
+  perAccountMixEnabled: false,
+  stockSharePreTax: 60,
+  stockShareRoth: 60,
+  stockShareTaxable: 60,
+  stockShareHsa: 60,
+  // 'manual' | 'holdings': the four shares above follow Detailed Holdings
+  // (each account type's stock share of its stock, bond and cash value)
+  // when linked -- same pattern as stockAllocationSource.
+  accountStockShareSource: 'manual',
   // Compound (median) annual returns before inflation and fees, 6.5% for
   // stocks and 4.5% for bonds since changelog 480 (stocks were 8%, bonds
   // 4%). With 2.5% inflation that is 4.0% and 2.0% a year after inflation.
@@ -6776,7 +6858,7 @@ export function sanitizeInputs(inputs) {
       // NaN (E28).
       let num = typeof val === 'string' ? parseMoneyString(val) : Number(val);
       if (isNaN(num)) {
-        if (key.includes('Age') || key.includes('Year') || key.includes('Expectancy') || key.includes('Return')) {
+        if (key.includes('Age') || key.includes('Year') || key.includes('Expectancy') || key.includes('Return') || key.startsWith('stockShare')) {
           num = defaults[key];
         } else {
           num = 0;
@@ -7654,6 +7736,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
 
 
     let returnRate = baseReturnRate;
+    // What set this year's market, for a plan with a mix for each account
+    // (perAccountMixActive): each account applies it at its own stock
+    // share below. 'blend' is a stock return and a bond return, 'row' a
+    // historical year, 'uniform' one return for every account (a stress
+    // crash year or an absolute override, which has no stock/bond split).
+    let mixSource = { kind: 'blend', stock: Number(inputs.stockReturnRate) || 0, bond: Number(inputs.bondReturnRate) || 0 };
 
     // Monte Carlo / Stress overrides
     if (monteCarloReturnOverride !== null && monteCarloReturnOverride[year] !== undefined && monteCarloReturnOverride[year] !== null) {
@@ -7673,6 +7761,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       const override = monteCarloReturnOverride[year];
       if (typeof override === 'number') {
         returnRate = Math.max(-100, override);
+        mixSource = { kind: 'uniform', r: returnRate };
       } else {
         const stockShareNow = planStockShareForYear(inputs, isRetired, year, householdRetirementYear);
         if (override.bootstrapRow !== undefined) {
@@ -7680,12 +7769,30 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           const row = HISTORICAL_RETURNS[override.bootstrapRow];
           const raw = historicalPortfolioReturn(row, stockShareNow);
           returnRate = override.recenter ? recenterReturn(raw, historicalGeometricMean(stockShareNow), baseReturnRate) : raw;
+          mixSource = { kind: 'row', row, recenter: !!override.recenter };
         } else {
           const volatility = inputs.rebalancingEnabled
             ? blendVolatility(stockShareNow)
             : (isRetired ? inputs.volatilityPost : inputs.volatilityPre);
           const { m, s: sd } = lognormalReturnParams(baseReturnRate / 100, volatility / 100);
           returnRate = m > 0 ? (m * Math.exp(sd * override.z) - 1) * 100 : -100;
+          if (perAccountMixActive(inputs)) {
+            // A mix for each account draws stocks and bonds separately: the
+            // trial's z for stocks and a second, nearly independent z for
+            // bonds (the trial loop draws it only for these plans), each at
+            // its own measured volatility. One mix keeps the single draw
+            // above, so no existing plan's trials move.
+            // Each account is then priced exactly as a one-mix plan at its
+            // share would be -- a lognormal whose median is its blended
+            // return, at its blended volatility -- from that share's mix of
+            // the two draws, so an account at 60% stocks has the same odds
+            // as a 60/40 plan and accounts at different shares move
+            // together the way their stocks and bonds do.
+            const zBond = Number.isFinite(override.zBond)
+              ? override.zBond
+              : STOCK_BOND_CORRELATION * override.z;
+            mixSource = { kind: 'z', z: override.z, zBond };
+          }
         }
         returnRate = Math.max(-100, returnRate);
       }
@@ -7736,17 +7843,63 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         if (row) {
           const stockShare = planStockShareForYear(inputs, isRetired, year, householdRetirementYear);
           returnRate = historicalPortfolioReturn(row, stockShare);
+          mixSource = { kind: 'row', row, recenter: false };
           activeInflationRate = historyInflationInto(replayYear);
           stressInflationOverrideActive = true;
         }
       } else if (inputs.stressType === 'crashYear') {
         if (yearsSinceStress === 0) {
           returnRate = inputs.stressCrashReturn;
+          mixSource = { kind: 'uniform', r: returnRate };
           activeInflationRate = inputs.stressCrashInflation;
           stressInflationOverrideActive = true;
         }
       }
     }
+
+    // A mix for each account (perAccountMixActive): each account's own
+    // return this year from its own stock share, and the household's
+    // return as their balance-weighted average, so guardrails, the
+    // early-crash cut and the ledger's growth rate read the portfolio as a
+    // whole. With every account at one share this is that share's return
+    // exactly.
+    let accountReturns = null;
+    let accountStockShares = null;
+    const yearOpeningBalances = { preTax, roth, taxable, hsa };
+    if (perAccountMixActive(inputs)) {
+      accountStockShares = {};
+      accountReturns = {};
+      for (const a of MIX_ACCOUNTS) {
+        const sh = accountStockShareForYear(inputs, a, isRetired, year, householdRetirementYear);
+        accountStockShares[a] = sh;
+        let r;
+        if (mixSource.kind === 'uniform') {
+          r = mixSource.r;
+        } else if (mixSource.kind === 'z') {
+          const w = sh / 100;
+          const sd = blendVolatility(sh);
+          const za = sd > 0
+            ? (w * STOCK_VOLATILITY_PCT * mixSource.z + (1 - w) * BOND_VOLATILITY_PCT * mixSource.zBond) / sd
+            : 0;
+          const base = (sh * inputs.stockReturnRate + (100 - sh) * inputs.bondReturnRate) / 100;
+          const p = lognormalReturnParams(base / 100, sd / 100);
+          r = p.m > 0 ? (p.m * Math.exp(p.s * za) - 1) * 100 : -100;
+        } else if (mixSource.kind === 'row') {
+          const raw = historicalPortfolioReturn(mixSource.row, sh);
+          const base = (sh * inputs.stockReturnRate + (100 - sh) * inputs.bondReturnRate) / 100;
+          r = mixSource.recenter ? recenterReturn(raw, historicalGeometricMean(sh), base) : raw;
+        } else {
+          r = (sh * mixSource.stock + (100 - sh) * mixSource.bond) / 100;
+        }
+        accountReturns[a] = Math.max(-100, r);
+      }
+      const opening = yearOpeningBalances;
+      let w = 0;
+      let wr = 0;
+      for (const a of MIX_ACCOUNTS) { const b = Math.max(0, opening[a]); w += b; wr += b * accountReturns[a]; }
+      returnRate = w > 0 ? wr / w : MIX_ACCOUNTS.reduce((t, a) => t + accountReturns[a], 0) / MIX_ACCOUNTS.length;
+    }
+    const returnFor = (a) => (accountReturns ? accountReturns[a] : returnRate);
 
     // A crash in the first year of retirement triggers the spending cut
     // from the following year: the budget for a year is set when the year
@@ -8919,7 +9072,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // table; its return is the year's own stock share at the table's
       // real returns.
       const vpwNow = spendingRule === 'vpw'
-        ? vpwRate(Math.min(...[spouse1Alive ? age1 : Infinity, spouse2Alive ? age2 : Infinity]), vpwRealReturn(planStockShareForYear(inputs, true, year, householdRetirementYear)))
+        ? vpwRate(Math.min(...[spouse1Alive ? age1 : Infinity, spouse2Alive ? age2 : Infinity]), vpwRealReturn(accountStockShares ? householdStockShareFromAccounts(accountStockShares, { preTax, roth, taxable, hsa }) : planStockShareForYear(inputs, true, year, householdRetirementYear)))
         : null;
       if (ruleRate === null) {
         ruleRate = opening > 0 ? lifestyleCost / opening : 0;
@@ -9625,7 +9778,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // Changelog 441: weighted by what each side yields, not by the balance
     // split -- see qualifiedShareFromAllocation.
     const qualifiedDividendShare = followsAllocation
-      ? qualifiedShareFromAllocation(planStockShareForYear(inputs, isRetired, year, householdRetirementYear), inputs)
+      ? qualifiedShareFromAllocation(accountStockShares ? accountStockShares.taxable : planStockShareForYear(inputs, isRetired, year, householdRetirementYear), inputs)
       : Math.min(100, Math.max(0, Number(inputs.taxableQualifiedDividendPct ?? 100))) / 100;
     const ordinaryDividends = qualifiedDividendShare < 1 ? taxableDividendsFromYield * (1 - qualifiedDividendShare) : 0;
     const taxableDividendsGross = (qualifiedDividendShare < 1 ? taxableDividendsFromYield - ordinaryDividends : taxableDividendsFromYield) + forcedRealizedGains;
@@ -9659,8 +9812,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // water by the whole decline whatever the older lots show, so that
     // slice is harvestable on its own.
     let taxLossHarvestedThisYear = 0;
-    if (inputs.taxLossHarvestingEnabled && returnRate < 0 && taxable > 0) {
-      const declineShare = Math.abs(returnRate) / 100;
+    if (inputs.taxLossHarvestingEnabled && returnFor('taxable') < 0 && taxable > 0) {
+      const declineShare = Math.abs(returnFor('taxable')) / 100;
       const declinedValue = taxable * (1 - declineShare);
       const decline = taxable - declinedValue;
       const poolLoss = Math.max(0, Math.min(taxable, taxableBasis) - declinedValue);
@@ -10130,7 +10283,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // Social Security, pension or IRA money).
       stateCode: residence.stateOfResidence,
       earnedIncome: ficaWages1 + ficaWages2,
-      hsaAddback: hsaContribution + Math.max(0, (hsa - hsaContribution) * (returnRate / 100)),
+      hsaAddback: hsaContribution + Math.max(0, (hsa - hsaContribution) * (returnFor('hsa') / 100)),
       // The SS actually inside the ordinary-income base handed to the state
       // engine (see calculateStateTaxes' ssInIncome note).
       federalTaxableSS: taxableSS,
@@ -11441,18 +11594,19 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // market, not the household's costs.
     const feeFraction = totalFeeFraction(inputs);
     const keepAfterFees = 1 - feeFraction;
-    const grossOf = (b) => b * (1 + returnRate / 100);
-    const feeOn = (b) => Math.max(0, grossOf(b)) * feeFraction;
-    const feesPaidThisYear = feeOn(preTax) + feeOn(roth) + feeOn(taxable) + feeOn(hsa);
+    // With a mix for each account, each grows at its own return (returnFor).
+    const grossOf = (b, a) => b * (1 + returnFor(a) / 100);
+    const feeOn = (b, a) => Math.max(0, grossOf(b, a)) * feeFraction;
+    const feesPaidThisYear = feeOn(preTax, 'preTax') + feeOn(roth, 'roth') + feeOn(taxable, 'taxable') + feeOn(hsa, 'hsa');
     const feeShare = feeFraction > 0
       ? ((Number(inputs.advisorFeePct) || 0) / 100) / feeFraction
       : 0;
     const advisorFeesPaidThisYear = feesPaidThisYear * Math.min(1, feeShare);
     const fundExpensesPaidThisYear = feesPaidThisYear - advisorFeesPaidThisYear;
     feesPaidCumulative += feesPaidThisYear;
-    preTax = grossOf(preTax) * keepAfterFees;
-    roth = grossOf(roth) * keepAfterFees;
-    taxable = grossOf(taxable) * keepAfterFees;
+    preTax = grossOf(preTax, 'preTax') * keepAfterFees;
+    roth = grossOf(roth, 'roth') * keepAfterFees;
+    taxable = grossOf(taxable, 'taxable') * keepAfterFees;
     // Reinvested dividends are NEW BASIS (changelog 230). They were taxed
     // as income the year they arrived, so taxing them again as capital
     // gain when the shares are eventually sold charges the same dollar
@@ -11474,7 +11628,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // clamp -- an account under water carries basis above its balance
     // until the sale, and the clamp would otherwise take that first.
     taxableBasis = Math.min(taxable, Math.max(0, taxableBasis + Math.max(0, taxableDividendsFromYield - dividendCash) - taxLossHarvestedThisYear));
-    hsa = grossOf(hsa) * keepAfterFees;
+    hsa = grossOf(hsa, 'hsa') * keepAfterFees;
 
     // Concentrated stock, phase B: the sale itself happened before the tax
     // engine (see phase A above). What is left is settlement -- the
@@ -11537,7 +11691,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       const yearsToRetire = Math.max(0, inputs.retireAge1 - age1);
       const stockAlloc = inputs.stockAllocationPre !== undefined ? inputs.stockAllocationPre : 80;
       // After investment fees (changelog 447), as the projection grows it.
-      const nominalReturn = netReturnPct(((stockAlloc / 100) * (inputs.stockReturnRate || 8)) + (((100 - stockAlloc) / 100) * (inputs.bondReturnRate || 4)), inputs);
+      const nominalReturn = perAccountMixActive(inputs)
+        ? netReturnPct(planReturnRates(inputs).working, inputs)
+        : netReturnPct(((stockAlloc / 100) * (inputs.stockReturnRate || 8)) + (((100 - stockAlloc) / 100) * (inputs.bondReturnRate || 4)), inputs);
       const realGrowth = (nominalReturn - (inputs.inflationRate || 3)) / 100;
       if (realGrowth > 0) {
         coastFireNumber = fiNumber / Math.pow(1 + realGrowth, yearsToRetire);
@@ -11929,6 +12085,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       shortfall,
       netChange,
       growthRate: returnRate,
+      // A mix for each account: each account's return and stock share this
+      // year, and the household's share weighted by the opening balances.
+      // Null for a plan with one mix.
+      accountReturns,
+      accountStockShares,
+      householdStockShare: accountStockShares && MIX_ACCOUNTS.some((a) => yearOpeningBalances[a] > 0)
+        ? householdStockShareFromAccounts(accountStockShares, yearOpeningBalances) : null,
       // Investment fees this year (changelog 447), nominal dollars, and the
       // running total. growthRate above is before fees.
       feeRatePct: feeFraction * 100,
@@ -12253,6 +12416,14 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
         // the volatility down to zero does not re-sequence the returns.
         const zInflation = rho * zReturn + rhoOrth * randomNormal();
         trialInflation[year] = inputs.inflationRate + inflationSd * zInflation;
+      }
+      // A mix for each account prices stocks and bonds separately, so it
+      // needs a bond draw too: correlated with the stock draw by the
+      // measured 0.02. Drawn last, and only for these plans, so a plan with
+      // one mix sees exactly the sequence it always did.
+      if (perAccountMixActive(inputs)) {
+        trialReturns[year].zBond = STOCK_BOND_CORRELATION * zReturn
+          + Math.sqrt(1 - STOCK_BOND_CORRELATION * STOCK_BOND_CORRELATION) * randomNormal();
       }
     }
 
@@ -12754,7 +12925,7 @@ export function getMinimumRequiredReturn(rawInputs = DEFAULT_INPUTS) {
   // stock/bond-blend mode (rebalancingEnabled) as well as the simple flat
   // preRetireReturn mode, so the comparison is meaningful either way.
   const currentAssumedReturn = inputs.rebalancingEnabled
-    ? ((inputs.stockAllocationPre * inputs.stockReturnRate) + ((100 - inputs.stockAllocationPre) * inputs.bondReturnRate)) / 100
+    ? (perAccountMixActive(inputs) ? planReturnRates(inputs).working : ((inputs.stockAllocationPre * inputs.stockReturnRate) + ((100 - inputs.stockAllocationPre) * inputs.bondReturnRate)) / 100)
     : inputs.preRetireReturn;
 
   // Runs the projection at a single flat rate, isolated from the plan's own
@@ -13846,7 +14017,10 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
     // the retired stock share, walked down by the glide when it is on. The
     // flat return assumption plays no part; each year earns what the
     // market did.
-    stockShare: planStockShareForYear(inputs, true, retirementYear, retirementYear),
+    // With a mix for each account, the household's share in the first
+    // retired year, weighted by the accounts' balances.
+    stockShare: firstRetired.householdStockShare ?? planStockShareForYear(inputs, true, retirementYear, retirementYear),
+    perAccountMix: perAccountMixActive(inputs),
     glide: !!(inputs.rebalancingEnabled && inputs.glideAllocationEnabled),
     rules: summaries,
     starts,
@@ -13868,7 +14042,13 @@ export function historicalByStockShare(rawInputs = DEFAULT_INPUTS, { shares = ST
   const horizonYears = base.years[base.years.length - 1].year - firstRetired.year + 1;
   const startYears = historicalStartYears(horizonYears, historyFirstYear(inputs));
   if (startYears.length === 0) return null;
-  const own = Math.round(Math.min(100, Math.max(0, Number(inputs.stockAllocationPost) || 0)));
+  // With a mix for each account, every row holds the whole household at
+  // one share (the setting is set aside), and the plan's own row is its
+  // overall share in the first retired year.
+  const perAccount = perAccountMixActive(inputs);
+  const own = Math.round(Math.min(100, Math.max(0, perAccount
+    ? (firstRetired.householdStockShare ?? 0)
+    : (Number(inputs.stockAllocationPost) || 0))));
   const list = [...new Set([...shares, own])].sort((a, b) => a - b);
   const rows = list.map((share) => {
     let lasted = 0;
@@ -13876,7 +14056,10 @@ export function historicalByStockShare(rawInputs = DEFAULT_INPUTS, { shares = ST
     const ends = [];
     for (const start of startYears) {
       const proj = _runProjectionPreSanitized({
-        ...inputs, stockAllocationPost: share, glideAllocationEnabled: false,
+        ...inputs, stockAllocationPost: share, glideAllocationEnabled: false, perAccountMixEnabled: false,
+        // A per-account plan's hidden Working share plays no part in it, so
+        // its rows hold the whole plan, working years too, at the share.
+        ...(perAccount ? { stockAllocationPre: share } : {}),
         stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: start,
       });
       if (proj.meetsFloor) lasted += 1;
@@ -13893,6 +14076,7 @@ export function historicalByStockShare(rawInputs = DEFAULT_INPUTS, { shares = ST
     firstStart: startYears[0],
     count: startYears.length,
     planShare: own,
+    perAccountMix: perAccount,
     rebalancing: !!inputs.rebalancingEnabled,
     rows,
   };
@@ -14109,6 +14293,97 @@ export function computeFeeComparison(rawInputs = DEFAULT_INPUTS, { historical = 
   return { kind: variant.kind, mine, other };
 }
 
+// ---------------------------------------------------------------------------
+// Where should my bonds go? (asset location). The plan run three ways at
+// the same overall stock share today -- the household's share across its
+// four invested accounts, weighted by their starting balances:
+//   same     every account at that share
+//   usual    the usual advice: bonds go to Pre-Tax first, then Taxable,
+//            then HSA, then Roth, so Roth (never taxed) holds the most
+//            stocks
+//   yours    the plan's own shares (only when it sets a mix per account)
+// Each is a full projection with a mix for each account, so taxes, required
+// withdrawals, Medicare surcharges and the heirs' tax all follow. Numbers,
+// not advice. Dollars are today's.
+export const BOND_PLACEMENT_ORDER = ['preTax', 'taxable', 'hsa', 'roth'];
+
+export function usualBondPlacement(stockSharePct, balances) {
+  const total = MIX_ACCOUNTS.reduce((t, a) => t + Math.max(0, Number(balances[a]) || 0), 0);
+  let bonds = total * (1 - Math.min(100, Math.max(0, stockSharePct)) / 100);
+  const shares = {};
+  for (const a of BOND_PLACEMENT_ORDER) {
+    const b = Math.max(0, Number(balances[a]) || 0);
+    const here = Math.min(b, bonds);
+    bonds -= here;
+    shares[a] = b > 0 ? Math.round((1 - here / b) * 1000) / 10 : 100;
+  }
+  return shares;
+}
+
+function placementSummary(inputs) {
+  const proj = _runProjectionPreSanitized(inputs);
+  const years = proj.years || [];
+  let taxes = 0;
+  let irmaa = 0;
+  let rmds = 0;
+  years.forEach((y) => {
+    const f = y.inflFactor || 1;
+    taxes += (y.totalTaxesPaid || 0) / f;
+    irmaa += (y.irmaaCost || 0) / f;
+    rmds += (y.rmdAmount || 0) / f;
+  });
+  const finalFactor = finalBalanceFactor(years);
+  const out = years.find((y) => (y.shortfall || 0) > 0.01);
+  const last = years[years.length - 1] || {};
+  return {
+    lifetimeTaxes: taxes,
+    lifetimeIrmaa: irmaa,
+    lifetimeRmds: rmds,
+    endingBalance: (Number(proj.endingBalance) || 0) / finalFactor,
+    afterTaxLegacy: (legacyAfterTaxes(inputs, proj) || 0) / finalFactor,
+    endingPreTax: (Number(last.preTaxEnd) || 0) / finalFactor,
+    endingRoth: (Number(last.rothEnd) || 0) / finalFactor,
+    runsOutYear: out ? out.year : null,
+    isSuccessful: !!proj.isSuccessful,
+  };
+}
+
+export function computeAssetLocationComparison(rawInputs = DEFAULT_INPUTS, { historical = false } = {}) {
+  const inputs = sanitizeInputs({ ...rawInputs, stressType: 'none' });
+  if (!inputs.rebalancingEnabled) return { available: false, reason: 'ownReturn' };
+  const balances = { preTax: inputs.preTaxInit, roth: inputs.rothInit, taxable: inputs.taxableInit, hsa: inputs.hsaInit };
+  const funded = MIX_ACCOUNTS.filter((a) => (Number(balances[a]) || 0) > 0);
+  if (funded.length < 2) return { available: false, reason: 'oneAccount' };
+  const yours = perAccountMixActive(inputs);
+  // The household's share this year: a per-account plan's balance-weighted
+  // share, else the Working share while working and the Retired share once
+  // retired (a one-share-for-life comparison either way).
+  const first = (_runProjectionPreSanitized(inputs).years || [])[0];
+  const overall = yours
+    ? planReturnRates(inputs).stockPre
+    : (first && first.isRetired
+      ? planStockShareForYear(inputs, true, first.year, first.year)
+      : planStockShareForYear(inputs, false, first ? first.year : 0, null));
+  const share = Math.round(overall * 10) / 10;
+  const fields = (sh) => Object.fromEntries(MIX_ACCOUNTS.map((a) => [ACCOUNT_STOCK_SHARE_FIELDS[a], sh[a]]));
+  const evenShares = Object.fromEntries(MIX_ACCOUNTS.map((a) => [a, share]));
+  const usualShares = usualBondPlacement(share, balances);
+  const variants = [
+    { key: 'same', shares: evenShares },
+    { key: 'usual', shares: usualShares },
+  ];
+  if (yours) {
+    variants.push({ key: 'yours', shares: Object.fromEntries(MIX_ACCOUNTS.map((a) => [a, Number(inputs[ACCOUNT_STOCK_SHARE_FIELDS[a]]) || 0])) });
+  }
+  const rows = variants.map((v) => {
+    const inp = { ...inputs, perAccountMixEnabled: true, ...fields(v.shares) };
+    const row = { key: v.key, shares: v.shares, ...placementSummary(inp) };
+    if (historical) row.historical = historicalLastedCount(inp);
+    return row;
+  });
+  return { available: true, overallStockShare: share, perAccount: yours, rows };
+}
+
 // Re-prices runOptimizer's strategy list into today's dollars when the
 // real-dollars toggle is on (runOptimizer itself always returns nominal
 // figures).
@@ -14213,7 +14488,11 @@ function getHeirBracketTax(taxableIncome, status, inflationFactor = 1) {
 // fees too, and the plan's own accounts grow net of them.
 function getEffectivePostRetireReturn(inputs) {
   if (inputs.rebalancingEnabled) {
-    const stockAlloc = inputs.stockAllocationPost;
+    // An heir inherits the Pre-Tax account, so with a mix for each account
+    // it grows at Pre-Tax's own share.
+    const stockAlloc = perAccountMixActive(inputs)
+      ? Math.min(100, Math.max(0, Number.isFinite(Number(inputs.stockSharePreTax)) && inputs.stockSharePreTax !== '' && inputs.stockSharePreTax !== null ? Number(inputs.stockSharePreTax) : inputs.stockAllocationPost))
+      : inputs.stockAllocationPost;
     const bondAlloc = 100 - stockAlloc;
     return netReturnPct((stockAlloc * inputs.stockReturnRate + bondAlloc * inputs.bondReturnRate) / 100, inputs);
   }
