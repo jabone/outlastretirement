@@ -340,8 +340,11 @@ export function crashPatch(base, crashReturn, guardrails) {
     stressCrashReturn: crashReturn,
     stressCrashInflation: Number(base.inflationRate) || 0,
     stressInflationStrategy: 'custom',
-    withdrawalGuardrailsEnabled: guardrails,
-    spendingGuardrails: guardrails ? !!base.spendingGuardrails : false,
+    // "Adapted" is the plan's own dynamic rule: risk-based guardrails when
+    // it uses them (What's New 487), else the withdrawal-rate rule.
+    withdrawalGuardrailsEnabled: guardrails && !base.riskGuardrailsEnabled,
+    spendingGuardrails: guardrails && !base.riskGuardrailsEnabled ? !!base.spendingGuardrails : false,
+    riskGuardrailsEnabled: guardrails ? !!base.riskGuardrailsEnabled : false,
   };
 }
 
@@ -418,7 +421,7 @@ export function crashBreakPoint(inputs, { useRealDollars = true } = {}) {
 export function crashCompare(inputs, { crashReturn = CRASH_HEADLINE_RETURN, useRealDollars = true } = {}) {
   const base = sanitizeForProjection(inputs);
   const view = (patched) => deflateProjectionForDisplay(runProjection(patched), useRealDollars);
-  const baseline = view({ ...base, stressType: 'none', withdrawalGuardrailsEnabled: false, spendingGuardrails: false });
+  const baseline = view({ ...base, stressType: 'none', withdrawalGuardrailsEnabled: false, spendingGuardrails: false, riskGuardrailsEnabled: false });
   const held = view(crashPatch(base, crashReturn, false));
   const adapted = view(crashPatch(base, crashReturn, true));
   // Changelog 335: what the rule cost is measured against the SAME crash
@@ -440,7 +443,10 @@ export function crashCompare(inputs, { crashReturn = CRASH_HEADLINE_RETURN, useR
     // What the household's own plan says today, so the card can tell a user
     // who has already switched the guardrail on that the ADAPTED column is
     // their plan rather than a hypothetical.
-    guardrailsOnInPlan: !!base.withdrawalGuardrailsEnabled,
+    guardrailsOnInPlan: !!(base.withdrawalGuardrailsEnabled || base.riskGuardrailsEnabled),
+    // Which rule the adapted column runs: 'risk' (risk-based guardrails,
+    // when the plan uses them) or 'wr' (withdrawal-rate guardrails).
+    adaptedRule: base.riskGuardrailsEnabled ? 'risk' : 'wr',
   };
 }
 

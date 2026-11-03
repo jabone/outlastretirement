@@ -289,7 +289,7 @@ const YearLedgerTab = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {projection.years.map((row) => {
+                  {projection.years.map((row, rowIndex) => {
                     // Changelog 241: the columns this view shares with Where
                     // the money goes read the same figures from the same place.
                     const uses = moneyGoesYear(row);
@@ -461,6 +461,20 @@ const YearLedgerTab = () => {
                           {inputs.lifestyleThreePhaseEnabled && row.isRetired && row.lifestylePhase && (
                             <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '2px', fontStyle: 'italic' }}>
                               ({row.lifestylePhase})
+                            </span>
+                          )}
+                          {/* Risk-based guardrails: the chance of lasting going into
+                              the year, and any move the rule made. */}
+                          {Number.isFinite(row.riskGuardrailChance) && (
+                            <span style={{ fontSize: 'var(--fs-2xs)', color: row.riskGuardrailAction === 'cut' ? 'var(--danger)' : row.riskGuardrailAction === 'raise' ? 'var(--success)' : 'var(--text-secondary)', display: 'block', marginTop: '2px' }}>
+                              {Math.round(row.riskGuardrailChance * 100)}% chance of lasting
+                              {(() => {
+                                if (row.riskGuardrailAction !== 'cut' && row.riskGuardrailAction !== 'raise') return '';
+                                const prevRow = rowIndex > 0 ? projection.years[rowIndex - 1] : null;
+                                const before = prevRow && Number.isFinite(prevRow.riskGuardrailMultiplier) ? prevRow.riskGuardrailMultiplier : 1;
+                                const pctMove = before > 0 ? Math.round(Math.abs(row.riskGuardrailMultiplier / before - 1) * 100) : null;
+                                return ` · ${row.riskGuardrailAction === 'cut' ? 'cut' : 'raised'}${pctMove ? ` ${pctMove}%` : ''}`;
+                              })()}
                             </span>
                           )}
                         </td>

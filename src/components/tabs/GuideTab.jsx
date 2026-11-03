@@ -604,6 +604,16 @@ const GuideTab = () => {
                       rather than Insurance, where it compounds at your housing inflation rate, which is what it tracks.
                     </p>
                     <p style={{ lineHeight: '1.6' }}>
+                      <strong>Risk-Based Guardrails</strong>, under them, watch your plan&rsquo;s chance of lasting instead of a
+                      withdrawal rate: how many of every 100 real market histories since 1928 (or 1871) your savings would
+                      survive at your current spending, with the balance you actually have and the income your plan expects. The
+                      plan checks it again each retired year. Spending stays put while the chance sits between your two lines
+                      (50% and 99% by default). Below the lower one it is cut back to the level with a 70% chance; at the upper
+                      one it is raised to the 80% level, but not in your first five years of retirement and never by more than
+                      20% at a time. It is a different measure from the simulated markets on the Dashboard. The settings explain
+                      what moving each number trades away.
+                    </p>
+                    <p style={{ lineHeight: '1.6' }}>
                       <strong>Withdrawal-Rate Guardrails</strong> themselves live in Risk &amp; Stress &rarr; Stress Testing,
                       and are off until you turn them on &mdash; your plan&rsquo;s numbers do not move until you do. Each year
                       the plan compares last year&rsquo;s withdrawal rate with the rate your plan expected for that year. Drift far enough above

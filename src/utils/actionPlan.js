@@ -382,7 +382,18 @@ export function buildActionPlan(inputs, projection, formatCurrency, rothLadderHe
       label: `Target retirement spending: ${fc(inputs.lifestyleExpense)}/yr`,
       detail: inputs.goGoBumpEnabled
         ? `Plus a +${inputs.goGoBumpRate}% travel bump through age ${inputs.goGoBumpEndAge}. Inflation-adjusted every year after that.`
-        : 'Inflation-adjusted every year.',
+        : (inputs.riskGuardrailsEnabled || inputs.withdrawalGuardrailsEnabled || inputs.spendingGuardrails)
+          ? 'Inflation-adjusted every year, then moved by the spending rule below.'
+          : 'Inflation-adjusted every year.',
+    });
+  }
+  // A dynamic spending rule moves the target year by year (What's New 487).
+  if (inputs.riskGuardrailsEnabled || inputs.withdrawalGuardrailsEnabled || inputs.spendingGuardrails) {
+    duringItems.push({
+      label: inputs.riskGuardrailsEnabled
+        ? `Spending follows risk-based guardrails: cut when the chance of lasting falls below ${inputs.riskGuardrailCutAtPct}%, raised at ${inputs.riskGuardrailRaiseAtPct}%`
+        : inputs.withdrawalGuardrailsEnabled ? 'Spending follows withdrawal-rate guardrails' : 'Spending follows the crash guardrails',
+      detail: 'So the figure above is where spending starts, not a promise: Year by Year shows each year\u2019s spending, and Risk & Stress shows what the rule costs in bad markets.',
     });
   }
 

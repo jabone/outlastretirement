@@ -266,7 +266,10 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   }
 
   // Spending Guardrails recommendation
-  if (!inputs.spendingGuardrails) {
+  // Any of the three dynamic rules counts (risk-based guardrails, What's New
+  // 487, included): a plan with one on does not spend the same whatever
+  // markets do, and quick-applying the crash guardrail would switch it off.
+  if (!inputs.spendingGuardrails && !inputs.withdrawalGuardrailsEnabled && !inputs.riskGuardrailsEnabled) {
     findings.push({
       type: 'info',
       title: 'Spending Stays the Same in Bad Years',

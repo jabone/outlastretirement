@@ -24,6 +24,7 @@ const EstateLegacyChart = lazyWithRetry(() => import('./components/LazyCharts').
 const CashFlowSankeyChart = lazyWithRetry(() => import('./components/LazyCharts').then(m => ({ default: m.CashFlowSankeyChart })));
 import Term from './components/Term';
 import ErrorBoundary from './components/ErrorBoundary';
+import BackgroundWorkIndicator from './components/BackgroundWorkIndicator';
 import ForeignYearsNotice from './components/ForeignYearsNoticeLoader';
 import QuickUpdate from './components/QuickUpdate';
 import MaximizeButton from './components/MaximizeButton';
@@ -195,6 +196,7 @@ import {
   findHistoricalSafeMax,
   computeFeeComparison,
   historicalByStockShare,
+  historicalByRiskTarget,
   getMinimumRequiredReturn,
   stateTaxJurisdictionFor,
   TAX_YEAR,
@@ -935,6 +937,9 @@ export default function App() {
   // set never prints against a newer plan.
   const [printReadiness, setPrintReadiness] = useState(null);
   const [mcLoading, setMcLoading] = useState(false);
+  // Share of the Monte Carlo's trials done, 0-1, while it runs (the worker's
+  // progress messages); null when nothing is running.
+  const [mcProgress, setMcProgress] = useState(null);
   const mcWorkerRef = useRef(null);
 
   // Terminate background worker on unmount
@@ -1752,7 +1757,7 @@ export default function App() {
           dieWithZeroLongevityData: dieWithZeroByLongevity(debouncedInputs),
           historicalStartsData: (() => {
             const h = runHistoricalStarts(debouncedInputs);
-            return h ? { ...h, safeMax: findHistoricalSafeMax(debouncedInputs), byStockShare: historicalByStockShare(debouncedInputs) } : h;
+            return h ? { ...h, safeMax: findHistoricalSafeMax(debouncedInputs), byStockShare: historicalByStockShare(debouncedInputs), byRiskTarget: historicalByRiskTarget(debouncedInputs) } : h;
           })(),
           feeComparisonData: computeFeeComparison(debouncedInputs, { historical: true }),
         };
@@ -1926,7 +1931,10 @@ export default function App() {
       const worker = new Worker(new URL('./monteCarloWorker.js', import.meta.url), { type: 'module' });
       mcWorkerRef.current = worker;
       
+      setMcProgress(0);
       worker.onmessage = (e) => {
+        if (e.data && typeof e.data.progress === 'number') { setMcProgress(e.data.progress); return; }
+        setMcProgress(null);
         if (e.data && e.data.success) {
           setMonteCarlo(e.data.results);
         } else {
@@ -1940,6 +1948,7 @@ export default function App() {
       };
       
       worker.onerror = (err) => {
+        setMcProgress(null);
         console.warn("Monte Carlo worker lifecycle error, running fallback simulation synchronous", err);
         const res = runMonteCarlo(inputs);
         setMonteCarlo(res);
@@ -2356,6 +2365,17 @@ export default function App() {
             <span className="kpi-subtext" data-testid="success-odds" aria-live="polite" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
               {verdict.short || verdict.detail}
             </span>
+            {/* A guardrail lifts the odds by cutting spending: say so beside
+                them (review panel, 2026-11-03), with the cut the simulated
+                markets needed. */}
+            {(inputs.riskGuardrailsEnabled || inputs.withdrawalGuardrailsEnabled || inputs.spendingGuardrails) && (
+              <span data-testid="verdict-guardrail-cost" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
+                {inputs.riskGuardrailsEnabled ? 'With risk-based guardrails cutting spending when needed' : 'With your guardrails cutting spending when needed'}
+                {monteCarloShown && monteCarloShown.spendingCost
+                  ? `: spending was cut in ${monteCarloShown.spendingCost.trialsWithCutPct.toFixed(0)}% of simulated markets, and in one in ten by ${Math.round(monteCarloShown.spendingCost.p90DeepestCut * 100)}% or more.`
+                  : '. Year by Year shows each year\u2019s spending.'}
+              </span>
+            )}
             {trustFund && trustFund.runsShort && (
               <span data-testid="trust-fund-flag" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--warning)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
                 A Social Security cut would leave it short.
@@ -2559,6 +2579,18 @@ export default function App() {
             own "this is not advice, review before you rely on it" message,
             and it was visible (dimmed, but legible) through the modal
             overlay on a brand-new visit before this fix. */}
+        {/* The app is working (Monte Carlo, the history checks and the
+            optimizers run in the background and can take several seconds):
+            say so, with how far along the Monte Carlo is. */}
+        {!showDisclaimer && (
+          <BackgroundWorkIndicator
+            mcLoading={mcLoading}
+            mcProgress={mcProgress}
+            trials={Number(inputs.monteCarloTrials) || 1000}
+            heavyLoading={!!heavyResultsLoading}
+            raised={!statusBarHidden}
+          />
+        )}
         {!showDisclaimer && !statusBarHidden && (
         <div className="sticky-summary-bar" style={{
           position: 'fixed',
@@ -3950,7 +3982,21 @@ export default function App() {
                 <tr>
                   <td>Spending Guardrails</td>
                   <td>
-                    {inputs.spendingGuardrails ? (
+                    {inputs.riskGuardrailsEnabled ? (
+                      <>
+                        RISK-BASED
+                        <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.8, marginTop: '4px' }}>
+                          Each retired year the plan re-measures its chance of lasting against real markets since {Number(inputs.historyFromYear) === 1871 ? 1871 : 1928}. Below {inputs.riskGuardrailCutAtPct}% lifestyle spending is cut to the level with a {inputs.riskGuardrailCutToPct}% chance; at {inputs.riskGuardrailRaiseAtPct}% it is raised toward the {inputs.riskGuardrailTargetPct}% level (not in the first five retired years, and at most 20% at a time{Number(inputs.riskGuardrailRaiseCapPct) > 0 ? `, never above ${Number(inputs.riskGuardrailRaiseCapPct) === 100 ? 'double the plan' : `${inputs.riskGuardrailRaiseCapPct}% over the plan`}` : ''}).
+                        </div>
+                      </>
+                    ) : inputs.withdrawalGuardrailsEnabled && !inputs.spendingGuardrails ? (
+                      <>
+                        WITHDRAWAL-RATE
+                        <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.8, marginTop: '4px' }}>
+                          Lifestyle spending steps down when the spending rate drifts {inputs.wrGuardrailBandPct}% above what the plan expected that year, and up when it drifts as far below.
+                        </div>
+                      </>
+                    ) : inputs.spendingGuardrails ? (
                       <>
                         ON
                         <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.8, marginTop: '4px' }}>

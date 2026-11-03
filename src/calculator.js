@@ -1408,6 +1408,28 @@ export const DEFAULT_INPUTS = {
   // both are capped, because a household will neither cut forever nor treat
   // one good decade as a permanent raise.
   withdrawalGuardrailsEnabled: false,
+  // Risk-based guardrails (What's New 487): instead of a withdrawal rate,
+  // the rule watches the plan's chance of lasting -- the share of real
+  // historical sequences, from this year to the end of the plan, that the
+  // portfolio survives at today's spending (riskGuardrailModel). When it
+  // falls below riskGuardrailCutAtPct, lifestyle spending is cut to the
+  // level whose chance is riskGuardrailTargetPct; when it reaches
+  // riskGuardrailRaiseAtPct, raised to it. riskGuardrailMovePct is how far
+  // toward that level one adjustment goes (100 = all the way). Essential
+  // spending is never cut. Off by default; when off nothing below runs.
+  riskGuardrailsEnabled: false,
+  riskGuardrailTargetPct: 80,
+  // After a cut, spending goes to the level with this chance, not all the
+  // way back to the target: about 20 points up from the cut line, so cuts
+  // stay smaller (review panel, 2026-11-03; Kitces cuts at 25% to 45%).
+  riskGuardrailCutToPct: 70,
+  riskGuardrailCutAtPct: 50,
+  riskGuardrailRaiseAtPct: 99,
+  riskGuardrailMovePct: 100,
+  // The most raises may add up to, as a percentage above the plan's own
+  // lifestyle spending (0 = no limit): 50 means spending never goes above
+  // 1.5 times the plan's, however many raises the rule makes.
+  riskGuardrailRaiseCapPct: 0,
   // How far the rate may drift from the retirement-year rate before the
   // rule acts, as a PERCENTAGE OF that rate: 20 means a 4.0% starting rate
   // triggers a cut above 4.8% and a raise below 3.2%.
@@ -6890,6 +6912,13 @@ export function sanitizeInputs(inputs) {
 
   // A reverse mortgage is a loan against a home you own (changelog 144).
   if (clean.reverseMortgageEnabled) clean.homeOwned = true;
+  // Risk-based guardrails replace the other two: they measure spending
+  // against a path this rule moves, so a plan with all three on (an old
+  // backup, an import) runs this one alone.
+  if (clean.riskGuardrailsEnabled) {
+    clean.spendingGuardrails = false;
+    clean.withdrawalGuardrailsEnabled = false;
+  }
 
   // Inputs added after a plan was saved: a missing NUMBER above becomes 0,
   // which for these would silently change existing plans' numbers. Keep
@@ -7200,7 +7229,7 @@ function investedStart(row) {
 const plannedSpendingPathCache = new Map();
 const PLANNED_PATH_CACHE_MAX = 16;
 function plannedSpendingPath(inputs) {
-  const planned = { ...inputs, withdrawalGuardrailsEnabled: false, spendingGuardrails: false, stressType: 'none' };
+  const planned = { ...inputs, withdrawalGuardrailsEnabled: false, spendingGuardrails: false, riskGuardrailsEnabled: false, stressType: 'none' };
   const key = JSON.stringify(planned);
   const hit = plannedSpendingPathCache.get(key);
   if (hit) return hit;
@@ -7217,6 +7246,283 @@ function plannedSpendingPath(inputs) {
   }
   plannedSpendingPathCache.set(key, path);
   return path;
+}
+
+// Risk-based guardrails (What's New 487). The plan's chance of lasting from
+// a given retired year, at a given balance and spending level, measured
+// the way the historical panel measures the plan: against every real
+// sequence of returns in the plan's record (1928 or 1871) long enough to
+// reach the end of the plan, at the plan's stock share and glide.
+//
+// The model is built once per plan from its own path with no guardrails
+// and no stress, in today's dollars, together with the same plan at 70% and
+// 130% of its lifestyle spending: each retired year's need on the invested
+// accounts (draws, HSA draws included, less any surplus put back, plus any
+// shortfall), its lifestyle spending, and how the need moves with spending
+// below and above the plan's own level (the slopes through those runs, which
+// carry the tax, Social Security, IRMAA and ACA effects of spending more or
+// less). A sequence lasts when the balance never runs out (or, with Keep at
+// Least, ends a year below the floor) before the last year. This prices the
+// DECISION; the projection itself still pays every tax and benefit exactly.
+const riskModelCache = new Map();
+let riskModelOverride = null;
+const RISK_MODEL_CACHE_MAX = 16;
+function riskGuardrailModel(inputs) {
+  // The stress fields are normalized so every historical start of one plan
+  // shares one model (they only matter when stressType is set).
+  const planned = {
+    ...inputs, withdrawalGuardrailsEnabled: false, spendingGuardrails: false, riskGuardrailsEnabled: false,
+    stressType: 'none', stressHistoryStartYear: 0, stressStartMode: 'retirement', stressStartYear: 0,
+  };
+  const key = JSON.stringify(planned);
+  const hit = riskModelCache.get(key);
+  if (hit) return hit;
+  const rows = runProjection(planned).years || [];
+  // The same plan at 90% of its lifestyle spending: the difference in each
+  // year's draw is what a dollar of spending really costs the accounts that
+  // year -- the tax on the withdrawal that pays it, the taxable share of
+  // Social Security it pulls in, Medicare's income surcharge and the ACA
+  // credit it moves (review panel, 2026-11-03; an average tax rate over
+  // the plan was too high for pension households and too low around those
+  // cliffs).
+  // and at 70% and 130%, so a large raise or cut is priced along the curve
+  // rather than by a straight line through today's spending.
+  const scaled = (c) => new Map((runProjection({ ...planned, lifestyleExpense: (Number(planned.lifestyleExpense) || 0) * c }).years || []).map((r) => [r.year, r]));
+  const lowRows = scaled(0.7);
+  const highRows = scaled(1.3);
+  const retired = rows.filter((r) => r.isRetired);
+  const retYear = retired.length ? retired[0].year : null;
+  // What a year needed from the accounts: the draw (HSA draws included, as
+  // the balance includes the HSA), less any surplus put back, plus anything
+  // the plan could not pay once it ran short.
+  const needOf = (r) => (r.drawdown || 0) + (r.hsaMedicalDraw || 0) + (r.hsaGeneralDraw || 0)
+    - (r.surplusReinvested || 0) + (r.shortfall || 0);
+  const flows = retired.map((r) => {
+    const f = r.inflFactor || 1;
+    const life = (r.lifestyleExpenses || 0) / f;
+    // What the year's need moves by per unit of the lifestyle multiplier,
+    // below and above today's spending (each clamped to 0.5x-3x of the
+    // lifestyle itself, so a quirk in one run cannot price spending as free
+    // or ruinous).
+    const slope = (other, dm) => {
+      if (!other || !(life > 1)) return life;
+      const s0 = (needOf(r) - needOf(other)) / f / dm;
+      return Math.min(3 * life, Math.max(0.5 * life, s0));
+    };
+    return {
+      year: r.year,
+      net: needOf(r) / f,
+      life,
+      slopeLo: slope(lowRows.get(r.year), 0.3),
+      slopeHi: (() => {
+        const hi = highRows.get(r.year);
+        if (!hi || !(life > 1)) return life;
+        const s1 = (needOf(hi) - needOf(r)) / f / 0.3;
+        return Math.min(3 * life, Math.max(0.5 * life, s1));
+      })(),
+      share: Number.isFinite(r.householdStockShare) ? r.householdStockShare
+        : planStockShareForYear(inputs, true, r.year, retYear),
+    };
+  });
+  const first = historyFirstYear(inputs);
+  // Each retired year's real return in every calendar year of the record,
+  // at that year's stock share, worked out once.
+  const keep = 1 - totalFeeFraction(inputs);
+  const real = flows.map((fl) => {
+    const w = Math.min(100, Math.max(0, fl.share)) / 100;
+    const arr = new Float64Array(HISTORY_LAST_YEAR - first + 1);
+    for (let y = first; y <= HISTORY_LAST_YEAR; y += 1) {
+      const row = HISTORY_BY_YEAR.get(y);
+      // After fees, as the plan grows, and deflated by the inflation that
+      // reaches that year (the previous year's January-to-January figure
+      // before 1928, as the replays use).
+      arr[y - first] = ((1 + (w * row[1] + (1 - w) * row[2]) / 100) * keep) / (1 + historyInflationInto(y) / 100);
+    }
+    return arr;
+  });
+  // Keep at Least (changelog 448): a sequence lasts only if it never ends
+  // a year below the floor, in today's dollars, as the plan's own test.
+  const floor = Math.max(0, Number(inputs.portfolioFloorReal) || 0);
+  const model = { flows, first, real, floor, byYear: new Map(flows.map((x, i) => [x.year, i])) };
+  if (riskModelCache.size >= RISK_MODEL_CACHE_MAX) riskModelCache.delete(riskModelCache.keys().next().value);
+  riskModelCache.set(key, model);
+  return model;
+}
+
+// Share (0-1) of historical sequences that last from retired-year index k
+// with real balance `balance` and lifestyle at `m` times the plan's.
+// The chance is always measured over at least RISK_MIN_HORIZON years: near
+// the end of the plan the remaining years would otherwise be too few for
+// anything to fail, and the rule would raise spending sharply at 90+ on the
+// strength of a plan that ends at life expectancy. The extra years repeat
+// the plan's last retired year.
+export const RISK_MIN_HORIZON = 10;
+export const RISK_MIN_SPENDING_SHARE = 0.5;
+// Raises wait out the first years of retirement, when a bad run of markets
+// does the most damage, and no single raise is more than 20%: in every bad
+// historical start the review panel tested, an early raise was taken back
+// by a cut within a few years.
+export const RISK_RAISE_WAIT_YEARS = 5;
+export const RISK_MAX_RAISE = 0.2;
+// `minHorizon` pads the remaining years (repeating the last) for the raise
+// test only; a cut is judged over the years the plan actually has left.
+// Each sequence's balance is linear in the spending multiplier m, so the
+// largest m it survives can be found in one pass: every year's test
+// (the balance after spending stays above zero, and after the return stays
+// at or above Keep at Least) is an upper bound on m, and the sequence lasts
+// exactly when m is at or below the smallest of them. One pass gives that
+// threshold for every sequence, below the plan's spending (slopeLo) and
+// above it (slopeHi); the chance at any m is then a count, and the
+// bisection for a target chance costs nothing. The same answer as running
+// each sequence at each m, many times faster (Monte Carlo speed, 2026-11-03).
+function riskThresholds(model, k, balance, minHorizon) {
+  const key = `${k}|${balance}|${minHorizon}`;
+  const memo = model.thresholdMemo || (model.thresholdMemo = new Map());
+  const hit = memo.get(key);
+  if (hit) return hit;
+  const n = model.flows.length;
+  const left = Math.max(n - k, minHorizon);
+  const lo = [];
+  const hi = [];
+  for (let s = model.first; s + left - 1 <= HISTORY_LAST_YEAR; s += 1) {
+    let pL = balance; let qL = 0; let bL = Infinity;
+    let pH = balance; let qH = 0; let bH = Infinity;
+    for (let j = 0; j < left; j += 1) {
+      const idx = Math.min(n - 1, k + j);
+      const fl = model.flows[idx];
+      pL -= fl.net - fl.slopeLo; qL += fl.slopeLo;
+      pH -= fl.net - fl.slopeHi; qH += fl.slopeHi;
+      bL = Math.min(bL, riskBound(pL + 0.5, qL));
+      bH = Math.min(bH, riskBound(pH + 0.5, qH));
+      const r = model.real[idx][s + j - model.first];
+      pL *= r; qL *= r; pH *= r; qH *= r;
+      if (model.floor > 0) {
+        bL = Math.min(bL, riskBound(pL - model.floor, qL));
+        bH = Math.min(bH, riskBound(pH - model.floor, qH));
+      }
+    }
+    lo.push(bL);
+    hi.push(bH);
+  }
+  const out = { lo, hi, count: lo.length };
+  if (memo.size >= 8) memo.delete(memo.keys().next().value);
+  memo.set(key, out);
+  return out;
+}
+
+// The largest m with p - m*q >= 0 (q >= 0): every m when q is 0 and p >= 0,
+// none when q is 0 and p < 0.
+function riskBound(p, q) {
+  if (q > 0) return p / q;
+  return p >= 0 ? Infinity : -Infinity;
+}
+
+function riskSuccess(model, k, balance, m, minHorizon = 0) {
+  if (k >= model.flows.length) return 1;
+  const t = riskThresholds(model, k, balance, minHorizon);
+  if (t.count === 0) return 1;
+  const arr = m < 1 ? t.lo : t.hi;
+  let lasted = 0;
+  for (let i = 0; i < t.count; i += 1) if (m <= arr[i]) lasted += 1;
+  return lasted / t.count;
+}
+
+// The direct version, one sequence at a time, kept to check the fast one.
+function riskSuccessDirect(model, k, balance, m, minHorizon = 0) {
+  const n = model.flows.length;
+  if (k >= n) return 1;
+  const left = Math.max(n - k, minHorizon);
+  let lasted = 0;
+  let count = 0;
+  for (let s = model.first; s + left - 1 <= HISTORY_LAST_YEAR; s += 1) {
+    count += 1;
+    let bal = balance;
+    let ok = true;
+    for (let j = 0; j < left; j += 1) {
+      const idx = Math.min(n - 1, k + j);
+      const fl = model.flows[idx];
+      bal -= fl.net + (m - 1) * (m < 1 ? fl.slopeLo : fl.slopeHi);
+      if (bal < -0.5) { ok = false; break; }
+      bal *= model.real[idx][s + j - model.first];
+      if (model.floor > 0 && bal < model.floor) { ok = false; break; }
+    }
+    if (ok) lasted += 1;
+  }
+  return count > 0 ? lasted / count : 1;
+}
+
+// The rule-off reference for spendingCost, without a second projection,
+// when the risk-based rule is the only one on: the rule scales the year's
+// lifestyle spending (and the go-go bump and essential line, which are
+// shares of it) by its multiplier and touches nothing else that sets a
+// year's planned spending -- the phases, survivor drop, cost of living
+// and inflation do not depend on the balance -- so the same year with
+// the rule off spent this year's figure divided by the multiplier. The
+// price level is the trial's own. Checked against a real second run in
+// riskGuardrails.test.js. null when any other rule is on.
+function riskOnlyRef(inputs, result) {
+  if (!inputs.riskGuardrailsEnabled || inputs.spendingGuardrails || inputs.withdrawalGuardrailsEnabled
+    || (inputs.spendingRule && inputs.spendingRule !== 'none')) return null;
+  return {
+    years: (result.years || []).map((y) => {
+      const m = Number(y.riskGuardrailMultiplier) > 0 ? y.riskGuardrailMultiplier : 1;
+      return {
+        year: y.year,
+        isRetired: y.isRetired,
+        priceIndex: y.priceIndex,
+        inflFactor: y.inflFactor,
+        lifestyleExpenses: (Number(y.lifestyleExpenses) || 0) / m,
+        essentialSpending: typeof y.essentialSpending === 'number' ? y.essentialSpending / m : y.essentialSpending,
+      };
+    }),
+  };
+}
+export { riskOnlyRef as _riskOnlyRef };
+
+// The spending multiplier whose chance is `target` (0-1), between lo and hi.
+function riskSpendingFor(model, k, balance, target, minHorizon = 0, lo = 0, hi = 10) {
+  if (riskSuccess(model, k, balance, hi, minHorizon) >= target) return hi;
+  if (riskSuccess(model, k, balance, lo, minHorizon) < target) return lo;
+  for (let i = 0; i < 15; i += 1) {
+    const mid = (lo + hi) / 2;
+    if (riskSuccess(model, k, balance, mid, minHorizon) >= target) lo = mid; else hi = mid;
+  }
+  return lo;
+}
+export { riskGuardrailModel as _riskGuardrailModel, riskSuccess as _riskSuccess, riskSuccessDirect as _riskSuccessDirect };
+
+// What the rule says about the plan in its first retired year, for the
+// settings block: the chance at the plan's spending, and the lifestyle
+// spending (today's dollars, before taxes and healthcare) at the target,
+// at the cut-back level and at the cut line, so the screen can show the
+// band in dollars. The first year the plan's own projection cuts, if any.
+export function riskGuardrailSnapshot(rawInputs) {
+  const inputs = sanitizeInputs({ ...rawInputs, stressType: 'none' });
+  const model = riskGuardrailModel(inputs);
+  if (!model.flows.length) return null;
+  const proj = _runProjectionPreSanitized({ ...inputs, riskGuardrailsEnabled: true });
+  const years = proj.years || [];
+  const first = years.find((y) => y.isRetired);
+  if (!first) return null;
+  const i = years.indexOf(first);
+  const prev = i > 0 ? years[i - 1] : null;
+  const f = first.priceIndex || first.inflFactor || 1;
+  const opening = (prev ? investedEnd(prev) : (inputs.preTaxInit || 0) + (inputs.rothInit || 0) + (inputs.taxableInit || 0) + (inputs.hsaInit || 0)) / f;
+  const life = model.flows[0].life;
+  const pct = (v, d) => Math.min(100, Math.max(0, Number.isFinite(Number(v)) ? Number(v) : d)) / 100;
+  const at = (p) => riskSpendingFor(model, 0, opening, p) * life;
+  const firstCut = years.find((y) => y.isRetired && y.riskGuardrailAction === 'cut' && y !== first);
+  return {
+    age: first.age1,
+    chance: riskSuccess(model, 0, opening, 1),
+    planSpend: life,
+    atTarget: at(pct(inputs.riskGuardrailTargetPct, 80)),
+    atCutTo: at(pct(inputs.riskGuardrailCutToPct, 70)),
+    atCutLine: at(pct(inputs.riskGuardrailCutAtPct, 50)),
+    firstAction: first.riskGuardrailAction,
+    firstMultiplier: first.riskGuardrailMultiplier,
+    firstCutAge: firstCut ? firstCut.age1 : null,
+  };
 }
 
 // Single trial projection calculation
@@ -7544,6 +7850,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // Withdrawal-rate guardrails (changelog 216). Persistent across years:
   // each trigger moves the multiplier and it stays moved until the next one.
   let wrGuardrailMultiplier = 1.0;
+  // Risk-based guardrails: the multiplier on lifestyle spending, moved only
+  // when the chance of lasting leaves its band.
+  let riskGuardMultiplier = 1.0;
+  // A Monte Carlo trial uses the plan's own model (riskModelOverride), so a
+  // trial that samples its own lifespan or care episode is not steered by
+  // knowing them in advance.
+  const riskModel = inputs.riskGuardrailsEnabled ? (riskModelOverride || riskGuardrailModel(inputs)) : null;
   // Changelog 451: the comparison-only spending rules. ruleRate is the
   // plan's first retired year's lifestyle spending over the portfolio it
   // started that year with; rulePrevSpend is last year's ruled spending.
@@ -9012,6 +9325,53 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       }
     }
 
+    // Risk-based guardrails. Reads this year's opening balance (last year's
+    // closing one, a closed fact) in today's dollars, and the plan's own
+    // flows from here on (riskGuardrailModel).
+    let riskGuardrailChance = null;
+    let riskGuardrailAction = null;
+    if (riskModel && isRetired) {
+      const k = riskModel.byYear.get(year);
+      if (k !== undefined) {
+        const prevRow = year > startYear ? years[year - startYear - 1] : null;
+        const openingNominal = prevRow ? investedEnd(prevRow)
+          : (inputs.preTaxInit || 0) + (inputs.rothInit || 0) + (inputs.taxableInit || 0) + (inputs.hsaInit || 0);
+        const opening = openingNominal / (priceIndex || 1);
+        const pct = (v, d) => Math.min(100, Math.max(0, Number.isFinite(Number(v)) ? Number(v) : d)) / 100;
+        const target = pct(inputs.riskGuardrailTargetPct, 80);
+        const cutAt = Math.min(target, pct(inputs.riskGuardrailCutAtPct, 50));
+        const raiseAt = Math.max(target, pct(inputs.riskGuardrailRaiseAtPct, 99));
+        const cutTo = Math.min(target, Math.max(cutAt, pct(inputs.riskGuardrailCutToPct, 70)));
+        const move = pct(inputs.riskGuardrailMovePct, 100);
+        const yearsRetired = householdRetirementYear !== null && householdRetirementYear !== undefined ? year - householdRetirementYear : 0;
+        riskGuardrailChance = riskSuccess(riskModel, k, opening, riskGuardMultiplier);
+        riskGuardrailAction = 'hold';
+        // A cut is judged over the years actually left; a raise must also
+        // hold up over at least RISK_MIN_HORIZON years, so the last years
+        // of the plan are not a reason to spend sharply more.
+        const cutting = riskGuardrailChance < cutAt;
+        const raising = !cutting && yearsRetired >= RISK_RAISE_WAIT_YEARS
+          && riskSuccess(riskModel, k, opening, riskGuardMultiplier, RISK_MIN_HORIZON) >= raiseAt;
+        if (cutting || raising) {
+          const toTarget = riskSpendingFor(riskModel, k, opening, cutting ? cutTo : target, raising ? RISK_MIN_HORIZON : 0);
+          let next = riskGuardMultiplier + move * (toTarget - riskGuardMultiplier);
+          if (raising) {
+            next = Math.min(next, riskGuardMultiplier * (1 + RISK_MAX_RAISE));
+            const cap = Math.max(0, Number(inputs.riskGuardrailRaiseCapPct) || 0);
+            if (cap > 0) next = Math.min(next, Math.max(riskGuardMultiplier, 1 + cap / 100));
+          }
+          // Never below essential spending; with no category ledger to say
+          // what is essential, never below half the plan's spending.
+          const essential = essentialShareOf(inputs);
+          next = Math.max(next, essential !== null ? essential : RISK_MIN_SPENDING_SHARE);
+          if (Math.abs(next - riskGuardMultiplier) > 1e-6) {
+            riskGuardrailAction = next < riskGuardMultiplier ? 'cut' : 'raise';
+            riskGuardMultiplier = next;
+          }
+        }
+      }
+    }
+
     let phaseMultiplier = 1.0;
     let phaseName = 'Pre-Retirement';
     if (isRetired) {
@@ -9061,7 +9421,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // crash freeze and cut, or the withdrawal-rate cut -- takes spending
     // below the essential floor. Measured against the path with no freezes
     // at all, so the floor is a share of what the plan would have spent.
-    let lifestyleCost = inputs.lifestyleExpense * blendedLifestyleMultiplier * phaseMultiplier * lifestyleSpendingCutMultiplier * wrGuardrailMultiplier * survivorExpenseMultiplier * costOfLivingFactor;
+    let lifestyleCost = inputs.lifestyleExpense * blendedLifestyleMultiplier * phaseMultiplier * lifestyleSpendingCutMultiplier * wrGuardrailMultiplier * riskGuardMultiplier * survivorExpenseMultiplier * costOfLivingFactor;
     if (isRetired && inputs.floorAwareGuardrailsEnabled && (inputs.spendingGuardrails || inputs.withdrawalGuardrailsEnabled)) {
       const essentialShareFloor = essentialShareOf(inputs);
       if (essentialShareFloor !== null) {
@@ -11755,6 +12115,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       wrGuardrailRate,
       wrGuardrailAction,
       wrGuardrailMultiplier: inputs.withdrawalGuardrailsEnabled ? wrGuardrailMultiplier : null,
+      // Risk-based guardrails: the chance of lasting measured at the start
+      // of the year (before any adjustment), what the rule did, and the
+      // multiplier on lifestyle spending after it.
+      riskGuardrailChance,
+      riskGuardrailAction,
+      riskGuardrailMultiplier: inputs.riskGuardrailsEnabled ? riskGuardMultiplier : null,
       // The rate the plan's own path had that year (changelog 335), which
       // the band is drawn around. Replaces the old retirement-year anchor.
       wrGuardrailPlannedRate,
@@ -12319,7 +12685,22 @@ function _runProjectionPreSanitized(inputs, monteCarloReturnOverride = null, mon
 //     died contributes nothing to that year's percentile, so the curves
 //     read as "conditional on someone still being alive". Success counts
 //     the whole trial, however long it ran.
-export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
+// Risk-based guardrails in the Monte Carlo: every trial is steered by the
+// plan's own model, built once here (see riskModelOverride).
+// `onProgress` (optional) is called with the share of trials done, 0-1,
+// about forty times a run, so the app can show how far along it is.
+export function runMonteCarlo(rawInputs = DEFAULT_INPUTS, { onProgress = null } = {}) {
+  const prev = riskModelOverride;
+  const clean = sanitizeInputs(rawInputs);
+  riskModelOverride = clean.riskGuardrailsEnabled ? riskGuardrailModel(clean) : null;
+  try {
+    return runMonteCarloCore(rawInputs, onProgress);
+  } finally {
+    riskModelOverride = prev;
+  }
+}
+
+function runMonteCarloCore(rawInputs = DEFAULT_INPUTS, onProgress = null) {
   const inputs = sanitizeInputs(rawInputs);
   const trialsCount = 1000;
   const longevitySampled = !!inputs.mcLongevityEnabled;
@@ -12359,7 +12740,7 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
   let trialsBeyondHorizon = 0;
   const trialEndBalances = [];
   const yearWiseBalances = Array.from({ length: totalYears }, () => []);
-  const guardrailOn = !!(inputs.spendingGuardrails || inputs.withdrawalGuardrailsEnabled);
+  const guardrailOn = !!(inputs.spendingGuardrails || inputs.withdrawalGuardrailsEnabled || inputs.riskGuardrailsEnabled);
   const trialCosts = [];
 
   // Standard normal via Box-Muller on the seeded uniform. One normal per
@@ -12373,7 +12754,9 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
     return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
   }
 
+  const progressEvery = Math.max(1, Math.floor(trialsCount / 40));
   for (let t = 0; t < trialsCount; t++) {
+    if (onProgress && t > 0 && t % progressEvery === 0) onProgress(t / trialsCount);
     rng = mulberry32(trialSeed(t));
     const trialReturns = {};
     const trialInflation = inflationSampled ? {} : null;
@@ -12468,7 +12851,9 @@ export function runMonteCarlo(rawInputs = DEFAULT_INPUTS) {
     // with spending cuts. Price them against the same trial with the rules
     // off, so the percentage never travels without its cost.
     if (guardrailOn) {
-      const ref = runProjection({ ...trialInputs, spendingGuardrails: false, withdrawalGuardrailsEnabled: false }, trialReturns, trialInflation, planDeferralCuts);
+      // With only the risk-based rule on, the rule-off run's spending is
+      // read off this one (riskOnlyRef) instead of projected again.
+      const ref = riskOnlyRef(inputs, result) || runProjection({ ...trialInputs, spendingGuardrails: false, withdrawalGuardrailsEnabled: false, riskGuardrailsEnabled: false }, trialReturns, trialInflation, planDeferralCuts);
       const cost = spendingCost(result, ref);
       if (cost) trialCosts.push(cost);
     }
@@ -13888,15 +14273,17 @@ export function getGuardrailsComparisonHeatmap(rawInputs = DEFAULT_INPUTS) {
 // against fixed spending in the SAME start, so the comparison isolates the
 // rule from the market.
 export const HISTORICAL_START_RULES = [
-  { key: 'fixed', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'none' } },
-  { key: 'crash', patch: { spendingGuardrails: true, withdrawalGuardrailsEnabled: false, spendingRule: 'none' } },
-  { key: 'wr', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: true, spendingRule: 'none' } },
-  { key: 'both', patch: { spendingGuardrails: true, withdrawalGuardrailsEnabled: true, spendingRule: 'none' } },
+  { key: 'fixed', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, riskGuardrailsEnabled: false, spendingRule: 'none' } },
+  { key: 'crash', patch: { spendingGuardrails: true, withdrawalGuardrailsEnabled: false, riskGuardrailsEnabled: false, spendingRule: 'none' } },
+  { key: 'wr', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: true, riskGuardrailsEnabled: false, spendingRule: 'none' } },
+  { key: 'both', patch: { spendingGuardrails: true, withdrawalGuardrailsEnabled: true, riskGuardrailsEnabled: false, spendingRule: 'none' } },
+  // What's New 487: risk-based guardrails, the plan's own settings.
+  { key: 'risk', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, riskGuardrailsEnabled: true, spendingRule: 'none' } },
   // Changelog 451: two rules from the safe-withdrawal literature, compared
   // over the same starts. Never the plan's own rule.
-  { key: 'pct', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'pctPortfolio' } },
-  { key: 'clyatt', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'clyatt95' } },
-  { key: 'vpw', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, spendingRule: 'vpw' } },
+  { key: 'pct', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, riskGuardrailsEnabled: false, spendingRule: 'pctPortfolio' } },
+  { key: 'clyatt', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, riskGuardrailsEnabled: false, spendingRule: 'clyatt95' } },
+  { key: 'vpw', patch: { spendingGuardrails: false, withdrawalGuardrailsEnabled: false, riskGuardrailsEnabled: false, spendingRule: 'vpw' } },
 ];
 
 // The start years with a full retirement's worth of history behind them.
@@ -13947,7 +14334,8 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
     start,
     patch: { stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: start },
   }));
-  const inPlan = inputs.spendingGuardrails && inputs.withdrawalGuardrailsEnabled ? 'both'
+  const inPlan = inputs.riskGuardrailsEnabled ? 'risk'
+    : inputs.spendingGuardrails && inputs.withdrawalGuardrailsEnabled ? 'both'
     : inputs.spendingGuardrails ? 'crash'
       : inputs.withdrawalGuardrailsEnabled ? 'wr' : 'fixed';
   // 'both' only when the plan uses both -- otherwise it is a combination
@@ -14040,6 +14428,58 @@ export function runHistoricalStarts(rawInputs = DEFAULT_INPUTS) {
   };
 }
 
+// Risk-based guardrails at several targets (What's New 487, Premium
+// table): the plan with the rule on, its own cut and raise lines kept
+// (each held on the right side of the target), at each target chance,
+// through every historical start. Each row: how many starts last, the
+// deepest cut and the median lifetime spending against fixed spending in
+// the same start, and the median real balance left.
+export const RISK_TARGET_STEPS = [70, 80, 90];
+
+export function historicalByRiskTarget(rawInputs = DEFAULT_INPUTS, { targets = RISK_TARGET_STEPS } = {}) {
+  const inputs = sanitizeInputs({ ...rawInputs, stressType: 'none' });
+  const base = _runProjectionPreSanitized(inputs);
+  const firstRetired = base.years.find((y) => y.isRetired);
+  if (!firstRetired) return null;
+  const horizonYears = base.years[base.years.length - 1].year - firstRetired.year + 1;
+  const startYears = historicalStartYears(horizonYears, historyFirstYear(inputs));
+  if (startYears.length === 0) return null;
+  const fixedPatch = HISTORICAL_START_RULES.find((r) => r.key === 'fixed').patch;
+  const riskPatch = HISTORICAL_START_RULES.find((r) => r.key === 'risk').patch;
+  const at = (start) => ({ stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: start });
+  const fixedRuns = startYears.map((start) => _runProjectionPreSanitized({ ...inputs, ...fixedPatch, ...at(start) }));
+  const own = inputs.riskGuardrailsEnabled ? Math.round(Number(inputs.riskGuardrailTargetPct) || 80) : null;
+  const list = [...new Set([...targets, ...(own !== null ? [own] : [])])].sort((a, b) => a - b);
+  const cutAt = Number(inputs.riskGuardrailCutAtPct) || 50;
+  const raiseAt = Number(inputs.riskGuardrailRaiseAtPct) || 99;
+  const rows = list.map((target) => {
+    let lasted = 0;
+    let deepest = 0;
+    const lifetime = [];
+    const ends = [];
+    startYears.forEach((start, i) => {
+      const proj = _runProjectionPreSanitized({
+        ...inputs, ...riskPatch, ...at(start),
+        riskGuardrailTargetPct: target,
+        riskGuardrailCutAtPct: Math.min(cutAt, target - 1),
+        riskGuardrailRaiseAtPct: Math.max(raiseAt, target + 1),
+      });
+      if (proj.meetsFloor) lasted += 1;
+      ends.push((Number(proj.endingBalance) || 0) / finalBalanceFactor(proj.years));
+      const cost = spendingCost(proj, fixedRuns[i]);
+      if (cost) {
+        lifetime.push(cost.lifetimeShare);
+        if (cost.deepestCut > deepest) deepest = cost.deepestCut;
+      }
+    });
+    return {
+      target, isPlan: target === own, lasted, count: startYears.length,
+      deepestCut: deepest, medianLifetimeShare: median(lifetime), medianRealEnd: median(ends),
+    };
+  });
+  return { firstStart: startYears[0], count: startYears.length, cutAt, raiseAt, rows };
+}
+
 // Success by stock share (changelog 452): the plan, under its own spending
 // rule, through the same historical starts at several retired stock
 // shares, held steady (no glide). Premium shows the table; the engine is
@@ -14128,10 +14568,16 @@ export function findHistoricalSafeMax(rawInputs = DEFAULT_INPUTS, { shares = SAF
   const horizonYears = base.years[base.years.length - 1].year - firstRetired.year + 1;
   const startYears = historicalStartYears(horizonYears, historyFirstYear(inputs));
   if (startYears.length === 0) return null;
-  const inPlan = inputs.spendingGuardrails && inputs.withdrawalGuardrailsEnabled ? 'both'
+  const inPlan = inputs.riskGuardrailsEnabled ? 'risk'
+    : inputs.spendingGuardrails && inputs.withdrawalGuardrailsEnabled ? 'both'
     : inputs.spendingGuardrails ? 'crash'
       : inputs.withdrawalGuardrailsEnabled ? 'wr' : 'fixed';
-  const rulePatch = HISTORICAL_START_RULES.find((r) => r.key === inPlan).patch;
+  // Risk-based guardrails set spending themselves (every start is cut or
+  // raised to the target chance), so "the most you could spend" has no
+  // meaning under them: the search is the plan's spending held fixed, and
+  // says so (rule 'fixed').
+  const searchRule = inPlan === 'risk' ? 'fixed' : inPlan;
+  const rulePatch = HISTORICAL_START_RULES.find((r) => r.key === searchRule).patch;
   const count = startYears.length;
   const planned = Math.max(0, Number(inputs.lifestyleExpense) || 0);
 
@@ -14217,7 +14663,7 @@ export function findHistoricalSafeMax(rawInputs = DEFAULT_INPUTS, { shares = SAF
   });
 
   return {
-    rule: inPlan,
+    rule: searchRule,
     count,
     firstStart: startYears[0],
     lastStart: startYears[startYears.length - 1],

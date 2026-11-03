@@ -5,6 +5,7 @@ import { basisLabel } from '../../utils/displayDollars';
 import { heatCellBg } from '../../utils/heatCell';
 import { useSimulation } from '../../context/useSimulation';
 import FeeCostCard from '../FeeCostCard';
+import RiskGuardrailsSettings from '../RiskGuardrailsSettings';
 import HistoricalStartsPanel from '../HistoricalStartsPanel';
 import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from '../../config/historicalReturns';
 import { HISTORICAL_RETURNS_PRE1928, PRE1928_FIRST_YEAR } from '../../config/historicalReturnsPre1928';
@@ -53,6 +54,7 @@ const RiskTab = () => {
   const taxesOverlayId = React.useId();
   const spendingGuardrailsLabelId = React.useId();
   const withdrawalGuardrailsLabelId = React.useId();
+  const riskGuardrailsLabelId = React.useId();
   const [selectedGuardrailsCell, setSelectedGuardrailsCell] = useState(null);
   const [guardrailsMetric, setGuardrailsMetric] = useState('endingBalance');
   // stressComparisonData now arrives asynchronously from a background worker
@@ -466,7 +468,7 @@ const RiskTab = () => {
                     </p>
                   </div>
                   <label className="custom-switch">
-                    <input type="checkbox" checked={inputs.spendingGuardrails} onChange={(e) => updateInput('spendingGuardrails', e.target.checked)} aria-labelledby={spendingGuardrailsLabelId} />
+                    <input type="checkbox" checked={inputs.spendingGuardrails} onChange={(e) => { updateInput('spendingGuardrails', e.target.checked); if (e.target.checked && inputs.riskGuardrailsEnabled) updateInput('riskGuardrailsEnabled', false); }} aria-labelledby={spendingGuardrailsLabelId} />
                     <span className="slider-round"></span>
                   </label>
                 </div>
@@ -493,7 +495,7 @@ const RiskTab = () => {
                     </p>
                   </div>
                   <label className="custom-switch">
-                    <input type="checkbox" checked={inputs.withdrawalGuardrailsEnabled} onChange={(e) => updateInput('withdrawalGuardrailsEnabled', e.target.checked)} aria-labelledby={withdrawalGuardrailsLabelId} />
+                    <input type="checkbox" checked={inputs.withdrawalGuardrailsEnabled} onChange={(e) => { updateInput('withdrawalGuardrailsEnabled', e.target.checked); if (e.target.checked && inputs.riskGuardrailsEnabled) updateInput('riskGuardrailsEnabled', false); }} aria-labelledby={withdrawalGuardrailsLabelId} />
                     <span className="slider-round"></span>
                   </label>
                 </div>
@@ -524,6 +526,8 @@ const RiskTab = () => {
                   </div>
                 )}
               </div>
+
+              <RiskGuardrailsSettings inputs={inputs} updateInput={updateInput} formatCurrency={formatCurrency} labelId={riskGuardrailsLabelId} />
             </div>
 
             <FeeCostCard

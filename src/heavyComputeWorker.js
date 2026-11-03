@@ -14,7 +14,7 @@ import {
   runHistoricalStarts,
   findHistoricalSafeMax,
   computeFeeComparison,
-  historicalByStockShare,
+  historicalByStockShare, historicalByRiskTarget,
 } from './calculator.js';
 import { guardrailsComparisonForDisplay } from './utils/guardrailsDisplay.js';
 
@@ -77,6 +77,10 @@ export async function runHeavyAnalyses({ requestId, inputs, useRealDollars }, { 
     // Changelog 452: the same starts at several stock shares (Premium table).
     () => {
       if (out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, byStockShare: historicalByStockShare(inputs) };
+    },
+    // What's New 487: risk-based guardrails at 70/80/90% (Premium table).
+    () => {
+      if (out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, byRiskTarget: historicalByRiskTarget(inputs) };
     },
     // Changelog 447: what fees cost -- the plan beside the same plan with
     // (or without) an advisor fee, through the historical starts too.

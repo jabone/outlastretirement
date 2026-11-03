@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 487,
+    date: '2026-11-03',
+    title: 'Risk-based guardrails',
+    summary: 'A new spending rule moves your spending on your plan\u2019s chance of lasting, re-measured every retired year against real markets since 1928, instead of on a withdrawal rate.',
+    items: [
+      "**How it works.** Under Risk & Stress, turn on Risk-Based Guardrails. Your chance of lasting is how many of every 100 real market histories since 1928 (or 1871) your savings would survive at your current spending, with the Social Security, pensions and other income you expect and what each dollar of spending costs you in tax. The plan checks it again at the start of each retired year. While it stays between 50% and 99%, spending stays put. Below 50% it is cut back to the level with a 70% chance; at 99% it is raised to the 80% level, but not in your first five years of retirement and never by more than 20% at a time. Essential spending is never cut, and with no spending categories set it is never cut below half. Fees and any Keep at Least floor count.",
+      "**Your settings.** All four numbers and how far to move are yours to change, and the section explains what each choice trades away. The defaults act sooner than Michael Kitces\u2019s published version, which cuts below 25% back to 45% and raises at 100% to 80%. A review of the first draft found that cutting all the way back to 80% made cuts too big, and that raises right after retiring were often taken back, so cuts now go back about 20 points and raises wait five years. You can also set a ceiling on how far raises take your spending above your plan.",
+      "**Where it shows.** The section says what the rule means for your plan when you retire, in dollars, and whether it cuts on your plan\u2019s own projection. Year by Year shows the chance each year and the size of any cut or raise, in the table and the spreadsheet. Will It Last? says when guardrails are cutting spending and how often the simulated markets needed a cut, and the printed report names the rule. Every retirement since 1928 compares it with fixed spending and the other guardrails; the side-by-side of every rule, and each raise-to setting, are part of Premium.",
+      "**Your plan.** Nothing changes unless you turn it on.",
+      "**When the app is working.** A small card now says when the simulated markets, the history checks or the optimizers are running, with how far the simulated markets have got, so a pause never looks like something broken.",
+    ],
+  },
+  {
     id: 486,
     date: '2026-11-03',
     title: 'Compare with the textbook test',

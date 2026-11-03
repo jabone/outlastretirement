@@ -5,6 +5,8 @@ export const RULE_LABELS = {
   crash: 'Spending guardrails',
   wr: 'Withdrawal-rate guardrails',
   both: 'Both guardrails',
+  // What's New 487.
+  risk: 'Risk-based guardrails',
   // Changelog 451, compared over the same starts (Premium table).
   pct: 'Percent of portfolio',
   clyatt: 'The 95% rule (Clyatt)',

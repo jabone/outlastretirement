@@ -118,16 +118,17 @@ describe('ledger CSV splits pay, stock vesting and deferred comp', () => {
   const proj = runProjection(buildDemoInputs());
   const rows = buildYearLedgerCsvRows(proj);
   const col = (name) => YEAR_LEDGER_CSV_HEADERS.indexOf(name);
-  it('has the two columns after the older ones, then HSA general spending, then fees, then the per-account mix, 51 in all', () => {
+  it('has the two columns after the older ones, then HSA general spending, then fees, then the per-account mix, then risk guardrails, 53 in all', () => {
     // 46 since the Medicare supplement column (What's New 467); 51 with the
     // per-account mix columns (What's New 484).
-    expect(YEAR_LEDGER_CSV_HEADERS).toHaveLength(51);
+    expect(YEAR_LEDGER_CSV_HEADERS).toHaveLength(53);
     expect(YEAR_LEDGER_CSV_HEADERS[col('IRMAA') + 1]).toBe('Medicare Supplement');
-    expect(YEAR_LEDGER_CSV_HEADERS.slice(-11, -9)).toEqual(['Stock vesting', 'Deferred comp payout']);
-    expect(YEAR_LEDGER_CSV_HEADERS.slice(-9, -7)).toEqual(['HSA for general spending', 'HSA general spending tax']);
+    expect(YEAR_LEDGER_CSV_HEADERS.slice(-13, -11)).toEqual(['Stock vesting', 'Deferred comp payout']);
+    expect(YEAR_LEDGER_CSV_HEADERS.slice(-11, -9)).toEqual(['HSA for general spending', 'HSA general spending tax']);
     // Investment fees (changelog 447).
-    expect(YEAR_LEDGER_CSV_HEADERS.slice(-7, -5)).toEqual(['Fund expenses', 'Advisor fee']);
-    expect(YEAR_LEDGER_CSV_HEADERS.slice(-5)).toEqual(['Stock Share % (all accounts)', 'PreTax Return %', 'Roth Return %', 'Taxable Return %', 'HSA Return %']);
+    expect(YEAR_LEDGER_CSV_HEADERS.slice(-9, -7)).toEqual(['Fund expenses', 'Advisor fee']);
+    expect(YEAR_LEDGER_CSV_HEADERS.slice(-7, -2)).toEqual(['Stock Share % (all accounts)', 'PreTax Return %', 'Roth Return %', 'Taxable Return %', 'HSA Return %']);
+    expect(YEAR_LEDGER_CSV_HEADERS.slice(-2)).toEqual(['Chance of Lasting %', 'Risk Guardrail']);
   });
   it('Salary + Stock vesting + Deferred comp payout = the engine\'s salary, and a payout year is not salary', () => {
     const payoutYears = proj.years.filter((y) => (y.nqdcDistribution1 || 0) + (y.nqdcDistribution2 || 0) > 0);

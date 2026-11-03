@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-11-03T16:32:51.300Z",
+  "timestamp": "2026-11-03T20:37:40.392Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -247,6 +247,13 @@
     "floorAwareGuardrailsEnabled": false,
     "discretionaryCutPct": 25,
     "withdrawalGuardrailsEnabled": false,
+    "riskGuardrailsEnabled": false,
+    "riskGuardrailTargetPct": 80,
+    "riskGuardrailCutToPct": 70,
+    "riskGuardrailCutAtPct": 50,
+    "riskGuardrailRaiseAtPct": 99,
+    "riskGuardrailMovePct": 100,
+    "riskGuardrailRaiseCapPct": 0,
     "wrGuardrailBandPct": 20,
     "wrGuardrailCutPct": 10,
     "wrGuardrailRaisePct": 10,
@@ -749,6 +756,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -1008,10 +1022,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.353Z",
+      "savedAt": "2026-11-03T20:37:40.419Z",
       "tag": "demo"
     },
     {
@@ -1261,6 +1275,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -1520,10 +1541,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.366Z",
+      "savedAt": "2026-11-03T20:37:40.422Z",
       "tag": "demo"
     },
     {
@@ -1773,6 +1794,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -2032,10 +2060,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.376Z",
+      "savedAt": "2026-11-03T20:37:40.434Z",
       "tag": "demo"
     },
     {
@@ -2285,6 +2313,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -2544,10 +2579,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.392Z",
+      "savedAt": "2026-11-03T20:37:40.450Z",
       "tag": "demo"
     },
     {
@@ -2797,6 +2832,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -3056,10 +3098,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.408Z",
+      "savedAt": "2026-11-03T20:37:40.460Z",
       "tag": "demo"
     },
     {
@@ -3309,6 +3351,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -3568,10 +3617,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.417Z",
+      "savedAt": "2026-11-03T20:37:40.468Z",
       "tag": "demo"
     },
     {
@@ -3821,6 +3870,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -4080,10 +4136,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.424Z",
+      "savedAt": "2026-11-03T20:37:40.472Z",
       "tag": "demo"
     },
     {
@@ -4333,6 +4389,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -4592,10 +4655,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.450Z",
+      "savedAt": "2026-11-03T20:37:40.479Z",
       "tag": "demo"
     },
     {
@@ -4845,6 +4908,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -5104,10 +5174,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.470Z",
+      "savedAt": "2026-11-03T20:37:40.490Z",
       "tag": "demo"
     },
     {
@@ -5357,6 +5427,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -5616,10 +5693,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.483Z",
+      "savedAt": "2026-11-03T20:37:40.500Z",
       "tag": "demo"
     },
     {
@@ -5869,6 +5946,13 @@
         "floorAwareGuardrailsEnabled": false,
         "discretionaryCutPct": 25,
         "withdrawalGuardrailsEnabled": false,
+        "riskGuardrailsEnabled": false,
+        "riskGuardrailTargetPct": 80,
+        "riskGuardrailCutToPct": 70,
+        "riskGuardrailCutAtPct": 50,
+        "riskGuardrailRaiseAtPct": 99,
+        "riskGuardrailMovePct": 100,
+        "riskGuardrailRaiseCapPct": 0,
         "wrGuardrailBandPct": 20,
         "wrGuardrailCutPct": 10,
         "wrGuardrailRaisePct": 10,
@@ -6128,10 +6212,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 486
+        "oddsVersion": 487
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-03T16:32:51.508Z",
+      "savedAt": "2026-11-03T20:37:40.514Z",
       "tag": "demo"
     }
   ],

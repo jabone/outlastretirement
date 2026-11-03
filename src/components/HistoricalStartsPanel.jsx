@@ -257,7 +257,13 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
           {mine.essentialsTouchedStarts > 0 && ` In ${mine.essentialsTouchedStarts} of those starts it dipped into spending you marked essential.`}
         </p>
       )}
-      <SafeMaxLine data={data} guarded={guarded} />
+      <SafeMaxLine data={data} guarded={guarded && data.safeMax?.rule !== 'fixed'} />
+      {mine.key === 'risk' && data.safeMax && (
+        <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: 0 }}>
+          That figure holds your spending fixed. With risk-based guardrails on, your spending is set each year from the
+          chance of lasting instead, so there is no single most-you-could-spend under them.
+        </p>
+      )}
       <TextbookTest data={data} />
       {credit}
       <PremiumMount

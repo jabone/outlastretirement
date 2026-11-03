@@ -57,6 +57,9 @@ export const YEAR_LEDGER_CSV_HEADERS = [
   // account's return that year (blank with one mix). Appended for the
   // same reason.
   'Stock Share % (all accounts)', 'PreTax Return %', 'Roth Return %', 'Taxable Return %', 'HSA Return %',
+  // Risk-based guardrails (What's New 487): the chance of lasting going
+  // into the year and what the rule did (blank when it is off).
+  'Chance of Lasting %', 'Risk Guardrail',
 ];
 
 const pct2 = (v) => (Number.isFinite(v) ? Math.round(v * 100) / 100 : '');
@@ -119,6 +122,8 @@ export function buildYearLedgerCsvRows(projection) {
     pct2(y.accountReturns?.roth),
     pct2(y.accountReturns?.taxable),
     pct2(y.accountReturns?.hsa),
+    Number.isFinite(y.riskGuardrailChance) ? Math.round(y.riskGuardrailChance * 1000) / 10 : '',
+    y.riskGuardrailAction ?? '',
   ]);
 }
 
