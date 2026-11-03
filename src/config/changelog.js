@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 481,
+    date: '2026-11-02',
+    title: 'A shorter answer to Will It Last?',
+    summary: 'The Dashboard card now gives a one-line answer, with what it means, what it assumes and what it leaves out one tap away.',
+    items: [
+      "**One line on the card.** Will It Last? now says its answer and the two numbers behind it, for example \u201cLasts in 52% of simulated markets and 65 of 75 real retirements since 1928.\u201d A plan that runs short even with average returns says the year.",
+      "**The rest in What this means.** The full explanation, the plain-words version, the return it assumes, the Social Security trust-fund case and what is not tested open in a window. When a Social Security cut would leave the plan short, the card says so in one line.",
+    ],
+  },
+  {
     id: 480,
     date: '2026-11-02',
     title: 'Your return now comes from your stock and bond mix',

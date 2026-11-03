@@ -2027,6 +2027,7 @@ export default function App() {
   // Changelog 480: the return the verdict rests on, after inflation and
   // fees, beside what the same mix earned since 1928.
   const returnAssumption = useMemo(() => returnAssumptionSentence(inputs), [inputs]);
+  const [verdictDetailsOpen, setVerdictDetailsOpen] = useState(false);
   const statusVerdict = useMemo(() => (samplePlan ? sampleStatus(inputs) : verdict), [samplePlan, inputs, verdict]);
 
   // The Monte Carlo in the display basis (utils/displayDollars.js). The
@@ -2323,28 +2324,45 @@ export default function App() {
               {verdict.tone === 'risk' && <XCircle size={20} aria-hidden="true" />}
               <span>{verdict.label}</span>
             </span>
-            <span className="kpi-subtext" data-testid="success-odds" aria-live="polite" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.35 }}>
-              {verdict.detail}
+            {/* Changelog 481: one line on the card; the rest of the verdict
+                -- what it means, what it assumes, what it leaves out --
+                opens on request. */}
+            <span className="kpi-subtext" data-testid="success-odds" aria-live="polite" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
+              {verdict.short || verdict.detail}
             </span>
-            {verdict.plain && (
-              <span data-testid="verdict-plain" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '6px', lineHeight: 1.45 }}>
-                {verdict.plain}
+            {trustFund && trustFund.runsShort && (
+              <span data-testid="trust-fund-flag" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--warning)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
+                A Social Security cut would leave it short.
               </span>
             )}
-            {returnAssumption && (
-              <span data-testid="verdict-assumes" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
-                {returnAssumption}
-              </span>
-            )}
-            {trustFund && (
-              <span data-testid="trust-fund-line" style={{ fontSize: 'var(--fs-2xs)', color: trustFund.runsShort ? 'var(--warning)' : 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
-                {trustFund.sentence}
-              </span>
-            )}
-            {untestedSentence && (
-              <span data-testid="untested-risks" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
-                {untestedSentence} Each can be turned on under Plan.
-              </span>
+            <button type="button" data-testid="verdict-details-open" onClick={() => setVerdictDetailsOpen(true)}
+              style={{ background: 'none', border: 'none', padding: 0, marginTop: '6px', color: 'var(--accent-text)', cursor: 'pointer', font: 'inherit', fontSize: 'var(--fs-xs)', textDecoration: 'underline', alignSelf: 'flex-start', textAlign: 'left' }}>
+              What this means
+            </button>
+            {verdictDetailsOpen && (
+              <ModalShell onClose={() => setVerdictDetailsOpen(false)} labelledBy="verdict-details-title" zIndex={1300} style={{ maxWidth: '560px', width: '100%' }}>
+                <div data-testid="verdict-details" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h2 id="verdict-details-title" style={{ fontSize: '18px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: verdictColor(verdict.tone) }}>
+                    Will it last? {verdict.label}
+                  </h2>
+                  <p style={{ margin: 0, fontSize: 'var(--fs-body)', lineHeight: 1.5 }}>{verdict.detail}</p>
+                  {verdict.plain && (
+                    <p data-testid="verdict-plain" style={{ margin: 0, fontSize: 'var(--fs-body)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{verdict.plain}</p>
+                  )}
+                  {returnAssumption && (
+                    <p data-testid="verdict-assumes" style={{ margin: 0, fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{returnAssumption}</p>
+                  )}
+                  {trustFund && (
+                    <p data-testid="trust-fund-line" style={{ margin: 0, fontSize: 'var(--fs-sm)', color: trustFund.runsShort ? 'var(--warning)' : 'var(--text-secondary)', lineHeight: 1.5 }}>{trustFund.sentence}</p>
+                  )}
+                  {untestedSentence && (
+                    <p data-testid="untested-risks" style={{ margin: 0, fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{untestedSentence} Each can be turned on under Plan.</p>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                    <button type="button" className="btn-primary" onClick={() => setVerdictDetailsOpen(false)} style={{ padding: '6px 16px' }}>Close</button>
+                  </div>
+                </div>
+              </ModalShell>
             )}
           </div>
         </section>

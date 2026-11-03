@@ -93,7 +93,31 @@ function plainHistory(h, label) {
   return `In plain words: with steady average returns your money lasts. Started in each year since ${h.firstStart}, with the markets that really followed, it fell short ${ranOut} ${ranOut === 1 ? 'time' : 'times'} in ${h.count}. \u201c${label}\u201d means a bad stretch of markets could leave you short.`;
 }
 
-export function planVerdict({ isSuccessful, years = [], mc = { status: 'none' }, mcPending = false, history = null, floor = 0, floorBreachYear = null }) {
+// The card's one-line answer (changelog 481): the label says how it looks,
+// this says the two numbers behind it, and the rest of the verdict opens on
+// request. Null when the detail is already that short.
+function shortLine({ isSuccessful, years = [], mc = { status: 'none' }, history = null }) {
+  const fresh = mc && mc.status === 'fresh' && Number.isFinite(mc.successProbability);
+  const h = history && history.count > 0 && Number.isFinite(history.lasted) ? history : null;
+  const real = h ? `${h.lasted} of ${h.count} real retirements since ${h.firstStart}` : null;
+  if (!isSuccessful) {
+    const short = firstShortfallRow(years);
+    return `Even with average returns, the money runs out${short ? ` in ${short.year}` : ''}.`;
+  }
+  if (fresh) {
+    const sim = `${verdictPctText(mc.successProbability)}% of simulated markets`;
+    return real ? `Lasts in ${sim} and ${real}.` : `Lasts in ${sim}.`;
+  }
+  if (real) return `Lasts in ${real}.`;
+  return null;
+}
+
+export function planVerdict(args) {
+  const v = planVerdictFull(args);
+  return { ...v, short: shortLine(args) };
+}
+
+function planVerdictFull({ isSuccessful, years = [], mc = { status: 'none' }, mcPending = false, history = null, floor = 0, floorBreachYear = null }) {
   const keep = floorPhrase(floor);
   // With average returns the money lasts, but it may still dip below the
   // floor; say so rather than let "Lasts" stand alone (changelog 448).
