@@ -128,3 +128,16 @@ describe('HistoricalStartsPanel — the most you could spend (changelog 358)', (
     expect(screen.queryByTestId('historical-safemax')).toBeNull();
   });
 });
+
+describe('HistoricalStartsPanel: the textbook test', () => {
+  it('runs the plan\'s balance and spending with nothing else, on a click', () => {
+    render(<HistoricalStartsPanel data={{ ...data('fixed'), stockShare: 60, glide: false }} onOpenPremium={() => {}} />, false);
+    expect(screen.queryByTestId('textbook-test')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Compare with the textbook test' }));
+    const t = screen.getByTestId('textbook-test').textContent;
+    expect(t).toMatch(/The textbook test:/);
+    expect(t).toMatch(/lasts in \d+ of \d+ starts since 1928/);
+    expect(t).toMatch(/your plan, as set, lasts in 50/);
+    expect(t).toMatch(/No taxes, Social Security, pensions, Medicare or fees/);
+  });
+});

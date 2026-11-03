@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 486,
+    date: '2026-11-03',
+    title: 'Compare with the textbook test',
+    summary: 'Every retirement since 1928 now has a one-click textbook test: your balance and spending with no taxes, Social Security or fees, the way FI Calc and the 4% rule run it.',
+    items: [
+      "**The textbook test.** Under Every retirement since 1928 on Risk & Stress, Compare with the textbook test runs your balance and lifestyle spending when you retire through the same real starts with nothing else: no taxes, Social Security, pensions, Medicare or fees. Spending is taken at the start of each year and raised by the previous year\u2019s inflation, as FI Calc and FIRECalc do, so the same inputs there should land close. It shows how many starts last, the years that run out and the most you could spend in every one. The gap with your plan\u2019s own count is what taxes, benefits and costs do to it.",
+      "**Which years the bootstrap uses.** The Monte Carlo\u2019s historical bootstrap samples real years from 1928 on, even when your history checks reach back to 1871; it now says so.",
+      "**Using your plan on another device.** Preferences \u2192 Your Data now explains how: there is no account and no sync on purpose, so an Encrypted Backup restored on the other device is how a plan moves.",
+    ],
+  },
+  {
     id: 485,
     date: '2026-11-03',
     title: 'Where should my bonds go? now starts from your plan as it is',

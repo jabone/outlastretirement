@@ -644,6 +644,19 @@ const PreferencesTab = () => {
             </div>
           )}
 
+          {/* Local-only, said as the feature it is (DIY-planner review,
+              2026-11-02): no account and no sync service means the backup
+              file is how a plan moves between devices. */}
+          <div data-testid="another-device" style={{ padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: 'var(--bg-secondary)' }}>
+            <div style={{ fontWeight: 600, marginBottom: '4px' }}>Using your plan on another device</div>
+            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+              There is no account and no sync service, on purpose: your plan never leaves your devices unless you move it.
+              To use it on a phone or another computer, make an <strong>Encrypted Backup</strong> below, put it in your
+              cloud folder or email it to yourself, then open the app on the other device and choose <strong>Restore
+              Backup</strong>. Do the same in the other direction after changes there; the newer file is the one to keep.
+            </p>
+          </div>
+
           <button
             type="button"
             className="btn-outline"

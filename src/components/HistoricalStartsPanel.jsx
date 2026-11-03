@@ -13,7 +13,11 @@
 // Changelog 358: the most the plan could spend and still last through every
 // start (its own SAFEMAX) is free; the same figure for 95% and 90% of
 // starts is Premium.
-import React from 'react';
+import React, { useContext, useState } from 'react';
+import SimulationContext from '../context/SimulationContext';
+import { runTextbookTest } from '../utils/textbookTest';
+import { runProjection } from '../calculator';
+import { yearFactor } from '../utils/displayDollars';
 import { Lock, History, Loader2 } from 'lucide-react';
 import { RULE_LABELS, historicalHeadline, safeMaxHeadline, safeMaxMoney, safeMaxPct, SAFEMAX_CEILING } from '../utils/historicalStarts';
 import PremiumMount from '../premium/PremiumMount';
@@ -64,6 +68,80 @@ function SafeMaxLine({ data, guarded }) {
         plan also pays tax, Medicare and fees, which they leave out.
       </span>
     </p>
+  );
+}
+
+// The textbook test (DIY-planner review, finding 5): the plan's balance and
+// spending at retirement through the same starts with nothing else -- no
+// taxes, Social Security, Medicare or fees -- the way FI Calc and the 4%
+// rule research run it. Free, like the plan's own count. Computed on click
+// (a few thousand simple steps), from the plan's first retired year.
+function TextbookTest({ data }) {
+  const sim = useContext(SimulationContext);
+  const [result, setResult] = useState(null);
+  if (!sim || !sim.inputs || !data || !data.horizonYears) return null;
+  const inputs = sim.inputs;
+  // The plan itself, not whatever stress scenario is on the chart: its
+  // invested balance at the start of the first retired year, and its
+  // lifestyle spending (the figure the most-you-could-spend line uses),
+  // both in today's dollars.
+  const run = () => {
+    const years = runProjection({ ...inputs, stressType: 'none' }).years || [];
+    const first = years.find((y) => y.isRetired);
+    if (!first) return { none: true };
+    const f = yearFactor(first) || 1;
+    const balance = ((first.preTaxStart || 0) + (first.rothStart || 0) + (first.taxableStart || 0) + (first.hsaStart || 0)) / f;
+    const spending = Math.max(0, Number(inputs.lifestyleExpense) || 0);
+    const r = runTextbookTest({
+      balance,
+      spending,
+      years: data.horizonYears,
+      firstYear: data.firstStart,
+      stockShare: data.stockShare,
+      glideEnabled: !!data.glide,
+      glideRate: inputs.glideAllocationRate,
+      glideFloor: inputs.glideAllocationFloor,
+    });
+    return r ? { ...r, balance, spending } : { none: true };
+  };
+  const money = (v) => `$${Math.round(v).toLocaleString('en-US')}`;
+  const pctRate = (r) => `${(Math.round(r * 1000) / 10).toFixed(1)}%`;
+  const fixed = (data.rules || []).find((r) => r.key === 'fixed');
+  if (!result) {
+    return (
+      <div>
+        <button type="button" className="btn-outline" style={{ padding: '4px 10px', fontSize: 'var(--fs-xs)' }} onClick={() => setResult(run())}>
+          Compare with the textbook test
+        </button>
+        <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginLeft: '8px' }}>
+          Your balance and spending with nothing else, the way FI Calc and the 4% rule run it.
+        </span>
+      </div>
+    );
+  }
+  if (result.none) return null;
+  return (
+    <div data-testid="textbook-test" style={{ padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+      <p style={{ fontSize: 'var(--fs-body)', margin: 0 }}>
+        <strong>The textbook test:</strong> {money(result.balance)} when you retire, spending {money(result.spending)} a year
+        ({pctRate(result.rate)} of it) rising with inflation, for {data.horizonYears} years at {Math.round(data.stockShare)}% stocks
+        {data.glide ? ', moving toward bonds as your plan does' : ''}. It lasts in <strong>{result.lasted} of {result.count}</strong> starts
+        since {result.firstStart}{fixed ? <>; your plan, as set, lasts in {fixed.lasted}</> : null}. The most it could spend and
+        last through every start: <strong>{money(result.safeMax)} a year</strong>, {pctRate(result.safeMaxRate)} of the balance.
+      </p>
+      {result.failed.length > 0 && (
+        <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: '6px 0 0' }}>
+          Runs out starting in {result.failed.map((x) => x.start).join(', ')}.
+        </p>
+      )}
+      <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: '6px 0 0' }}>
+        No taxes, Social Security, pensions, Medicare or fees; spending is taken at the start of each year and raised by
+        the previous year&rsquo;s inflation, as FI Calc and FIRECalc do, so the same inputs there should land close (their
+        bond data differ a little). The spending is your plan&rsquo;s lifestyle spending in today&rsquo;s dollars, as in the most-you-could-spend line above. The gap with
+        your plan&rsquo;s own count is what taxes, benefits and costs do to it.
+      </p>
+      <button type="button" style={{ ...linkButton, fontSize: 'var(--fs-xs)', marginTop: '6px' }} onClick={() => setResult(null)}>Hide</button>
+    </div>
   );
 }
 
@@ -180,6 +258,7 @@ export default function HistoricalStartsPanel({ data, loading, onOpenPremium, on
         </p>
       )}
       <SafeMaxLine data={data} guarded={guarded} />
+      <TextbookTest data={data} />
       {credit}
       <PremiumMount
         id="historicalStarts"

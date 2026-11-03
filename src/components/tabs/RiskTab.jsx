@@ -590,7 +590,7 @@ const RiskTab = () => {
                       Reshuffle
                     </button>
                     <span>&middot; {inputs.mcReturnModel === 'bootstrap'
-                      ? `returns bootstrapped from ${(inputs.mcBootstrapBlockYears ?? 5)}-year blocks of real years, each with its own inflation${inputs.mcBootstrapCenter === 'history' ? ', as history' : ', re-centered on your assumptions'}`
+                      ? `returns bootstrapped from ${(inputs.mcBootstrapBlockYears ?? 5)}-year blocks of real years from 1928 on, each with its own inflation${inputs.mcBootstrapCenter === 'history' ? ', as history' : ', re-centered on your assumptions'}${Number(inputs.historyFromYear) === PRE1928_FIRST_YEAR ? ' (the years from 1871 are used by the historical starts only: they are measured differently, January to January with a reconstructed bond series, so the simulation does not mix them in)' : ''}`
                       : `returns drawn lognormal around your stated compound rate${inputs.mcInflationEnabled ? ', inflation sampled with them' : ''}`}{inputs.mcLongevityEnabled ? ', lifespans drawn from the SSA life table' : ''}{inputs.mcLtcEnabled ? ', long-term care drawn as a risk' : ''}</span>
                   </p>
                 </div>
