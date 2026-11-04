@@ -77,6 +77,7 @@ function seedEveryPlanKey() {
     retire_plan_interview_progress: { current: 'income', visited: ['household', 'income'] },
     cfe_estate_checklist_v1: { will: { done: true, completedAt: '2026-03-01' } },
     retire_plan_answers_v1: { maximize: 'Time with the grandkids', protect: 'The house', giveUp: 'A second car' },
+    cfe_survivor_notes_v1: { from1: { text: 'Call Dana first.\nKeep the house a year.', updatedAt: '2026-11-04' } },
     cfe_life_plan_v1: { ordinaryTuesday: { text: 'Walk the dog, then the workshop.', updatedAt: '2026-09-01', history: [{ text: 'Sleep in.', date: '2026-08-01' }] } },
     retire_plan_annual_review_v1: { 2026: { done: { balances: '2026-01-10T00:00:00.000Z' }, completedAt: null } },
     cfe_reconciliations_v1: { '2026-Q3': { Brokerage: { at: '2026-10-05T15:00:00.000Z' } } },

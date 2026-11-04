@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import EstateChecklist from '../EstateChecklist';
+import SurvivorGuidePanel from '../SurvivorGuidePanel';
 import EstateHeirsSection from '../plan/sections/EstateHeirsSection';
 import { useSimulation } from '../../context/useSimulation';
 import { getBracketFilling, STATE_ESTATE_INHERITANCE_TAX_TABLE } from '../../calculator';
@@ -113,13 +114,22 @@ const TaxEstateTab = () => {
   const [selectedHeirId, setSelectedHeirId] = useState(heirs[0].id);
   const selectedHeir = heirs.find(h => h.id === selectedHeirId) || heirs[0];
   const selectedHeirResult = (heirTaxResults.perHeir || []).find(h => h.id === selectedHeir.id) || heirTaxResults.perHeir?.[0];
+  // On a phone the sub-tab bar scrolls sideways; keep the open one in view
+  // (the Survivor's Guide is the last, and was off-screen when opened from a
+  // link).
+  const subTabBar = useRef(null);
+  useEffect(() => {
+    const el = subTabBar.current?.querySelector('.sub-tab-button.active');
+    try { el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); } catch { /* older browsers */ }
+  }, [taxestateSubTab]);
   return (
     <>
           <ForeignYearsNotice inputs={inputs} />
-          <div className="sub-tab-container">
+          <div className="sub-tab-container" ref={subTabBar}>
             <button className={`sub-tab-button ${taxestateSubTab === 'brackets' ? 'active' : ''}`} onClick={() => setTaxestateSubTab('brackets')}>Tax Brackets Visualizer</button>
             <button className={`sub-tab-button ${taxestateSubTab === 'estate' ? 'active' : ''}`} onClick={() => setTaxestateSubTab('estate')}>Estate Legacy Planner</button>
             <button className={`sub-tab-button ${taxestateSubTab === 'checklist' ? 'active' : ''}`} onClick={() => setTaxestateSubTab('checklist')}>Documents Checklist</button>
+            <button className={`sub-tab-button ${taxestateSubTab === 'survivor' ? 'active' : ''}`} onClick={() => setTaxestateSubTab('survivor')}>Survivor&rsquo;s Guide</button>
           </div>
           {taxestateSubTab === 'brackets' && (
           <div 
@@ -1020,6 +1030,10 @@ const TaxEstateTab = () => {
 
           {taxestateSubTab === 'checklist' && (
             <EstateChecklist />
+          )}
+
+          {taxestateSubTab === 'survivor' && (
+            <SurvivorGuidePanel />
           )}
     </>
   );

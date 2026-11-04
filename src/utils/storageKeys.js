@@ -28,6 +28,7 @@ export const PLAN_KEYS = Object.freeze([
   'cfe_estate_checklist_v1',
   'cfe_life_plan_v1',
   'retire_plan_answers_v1',
+  'cfe_survivor_notes_v1',
   'retire_plan_annual_review_v1',
   'cfe_reconciliations_v1',
   'cfe_data_freshness_v1',
@@ -49,6 +50,7 @@ export const WATCHED_PLAN_KEYS = Object.freeze([
   'cfe_estate_checklist_v1',
   'cfe_life_plan_v1',
   'retire_plan_answers_v1',
+  'cfe_survivor_notes_v1',
   'retire_plan_annual_review_v1',
   'cfe_reconciliations_v1',
 ]);

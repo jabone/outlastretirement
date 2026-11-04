@@ -64,7 +64,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'reverseMortgageForwardPayoff',
     // Concentrated-stock sale proceeds spent on the year's bills (E25).
     'concentratedStockProceedsSpent',
-    'milestoneInflow', 'lifeInsurancePayoutToSurvivor', 'dividendCash',
+    'milestoneInflow', 'lifeInsurancePayoutToSurvivor', 'survivorBenefitIncome', 'survivorBenefitLump', 'dividendCash',
     // The cost-basis change at the first death (changelog 360).
     'firstDeathBasisChange',
     // Spending, costs and taxes

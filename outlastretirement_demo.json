@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-11-04T04:55:39.350Z",
+  "timestamp": "2026-11-04T15:47:05.460Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -181,6 +181,7 @@
     "survivorExpenseDropInPlan": false,
     "survivorStartAge1": 0,
     "survivorStartAge2": 0,
+    "survivorBenefits": [],
     "preTaxContribution1": 24000,
     "preTaxContribution2": 3000,
     "rothContribution1": 8000,
@@ -693,6 +694,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -1028,10 +1030,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.376Z",
+      "savedAt": "2026-11-04T15:47:05.496Z",
       "tag": "demo"
     },
     {
@@ -1215,6 +1217,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -1550,10 +1553,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.379Z",
+      "savedAt": "2026-11-04T15:47:05.508Z",
       "tag": "demo"
     },
     {
@@ -1737,6 +1740,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -2072,10 +2076,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.388Z",
+      "savedAt": "2026-11-04T15:47:05.528Z",
       "tag": "demo"
     },
     {
@@ -2259,6 +2263,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -2594,10 +2599,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.420Z",
+      "savedAt": "2026-11-04T15:47:05.565Z",
       "tag": "demo"
     },
     {
@@ -2781,6 +2786,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -3116,10 +3122,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.434Z",
+      "savedAt": "2026-11-04T15:47:05.606Z",
       "tag": "demo"
     },
     {
@@ -3303,6 +3309,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -3638,10 +3645,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.445Z",
+      "savedAt": "2026-11-04T15:47:05.613Z",
       "tag": "demo"
     },
     {
@@ -3825,6 +3832,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -4160,10 +4168,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.451Z",
+      "savedAt": "2026-11-04T15:47:05.621Z",
       "tag": "demo"
     },
     {
@@ -4347,6 +4355,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -4682,10 +4691,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.462Z",
+      "savedAt": "2026-11-04T15:47:05.632Z",
       "tag": "demo"
     },
     {
@@ -4869,6 +4878,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -5204,10 +5214,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.474Z",
+      "savedAt": "2026-11-04T15:47:05.657Z",
       "tag": "demo"
     },
     {
@@ -5391,6 +5401,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -5726,10 +5737,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.496Z",
+      "savedAt": "2026-11-04T15:47:05.676Z",
       "tag": "demo"
     },
     {
@@ -5913,6 +5924,7 @@
         "survivorExpenseDropInPlan": false,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
+        "survivorBenefits": [],
         "preTaxContribution1": 24000,
         "preTaxContribution2": 3000,
         "rothContribution1": 8000,
@@ -6248,10 +6260,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 491
+        "oddsVersion": 493
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-04T04:55:39.509Z",
+      "savedAt": "2026-11-04T15:47:05.711Z",
       "tag": "demo"
     }
   ],

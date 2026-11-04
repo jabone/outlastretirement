@@ -26,6 +26,8 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-11-02',
     headline: 'When a survivor starts Social Security, and Medicare and HSA rules a benefits counselor would check',
     bullets: [
+      { title: 'A Survivor\u2019s Guide for the spouse who carries the plan on', ids: [493, 492],
+        text: 'Tax & Estate prints a guide for each of you, written as if the other died this year: what the plan spends and how long it lasts, the income that continues, the first steps and who to call, where the money is kept, how to open the plan in the app, and each year\u2019s spending and which accounts to take it from, in today\u2019s dollars, with a note from you at the top. Benefits such as an employer\u2019s survivor income or group life insurance can be added and counted in the plan. The printed report now also carries your Risk & Stress notes.' },
       { title: 'When a widow or widower starts the survivor benefit', ids: [478],
         text: 'Each of you now has a survivor benefit start age under Plan \u2192 Income \u2192 Social Security, as soon as possible unless you choose a later one. Compare start ages for this plan runs your plan once for each age and shows the yearly check, the savings left at the end, any years the money runs short and when waiting pays back, and marks the best age for your plan.' },
       { title: 'A stock and bond mix for each account', ids: [485, 484, 483],

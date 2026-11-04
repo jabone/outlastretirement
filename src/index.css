@@ -2389,6 +2389,26 @@ select.form-input,
   .section-print .reconcile-write { width: 17%; border-bottom: 0.5pt solid #999; }
   .section-print .reconcile-totals { margin-top: 10pt; width: 70%; break-inside: avoid; page-break-inside: avoid; }
 
+  /* The Survivor's Guide (What's New 492): one guide per spouse, each on
+     its own sheets; the year table is wide, so it prints smaller. */
+  body[data-print-section="survivor"] .section-print[data-section="survivor"] {
+    display: block !important;
+    color: black;
+    background: white;
+    font-size: 10.5pt;
+    line-height: 1.35;
+    padding: 0 20px;
+  }
+  .section-print .survivor-years th,
+  .section-print .survivor-years td { font-size: 7.5pt; padding: 2pt 3pt; }
+  .section-print .survivor-years th { white-space: normal; text-align: right; }
+  .section-print .survivor-years th:first-child { text-align: left; }
+  .section-print .survivor-years thead { display: table-header-group; }
+  .section-print .survivor-glossary { break-inside: avoid-page; page-break-inside: avoid; }
+  .section-print .survivor-step-title { font-size: 10pt; margin: 8pt 0 2pt; color: black; }
+  .section-print .survivor-years td:nth-child(8) { white-space: nowrap; text-align: left; }
+  .section-print .survivor-years th:nth-child(8) { text-align: left; }
+
   body[data-print-section="spending"] .section-print[data-section="spending"] {
     display: block !important;
     color: black;

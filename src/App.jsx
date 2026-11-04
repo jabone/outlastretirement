@@ -54,6 +54,7 @@ import { FOCUS_EVENT as FIND_SETTING_FOCUS } from './components/findSettingEvent
 import { compactDollars } from './utils/compactDollars';
 import PrintPacketLoader from './components/PrintPacketLoader';
 import PrintFrame from './components/PrintFrame';
+import PrintRiskNotes from './components/PrintRiskNotes';
 import { printInputsFor, heirLabel, maskNamesInText } from './utils/printNames';
 import BrandMark from './components/BrandMark';
 import MigrationNotice from './components/MigrationNotice';
@@ -4277,6 +4278,10 @@ export default function App() {
             </tbody>
           </table>
         </div>
+
+        {/* The Risk & Stress page's own notes, for the paper trail (What's
+            New 492). */}
+        <PrintRiskNotes inputs={printInputs} feeData={feeComparisonData} historicalData={historicalStartsData} />
 
         {/* Planned Milestones & Special Events -- called out as its own
             scannable table (rather than folded only into the Action Plan

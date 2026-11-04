@@ -53,7 +53,7 @@ export const ROUTES = {
   },
   taxestate: {
     subTabKey: 'taxestateSubTab',
-    subTabs: ['brackets', 'estate', 'checklist'],
+    subTabs: ['brackets', 'estate', 'checklist', 'survivor'],
     defaultSubTab: 'brackets',
   },
   scenarios: { subTabKey: null, subTabs: [], defaultSubTab: null },

@@ -1140,6 +1140,19 @@ export const DEFAULT_INPUTS = {
   // once. See utils/survivorStart.js for the comparison that picks one.
   survivorStartAge1: 0,
   survivorStartAge2: 0,
+  // Benefits a survivor receives beyond Social Security, pensions and owned
+  // life insurance (What's New 493): an employer's survivor income (some pay
+  // a share of salary for years when an employee dies while working there),
+  // group life insurance through work, a union or association death benefit.
+  // Each { id, whose (1|2: the spouse whose death pays it), name, kind
+  // ('yearly' | 'once'), amount (today's dollars), years (yearly only),
+  // whileWorking (paid only if that spouse dies before their retirement
+  // age), indexed (a yearly amount rises with inflation after the death;
+  // otherwise it stays at the death year's dollars), taxed (ordinary income;
+  // a once-off amount defaults untaxed, like group life insurance), counted
+  // (in the projection; off keeps it on the Survivor's Guide only), contact,
+  // details }. Paid from the year after the death, to the survivor.
+  survivorBenefits: [],
 
   // Savings / Contributions (annual limits). Pre-Tax and Roth are tracked
   // per spouse (preTaxContribution1/2, rothContribution1/2) since two
@@ -7140,7 +7153,7 @@ export function sanitizeInputs(inputs) {
   // Lists: anything that is not a list becomes the default; entries of a
   // list of records that are not records are dropped, and a life event's
   // figures are parsed the way a typed field is.
-  for (const key of ['milestones', 'rsuGrants', 'heirs', 'residencyTimeline']) {
+  for (const key of ['milestones', 'rsuGrants', 'heirs', 'residencyTimeline', 'survivorBenefits']) {
     const list = Array.isArray(clean[key]) ? clean[key] : defaults[key];
     clean[key] = list.filter((e) => e !== null && typeof e === 'object' && !Array.isArray(e));
   }
@@ -7166,9 +7179,37 @@ export function sanitizeInputs(inputs) {
     }
     return out;
   });
+  clean.survivorBenefits = clean.survivorBenefits.map(sanitizeSurvivorBenefit);
   Object.defineProperty(clean, 'invalidInputs', { value: invalid, enumerable: false });
 
   return clean;
+}
+
+// One survivor benefit (see DEFAULT_INPUTS.survivorBenefits), its figures
+// parsed the way a typed field is and its words kept short.
+const text = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
+export function sanitizeSurvivorBenefit(b, index = 0) {
+  const num = (v) => {
+    const x = typeof v === 'string' ? parseMoneyString(v) : Number(v);
+    return Number.isFinite(x) && x > 0 ? x : 0;
+  };
+  const kind = b.kind === 'once' ? 'once' : 'yearly';
+  return {
+    // A stable stand-in for a benefit saved without an id, so each pass gives
+    // it the same one (a random one would change the plan on every load).
+    id: typeof b.id === 'string' || Number.isFinite(b.id) ? b.id : `sb-${index}`,
+    whose: Number(b.whose) === 2 ? 2 : 1,
+    name: text(b.name, 120),
+    kind,
+    amount: num(b.amount),
+    years: Math.min(60, Math.max(1, Math.round(num(b.years) || 1))),
+    whileWorking: Boolean(b.whileWorking),
+    indexed: Boolean(b.indexed),
+    taxed: b.taxed === undefined ? kind === 'yearly' : Boolean(b.taxed),
+    counted: b.counted === undefined ? true : Boolean(b.counted),
+    contact: text(b.contact, 200),
+    details: text(b.details, 1000),
+  };
 }
 
 // "5,000", "$5,000", " 5000 " -> 5000; anything else -> NaN.
@@ -7991,6 +8032,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // A policy on the second-to-die (or on a single planner) still pays at
   // plan end through the estate calculation, unchanged.
   let lifeInsurancePaidOut1 = false;
+  // The year, age and price level at each spouse's death, for the survivor
+  // benefits (What's New 493).
+  const survivorBenefitDeath = { 1: null, 2: null };
   // The basis reset at the first death happens once (changelog 360).
   let firstDeathBasisResetDone = false;
   let firstDeathBasisResetShareApplied = null;
@@ -9334,6 +9378,42 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       lifeInsuranceCashValue2 = 0;
       lifeInsuranceLoanBalance2 = 0;
     }
+    // Survivor benefits (What's New 493): from the first year a spouse is
+    // gone while the other lives, each benefit on that spouse's death pays
+    // the survivor -- a once-off amount into Taxable at full basis (like the
+    // life insurance above), a yearly one as income for its years. A
+    // while-working benefit pays only if the death came before that
+    // spouse's retirement age. Amounts are today's dollars, priced at the
+    // death year and level after it unless indexed.
+    let survivorBenefitIncome = 0;
+    let survivorBenefitLump = 0;
+    let survivorBenefitTaxed = 0;
+    if (inputs.survivorBenefits.length > 0 && inputs.spouse2Enabled) {
+      for (const n of [1, 2]) {
+        const gone = n === 1 ? !spouse1Alive : !spouse2Alive;
+        if (gone && survivorBenefitDeath[n] === null) {
+          survivorBenefitDeath[n] = { year, age: (n === 1 ? age1 : age2) - 1, infl: inflFactor };
+        }
+      }
+      for (const b of inputs.survivorBenefits) {
+        const death = survivorBenefitDeath[b.whose];
+        const otherAlive = b.whose === 1 ? spouse2Alive : spouse1Alive;
+        if (!death || !otherAlive || !b.counted || !(b.amount > 0)) continue;
+        if (b.whileWorking && !(death.age < (b.whose === 1 ? inputs.retireAge1 : inputs.retireAge2))) continue;
+        const k = year - death.year;
+        const amt = b.amount * (b.indexed ? inflFactor : death.infl);
+        if (b.kind === 'once') {
+          if (k !== 0) continue;
+          survivorBenefitLump += amt;
+          taxable += amt;
+          taxableBasis += amt;
+          if (b.taxed) survivorBenefitTaxed += amt;
+        } else if (k < b.years) {
+          survivorBenefitIncome += amt;
+          if (b.taxed) survivorBenefitTaxed += amt;
+        }
+      }
+    }
     // Basis reset at the first death (IRC 1014; changelog 360). What the
     // spouse who died owned takes a basis equal to its market value on the
     // date of death -- a step-up, or in law a step-down if it is under water
@@ -9419,7 +9499,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // tax-free (unlike ssIncome/pension, which ARE separately taxed) but
     // still reduce how much the household needs to draw from its other
     // accounts to cover expenses, exactly like any other cash inflow.
-    const fixedInflows = ssIncome + pensionInflowThisYear + rentalAnnuity + annuityPayout + reverseMortgagePayoutThisYear;
+    const fixedInflows = ssIncome + pensionInflowThisYear + rentalAnnuity + annuityPayout + reverseMortgagePayoutThisYear + survivorBenefitIncome;
 
     // Expenses (lifestyle with inflation guardrails)
     let currentLifestyleMultiplier = 1.0;
@@ -9621,7 +9701,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // raise the next (review panel, 2026-11-03).
         const openingNominal = (prevRow ? investedEnd(prevRow)
           : (inputs.preTaxInit || 0) + (inputs.rothInit || 0) + (inputs.taxableInit || 0) + (inputs.hsaInit || 0))
-          + (lifeInsurancePayoutToSurvivor || 0);
+          + (lifeInsurancePayoutToSurvivor || 0) + survivorBenefitLump;
         const opening = openingNominal / (priceIndex || 1);
         const pct = (v, d) => Math.min(100, Math.max(0, Number.isFinite(Number(v)) ? Number(v) : d)) / 100;
         const target = pct(inputs.riskGuardrailTargetPct, 80);
@@ -10208,7 +10288,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let milestoneOutflowRoth = 0;
     let milestoneOutflowTaxable = 0;
     let milestoneOutflowExternal = 0;
-    let taxableInflowOrdinary = 0;
+    // A survivor benefit taxed as income (What's New 493) is ordinary
+    // income like a taxable life-event inflow: AGI, provisional income,
+    // ACA and IRMAA MAGI all read this one figure.
+    let taxableInflowOrdinary = survivorBenefitTaxed;
 
     if (inputs.milestones && inputs.milestones.length > 0) {
       for (const m of inputs.milestones) {
@@ -11332,7 +11415,15 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       } else {
         // Planned savings (E13): an up-front savings cut must not read as
         // extra take-home to spend, or each pass would cut again.
-        currentSpendingCost = Math.max(0, salary + fixedInflows - baseTaxes - harvestTaxSavings - (totalContributions + preCutSavings) - concentratedStockVestedInTotal);
+        // A survivor benefit (What's New 493) is not pay the household
+        // budgets from: what is left of it after its tax is saved, not
+        // spent. Its tax is taken as its share of the year's income tax --
+        // an approximation (a benefit stacks at the top bracket), close
+        // enough to keep it out of the spending residual.
+        const benefitIncomeBase = salary + fixedInflows;
+        const benefitTaxShare = survivorBenefitTaxed > 0 && benefitIncomeBase > 0 ? Math.min(1, survivorBenefitTaxed / benefitIncomeBase) : 0;
+        const benefitNet = survivorBenefitIncome > 0 ? survivorBenefitIncome - baseTaxes * benefitTaxShare : 0;
+        currentSpendingCost = Math.max(0, salary + fixedInflows - baseTaxes - harvestTaxSavings - (totalContributions + preCutSavings) - concentratedStockVestedInTotal - Math.max(0, benefitNet));
       }
     }
     // The residual, kept as its own reportable object (changelog 134). This
@@ -12792,6 +12883,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // First-death payout invested into the survivor's Taxable this year
       // (audit F-1); 0 in every other year.
       lifeInsurancePayoutToSurvivor,
+      survivorBenefitIncome,
+      survivorBenefitLump,
       taxLossHarvestedThisYear,
       harvestedGainsOffset,
       harvestedOrdinaryOffset,

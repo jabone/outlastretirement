@@ -135,6 +135,24 @@ describe('the printed page header (changelog 301)', () => {
     const sheet = screen.getByTestId('print-packet-sheet');
     expect(sheet.querySelector('.print-frame thead .print-report-header').textContent).toMatch(/For Your Planner\s*Generated:/);
   });
+
+  it('offers the Survivor\u2019s Guide for a two-person plan and prints both guides in the packet (What\u2019s New 493)', async () => {
+    render(<PrintPacket inputs={{ ...inputs, spouse2Enabled: true, spouse1Name: 'Pat', spouse2Name: 'Lee' }} formatCurrency={fc} print={vi.fn()} />);
+    await open();
+    fireEvent.click(screen.getByTestId('print-choice-survivor'));
+    fireEvent.click(screen.getByTestId('print-packet-go'));
+    await frame();
+    const sheet = screen.getByTestId('print-packet-sheet');
+    expect(sheet.querySelector('.print-frame thead .print-report-header').textContent).toMatch(/Survivor\u2019s Guide/);
+    expect(sheet.querySelector('[data-testid="survivor-guide-1"]')).not.toBeNull();
+    expect(sheet.querySelector('[data-testid="survivor-guide-2"]')).not.toBeNull();
+  });
+
+  it('does not offer the Survivor\u2019s Guide for a one-person plan', async () => {
+    render(<PrintPacket inputs={{ ...inputs, spouse2Enabled: false }} formatCurrency={fc} print={vi.fn()} />);
+    await open();
+    expect(screen.queryByTestId('print-choice-survivor')).toBeNull();
+  });
 });
 
 describe('name masking', () => {

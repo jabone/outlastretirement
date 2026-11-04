@@ -1304,6 +1304,14 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}>
+                <span style={sectionStyles.badge}>List</span><br/>
+                <strong>Other survivor benefits</strong>
+              </td>
+              <td style={sectionStyles.td}>Money a survivor receives beyond Social Security, pensions and the life insurance you own (What&rsquo;s New 493): an employer&rsquo;s survivor income (some pay a share of salary for years when an employee dies while working there), group life insurance through work, a union or association death benefit. Each names whose death pays it, a yearly amount and for how many years or a one-time amount, in today&rsquo;s dollars, whether it pays only if that spouse dies while still working (before their retirement age), whether a yearly amount rises with inflation (otherwise it stays at the death year&rsquo;s dollars), whether it is taxed as income (a yearly benefit by default; a one-time amount, like group life insurance, not), and who to contact. Counted in the plan, a yearly benefit is income from the year after the death; a one-time amount goes into Taxable at full basis and counts as savings going in for the risk-based rule. The Survivor&rsquo;s Guide prints every benefit with its contact and details; one not counted in the plan prints there only.</td>
+              <td style={sectionStyles.td}>None by default; added and edited under Tax &amp; Estate &rarr; Survivor&rsquo;s Guide; shown only when a spouse is enabled.</td>
+            </tr>
+            <tr>
+              <td style={sectionStyles.td}>
                 <span style={sectionStyles.badge}>Text Input &times; 2</span><br/>
                 <strong>Roth Contribution Basis Today / Converted to Roth in the Last 4 Years</strong>
               </td>

@@ -42,6 +42,7 @@ import { LIFE_PLAN_STORAGE_KEY, readLifePlan } from '../config/lifePlan';
 import { REVIEW_KEY } from './annualReview';
 import { RECONCILIATION_KEY, sanitizeReconciliations } from './reconciliationLog';
 import { PLAN_ANSWERS_KEY, sanitizeAnswers, hasAnswers } from './planAnswers';
+import { SURVIVOR_NOTES_KEY, sanitizeSurvivorNotes, hasSurvivorNotes } from './survivorNotes';
 
 // Every localStorage key this backup covers, and why each one does or does
 // not belong in "everything necessary to get back to a normal state":
@@ -139,6 +140,9 @@ const KEYS = {
   // The current plan's "three answers" (planAnswers.js, changelog 453):
   // words the household wrote, so they travel like the Life Plan.
   planAnswers: PLAN_ANSWERS_KEY,
+  // The notes each spouse wrote for the Survivor's Guide (survivorNotes.js,
+  // What's New 492): their own words, so they travel like the Life Plan.
+  survivorNotes: SURVIVOR_NOTES_KEY,
   // The annual review's per-plan-year "done" ticks (annualReview.js).
   annualReview: REVIEW_KEY,
   // Which accounts the person marked reconciled, for which periods
@@ -210,6 +214,7 @@ export function buildFullBackupPayload(options = {}) {
     estateChecklist: readJSON(KEYS.estateChecklist, null),
     lifePlan: readJSON(KEYS.lifePlan, null),
     planAnswers: readJSON(KEYS.planAnswers, null),
+    survivorNotes: readJSON(KEYS.survivorNotes, null),
     annualReview: readJSON(KEYS.annualReview, null),
     reconciliations: readJSON(KEYS.reconciliations, null),
     pricingSource: loadPricingSource(),
@@ -249,6 +254,7 @@ export function summarizeBackupPayload(payload) {
   const lifePlanAnswers = Object.values(sanitizeLifePlan(payload.lifePlan)).filter((e) => e.text).length;
   if (lifePlanAnswers > 0) parts.push(`${lifePlanAnswers} Life Plan answer${lifePlanAnswers === 1 ? '' : 's'}`);
   if (hasAnswers(payload.planAnswers)) parts.push('your three answers');
+  if (hasSurvivorNotes(payload.survivorNotes)) parts.push('your notes for the Survivor’s Guide');
   if (Object.keys(sanitizeAnnualReview(payload.annualReview)).length > 0) parts.push('your annual review record');
   if (Object.keys(sanitizeReconciliations(payload.reconciliations)).length > 0) parts.push('your statement reconciliation record');
   // Always named explicitly, never folded silently into "your active plan"
@@ -682,6 +688,13 @@ export function stageFullBackup(parsed, options = {}) {
       const answers = sanitizeAnswers(parsed.planAnswers);
       writes.push([KEYS.planAnswers, JSON.stringify(answers)]);
       if (Object.keys(answers).length > 0) restored.push('your three answers');
+    }
+    // A backup from before What's New 492 has no survivorNotes: this
+    // browser's notes are left as they are.
+    if (isPlainObject(parsed.survivorNotes)) {
+      const notes = sanitizeSurvivorNotes(parsed.survivorNotes);
+      writes.push([KEYS.survivorNotes, JSON.stringify(notes)]);
+      if (Object.keys(notes).length > 0) restored.push('your notes for the Survivor’s Guide');
     }
     if (isPlainObject(parsed.annualReview)) {
       writes.push([KEYS.annualReview, JSON.stringify(sanitizeAnnualReview(parsed.annualReview))]);

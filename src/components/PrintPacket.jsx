@@ -14,6 +14,7 @@ import SwitchRow from './SwitchRow';
 import PrintFrame from './PrintFrame';
 import LifePlanPacketSheet from './LifePlanPacketSheet';
 import EstateChecklistPacketSheet from './EstateChecklistPacketSheet';
+import { SurvivorGuideContent } from './SurvivorGuideSheet';
 import { PRINT_PACKET_EVENT } from './printPacketEvents';
 import { DEFAULT_CHOICES } from './printPacketChoices';
 
@@ -41,6 +42,8 @@ const OPTIONS = [
   { id: 'questions', label: 'What a planner will also ask for', hint: 'The documents to bring that the app does not hold.' },
   { id: 'estate', label: 'Estate documents checklist', hint: 'Every item with its box, ticked with the date where you have reviewed it.' },
   { id: 'lifeplan', label: 'What Will You Do?', hint: 'Your Life Plan answers, printed as you wrote them. Leave out names does not change your own words.' },
+  // What's New 492/493: also printable on its own from Tax & Estate.
+  { id: 'survivor', label: 'Survivor\u2019s Guide', hint: 'For each of you, the plan as the other would carry it on: first steps, benefits to claim, where the money is kept, how to open the plan, each year in dollars.', couple: true },
 ];
 
 export default function PrintPacket({ inputs, holdings = [], formatCurrency, onHideNamesChange = () => {}, print, openOnMount = false }) {
@@ -74,7 +77,8 @@ export default function PrintPacket({ inputs, holdings = [], formatCurrency, onH
   }, [printing]);
 
   const toggle = (id) => setChoices((c) => ({ ...c, [id]: !c[id] }));
-  const any = OPTIONS.some((o) => choices[o.id]);
+  const options = OPTIONS.filter((o) => !o.couple || inputs?.spouse2Enabled);
+  const any = options.some((o) => choices[o.id]);
   const go = () => {
     try { localStorage.setItem(PRINT_CHOICES_KEY, JSON.stringify(choices)); } catch { /* per-browser convenience */ }
     setOpen(false);
@@ -96,7 +100,7 @@ export default function PrintPacket({ inputs, holdings = [], formatCurrency, onH
               Pick what goes in. To send it to a planner, choose Save as PDF in the print dialog; nothing is sent anywhere by the app.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {OPTIONS.map((o) => (
+              {options.map((o) => (
                 <label key={o.id} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', cursor: 'pointer' }}>
                   <input type="checkbox" data-testid={`print-choice-${o.id}`} checked={Boolean(choices[o.id])} onChange={() => toggle(o.id)} style={{ marginTop: '3px' }} />
                   <span><strong>{o.label}</strong><br /><span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{o.hint}</span></span>
@@ -118,7 +122,7 @@ export default function PrintPacket({ inputs, holdings = [], formatCurrency, onH
       )}
       {/* Report only: no packet sheet at all. An empty one still printed
           its header on a page of its own after the report (changelog 333). */}
-      {printing && OPTIONS.some((o) => o.id !== 'report' && printing[o.id]) && createPortal(
+      {printing && options.some((o) => o.id !== 'report' && printing[o.id]) && createPortal(
         <div className="section-print" data-section="packet" data-testid="print-packet-sheet">
           <PrintFrame title={packetTitle(printing)}>
           {printing.details && <PlanDetailsSheet inputs={shown} formatCurrency={formatCurrency} hideNames={printing.hideNames} />}
@@ -129,6 +133,7 @@ export default function PrintPacket({ inputs, holdings = [], formatCurrency, onH
           {printing.questions && <PlannerQuestionsSheet />}
           {printing.estate && <EstateChecklistPacketSheet showTitle={packetTitle(printing) !== 'Estate Documents Checklist'} />}
           {printing.lifeplan && <LifePlanPacketSheet showTitle={packetTitle(printing) !== 'Life Plan'} />}
+          {printing.survivor && inputs?.spouse2Enabled && <SurvivorGuideContent inputs={shown} holdings={holdings} />}
           </PrintFrame>
         </div>,
         document.body,

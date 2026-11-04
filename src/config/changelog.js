@@ -29,6 +29,30 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 493,
+    date: '2026-11-04',
+    title: 'Survivor benefits from work, where the money is kept, and how to open the plan',
+    summary: 'The Survivor\u2019s Guide now counts benefits like an employer\u2019s survivor income and group life insurance, lists where your money is kept, and explains how to open the plan in the app.',
+    items: [
+      "**Other survivor benefits.** Some employers pay a surviving spouse a share of salary for years if an employee dies while working there; many offer group life insurance through work; unions and associations have death benefits. Tax & Estate \u2192 Survivor\u2019s Guide now has a list for them: whose death pays it, a yearly amount and for how many years or a one-time amount, whether it pays only while that person is still working, whether it rises with inflation and is taxed, and who to contact. Counted in the plan, a yearly benefit is income from the year after the death and a one-time amount goes into savings, so the Survivor Stress Test, the simulated lifespans and the guide all include it. Your numbers change only if you add one.",
+      "**Where the money is kept.** A list of firms and account names (never account numbers) so the one left knows where to look and whom to call, printed on the guide, plus, unless you switch it off, each firm and account from Detailed Holdings with its tax type and value.",
+      "**Opening the plan in the app.** The guide explains how to open the plan on your own computer, how to restore it on another from the backup file and what that file is called, when the last backup was made, and where you keep it, in your own words.",
+      "**In Print / PDF Report too.** For a two-person plan, the Survivor\u2019s Guide is now one of the choices in Print / PDF Report, so it can go in the same printout as the rest of the plan; it still prints on its own from Tax & Estate.",
+    ],
+  },
+  {
+    id: 492,
+    date: '2026-11-04',
+    title: 'A Survivor\u2019s Guide, and your Risk & Stress notes in print',
+    summary: 'Tax & Estate has a Survivor\u2019s Guide: the plan on paper for the spouse who would carry it on, with your own note. The printed report now carries your Risk & Stress notes.',
+    items: [
+      "**A guide for the one left.** For a plan with two people, Tax & Estate \u2192 Survivor\u2019s Guide prints one guide for each of you, written as if the other died this year. It opens with the first steps, grouped by when they are due, each with a box and a date: death certificates, Social Security (including when to start the survivor benefit and when to switch to your own), insurance, pensions, retirement accounts, the house, debts, health coverage and taxes. Then it gives what the plan spends and how long it lasts, the income that keeps coming and what changes later, blank lines for where things are, and a table of each year whose rows add up: spending, healthcare, one-time costs, taxes, and which accounts to take the money from. Every dollar is in today\u2019s dollars, and words like RMD and inherited IRA are explained in plain English.",
+      "**Your note to each other.** Each of you can write a note for the other, printed at the top of the other\u2019s guide: what the plan is trying to do, who to call first, what not to rush. The notes stay in this browser and in Backup Everything, and are never part of your plan settings.",
+      "**The spending rule in dollars, for the survivor.** With risk-based guardrails on, the guide says at what savings to cut spending and to what, and when a raise is allowed, from the year the survivor retires.",
+      "**Your Risk & Stress notes on paper.** The printed analysis report adds the notes the Risk & Stress page shows only on screen: your risk-based guardrails in dollars, how your plan did in every real retirement since 1871 or 1928, and what fees cost you.",
+    ],
+  },
+  {
     id: 491,
     date: '2026-11-03',
     title: 'Risk-based guardrails plan to a cautious age',

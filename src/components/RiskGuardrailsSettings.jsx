@@ -49,6 +49,63 @@ function PercentField({ id, label, help, value, onCommit }) {
   );
 }
 
+// The rule in your own dollars (What's New 488/489): shown in the settings
+// box and, for the paper trail, in the printed report's Risk & Stress notes
+// (What's New 492), so the two never say different things.
+export function RiskGuardrailsNow({ snap, target, cutAt, from, money, onPaper = false }) {
+  // On paper the screens it names are in the app, not on the page.
+  const app = onPaper ? ' in the app' : '';
+  return (
+            <div data-testid="risk-guardrails-now" style={{ marginTop: '14px', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--card-border)', fontSize: 'var(--fs-sm)' }}>
+              <p style={{ margin: 0 }}>
+                When you retire{snap.age ? ` at ${snap.age}` : ''}, your plan spends about <strong>{money(snap.planSpend)}</strong> a
+                year on lifestyle (today&rsquo;s dollars, before taxes and healthcare). At that spending your chance of lasting
+                is <strong>{Math.round(snap.chance * 100)}%</strong>. Spending about {money(snap.atTarget)} would put it at {target}%,
+                and spending above about {money(snap.atCutLine)} would put it below {cutAt}%, where the rule cuts.
+              </p>
+              <p style={{ margin: '6px 0 0' }}>
+                {snap.firstAction === 'cut'
+                  ? <>Because it starts below {cutAt}%, your spending starts lower, at about {money(snap.planSpend * snap.firstMultiplier)}.{' '}</>
+                  : null}
+                {snap.firstCutAge
+                  ? <>On your plan&rsquo;s own projection, with average returns every year, the rule cuts spending at {snap.firstCutAge}; Year by Year{app} shows each year.</>
+                  : <>On your plan&rsquo;s own projection, with average returns every year, the rule makes no cuts; it acts when markets push the chance outside the band.</>}
+              </p>
+              {Number.isFinite(snap.cutBalance) && (
+                <div style={{ margin: '6px 0 0' }} data-testid="risk-guardrails-dollars">
+                  <p style={{ margin: 0 }}>
+                    <strong>In savings</strong> (your Pre-Tax, Roth, Taxable and HSA accounts together, the Ending Portfolio in
+                    Year by Year; not your home or cash reserve), in today&rsquo;s dollars: you start retirement with
+                    about {money(snap.openingBalance)}.
+                  </p>
+                  <p style={{ margin: '4px 0 0' }}>
+                    {snap.cutBalance > 0.5 ? (
+                      <>
+                        {snap.firstAction === 'cut' ? 'From there, the' : 'The'} plan would lower your spending only if savings started the year below about{' '}
+                        <strong>{money(snap.cutBalance)}</strong>
+                        {snap.openingBalance > snap.cutBalance ? <>, a fall of about {Math.round((1 - snap.cutBalance / snap.openingBalance) * 100)}%</> : null}
+                        {Number.isFinite(snap.spendAfterCut) ? <>; it would then spend about {money(snap.spendAfterCut)} a year on lifestyle, instead of {money(snap.planSpend * (snap.firstMultiplier || 1))}</> : null}.
+                      </>
+                    ) : <>No balance would make the plan lower your spending in your first year.</>}
+                  </p>
+                  <p style={{ margin: '4px 0 0' }}>
+                    {Number.isFinite(snap.raiseBalance)
+                      ? <>Raises are allowed from {snap.raiseAge}. That year it would raise your spending if savings reached about <strong>{money(snap.raiseBalance)}</strong>{Number.isFinite(snap.spendAfterRaise) ? <>, to about {money(snap.spendAfterRaise)} a year on lifestyle{Number.isFinite(snap.raiseYearSpend) ? <>, instead of {money(snap.raiseYearSpend)}</> : null} (no single raise is more than 20%)</> : null}{Number.isFinite(snap.raiseCutBalance) && snap.raiseCutBalance > 0.5 ? <>, and lower it below about {money(snap.raiseCutBalance)}</> : null}.</>
+                      : <>On this plan&rsquo;s own projection it would not raise your spending in any year.</>}
+                    {' '}These amounts change each year with your age, income and spending, and after any cut or raise; Year by Year{app} shows each year&rsquo;s. Nothing happens to your accounts: the amounts say when the plan would change what it spends.
+                  </p>
+                </div>
+              )}
+              <p style={{ margin: '6px 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
+                This {Math.round(snap.chance * 100)}% is your chance at your planned spending if nothing changes. The
+                &ldquo;lasted in&rdquo; count under Every retirement since {from} and the Dashboard&rsquo;s figures{app} run your plan
+                with the rule making its cuts and raises, so they read higher; the Dashboard&rsquo;s simulated markets are
+                made-up markets rather than history.
+              </p>
+            </div>
+  );
+}
+
 export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurrency, labelId }) {
   const on = !!inputs.riskGuardrailsEnabled;
   const target = num(inputs.riskGuardrailTargetPct, 80);
@@ -103,55 +160,7 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
       </div>
       {on && (
         <>
-          {snap && (
-            <div data-testid="risk-guardrails-now" style={{ marginTop: '14px', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--card-border)', fontSize: 'var(--fs-sm)' }}>
-              <p style={{ margin: 0 }}>
-                When you retire{snap.age ? ` at ${snap.age}` : ''}, your plan spends about <strong>{money(snap.planSpend)}</strong> a
-                year on lifestyle (today&rsquo;s dollars, before taxes and healthcare). At that spending your chance of lasting
-                is <strong>{Math.round(snap.chance * 100)}%</strong>. Spending about {money(snap.atTarget)} would put it at {target}%,
-                and spending above about {money(snap.atCutLine)} would put it below {cutAt}%, where the rule cuts.
-              </p>
-              <p style={{ margin: '6px 0 0' }}>
-                {snap.firstAction === 'cut'
-                  ? <>Because it starts below {cutAt}%, your spending starts lower, at about {money(snap.planSpend * snap.firstMultiplier)}.{' '}</>
-                  : null}
-                {snap.firstCutAge
-                  ? <>On your plan&rsquo;s own projection, with average returns every year, the rule cuts spending at {snap.firstCutAge}; Year by Year shows each year.</>
-                  : <>On your plan&rsquo;s own projection, with average returns every year, the rule makes no cuts; it acts when markets push the chance outside the band.</>}
-              </p>
-              {Number.isFinite(snap.cutBalance) && (
-                <div style={{ margin: '6px 0 0' }} data-testid="risk-guardrails-dollars">
-                  <p style={{ margin: 0 }}>
-                    <strong>In savings</strong> (your Pre-Tax, Roth, Taxable and HSA accounts together, the Ending Portfolio in
-                    Year by Year; not your home or cash reserve), in today&rsquo;s dollars: you start retirement with
-                    about {money(snap.openingBalance)}.
-                  </p>
-                  <p style={{ margin: '4px 0 0' }}>
-                    {snap.cutBalance > 0.5 ? (
-                      <>
-                        {snap.firstAction === 'cut' ? 'From there, the' : 'The'} plan would lower your spending only if savings started the year below about{' '}
-                        <strong>{money(snap.cutBalance)}</strong>
-                        {snap.openingBalance > snap.cutBalance ? <>, a fall of about {Math.round((1 - snap.cutBalance / snap.openingBalance) * 100)}%</> : null}
-                        {Number.isFinite(snap.spendAfterCut) ? <>; it would then spend about {money(snap.spendAfterCut)} a year on lifestyle, instead of {money(snap.planSpend * (snap.firstMultiplier || 1))}</> : null}.
-                      </>
-                    ) : <>No balance would make the plan lower your spending in your first year.</>}
-                  </p>
-                  <p style={{ margin: '4px 0 0' }}>
-                    {Number.isFinite(snap.raiseBalance)
-                      ? <>Raises are allowed from {snap.raiseAge}. That year it would raise your spending if savings reached about <strong>{money(snap.raiseBalance)}</strong>{Number.isFinite(snap.spendAfterRaise) ? <>, to about {money(snap.spendAfterRaise)} a year on lifestyle{Number.isFinite(snap.raiseYearSpend) ? <>, instead of {money(snap.raiseYearSpend)}</> : null} (no single raise is more than 20%)</> : null}{Number.isFinite(snap.raiseCutBalance) && snap.raiseCutBalance > 0.5 ? <>, and lower it below about {money(snap.raiseCutBalance)}</> : null}.</>
-                      : <>On this plan&rsquo;s own projection it would not raise your spending in any year.</>}
-                    {' '}These amounts change each year with your age, income and spending, and after any cut or raise; Year by Year shows each year&rsquo;s. Nothing happens to your accounts: the amounts say when the plan would change what it spends.
-                  </p>
-                </div>
-              )}
-              <p style={{ margin: '6px 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
-                This {Math.round(snap.chance * 100)}% is your chance at your planned spending if nothing changes. The
-                &ldquo;lasted in&rdquo; count under Every retirement since {from} and the Dashboard&rsquo;s figures run your plan
-                with the rule making its cuts and raises, so they read higher; the Dashboard&rsquo;s simulated markets are
-                made-up markets rather than history.
-              </p>
-            </div>
-          )}
+          {snap && <RiskGuardrailsNow snap={snap} target={target} cutAt={cutAt} from={from} money={money} />}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '14px', marginTop: '16px' }}>
             <PercentField id="field-riskGuardrailCutAtPct" label="Cut when it falls below" value={typed.cutAt}

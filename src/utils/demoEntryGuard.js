@@ -33,6 +33,8 @@ export function hasOwnPlanData(storage = globalThis.localStorage) {
   if (lifePlan && typeof lifePlan === 'object' && Object.keys(lifePlan).length > 0) return true;
   const answers = readJson(storage, 'retire_plan_answers_v1');
   if (answers && typeof answers === 'object' && Object.values(answers).some((v) => typeof v === 'string' && v.trim())) return true;
+  const notes = readJson(storage, 'cfe_survivor_notes_v1');
+  if (notes && typeof notes === 'object' && Object.keys(notes).length > 0) return true;
   const stored = readJson(storage, 'retire_plan_inputs');
   if (!stored || typeof stored !== 'object') return false;
   let inputs;
