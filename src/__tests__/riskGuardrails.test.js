@@ -217,7 +217,7 @@ describe('the rule follows what has happened', () => {
   });
   it('after an early death measures the survivor’s own income and spending', () => {
     const plain = runProjection(couple()).years.filter((y) => y.isRetired);
-    const stressed = runProjection(couple({ survivorStressEnabled: true, survivorStressSpouse: 1, survivorStressAge: 70 })).years.filter((y) => y.isRetired);
+    const stressed = runProjection(couple({ survivorStressEnabled: true, survivorStressSpouse: 1, survivorStressAge: 70, riskGuardrailReplanOnEvent: false })).years.filter((y) => y.isRetired);
     const before = (rows) => rows.find((y) => y.year === START + 5);
     const after = (rows) => rows.find((y) => y.year === START + 7);
     // The same chance before the death (the rule does not see it coming)...
@@ -330,5 +330,45 @@ describe('what each line would do, the chance after a move, and a minimum change
     for (const y of rows.filter((r) => r.riskGuardrailAction === 'raise' && Number.isFinite(r.riskGuardrailMultiplierIfRaise))) {
       expect(y.riskGuardrailMultiplierIfRaise).toBeGreaterThan(y.riskGuardrailMultiplier);
     }
+  });
+});
+
+describe('re-planning after a life event', () => {
+  const couple = (over = {}) => on({
+    spouse2Enabled: true, birthYear2: START - 65, retireAge2: 65, lifeExpectancy2: 95, claimingAge2: 67,
+    salary2: 0, ss2: 30000, lifestyleExpense: 75000,
+    survivorStressEnabled: true, survivorStressSpouse: 1, survivorStressAge: 70, ...over,
+  });
+  it('is on by default and, the year after a death, brings spending back to the target level', () => {
+    expect(DEFAULT_INPUTS.riskGuardrailReplanOnEvent).toBe(true);
+    const rows = runProjection(couple()).years.filter((y) => y.isRetired);
+    const year = rows.find((y) => y.year === START + 6);
+    expect(year.riskGuardrailReplanned).toBe(true);
+    expect(year.riskGuardrailChanceAfter).toBeGreaterThanOrEqual(0.8 - 1e-9);
+    // Without it the survivor waits inside the band.
+    const off = runProjection(couple({ riskGuardrailReplanOnEvent: false })).years.filter((y) => y.isRetired);
+    const inBand = off.filter((y) => y.year > START + 5 && y.riskGuardrailChance >= 0.5 && y.riskGuardrailChance < 0.8).length;
+    const inBandOn = rows.filter((y) => y.year > START + 5 && y.riskGuardrailChance >= 0.5 && y.riskGuardrailChance < 0.8).length;
+    expect(inBand).toBeGreaterThan(10);
+    expect(inBandOn).toBeLessThan(inBand);
+  });
+  it('counts a death before retirement, skips a death that left the survivor better off, and counts life insurance', () => {
+    const early = runProjection(couple({ birthYear1: START - 60, birthYear2: START - 60, survivorStressAge: 63, survivorExpenseDropPct: 0, lifestyleExpense: 80000 })).years.filter((y) => y.isRetired);
+    expect(early[0].riskGuardrailReplanned).toBe(true);
+    expect(early[0].riskGuardrailChanceAfter).toBeGreaterThanOrEqual(0.8 - 1e-9);
+    // A death before retirement that left the survivor better off than the
+    // couple's own plan (spending drops more than income): no reset.
+    const better = runProjection(couple({ birthYear1: START - 60, birthYear2: START - 60, survivorStressAge: 63, lifestyleExpense: 100000 })).years.filter((y) => y.isRetired);
+    expect(better.some((y) => y.riskGuardrailReplanned)).toBe(false);
+    // With a large term policy the survivor's check counts that year.
+    const insured = runProjection(couple({ lifeInsuranceEnabled1: true, lifeInsuranceDeathBenefit1: 300000 })).years.filter((y) => y.isRetired);
+    const payYear = insured.find((y) => y.lifeInsurancePayoutToSurvivor > 0);
+    expect(payYear).toBeTruthy();
+    expect(payYear.riskGuardrailOpeningBalance).toBeGreaterThan(payYear.lifeInsurancePayoutToSurvivor);
+    expect(payYear.riskGuardrailAction).not.toBe('cut');
+  });
+  it('never raises spending', () => {
+    const rows = runProjection(couple({ lifestyleExpense: 40000 })).years.filter((y) => y.isRetired);
+    for (const y of rows.filter((r) => r.riskGuardrailReplanned)) expect(y.riskGuardrailAction).toBe('cut');
   });
 });

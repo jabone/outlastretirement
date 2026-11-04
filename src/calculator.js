@@ -1431,6 +1431,14 @@ export const DEFAULT_INPUTS = {
   // 5% is skipped. Most useful with "10% of the way", which otherwise
   // makes many small changes.
   riskGuardrailMinChangePct: 0,
+  // Re-plan after a life event (changelog 490): in the year the rule's
+  // model changes because a spouse has died, someone has outlived their
+  // life expectancy or a sampled care episode has begun, a chance below
+  // the target brings spending back to the target level, rather than
+  // waiting for it to fall through the cut line. Without it a survivor
+  // could sit inside the band, near the cut line, for many years (review
+  // panel, 2026-11-03).
+  riskGuardrailReplanOnEvent: true,
   // The highest raises may take spending, as a percentage above the plan's
   // own lifestyle spending (0 = no limit): 50 means spending never goes
   // above 1.5 times the plan's, however many raises the rule makes. 50 by
@@ -8017,6 +8025,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   let riskGuardMultiplier = 1.0;
   let riskDeadAge1 = null;
   let riskDeadAge2 = null;
+  // The model the rule used last retired year; it starts as the plan's own,
+  // so a death before retirement counts as an event in the first retired
+  // year (review panel, 2026-11-03).
+  let riskPrevModel = null;
   // A Monte Carlo trial uses the plan's own model (riskModelOverride), so a
   // trial that samples its own lifespan or care episode is not steered by
   // knowing them in advance.
@@ -9514,14 +9526,26 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // A raise line whose raise would be under the smallest change at any
     // balance, and whether the raise line is the ten-years-ahead test.
     let riskGuardrailRaiseTooSmall = null;
+    // The year's cut was a re-plan after a life event.
+    let riskGuardrailReplanned = null;
     let riskGuardrailRaiseNeedsTen = null;
     if (riskModelPlan && isRetired) {
       const riskModel = riskModelForYear(riskModelPlan, inputs, { dead1: riskDeadAge1, dead2: riskDeadAge2, age1, age2 });
       const k = riskModel.byYear.get(year);
+      // The rule's model changed this year: something has happened
+      // (riskStatePatch) that the plan's path did not have.
+      const riskPrevForYear = riskPrevModel || riskModelPlan;
+      const riskEvent = riskModel !== riskPrevForYear;
+      riskPrevModel = riskModel;
       if (k !== undefined) {
         const prevRow = year > startYear ? years[year - startYear - 1] : null;
-        const openingNominal = prevRow ? investedEnd(prevRow)
-          : (inputs.preTaxInit || 0) + (inputs.rothInit || 0) + (inputs.taxableInit || 0) + (inputs.hsaInit || 0);
+        // Life insurance a survivor receives this year counts as savings
+        // going in: it is paid before the year's spending, and judging the
+        // survivor without it would cut the year the check arrives and
+        // raise the next (review panel, 2026-11-03).
+        const openingNominal = (prevRow ? investedEnd(prevRow)
+          : (inputs.preTaxInit || 0) + (inputs.rothInit || 0) + (inputs.taxableInit || 0) + (inputs.hsaInit || 0))
+          + (lifeInsurancePayoutToSurvivor || 0);
         const opening = openingNominal / (priceIndex || 1);
         const pct = (v, d) => Math.min(100, Math.max(0, Number.isFinite(Number(v)) ? Number(v) : d)) / 100;
         const target = pct(inputs.riskGuardrailTargetPct, 80);
@@ -9558,6 +9582,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // below the floor; null when a raise would be under the minimum.
         const nextFor = (bal, kind, m) => {
           const full = riskSpendingFor(riskModel, k, bal, kind === 'cut' ? cutTo : target, kind === 'raiseAbove' ? RISK_MIN_HORIZON : cutH);
+          // A re-plan goes all the way to the target level, as a fresh plan
+          // would, and only ever down.
+          if (kind === 'replan') return Math.max(Math.min(m, full), floorM);
           let toTarget = kind === 'restore' ? Math.min(full, 1) : full;
           let next = m + move * (toTarget - m);
           if (kind === 'cut') {
@@ -9575,10 +9602,32 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         riskGuardrailAction = 'hold';
         {
           const m0 = riskGuardMultiplier;
-          const cutting = riskGuardrailChance < cutAt && m0 > floorM + 1e-6;
-          const raisingAbove = !cutting && riskGuardrailChance >= cutAt && mayRaiseAt(m0)
+          // Re-plan after an event (changelog 490): only when the event made
+          // things worse (the chance at the same savings and spending is
+          // lower under the new model than the old), only down to the
+          // target level, and not for a cut smaller than the smallest
+          // change while the chance is still above the cut line.
+          let replanned = false;
+          if (riskEvent && inputs.riskGuardrailReplanOnEvent && riskGuardrailChance < target && m0 > floorM + 1e-6) {
+            const kPrev = riskPrevForYear.byYear.get(year);
+            const before = riskSuccess(riskPrevForYear, kPrev !== undefined ? kPrev : riskPrevForYear.flows.length, opening, m0, riskPrevForYear.minCutHorizon || 0);
+            if (riskGuardrailChance < before - 1e-9) {
+              const next = nextFor(opening, 'replan', m0);
+              const small = minChange > 0 && 1 - next / m0 < minChange - 1e-9 && riskGuardrailChance >= cutAt;
+              if (next < m0 - 1e-6 && !small) {
+                riskGuardrailAction = 'cut';
+                riskGuardrailReplanned = true;
+                riskGuardMultiplier = next;
+                riskGuardrailChanceAfter = riskSuccess(riskModel, k, opening, next, cutH);
+                replanned = true;
+              }
+            }
+          }
+          const replanning = replanned;
+          const cutting = !replanning && riskGuardrailChance < cutAt && m0 > floorM + 1e-6;
+          const raisingAbove = !replanning && !cutting && riskGuardrailChance >= cutAt && mayRaiseAt(m0)
             && riskSuccess(riskModel, k, opening, m0, RISK_MIN_HORIZON) >= raiseAt;
-          const restoring = !cutting && !raisingAbove && mayRaiseAt(m0) && m0 < 1 - 1e-9 && riskGuardrailChance >= raiseAt;
+          const restoring = !replanning && !cutting && !raisingAbove && mayRaiseAt(m0) && m0 < 1 - 1e-9 && riskGuardrailChance >= raiseAt;
           if (cutting || raisingAbove || restoring) {
             const next = nextFor(opening, cutting ? 'cut' : raisingAbove ? 'raiseAbove' : 'restore', m0);
             if (next !== null && Math.abs(next - m0) > 1e-6) {
@@ -12391,6 +12440,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       riskGuardrailMultiplierIfRaise,
       riskGuardrailChanceAfter,
       riskGuardrailRaiseTooSmall,
+      riskGuardrailReplanned,
       riskGuardrailRaiseNeedsTen,
       // The rate the plan's own path had that year (changelog 335), which
       // the band is drawn around. Replaces the old retirement-year anchor.

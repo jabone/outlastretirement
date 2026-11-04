@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 490,
+    date: '2026-11-03',
+    title: 'Risk-based guardrails reset spending when your household changes',
+    summary: 'After a spouse dies or someone outlives the age the plan assumes, risk-based guardrails now bring spending down to your target chance if the change left it lower.',
+    items: [
+      "**A fresh level after a death.** Before, after a spouse died the rule kept the survivor\u2019s spending where it was unless the chance of lasting fell below 50%, so a survivor could spend for years at a lower chance than a new plan would accept: on one sample couple, 66\u201377% for 18 years. Now, in the first year after a death, after someone lives past the age your plan assumes (and every five years after that), or, in the simulated markets, when a care need you did not enter begins: if the change lowered the chance below your Raise to level (80% by default), spending comes down to the level that gives it, where a new plan would start.",
+      "**What it does not do.** It never raises spending, never goes below your floor, and skips a change that left you better off, for example when the survivor\u2019s lower spending more than makes up for the lost income. That one cut goes all the way, whatever How far to move says, and can be deeper than Cut back to. Life insurance paid to a survivor now counts as savings going into that year, so the rule does not cut the year the check arrives. Year by Year marks the year \u201creset after a death\u201d.",
+      "**How much it changes.** On the sample couple the survivor\u2019s chance returns to 81% the year after the death and climbs from there, and spending stays above the plan\u2019s own level. Across every real start since 1928 the effect is small: every start lasted either way, and lifetime spending was 0.3% lower.",
+      "**Life insurance in Year by Year.** The year a death benefit is paid to the survivor, Year by Year now shows it under income, as money received into Taxable and free of income tax, and Where the money goes counts it under Saved. In today\u2019s dollars it also says the amount in the dollars of the year it is paid, so a $127,000 policy paid in 2059 does not look like a smaller one. Before, it went into the balance without a line saying so. A policy whose death benefit is $0 pays nothing at a death; if yours shows nothing that year, check the death benefit under your policy.",
+      "**Your plan.** Only plans with risk-based guardrails on, and only after a death, a long life or sampled care, will read differently. You can turn it off under Risk-Based Guardrails.",
+    ],
+  },
+  {
     id: 489,
     date: '2026-11-03',
     title: 'Risk-based guardrails: what spending becomes, and a smallest change',

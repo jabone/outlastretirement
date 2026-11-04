@@ -17,6 +17,9 @@
 //   total - saved = totalExpenses + hsaMedicalDraw
 //                   + (milestoneOutflow - milestoneOutflowGeneral)
 //
+// (Saved includes a survivor's life insurance, which is money in that went
+// straight to savings; the identity holds because it is on both sides.)
+//
 // because totalExpenses (a) nets out medical costs the HSA paid, which are
 // still costs, and (b) excludes a life event paid straight from the account
 // it named, which is still money spent. whereMoneyGoes.test.js holds that
@@ -62,17 +65,23 @@ export function moneyGoesYear(row, { split = false } = {}) {
 
   // Saved: the contributions actually made (the planned ones less any the
   // engine cut to balance a short year), anything routed into the cash
-  // reserve while working, and unspent money reinvested in Taxable.
+  // reserve while working, unspent money reinvested in Taxable, and a life
+  // insurance death benefit paid to the survivor, which goes straight into
+  // Taxable (changelog 490).
   const contributed = Math.max(0, n(row, 'totalContributions') - n(row, 'savingsDeficit'));
   const savedParts = {
     contributed,
     reserve: n(row, 'cashReservePreFund'),
     reinvested: n(row, 'surplusReinvested'),
+    lifeInsurance: n(row, 'lifeInsurancePayoutToSurvivor'),
   };
-  const saved = savedParts.contributed + savedParts.reserve + savedParts.reinvested;
+  const saved = savedParts.contributed + savedParts.reserve + savedParts.reinvested + savedParts.lifeInsurance;
 
   return {
     year: row.year,
+    // The price level, so a figure shown in today's dollars can also be
+    // named in the dollars of the year it was paid.
+    priceIndex: Number(row.priceIndex) || null,
     age1: row.age1 ?? null,
     age2: row.age2 ?? null,
     isRetired: !!row.isRetired,

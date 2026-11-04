@@ -202,6 +202,7 @@ const YearLedgerTab = () => {
             )}
             {view === 'uses' && (
               <MoneyGoesTable
+                useRealDollars={useRealDollars}
                 uses={uses}
                 inputs={inputs}
                 formatCurrency={formatCurrency}
@@ -448,6 +449,15 @@ const YearLedgerTab = () => {
                               &minus;{formatCurrency(row.ssEarningsTestWithheld)} earnings test
                             </span>
                           )}
+                          {/* Changelog 490: a death benefit paid to the survivor
+                              goes into Taxable, income-tax free; it is not in
+                              the income figure above, so say so here. */}
+                          {(row.lifeInsurancePayoutToSurvivor || 0) > 0 && (
+                            <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--success)', display: 'block', marginTop: '2px' }}>
+                              +{formatCurrency(row.lifeInsurancePayoutToSurvivor)} life insurance received (to Taxable, income-tax free)
+                              {useRealDollars && Number(row.priceIndex) > 0 ? `; ${formatCurrency(row.lifeInsurancePayoutToSurvivor * row.priceIndex)} when paid, shown here in today\u2019s dollars` : ''}
+                            </span>
+                          )}
                           {/* Changelog 464: a claim year with a later start
                               month pays only part of the year. */}
                           {[1, 2].filter((n) => row[`ssClaimMonthsPaid${n}`] > 0 && row[`ssClaimMonthsPaid${n}`] < 12).map((n) => (
@@ -466,7 +476,7 @@ const YearLedgerTab = () => {
                           {/* Risk-based guardrails: the chance of lasting going into
                               the year, and any move the rule made. */}
                           {Number.isFinite(row.riskGuardrailChance) && (
-                            <span style={{ fontSize: 'var(--fs-2xs)', color: row.riskGuardrailAction === 'cut' ? 'var(--danger)' : row.riskGuardrailAction === 'raise' ? 'var(--success)' : 'var(--text-secondary)', display: 'block', marginTop: '2px', whiteSpace: 'normal', maxWidth: '16em' }}>
+                            <span style={{ fontSize: 'var(--fs-2xs)', color: row.riskGuardrailReplanned ? 'var(--text-secondary)' : row.riskGuardrailAction === 'cut' ? 'var(--danger)' : row.riskGuardrailAction === 'raise' ? 'var(--success)' : 'var(--text-secondary)', display: 'block', marginTop: '2px', whiteSpace: 'normal', maxWidth: '16em' }}>
                               {Math.round(row.riskGuardrailChance * 100)}% chance of lasting
                               {(() => {
                                 if (row.riskGuardrailAction !== 'cut' && row.riskGuardrailAction !== 'raise') return '';
@@ -475,7 +485,11 @@ const YearLedgerTab = () => {
                                 const share = before > 0 ? Math.abs(row.riskGuardrailMultiplier / before - 1) * 100 : null;
                                 const pctMove = share === null ? '' : share < 0.5 ? ' <1%' : ` ${Math.round(share)}%`;
                                 const after = Number.isFinite(row.riskGuardrailChanceAfter) ? ` · chance now ${Math.round(row.riskGuardrailChanceAfter * 100)}%` : '';
-                                return ` · ${row.riskGuardrailAction === 'cut' ? 'spending cut' : 'spending raised'}${pctMove}${after}`;
+                                const alive = (r) => (r ? (r.spouse1Alive ? 1 : 0) + (r.spouse2Alive ? 1 : 0) : 0);
+                                const reset = row.riskGuardrailReplanned
+                                  ? (prevRow && alive(row) < alive(prevRow) ? 'reset after a death: rule lowered spending' : 'reset after a change in your household: rule lowered spending')
+                                  : null;
+                                return ` · ${reset || (row.riskGuardrailAction === 'cut' ? 'spending cut' : 'spending raised')}${pctMove}${after}`;
                               })()}
                             </span>
                           )}
@@ -483,7 +497,7 @@ const YearLedgerTab = () => {
                               below which it would cut and at which it would raise. */}
                           {Number.isFinite(row.riskGuardrailOpeningBalance) && (
                             <span data-testid="ledger-risk-dollars" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '2px', whiteSpace: 'normal', maxWidth: '16em' }}>
-                              <span style={{ display: 'block' }}>Savings going in: {formatCurrency(row.riskGuardrailOpeningBalance)}</span>
+                              <span style={{ display: 'block' }}>Savings going in: {formatCurrency(row.riskGuardrailOpeningBalance)}{row.lifeInsurancePayoutToSurvivor > 0 ? ' (with the life insurance paid this year)' : ''}</span>
                               {(row.riskGuardrailAction === 'cut' || row.riskGuardrailAction === 'raise') && (
                                 <span style={{ display: 'block', fontStyle: 'italic' }}>After this change:</span>
                               )}
@@ -636,7 +650,7 @@ const YearLedgerTab = () => {
 
 const sub = { fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 400 };
 
-function MoneyGoesTable({ uses, inputs, formatCurrency, isPremium, onOpenPremium }) {
+function MoneyGoesTable({ uses, inputs, formatCurrency, isPremium, onOpenPremium, useRealDollars }) {
   const { rows, columns, splitAvailable } = uses;
   const money = (v) => (v > 0 ? formatCurrency(v) : '—');
   return (
@@ -678,7 +692,7 @@ function MoneyGoesTable({ uses, inputs, formatCurrency, isPremium, onOpenPremium
               {columns.lifeEvents && <th><Tooltip position="bottom" text="Life events that cost money this year, named. An event you funded from outside the plan is not included.">Life events</Tooltip></th>}
               {columns.gifts && <th className="hide-mobile">Gifts</th>}
               <th><Tooltip position="bottom" text="Federal and state income tax, and payroll tax while working. Property tax is not here: it is part of Housing in your lifestyle budget.">Income tax</Tooltip></th>
-              {columns.saved && <th><Tooltip position="bottom" text="Your own contributions (not the employer match), money put into the cash reserve while working, and unspent money reinvested. Not an expense, but where part of the year's money went." more="Saved">Saved</Tooltip></th>}
+              {columns.saved && <th><Tooltip position="bottom" text="Your own contributions (not the employer match), money put into the cash reserve while working, unspent money reinvested, and life insurance paid to a survivor. Not an expense, but where part of the year's money went." more="Saved">Saved</Tooltip></th>}
               <th>Total out</th>
             </tr>
           </thead>
@@ -724,6 +738,12 @@ function MoneyGoesTable({ uses, inputs, formatCurrency, isPremium, onOpenPremium
                   <td style={{ verticalAlign: 'top' }}>
                     {money(r.saved)}
                     {r.isRetired && r.savedParts.reinvested > 0 && <div style={sub}>left over, reinvested</div>}
+                    {r.savedParts.lifeInsurance > 0 && (
+                      <div style={sub}>
+                        incl. {formatCurrency(r.savedParts.lifeInsurance)} life insurance, to Taxable
+                        {useRealDollars && Number(r.priceIndex) > 0 ? ` (${formatCurrency(r.savedParts.lifeInsurance * r.priceIndex)} when paid, in that year\u2019s dollars)` : ''}
+                      </div>
+                    )}
                   </td>
                 )}
                 <td style={{ verticalAlign: 'top', fontWeight: 600 }}>{formatCurrency(r.total)}</td>

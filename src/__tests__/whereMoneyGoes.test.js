@@ -236,3 +236,13 @@ describe('every dollar the view shows is converted to today’s dollars with the
     expect(missing).toEqual([]);
   });
 });
+
+describe('life insurance paid to a survivor', () => {
+  it('counts as saved, into Taxable, and keeps the identity', () => {
+    const row = { year: 2059, isRetired: true, lifeInsurancePayoutToSurvivor: 127000, surplusReinvested: 20000, totalContributions: 0, priceIndex: 2.3 };
+    const out = whereMoneyGoes({ years: [row] }).rows[0];
+    expect(out.savedParts.lifeInsurance).toBe(127000);
+    expect(out.saved).toBe(147000);
+    expect(out.priceIndex).toBe(2.3);
+  });
+});

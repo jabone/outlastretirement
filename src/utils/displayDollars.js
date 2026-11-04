@@ -52,7 +52,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'phaseMultiplier', 'essentialShare', 'concentratedStockConcentrationPct',
     'concentratedStock2ConcentrationPct', 'cashReserveMonthsCovered',
     'wrGuardrailRate', 'wrGuardrailMultiplier', 'wrGuardrailPlannedRate',
-    'riskGuardrailChance', 'riskGuardrailAction', 'riskGuardrailMultiplier', 'riskGuardrailAtFloor', 'riskGuardrailAtCeiling', 'riskGuardrailMultiplierIfCut', 'riskGuardrailMultiplierIfRaise', 'riskGuardrailChanceAfter', 'riskGuardrailRaiseTooSmall', 'riskGuardrailRaiseNeedsTen',
+    'riskGuardrailChance', 'riskGuardrailAction', 'riskGuardrailMultiplier', 'riskGuardrailAtFloor', 'riskGuardrailAtCeiling', 'riskGuardrailMultiplierIfCut', 'riskGuardrailMultiplierIfRaise', 'riskGuardrailChanceAfter', 'riskGuardrailRaiseTooSmall', 'riskGuardrailReplanned', 'riskGuardrailRaiseNeedsTen',
     'firstDeathBasisResetShare', 'qualifiedDividendShare', 'acaApplicablePct', 'rmdDivisor',
   ]),
   ...byClass(YEAR, [

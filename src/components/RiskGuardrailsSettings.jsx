@@ -216,6 +216,24 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
               <span style={{ display: 'block', fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '2px' }}>Raises stop here, however many there are. Cuts are not affected.</span>
             </label>
           </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginTop: '12px', fontSize: 'var(--fs-sm)' }}>
+            <div>
+              <strong id="risk-replan-label">Reset spending when your household changes</strong>
+              <span style={{ display: 'block', fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '2px' }}>
+                In the first year after a spouse dies, after someone lives past the age your plan assumes (and every five years after that), or, in the simulated markets, when a care need you did not enter begins: if the change lowered your chance of lasting below the {target}% you chose under <strong>Raise to</strong>, spending comes down to the level that gives {target}%, where a new plan would start. That one cut goes all the way, whatever How far to move says, and can be deeper than Cut back to. It never raises spending and never goes below your floor. Without it, the rule waits until the chance falls below {cutAt}%, which can take many years.
+              </span>
+            </div>
+            <label className="custom-switch" style={{ flexShrink: 0 }}>
+              <input
+                type="checkbox"
+                id="field-riskGuardrailReplanOnEvent"
+                checked={inputs.riskGuardrailReplanOnEvent !== false}
+                onChange={(e) => updateInput('riskGuardrailReplanOnEvent', e.target.checked)}
+                aria-labelledby="risk-replan-label"
+              />
+              <span className="slider-round"></span>
+            </label>
+          </div>
 
           <ul style={{ margin: '12px 0 0', paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
             <li>
