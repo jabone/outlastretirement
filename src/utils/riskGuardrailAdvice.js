@@ -20,7 +20,7 @@ export function riskGuardrailAdvice({ target, cutAt, raiseAt, cutTo = 70, move =
   if (raiseAt < 95) notes.push({ tone: 'info', text: `Raising at ${raiseAt}% gives raises sooner, which a later fall is more likely to take back.` });
   else notes.push({ tone: 'info', text: `Raising at ${raiseAt}% waits until almost every past market would have lasted. A bad run soon after can still take a raise back.` });
   if (raiseCap > 0) notes.push({ tone: 'info', text: `Capping raises at ${raiseCap}% above your plan keeps spending from climbing far in long good markets, at the cost of leaving more unspent if good markets continue.` });
-  else notes.push({ tone: 'info', text: 'With no limit on raises, a long run of good markets can raise spending to several times your plan, a 20% step at a time; a later fall can take it back.' });
+  else notes.push({ tone: 'info', text: 'With no limit on raises, a long run of good markets can raise spending to several times your plan, a 20% step at a time, and a fall late in retirement can then be too big to cut back from: tested on every start since 1928, some ran out of money that fixed spending survived. The default ceiling is 50%.' });
   if (move < 100) notes.push({ tone: 'info', text: `Moving ${move}% of the way makes many small changes instead of a few larger ones; spending can stay outside the band for several years.` });
   return notes;
 }

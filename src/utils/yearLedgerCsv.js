@@ -60,6 +60,9 @@ export const YEAR_LEDGER_CSV_HEADERS = [
   // Risk-based guardrails (What's New 487): the chance of lasting going
   // into the year and what the rule did (blank when it is off).
   'Chance of Lasting %', 'Risk Guardrail',
+  // Dollar guardrails (What's New 488): the savings going into the year
+  // below which the rule would cut, and at which it would raise.
+  'Savings Going In', 'Risk Cut If Savings Below', 'Risk Raise If Savings At',
 ];
 
 const pct2 = (v) => (Number.isFinite(v) ? Math.round(v * 100) / 100 : '');
@@ -124,6 +127,9 @@ export function buildYearLedgerCsvRows(projection) {
     pct2(y.accountReturns?.hsa),
     Number.isFinite(y.riskGuardrailChance) ? Math.round(y.riskGuardrailChance * 1000) / 10 : '',
     y.riskGuardrailAction ?? '',
+    round(y.riskGuardrailOpeningBalance),
+    round(y.riskGuardrailCutBalance),
+    round(y.riskGuardrailRaiseBalance),
   ]);
 }
 

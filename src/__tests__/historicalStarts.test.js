@@ -55,6 +55,12 @@ describe('spendingCost', () => {
     expect(c.deepestCut).toBeGreaterThan(0.1);
     expect(c.cutYears).toBe(ratios.filter((x) => x < 0.999).length);
     expect(c.lifetimeShare).toBeCloseTo(spent / planned, 12);
+    // The largest single-year step down, against the year before.
+    let drop = 1 - ratios[0];
+    for (let i = 1; i < ratios.length; i += 1) drop = Math.max(drop, 1 - ratios[i] / ratios[i - 1]);
+    expect(c.largestYearDrop).toBeCloseTo(Math.max(0, drop), 12);
+    expect(c.largestYearDrop).toBeGreaterThan(0);
+    expect(c.largestYearDrop).toBeLessThanOrEqual(c.deepestCut + 1e-12);
   });
 });
 

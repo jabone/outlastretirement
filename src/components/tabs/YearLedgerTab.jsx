@@ -477,6 +477,25 @@ const YearLedgerTab = () => {
                               })()}
                             </span>
                           )}
+                          {/* Dollar guardrails: the savings, going into the year,
+                              below which it would cut and at which it would raise. */}
+                          {Number.isFinite(row.riskGuardrailOpeningBalance) && (
+                            <span data-testid="ledger-risk-dollars" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '2px', whiteSpace: 'normal', maxWidth: '16em' }}>
+                              <span style={{ display: 'block' }}>Savings going in: {formatCurrency(row.riskGuardrailOpeningBalance)}</span>
+                              <span style={{ display: 'block' }}>
+                                {row.riskGuardrailAtFloor
+                                  ? 'Spending is at its lowest; no further cut'
+                                  : (Number(row.riskGuardrailCutBalance) > 0.5
+                                    ? `Plan lowers spending below ${formatCurrency(row.riskGuardrailCutBalance)}`
+                                    : 'No balance would lower spending')}
+                              </span>
+                              {row.riskGuardrailAtCeiling
+                                ? <span style={{ display: 'block' }}>At the raise ceiling; no further raise</span>
+                                : Number.isFinite(row.riskGuardrailRaiseBalance) && (
+                                  <span style={{ display: 'block' }}>Raises it at {formatCurrency(row.riskGuardrailRaiseBalance)}</span>
+                                )}
+                            </span>
+                          )}
                         </td>
                         <td className="lg g-inc col-uses">
                           {uses.health > 0 ? formatCurrency(uses.health) : '\u2014'}

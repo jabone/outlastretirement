@@ -29,6 +29,20 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 488,
+    date: '2026-11-03',
+    title: 'Risk-based guardrails: your cut and raise amounts in dollars, and updates after a death',
+    summary: 'Risk-based guardrails now show the savings at which your spending would be cut or raised each year, and update from the year a spouse dies. Premium adds the largest cut in one year.',
+    items: [
+      "**Guardrails in dollars.** With risk-based guardrails on, the settings now say what you retire with, the savings below which the plan would lower your spending (and what it would then spend), and, from the year raises are allowed, the savings at which it would raise it. Savings here means your Pre-Tax, Roth, Taxable and HSA accounts together. Year by Year shows each year\u2019s savings going in and both amounts, or says when spending is already at its lowest or at your raise ceiling, and the spreadsheet adds them as columns. A cut happens only in a year that starts with savings below the cut amount, and a raise only in one that starts at or above the raise amount.",
+      "**After a death or a long life.** The rule used to measure every year against the plan you expected, and the Survivor Stress Test\u2019s early death was counted from the start. Now, from the year a spouse dies, it measures with the survivor\u2019s income and spending; if you live past the age your plan assumes, it plans for up to five more years from there; and when the simulated markets draw a care episode you did not enter, it counts those costs from the year they begin. Like a household, it does not see these coming. Care you entered in your plan is counted from the start, as before.",
+      "**Getting back to your plan.** After cuts, a raise back up to your plan\u2019s own spending now only needs your chance to reach the raise line over the years you have left. Before, a raise needed it over at least ten more years, so a cut late in life could almost never be undone. Raises above your plan still need the ten years.",
+      "**A ceiling on raises by default.** A new plan\u2019s risk-based guardrails now raise spending no higher than 50% above your plan. Tested against every real start since 1928, raises with no limit sometimes reached twice the plan and then ran out of money in starts that fixed spending survived; with the 50% ceiling every start lasted and still spent about a third more over a lifetime. A plan saved since What\u2019s New 487 keeps the setting it was saved with, and you can change it under Highest raises can take spending.",
+      "**Largest cut in one year (Premium).** Beside the deepest cut, the comparison of spending rules now shows the biggest cut the rule made from one year to the next, as a share of the year before, in both tables and the every-start spreadsheet. It can be larger than the deepest cut when a cut gives back an earlier raise.",
+      "**Your plan.** Nothing changes unless risk-based guardrails are on. With them on, plans with the Survivor Stress Test, sampled lifespans or sampled care, and plans whose spending was cut late in retirement, will read differently.",
+    ],
+  },
+  {
     id: 487,
     date: '2026-11-03',
     title: 'Risk-based guardrails',

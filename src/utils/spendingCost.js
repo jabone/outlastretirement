@@ -25,6 +25,11 @@ export function spendingCost(proj, ref) {
   if (pairs.length === 0) return null;
 
   let deepest = 0;
+  // The biggest cut made in a single year: this year's spending against
+  // last year's, both as a share of the rule-off run's, so a planned change
+  // (a survivor's lower spending, a phase) is not counted as a cut.
+  let largestYearDrop = 0;
+  let prevRatio = 1;
   let cutYears = 0;
   let raiseYears = 0;
   let spent = 0;
@@ -36,6 +41,8 @@ export function spendingCost(proj, ref) {
     const off = Number(r.lifestyleExpenses) || 0;
     const ratio = on / off;
     if (1 - ratio > deepest) deepest = 1 - ratio;
+    if (prevRatio > 0 && 1 - ratio / prevRatio > largestYearDrop) largestYearDrop = 1 - ratio / prevRatio;
+    prevRatio = ratio;
     if (ratio < 1 - EPS) cutYears += 1;
     if (ratio > 1 + EPS) raiseYears += 1;
     spent += on / factor(y);
@@ -51,6 +58,8 @@ export function spendingCost(proj, ref) {
   return {
     // 0.2 means spending fell as far as 20% below what it would have been.
     deepestCut: deepest,
+    // 0.1 means the largest single-year cut was 10% of the year before.
+    largestYearDrop,
     cutYears,
     raiseYears,
     retiredYears: pairs.length,

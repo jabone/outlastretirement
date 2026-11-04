@@ -52,7 +52,7 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'phaseMultiplier', 'essentialShare', 'concentratedStockConcentrationPct',
     'concentratedStock2ConcentrationPct', 'cashReserveMonthsCovered',
     'wrGuardrailRate', 'wrGuardrailMultiplier', 'wrGuardrailPlannedRate',
-    'riskGuardrailChance', 'riskGuardrailAction', 'riskGuardrailMultiplier',
+    'riskGuardrailChance', 'riskGuardrailAction', 'riskGuardrailMultiplier', 'riskGuardrailAtFloor', 'riskGuardrailAtCeiling',
     'firstDeathBasisResetShare', 'qualifiedDividendShare', 'acaApplicablePct', 'rmdDivisor',
   ]),
   ...byClass(YEAR, [
@@ -104,6 +104,8 @@ export const ROW_FIELD_CLASS = Object.freeze({
     'acaCliffCappedConversion',
     // Start-of-year balances are priced at the year's own level
     'preTaxStart', 'rothStart', 'taxableStart', 'hsaStart',
+    // Risk-based dollar guardrails: start-of-year balances (What's New 488).
+    'riskGuardrailCutBalance', 'riskGuardrailRaiseBalance', 'riskGuardrailOpeningBalance',
   ]),
   ...byClass(YEAR_END, [
     'preTaxEnd', 'rothEnd', 'taxableEnd', 'hsaEnd', 'totalPortfolioEnding',

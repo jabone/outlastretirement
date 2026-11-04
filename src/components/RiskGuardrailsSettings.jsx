@@ -119,6 +119,31 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
                   ? <>On your plan&rsquo;s own projection, with average returns every year, the rule cuts spending at {snap.firstCutAge}; Year by Year shows each year.</>
                   : <>On your plan&rsquo;s own projection, with average returns every year, the rule makes no cuts; it acts when markets push the chance outside the band.</>}
               </p>
+              {Number.isFinite(snap.cutBalance) && (
+                <div style={{ margin: '6px 0 0' }} data-testid="risk-guardrails-dollars">
+                  <p style={{ margin: 0 }}>
+                    <strong>In savings</strong> (your Pre-Tax, Roth, Taxable and HSA accounts together, the Ending Portfolio in
+                    Year by Year; not your home or cash reserve), in today&rsquo;s dollars: you start retirement with
+                    about {money(snap.openingBalance)}.
+                  </p>
+                  <p style={{ margin: '4px 0 0' }}>
+                    {snap.cutBalance > 0.5 ? (
+                      <>
+                        The plan would lower your spending only if savings started the year below about{' '}
+                        <strong>{money(snap.cutBalance)}</strong>
+                        {snap.openingBalance > snap.cutBalance ? <>, a fall of about {Math.round((1 - snap.cutBalance / snap.openingBalance) * 100)}%</> : null}
+                        {Number.isFinite(snap.spendAfterCut) ? <>; it would then spend about {money(snap.spendAfterCut)} a year on lifestyle</> : null}.
+                      </>
+                    ) : <>No balance would make the plan lower your spending in your first year.</>}
+                  </p>
+                  <p style={{ margin: '4px 0 0' }}>
+                    {Number.isFinite(snap.raiseBalance)
+                      ? <>Raises are allowed from {snap.raiseAge}. That year it would raise your spending if savings reached about <strong>{money(snap.raiseBalance)}</strong>{Number.isFinite(snap.raiseCutBalance) && snap.raiseCutBalance > 0.5 ? <>, and lower it below about {money(snap.raiseCutBalance)}</> : null}.</>
+                      : <>On this plan&rsquo;s own projection it would not raise your spending in any year.</>}
+                    {' '}These amounts change each year with your age, income and spending, and after any cut or raise; Year by Year shows each year&rsquo;s. Nothing happens to your accounts: the amounts say when the plan would change what it spends.
+                  </p>
+                </div>
+              )}
               <p style={{ margin: '6px 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
                 This {Math.round(snap.chance * 100)}% is your chance at your planned spending if nothing changes. The
                 &ldquo;lasted in&rdquo; count under Every retirement since {from} and the Dashboard&rsquo;s figures run your plan
@@ -181,7 +206,8 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
             </li>
             <li>Raises wait until you have been retired five years, when a bad run of markets does the most harm, and no single raise is more than 20%{num(inputs.riskGuardrailRaiseCapPct, 0) > 0 ? `, and raises never take spending more than ${num(inputs.riskGuardrailRaiseCapPct, 0)}% above your plan` : ''}. Before raising, the plan also checks at least ten years ahead, in case you live longer than planned.</li>
             <li>Your investment fees and any Keep at Least floor count toward the chance.</li>
-            <li>The chance uses the income and taxes your plan expects. If a spouse dies early or care costs arrive, the rule does not see it coming; it only sees the balance that is left.</li>
+            <li>The chance uses the income, spending and taxes your plan expects, including any care costs you entered. It is updated for what has happened: from the year a spouse dies, it is measured with the survivor&rsquo;s income and spending; if you live past the age your plan assumes, it plans for up to five more years from there; and when the simulated markets draw a care episode you did not enter, it counts those costs from the year they begin. Like a household, it does not see a death or an unplanned care episode coming.</li>
+            <li>Once spending has been cut, a raise back up to your plan&rsquo;s own spending only needs your chance to reach the raise line over the years you have left; raises above your plan also need it over at least ten more years.</li>
           </ul>
 
           <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', margin: '10px 0 0' }}>

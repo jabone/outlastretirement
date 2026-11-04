@@ -133,9 +133,9 @@ describe('risk-based guardrails: independent-review fixes', () => {
 });
 
 describe('a cap on total raises', () => {
-  it('is off by default, and when set keeps spending at or below that far above plan', () => {
-    expect(DEFAULT_INPUTS.riskGuardrailRaiseCapPct).toBe(0);
-    const free = runProjection(on({ lifestyleExpense: 20000 })).years.filter((y) => y.isRetired);
+  it('is 50% by default, and when set keeps spending at or below that far above plan', () => {
+    expect(DEFAULT_INPUTS.riskGuardrailRaiseCapPct).toBe(50);
+    const free = runProjection(on({ lifestyleExpense: 20000, riskGuardrailRaiseCapPct: 0 })).years.filter((y) => y.isRetired);
     const capped = runProjection(on({ lifestyleExpense: 20000, riskGuardrailRaiseCapPct: 25 })).years.filter((y) => y.isRetired);
     expect(Math.max(...free.map((y) => y.riskGuardrailMultiplier))).toBeGreaterThan(1.25);
     expect(Math.max(...capped.map((y) => y.riskGuardrailMultiplier))).toBeLessThanOrEqual(1.25 + 1e-9);
@@ -194,5 +194,93 @@ describe('the rule-off reference read from the guarded run', () => {
       }
     }
     expect(compared).toBe(18);
+  });
+});
+
+describe('the rule follows what has happened', () => {
+  const couple = (over = {}) => on({
+    spouse2Enabled: true, birthYear2: START - 65, retireAge2: 65, lifeExpectancy2: 95, claimingAge2: 67,
+    salary2: 0, ss2: 30000, lifestyleExpense: 75000, ...over,
+  });
+  it('knows nothing of a death or care until it happens', async () => {
+    const { _riskStatePatch } = await import('../calculator');
+    const base = couple();
+    const alive = { dead1: null, dead2: null, age1: 70, age2: 70 };
+    expect(_riskStatePatch(base, base, alive)).toBe(null);
+    expect(_riskStatePatch(base, base, { ...alive, dead1: 72, age1: 75 })).toEqual({ lifeExpectancy1: 72 });
+    const stressed = couple({ survivorStressEnabled: true, survivorStressSpouse: 1, survivorStressAge: 72 });
+    expect(_riskStatePatch(base, stressed, { ...alive, dead1: 72, age1: 75 })).toEqual({ survivorStressEnabled: true, survivorStressSpouse: 1, survivorStressAge: 72 });
+    expect(_riskStatePatch(base, base, { ...alive, age1: 97 })).toEqual({ lifeExpectancy1: 100 });
+    const care = couple({ ltcActive2: true, ltcStartAge2: 80, ltcDurationYears2: 3 });
+    expect(_riskStatePatch(base, care, { ...alive, age2: 79 })).toBe(null);
+    expect(_riskStatePatch(base, care, { ...alive, age2: 80 })).toMatchObject({ ltcActive2: true, ltcStartAge2: 80, ltcDurationYears2: 3 });
+  });
+  it('after an early death measures the survivor’s own income and spending', () => {
+    const plain = runProjection(couple()).years.filter((y) => y.isRetired);
+    const stressed = runProjection(couple({ survivorStressEnabled: true, survivorStressSpouse: 1, survivorStressAge: 70 })).years.filter((y) => y.isRetired);
+    const before = (rows) => rows.find((y) => y.year === START + 5);
+    const after = (rows) => rows.find((y) => y.year === START + 7);
+    // The same chance before the death (the rule does not see it coming)...
+    expect(before(stressed).riskGuardrailChance).toBeCloseTo(before(plain).riskGuardrailChance, 6);
+    // ...and a different one after it, from the survivor's flows.
+    expect(after(stressed).riskGuardrailChance).not.toBeCloseTo(after(plain).riskGuardrailChance, 3);
+  });
+});
+
+describe('dollar guardrails', () => {
+  it('put each line exactly where the chance crosses it', async () => {
+    const { _riskBalanceFor, sanitizeInputs } = await import('../calculator');
+    for (const over of [{}, { portfolioFloorReal: 150000 }]) {
+      const model = _riskGuardrailModel(sanitizeInputs(on(over)));
+      for (const k of [0, 6, 18]) {
+        for (const [m, t, h] of [[1, 0.5, 0], [0.8, 0.7, 0], [1.2, 0.99, 10]]) {
+          const line = _riskBalanceFor(model, k, m, t, h);
+          expect(Number.isFinite(line)).toBe(true);
+          expect(_riskSuccess(model, k, line + 1, m, h)).toBeGreaterThanOrEqual(t);
+          expect(_riskSuccess(model, k, line - 1, m, h)).toBeLessThan(t);
+        }
+      }
+    }
+  });
+  it('show in each retired year, the raise line only once raises are allowed', () => {
+    const rows = runProjection(on()).years.filter((y) => y.isRetired);
+    expect(rows[0].riskGuardrailCutBalance).toBeGreaterThan(0);
+    expect(rows[0].riskGuardrailRaiseBalance).toBeNull();
+    const fifth = rows[5];
+    expect(fifth.riskGuardrailRaiseBalance).toBeGreaterThan(fifth.riskGuardrailCutBalance);
+    // A cut happened exactly when the opening balance was under the line.
+    const hist = runProjection(on({ stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: 1966 })).years.filter((y) => y.isRetired);
+    expect(hist.some((y) => y.riskGuardrailAction === 'cut')).toBe(true);
+  });
+});
+
+describe('care entered in the plan, and getting back to plan', () => {
+  const couple = (over = {}) => on({
+    spouse2Enabled: true, birthYear2: START - 65, retireAge2: 65, lifeExpectancy2: 95, claimingAge2: 67,
+    salary2: 0, ss2: 30000, lifestyleExpense: 75000, ...over,
+  });
+  const care = { ltcActive2: true, ltcStartAge2: 80, ltcDurationYears2: 3 };
+  it('counts entered care from the start, so the plan does not spend it early', () => {
+    const plain = runProjection(couple()).years.filter((y) => y.isRetired);
+    const withCare = runProjection(couple(care)).years.filter((y) => y.isRetired);
+    expect(withCare[0].riskGuardrailChance).toBeLessThan(plain[0].riskGuardrailChance);
+    // No cut the year care begins on the plan's own projection: it was planned.
+    const at80 = withCare.find((y) => y.age2 === 80);
+    expect(at80.riskGuardrailAction).not.toBe('cut');
+  });
+  it('raises back to the plan\u2019s own spending over the years left once a cut is no longer needed', () => {
+    let restores = 0;
+    for (const start of [1929, 1937, 1966, 1969, 1973, 2000]) {
+      const rows = runProjection(on({ lifestyleExpense: 62000, stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: start })).years.filter((y) => y.isRetired);
+      rows.forEach((y, i) => {
+        const before = i > 0 ? rows[i - 1].riskGuardrailMultiplier : 1;
+        if (y.riskGuardrailAction === 'raise' && before < 1 - 1e-9) {
+          restores += 1;
+          // A raise from below plan never jumps more than 20%.
+          expect(y.riskGuardrailMultiplier).toBeLessThanOrEqual(before * 1.2 + 1e-9);
+        }
+      });
+    }
+    expect(restores).toBeGreaterThan(0);
   });
 });
