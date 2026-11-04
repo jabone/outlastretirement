@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 491,
+    date: '2026-11-03',
+    title: 'Risk-based guardrails plan to a cautious age',
+    summary: 'Risk-based guardrails now measure the chance of lasting to a cautious age, not just your life expectancy, so they are less likely to cut sharply late in life.',
+    items: [
+      "**Plan the rule to a cautious age.** The rule measured your chance of lasting to your life expectancy, an age many people outlive; past it, the rule had only a few years to work with and often cut hard in the 90s. It now plans further ahead: a single person to the later of life expectancy and the age about 1 in 4 people of their age and sex reach, and a couple, the last survivor to the year by which about 1 in 4 couples like them still have one alive. The first of a couple to die stays at their life expectancy; if the other is the one left, they are planned to their own cautious age from then on, and a spouse whose short life expectancy you set for a health reason does not stretch the other\u2019s. Ages come from the Social Security life table. Your plan itself still ends at your life expectancy.",
+      "**What it costs.** A little spending along the way. Across every real start since 1928, lifetime spending came out 1 to 3% lower than before for a 65-year-old single person and 3 to 6% lower for a couple, which for a tight couple\u2019s plan can mean spending a little below a fixed plan over a lifetime. It works like insurance against a long life: in return, simulated markets that also sample how long you live lasted about 1 to 3 points more often for a single person and 3 to 6 points for a couple. Every real-history start lasted either way. Someone who lives well past the cautious age can still see the rule cut to the floor.",
+      "**Your choice.** Under Risk-Based Guardrails, Plan the rule to shows the ages it uses. If you set a short life expectancy for a health reason, choose your life expectancy there.",
+    ],
+  },
+  {
     id: 490,
     date: '2026-11-03',
     title: 'Risk-based guardrails reset spending when your household changes',

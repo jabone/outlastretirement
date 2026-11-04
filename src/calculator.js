@@ -34,7 +34,7 @@ export const TAX_YEAR = 2026;
 // Add version-specific migration steps here as the schema evolves in the
 // future — this is the one place that needs to change, instead of every
 // call site guessing at the shape.
-import { sampleDeathAge, survivalCurve } from './utils/mortality';
+import { sampleDeathAge, survivalCurve, ageReachedWithProbability, coupleHorizonOdds } from './utils/mortality';
 import { sampleLtcEpisode } from './utils/ltcRisk';
 import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from './config/historicalReturns';
 import { HISTORICAL_RETURNS_PRE1928, PRE1928_FIRST_YEAR } from './config/historicalReturnsPre1928';
@@ -1439,6 +1439,10 @@ export const DEFAULT_INPUTS = {
   // could sit inside the band, near the cut line, for many years (review
   // panel, 2026-11-03).
   riskGuardrailReplanOnEvent: true,
+  // The age the risk-based rule plans to (changelog 491): 'oneInFour', the
+  // later of life expectancy and the age each spouse has a one-in-four
+  // chance of reaching, or 'expectancy'. Only the rule's model uses it.
+  riskGuardrailPlanToAge: 'oneInFour',
   // The highest raises may take spending, as a percentage above the plan's
   // own lifestyle spending (0 = no limit): 50 means spending never goes
   // above 1.5 times the plan's, however many raises the rule makes. 50 by
@@ -6935,6 +6939,7 @@ export function sanitizeInputs(inputs) {
     clean.spendingGuardrails = false;
     clean.withdrawalGuardrailsEnabled = false;
   }
+  if (clean.riskGuardrailPlanToAge !== 'expectancy' && clean.riskGuardrailPlanToAge !== 'oneInFour') clean.riskGuardrailPlanToAge = 'oneInFour';
 
   // Inputs added after a plan was saved: a missing NUMBER above becomes 0,
   // which for these would silently change existing plans' numbers. Keep
@@ -7293,7 +7298,61 @@ const RISK_MODEL_CACHE_MAX = 256;
 // Stress death -- because the rule, like a household, knows what has
 // happened and not what will. Care entered in the plan is a planned cost
 // and is in the plan's own model from the start.
-function riskGuardrailModel(inputs, state = null, baseModel = null) {
+// The ages behind the setting, for the screen: each spouse's own
+// one-in-four age (a single person's), and for a couple the year by which
+// there is a one-in-four chance at least one of them is still alive, as
+// the last survivor's age; which spouse that is; and whether it raised
+// anyone's age past their life expectancy.
+export function riskPlanningAges(inputs) {
+  const start = Number(inputs.planYear) || new Date().getFullYear();
+  const now = (n) => start - (Number(inputs[`birthYear${n}`]) || start);
+  const le = (n) => Number(inputs[`lifeExpectancy${n}`]) || 0;
+  if (!inputs.spouse2Enabled) {
+    const cautious = ageReachedWithProbability(inputs.sex1, now(1), 0.25);
+    return { couple: false, last: 1, cautious, age1: Math.max(le(1), cautious), age2: null, raised: cautious > le(1) };
+  }
+  // The last survivor on the plan's own dates; a tie goes to the spouse
+  // more likely to be alive (whose own one-in-four year is later).
+  const by = (n) => Number(inputs[`birthYear${n}`]) || start;
+  const own = (n) => ageReachedWithProbability(inputs[`sex${n}`], now(n), 0.25);
+  const end1 = by(1) + le(1);
+  const end2 = by(2) + le(2);
+  const last = end2 > end1 || (end2 === end1 && by(2) + own(2) >= by(1) + own(1)) ? 2 : 1;
+  const first = last === 1 ? 2 : 1;
+  // When the first to die has a short life expectancy (below their life
+  // table median, as for a health reason), the couple's joint odds would
+  // count years the plan says they will not have: the survivor plans to
+  // their own one-in-four age instead.
+  const ill = le(first) < ageReachedWithProbability(inputs[`sex${first}`], now(first), 0.5);
+  const odds = ill ? null : coupleHorizonOdds({
+    planYear: start, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: le(1),
+    sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: le(2),
+  });
+  const cautious = odds ? odds.oneInFour[`age${last}`] : own(last);
+  const ages = { age1: le(1), age2: le(2) };
+  ages[`age${last}`] = Math.max(le(last), cautious);
+  return { couple: true, last, cautious, ...ages, raised: cautious > le(last) };
+}
+
+// The ages the rule plans to (changelog 491): with riskGuardrailPlanToAge
+// 'oneInFour', a single person plans to the later of life expectancy and
+// the age about one in four people of their age and sex reach; a couple
+// keeps the first to die at their life expectancy (giving them more years
+// would give the model more years of their income, then a surprise at
+// the death the plan expects) and plans the last survivor to the year by
+// which there is a one-in-four chance at least one of them is alive.
+// Only the rule's model uses these; the plan itself still ends at life
+// expectancy.
+function riskPlanningInputs(inputs) {
+  if (inputs.riskGuardrailPlanToAge !== 'oneInFour') return inputs;
+  const ages = riskPlanningAges(inputs);
+  const out = { ...inputs, lifeExpectancy1: ages.age1 };
+  if (inputs.spouse2Enabled) out.lifeExpectancy2 = ages.age2;
+  return out;
+}
+
+function riskGuardrailModel(rawInputs, state = null, baseModel = null) {
+  const inputs = state ? rawInputs : riskPlanningInputs(rawInputs);
   // The stress fields are normalized so every historical start of one plan
   // shares one model (they only matter when stressType is set).
   const planned = {
@@ -7413,9 +7472,26 @@ function riskGuardrailModel(inputs, state = null, baseModel = null) {
 // length). null when nothing has.
 function riskStatePatch(base, inputs, ev) {
   const patch = {};
+  // A survivor plans to their own cautious age from the year of the death
+  // (changelog 491), so a couple's cautious age is not lost when the spouse
+  // the plan expected to die first is the one left.
+  const survivorLe = {};
+  if (inputs.spouse2Enabled && base.riskGuardrailPlanToAge === 'oneInFour') {
+    for (const [d, a] of [[1, 2], [2, 1]]) {
+      // Only a death earlier than the model expected: at the plan's own
+      // date the model already holds the survivor's planned years.
+      if (ev[`dead${d}`] !== null && ev[`dead${a}`] === null && ev[`dead${d}`] < (Number(base[`lifeExpectancy${d}`]) || 0)) {
+        const deathYear = (Number(inputs[`birthYear${d}`]) || 0) + ev[`dead${d}`] + 1;
+        const ageThen = deathYear - (Number(inputs[`birthYear${a}`]) || 0);
+        const own = ageReachedWithProbability(inputs[`sex${a}`], ageThen, 0.25);
+        if (own > (Number(base[`lifeExpectancy${a}`]) || 0)) survivorLe[a] = own;
+      }
+    }
+  }
   for (const n of [1, 2]) {
     if (n === 2 && !inputs.spouse2Enabled) continue;
-    const planLe = Number(base[`lifeExpectancy${n}`]) || 0;
+    const planLe = survivorLe[n] || Number(base[`lifeExpectancy${n}`]) || 0;
+    if (survivorLe[n]) patch[`lifeExpectancy${n}`] = survivorLe[n];
     const byStress = inputs.survivorStressEnabled && Number(inputs.survivorStressSpouse) === n;
     if (ev[`dead${n}`] !== null) {
       if (byStress) {

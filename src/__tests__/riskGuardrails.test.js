@@ -372,3 +372,54 @@ describe('re-planning after a life event', () => {
     for (const y of rows.filter((r) => r.riskGuardrailReplanned)) expect(y.riskGuardrailAction).toBe('cut');
   });
 });
+
+describe('the age the rule plans to', () => {
+  it('is a cautious one-in-four age by default, never earlier than life expectancy, and only for the rule', async () => {
+    const { riskPlanningAges, sanitizeInputs } = await import('../calculator');
+    expect(DEFAULT_INPUTS.riskGuardrailPlanToAge).toBe('oneInFour');
+    const p = on({ lifeExpectancy1: 85, sex1: 'male' });
+    const ages = riskPlanningAges(sanitizeInputs(p));
+    expect(ages.age1).toBeGreaterThan(85);
+    expect(riskPlanningAges(sanitizeInputs(on({ lifeExpectancy1: 104 }))).age1).toBe(104);
+    const longer = _riskGuardrailModel(sanitizeInputs(p)).flows.length;
+    const shorter = _riskGuardrailModel(sanitizeInputs({ ...p, riskGuardrailPlanToAge: 'expectancy' })).flows.length;
+    expect(longer).toBeGreaterThan(shorter);
+    // The plan itself still ends at life expectancy.
+    const rows = runProjection(p).years;
+    expect(rows[rows.length - 1].age1).toBe(85);
+  });
+});
+
+describe('the age a couple plans to', () => {
+  it('keeps the first to die at life expectancy and plans the last survivor to the couple\u2019s one-in-four age', async () => {
+    const { riskPlanningAges, sanitizeInputs } = await import('../calculator');
+    const c = sanitizeInputs(on({ spouse2Enabled: true, sex1: 'male', sex2: 'female', birthYear2: START - 65, lifeExpectancy1: 88, lifeExpectancy2: 92, ss2: 30000 }));
+    const a = riskPlanningAges(c);
+    expect(a.couple).toBe(true);
+    expect(a.last).toBe(2);
+    expect(a.age1).toBe(88);
+    expect(a.age2).toBeGreaterThan(92);
+    // A bad value is reset to the default.
+    expect(sanitizeInputs({ ...c, riskGuardrailPlanToAge: 'bogus' }).riskGuardrailPlanToAge).toBe('oneInFour');
+  });
+});
+
+describe('a couple’s cautious age after the unexpected death, and an ill spouse', () => {
+  const pair = (over = {}) => on({ spouse2Enabled: true, sex1: 'male', sex2: 'female', birthYear2: START - 65, lifeExpectancy1: 88, lifeExpectancy2: 92, ss2: 30000, lifestyleExpense: 100000, ...over });
+  it('plans a widower to his own cautious age when the wife the plan expected to outlive him dies first', async () => {
+    const { _riskStatePatch, sanitizeInputs } = await import('../calculator');
+    const base = sanitizeInputs(pair());
+    const patch = _riskStatePatch({ ...base, lifeExpectancy2: 94 }, base, { dead1: null, dead2: 72, age1: 73, age2: null });
+    expect(patch.lifeExpectancy1).toBeGreaterThan(88);
+    // At the plan's own first death, nothing changes.
+    expect(_riskStatePatch({ ...base, lifeExpectancy2: 94 }, base, { dead1: 88, dead2: null, age1: null, age2: 89 })).toBe(null);
+  });
+  it('does not stretch the survivor by the odds of a spouse whose short life expectancy says otherwise', async () => {
+    const { riskPlanningAges, sanitizeInputs } = await import('../calculator');
+    const healthy = riskPlanningAges(sanitizeInputs(pair()));
+    const ill = riskPlanningAges(sanitizeInputs(pair({ lifeExpectancy1: 92, lifeExpectancy2: 75 })));
+    expect(ill.last).toBe(1);
+    expect(ill.cautious).toBeLessThan(healthy.cautious);
+    expect(ill.raised).toBe(false);
+  });
+});

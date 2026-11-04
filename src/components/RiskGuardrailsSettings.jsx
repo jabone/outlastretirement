@@ -8,7 +8,7 @@
 // left rather than on every keystroke.
 import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle, AlertTriangle } from 'lucide-react';
-import { riskGuardrailSnapshot, essentialShareOf } from '../calculator';
+import { riskGuardrailSnapshot, essentialShareOf, riskPlanningAges } from '../calculator';
 import { riskGuardrailAdvice } from '../utils/riskGuardrailAdvice';
 
 const num = (v, d) => (Number.isFinite(Number(v)) && v !== '' && v !== null ? Number(v) : d);
@@ -216,6 +216,39 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
               <span style={{ display: 'block', fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '2px' }}>Raises stop here, however many there are. Cuts are not affected.</span>
             </label>
           </div>
+          {(() => {
+            const pa = riskPlanningAges(inputs);
+            const name = (n) => (n === 1 ? (inputs.spouse1Name || 'Spouse 1') : (inputs.spouse2Name || 'Spouse 2'));
+            const leOf = (n) => inputs[`lifeExpectancy${n}`];
+            const cautiousLabel = pa.couple
+              ? (pa.raised
+                ? `A cautious age: ${name(pa.last)} until age ${pa.cautious}, the year by which about 1 in 4 couples like you still have one of you alive`
+                : `A cautious age: the same as your life expectancy (already past the age 1 in 4 couples like you reach, ${pa.cautious})`)
+              : (pa.raised
+                ? `A cautious age: ${pa.cautious} (about 1 in 4 people your age and sex reach it)`
+                : `A cautious age: the same as your life expectancy (already past the age 1 in 4 reach, ${pa.cautious})`);
+            const leLabel = pa.couple
+              ? `Your life expectancy: ${name(1)} ${leOf(1)}, ${name(2)} ${leOf(2)}`
+              : `Your life expectancy: ${leOf(1)}`;
+            return (
+              <label style={{ display: 'block', fontSize: 'var(--fs-sm)', marginTop: '12px', maxWidth: '620px' }}>
+                <span>Plan the rule to</span>
+                <select
+                  id="field-riskGuardrailPlanToAge"
+                  className="form-input form-input-select"
+                  style={{ marginTop: '4px' }}
+                  value={inputs.riskGuardrailPlanToAge === 'expectancy' ? 'expectancy' : 'oneInFour'}
+                  onChange={(e) => updateInput('riskGuardrailPlanToAge', e.target.value)}
+                >
+                  <option value="oneInFour">{cautiousLabel}</option>
+                  <option value="expectancy">{leLabel}</option>
+                </select>
+                <span style={{ display: 'block', fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  The age the rule checks your savings against each year when it decides whether to cut or raise. Your plan&rsquo;s own years still end at your life expectancy, an age many people outlive. The rule looks further ahead on purpose: if it planned only to your life expectancy, anyone who lived past it would leave the rule just a few years to work with, and it would cut hard in their 90s. A cautious age spends less along the way (about 1 to 3% over a lifetime for a single person, 3 to 6% for a couple) in exchange for fewer sharp cuts late in life.{pa.couple ? ' For a couple, the first of you to die stays at their life expectancy and only the last survivor is planned longer; if the other of you is the one left, they are planned to their own cautious age from then on.' : ''} If you set a short life expectancy for a health reason, choose your life expectancy here. Ages come from the Social Security life table, which tends to run a little short for people who save.
+                </span>
+              </label>
+            );
+          })()}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginTop: '12px', fontSize: 'var(--fs-sm)' }}>
             <div>
               <strong id="risk-replan-label">Reset spending when your household changes</strong>
