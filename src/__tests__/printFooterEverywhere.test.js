@@ -57,7 +57,7 @@ describe('whenImagesReady', () => {
 describe('report-only print', () => {
   it('mounts no packet sheet, so no empty header page follows the report', () => {
     const src = readFileSync(join(SRC, 'components', 'PrintPacket.jsx'), 'utf8');
-    expect(src).toMatch(/\{printing && OPTIONS\.some\(\(o\) => o\.id !== 'report' && printing\[o\.id\]\) && createPortal\(/);
+    expect(src).toMatch(/\{printing && (?:OPTIONS|options)\.some\(\(o\) => o\.id !== 'report' && printing\[o\.id\]\) && createPortal\(/);
   });
 });
 
