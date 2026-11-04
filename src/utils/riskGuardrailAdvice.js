@@ -1,7 +1,7 @@
 // Risk-based guardrails (What's New 487): what each setting trades away,
 // in plain words, for the settings block (RiskGuardrailsSettings.jsx).
 // `target` is where a raise goes back to, `cutTo` where a cut goes back to.
-export function riskGuardrailAdvice({ target, cutAt, raiseAt, cutTo = 70, move = 100, raiseCap = 0 }) {
+export function riskGuardrailAdvice({ target, cutAt, raiseAt, cutTo = 70, move = 100, raiseCap = 0, minChange = 0 }) {
   const notes = [];
   if (!(cutAt < cutTo && cutTo <= target && target < raiseAt)) {
     notes.push({ tone: 'warn', text: 'The four numbers should rise in order: cut below, cut back to, raise to, raise at. Otherwise the app moves the out-of-order ones to fit, as shown below.' });
@@ -21,6 +21,8 @@ export function riskGuardrailAdvice({ target, cutAt, raiseAt, cutTo = 70, move =
   else notes.push({ tone: 'info', text: `Raising at ${raiseAt}% waits until almost every past market would have lasted. A bad run soon after can still take a raise back.` });
   if (raiseCap > 0) notes.push({ tone: 'info', text: `Capping raises at ${raiseCap}% above your plan keeps spending from climbing far in long good markets, at the cost of leaving more unspent if good markets continue.` });
   else notes.push({ tone: 'info', text: 'With no limit on raises, a long run of good markets can raise spending to several times your plan, a 20% step at a time, and a fall late in retirement can then be too big to cut back from: tested on every start since 1928, some ran out of money that fixed spending survived. The default ceiling is 50%.' });
-  if (move < 100) notes.push({ tone: 'info', text: `Moving ${move}% of the way makes many small changes instead of a few larger ones; spending can stay outside the band for several years.` });
+  if (minChange > 0 && move < 100) notes.push({ tone: 'info', text: `With ${move}% of the way, each step is a share of the gap, so many are under ${minChange}%. Cuts that small are made at ${minChange}% instead, which makes them a little bigger and sooner; raises that small are skipped, so raises come later.` });
+  else if (minChange > 0) notes.push({ tone: 'info', text: `With All the way, cuts and raises are usually well over ${minChange}%, so this rarely changes anything; it mainly skips small last raises near your raise ceiling.` });
+  if (move < 100 && !(minChange > 0)) notes.push({ tone: 'info', text: `Moving ${move}% of the way makes many small changes instead of a few larger ones; spending can stay outside the band for several years.` });
   return notes;
 }

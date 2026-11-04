@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 489,
+    date: '2026-11-03',
+    title: 'Risk-based guardrails: what spending becomes, and a smallest change',
+    summary: 'Risk-based guardrails now say what your spending would become at each cut and raise amount, show the chance after each move, and can skip raises smaller than a size you choose.',
+    items: [
+      "**What spending becomes.** Beside the savings at which the plan would lower or raise your spending, the settings and Year by Year now say what it would spend after the change, as Income Lab\u2019s guardrail reports do. In a year the rule has just cut or raised, Year by Year now shows the amounts from the new spending, under After this change. The spreadsheet adds both as columns.",
+      "**The chance after a move.** When the rule cuts or raises, Year by Year now also shows the chance at the new spending, for example \u201c41% chance of lasting \u00b7 spending cut 18% \u00b7 chance now 70%\u201d. A raise can leave it above 80%, because no single raise is more than 20%.",
+      "**Smallest change it makes.** A new setting skips a raise smaller than 2%, 5% or 10% of lifestyle spending, so spending holds steady through small moves, though a last small step back up to your plan\u2019s own spending is still made. A cut is never skipped: one smaller than the minimum is made at the minimum. It is off by default.",
+      "**Your plan.** Nothing changes unless you turn the new setting on.",
+    ],
+  },
+  {
     id: 488,
     date: '2026-11-03',
     title: 'Risk-based guardrails: your cut and raise amounts in dollars, and updates after a death',

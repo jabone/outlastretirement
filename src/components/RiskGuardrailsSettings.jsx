@@ -60,7 +60,7 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
   const move = num(inputs.riskGuardrailMovePct, 100);
   const typed = {
     target, cutAt: num(inputs.riskGuardrailCutAtPct, 50), raiseAt: num(inputs.riskGuardrailRaiseAtPct, 99),
-    cutTo: num(inputs.riskGuardrailCutToPct, 70), move, raiseCap: num(inputs.riskGuardrailRaiseCapPct, 0),
+    cutTo: num(inputs.riskGuardrailCutToPct, 70), move, raiseCap: num(inputs.riskGuardrailRaiseCapPct, 0), minChange: num(inputs.riskGuardrailMinChangePct, 0),
   };
 
   const snap = useMemo(() => (on ? riskGuardrailSnapshot(inputs) : null), [on, inputs]);
@@ -129,16 +129,16 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
                   <p style={{ margin: '4px 0 0' }}>
                     {snap.cutBalance > 0.5 ? (
                       <>
-                        The plan would lower your spending only if savings started the year below about{' '}
+                        {snap.firstAction === 'cut' ? 'From there, the' : 'The'} plan would lower your spending only if savings started the year below about{' '}
                         <strong>{money(snap.cutBalance)}</strong>
                         {snap.openingBalance > snap.cutBalance ? <>, a fall of about {Math.round((1 - snap.cutBalance / snap.openingBalance) * 100)}%</> : null}
-                        {Number.isFinite(snap.spendAfterCut) ? <>; it would then spend about {money(snap.spendAfterCut)} a year on lifestyle</> : null}.
+                        {Number.isFinite(snap.spendAfterCut) ? <>; it would then spend about {money(snap.spendAfterCut)} a year on lifestyle, instead of {money(snap.planSpend * (snap.firstMultiplier || 1))}</> : null}.
                       </>
                     ) : <>No balance would make the plan lower your spending in your first year.</>}
                   </p>
                   <p style={{ margin: '4px 0 0' }}>
                     {Number.isFinite(snap.raiseBalance)
-                      ? <>Raises are allowed from {snap.raiseAge}. That year it would raise your spending if savings reached about <strong>{money(snap.raiseBalance)}</strong>{Number.isFinite(snap.raiseCutBalance) && snap.raiseCutBalance > 0.5 ? <>, and lower it below about {money(snap.raiseCutBalance)}</> : null}.</>
+                      ? <>Raises are allowed from {snap.raiseAge}. That year it would raise your spending if savings reached about <strong>{money(snap.raiseBalance)}</strong>{Number.isFinite(snap.spendAfterRaise) ? <>, to about {money(snap.spendAfterRaise)} a year on lifestyle{Number.isFinite(snap.raiseYearSpend) ? <>, instead of {money(snap.raiseYearSpend)}</> : null} (no single raise is more than 20%)</> : null}{Number.isFinite(snap.raiseCutBalance) && snap.raiseCutBalance > 0.5 ? <>, and lower it below about {money(snap.raiseCutBalance)}</> : null}.</>
                       : <>On this plan&rsquo;s own projection it would not raise your spending in any year.</>}
                     {' '}These amounts change each year with your age, income and spending, and after any cut or raise; Year by Year shows each year&rsquo;s. Nothing happens to your accounts: the amounts say when the plan would change what it spends.
                   </p>
@@ -176,6 +176,25 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
                 {move !== 100 && move !== 10 && <option value={String(move)}>{move}% of the way</option>}
               </select>
               <span style={{ display: 'block', fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '2px' }}>Each time a line is crossed.</span>
+            </label>
+            <label style={{ display: 'block', fontSize: 'var(--fs-sm)' }}>
+              <span>Smallest change it makes</span>
+              <select
+                id="field-riskGuardrailMinChangePct"
+                className="form-input form-input-select"
+                style={{ marginTop: '4px' }}
+                value={String(num(inputs.riskGuardrailMinChangePct, 0))}
+                onChange={(e) => updateInput('riskGuardrailMinChangePct', Number(e.target.value))}
+              >
+                <option value="0">Any change</option>
+                <option value="2">2% of spending</option>
+                <option value="5">5% of spending</option>
+                <option value="10">10% of spending</option>
+                {![0, 2, 5, 10].includes(num(inputs.riskGuardrailMinChangePct, 0)) && (
+                  <option value={String(num(inputs.riskGuardrailMinChangePct, 0))}>{num(inputs.riskGuardrailMinChangePct, 0)}% of spending</option>
+                )}
+              </select>
+              <span style={{ display: 'block', fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', marginTop: '2px' }}>A raise smaller than this share of your lifestyle spending is skipped that year. A cut is never skipped: one this small is made at this size.</span>
             </label>
             <label style={{ display: 'block', fontSize: 'var(--fs-sm)' }}>
               <span>Highest raises can take spending</span>

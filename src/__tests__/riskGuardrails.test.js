@@ -284,3 +284,51 @@ describe('care entered in the plan, and getting back to plan', () => {
     expect(restores).toBeGreaterThan(0);
   });
 });
+
+describe('what each line would do, the chance after a move, and a minimum change', () => {
+  const hist = (over = {}) => runProjection(on({ lifestyleExpense: 62000, stressType: 'history', stressStartMode: 'retirement', stressHistoryStartYear: 1966, ...over })).years.filter((y) => y.isRetired);
+  it('says what spending a cut or raise at the line would set', () => {
+    const rows = hist();
+    rows.forEach((y, i) => {
+      const before = i > 0 ? rows[i - 1].riskGuardrailMultiplier : 1;
+      if (Number.isFinite(y.riskGuardrailMultiplierIfCut)) expect(y.riskGuardrailMultiplierIfCut).toBeLessThan(y.riskGuardrailMultiplier + 1e-9);
+      if (Number.isFinite(y.riskGuardrailMultiplierIfRaise)) expect(y.riskGuardrailMultiplierIfRaise).toBeGreaterThan(y.riskGuardrailMultiplier - 1e-9);
+      expect(before).toBeGreaterThan(0);
+    });
+    expect(rows.some((y) => Number.isFinite(y.riskGuardrailMultiplierIfCut))).toBe(true);
+  });
+  it('reports the chance at the new spending after a full cut, at the cut-back level', () => {
+    const cuts = hist().filter((y) => y.riskGuardrailAction === 'cut' && !y.riskGuardrailAtFloor);
+    expect(cuts.length).toBeGreaterThan(0);
+    for (const y of cuts) {
+      if (y.riskGuardrailMultiplier > 0.5 + 1e-6) expect(y.riskGuardrailChanceAfter).toBeGreaterThanOrEqual(0.7 - 1e-9);
+    }
+  });
+  it('skips raises smaller than the minimum but never holds back a cut', () => {
+    expect(DEFAULT_INPUTS.riskGuardrailMinChangePct).toBe(0);
+    const moves = (rows) => rows.map((y, i) => ({ y, before: i > 0 ? rows[i - 1].riskGuardrailMultiplier : 1 }))
+      .filter(({ y }) => y.riskGuardrailAction === 'cut' || y.riskGuardrailAction === 'raise');
+    const partial = moves(hist({ riskGuardrailMovePct: 10 }));
+    expect(partial.some(({ y, before }) => Math.abs(y.riskGuardrailMultiplier / before - 1) < 0.05)).toBe(true);
+    const rows = hist({ riskGuardrailMovePct: 10, riskGuardrailMinChangePct: 5 });
+    for (const { y, before } of moves(rows)) {
+      const size = Math.abs(y.riskGuardrailMultiplier / before - 1);
+      if (y.riskGuardrailAction === 'raise' && y.riskGuardrailMultiplier < 1 - 1e-9) expect(size).toBeGreaterThanOrEqual(0.05 - 1e-9);
+    }
+    // Every year below the cut line still cuts (unless at the floor).
+    rows.forEach((y, i) => {
+      const before = i > 0 ? rows[i - 1].riskGuardrailMultiplier : 1;
+      if (y.riskGuardrailChance < 0.5 && before > 0.5 + 1e-6) expect(y.riskGuardrailAction).toBe('cut');
+    });
+  });
+  it('shows the lines at the spending after a move, so a cut year names where it would cut again', () => {
+    const rows = hist();
+    for (const y of rows.filter((r) => r.riskGuardrailAction === 'cut' && Number.isFinite(r.riskGuardrailCutBalance))) {
+      expect(y.riskGuardrailCutBalance).toBeLessThan(y.riskGuardrailOpeningBalance);
+      if (Number.isFinite(y.riskGuardrailMultiplierIfCut)) expect(y.riskGuardrailMultiplierIfCut).toBeLessThan(y.riskGuardrailMultiplier);
+    }
+    for (const y of rows.filter((r) => r.riskGuardrailAction === 'raise' && Number.isFinite(r.riskGuardrailMultiplierIfRaise))) {
+      expect(y.riskGuardrailMultiplierIfRaise).toBeGreaterThan(y.riskGuardrailMultiplier);
+    }
+  });
+});

@@ -1426,6 +1426,11 @@ export const DEFAULT_INPUTS = {
   riskGuardrailCutAtPct: 50,
   riskGuardrailRaiseAtPct: 99,
   riskGuardrailMovePct: 100,
+  // The smallest change in spending the rule makes, as a percentage of the
+  // year's spending (0 = any change): with 5, a cut or raise of less than
+  // 5% is skipped. Most useful with "10% of the way", which otherwise
+  // makes many small changes.
+  riskGuardrailMinChangePct: 0,
   // The highest raises may take spending, as a percentage above the plan's
   // own lifestyle spending (0 = no limit): 50 means spending never goes
   // above 1.5 times the plan's, however many raises the rule makes. 50 by
@@ -7656,8 +7661,9 @@ export function riskGuardrailSnapshot(rawInputs) {
     cutBalance: Number.isFinite(first.riskGuardrailCutBalance) ? first.riskGuardrailCutBalance / f : null,
     // Lifestyle spending (today's dollars) the first year would cut to if
     // savings were just under the cut balance.
-    spendAfterCut: Number.isFinite(first.riskGuardrailCutBalance) && first.riskGuardrailCutBalance > 0.5
-      ? riskSpendingFor(model, 0, first.riskGuardrailCutBalance / f, pct(inputs.riskGuardrailCutToPct, 70)) * life : null,
+    spendAfterCut: Number.isFinite(first.riskGuardrailMultiplierIfCut) ? riskLifestyleAt(first, first.riskGuardrailMultiplierIfCut) : null,
+    spendAfterRaise: firstRaise && Number.isFinite(firstRaise.riskGuardrailMultiplierIfRaise) ? riskLifestyleAt(firstRaise, firstRaise.riskGuardrailMultiplierIfRaise) : null,
+    raiseYearSpend: firstRaise ? riskLifestyleAt(firstRaise, Number(firstRaise.riskGuardrailMultiplier) || 1) : null,
     raiseAge: firstRaise ? firstRaise.age1 : null,
     raiseBalance: firstRaise ? firstRaise.riskGuardrailRaiseBalance / (firstRaise.priceIndex || firstRaise.inflFactor || 1) : null,
     raiseCutBalance: firstRaise && Number.isFinite(firstRaise.riskGuardrailCutBalance) ? firstRaise.riskGuardrailCutBalance / (firstRaise.priceIndex || firstRaise.inflFactor || 1) : null,
@@ -7672,6 +7678,14 @@ export function riskGuardrailSnapshot(rawInputs) {
     firstCutAge: firstCut ? firstCut.age1 : null,
   };
 }
+
+// A row's lifestyle spending (today's dollars) had the risk rule's
+// multiplier been `m` that year instead of its own.
+function riskLifestyleAt(row, m) {
+  const own = Number(row.riskGuardrailMultiplier) > 0 ? row.riskGuardrailMultiplier : 1;
+  return ((Number(row.lifestyleExpenses) || 0) * (m / own)) / (row.priceIndex || row.inflFactor || 1);
+}
+export { riskLifestyleAt };
 
 // Single trial projection calculation
 export function runProjection(rawInputs = DEFAULT_INPUTS, monteCarloReturnOverride = null, monteCarloInflationOverride = null, seedDeferralCuts = null) {
@@ -9494,6 +9508,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // as if crossing them would act.
     let riskGuardrailAtFloor = null;
     let riskGuardrailAtCeiling = null;
+    let riskGuardrailMultiplierIfCut = null;
+    let riskGuardrailMultiplierIfRaise = null;
+    let riskGuardrailChanceAfter = null;
+    // A raise line whose raise would be under the smallest change at any
+    // balance, and whether the raise line is the ten-years-ahead test.
+    let riskGuardrailRaiseTooSmall = null;
+    let riskGuardrailRaiseNeedsTen = null;
     if (riskModelPlan && isRetired) {
       const riskModel = riskModelForYear(riskModelPlan, inputs, { dead1: riskDeadAge1, dead2: riskDeadAge2, age1, age2 });
       const k = riskModel.byYear.get(year);
@@ -9523,39 +9544,90 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const floorM = essential !== null ? essential : RISK_MIN_SPENDING_SHARE;
         const cap = Math.max(0, Number(inputs.riskGuardrailRaiseCapPct) || 0);
         const ceilingM = cap > 0 ? 1 + cap / 100 : Infinity;
+        // The smallest change (changelog 489), as a share of spending. A
+        // raise smaller than it is skipped, except the last step back up to
+        // the plan's own spending; a cut smaller than it is made at the
+        // minimum instead (never past the cut-back level or the floor), so
+        // the setting can never hold back a cut that protects the plan.
+        const minChange = Math.max(0, Number(inputs.riskGuardrailMinChangePct) || 0) / 100;
+        const mayRaiseAt = (m) => yearsRetired >= RISK_RAISE_WAIT_YEARS && m < ceilingM - 1e-9;
+        // Where a cut or raise would take multiplier `m` from savings of
+        // `bal` (real): to the level with the cut-back or target chance,
+        // all or part of the way, a raise no more than 20% and not past the
+        // ceiling, a raise back toward plan no higher than the plan, never
+        // below the floor; null when a raise would be under the minimum.
+        const nextFor = (bal, kind, m) => {
+          const full = riskSpendingFor(riskModel, k, bal, kind === 'cut' ? cutTo : target, kind === 'raiseAbove' ? RISK_MIN_HORIZON : cutH);
+          let toTarget = kind === 'restore' ? Math.min(full, 1) : full;
+          let next = m + move * (toTarget - m);
+          if (kind === 'cut') {
+            if (minChange > 0 && next > m * (1 - minChange)) next = Math.max(Math.min(toTarget, m), m * (1 - minChange));
+            return Math.max(next, floorM);
+          }
+          next = Math.min(next, m * (1 + RISK_MAX_RAISE));
+          if (cap > 0) next = Math.min(next, Math.max(m, ceilingM));
+          next = Math.max(next, floorM);
+          const reachesPlan = kind === 'restore' && next >= 1 - 1e-9;
+          if (minChange > 0 && m > 0 && next / m - 1 < minChange - 1e-9 && !reachesPlan) return null;
+          return next;
+        };
         riskGuardrailChance = riskSuccess(riskModel, k, opening, riskGuardMultiplier, cutH);
         riskGuardrailAction = 'hold';
-        const mayRaise = yearsRetired >= RISK_RAISE_WAIT_YEARS && riskGuardMultiplier < ceilingM - 1e-9;
-        const belowPlan = riskGuardMultiplier < 1 - 1e-9;
-        riskGuardrailAtFloor = riskGuardMultiplier <= floorM + 1e-6;
-        riskGuardrailAtCeiling = yearsRetired >= RISK_RAISE_WAIT_YEARS && !mayRaise;
-        if (!riskModelOverride) {
-          const cutLine = riskBalanceFor(riskModel, k, riskGuardMultiplier, cutAt, cutH);
-          riskGuardrailCutBalance = Number.isFinite(cutLine) ? cutLine * (priceIndex || 1) : null;
-          let raiseLine = mayRaise ? riskBalanceFor(riskModel, k, riskGuardMultiplier, raiseAt, RISK_MIN_HORIZON) : Infinity;
-          if (mayRaise && belowPlan) raiseLine = Math.min(raiseLine, riskBalanceFor(riskModel, k, riskGuardMultiplier, raiseAt, cutH));
-          riskGuardrailRaiseBalance = Number.isFinite(raiseLine) ? raiseLine * (priceIndex || 1) : null;
-          riskGuardrailOpeningBalance = openingNominal;
-        }
-        const cutting = riskGuardrailChance < cutAt;
-        const raisingAbove = !cutting && mayRaise
-          && riskSuccess(riskModel, k, opening, riskGuardMultiplier, RISK_MIN_HORIZON) >= raiseAt;
-        const restoring = !cutting && !raisingAbove && mayRaise && belowPlan && riskGuardrailChance >= raiseAt;
-        const raising = raisingAbove || restoring;
-        if (cutting || raising) {
-          let toTarget = riskSpendingFor(riskModel, k, opening, cutting ? cutTo : target, raisingAbove ? RISK_MIN_HORIZON : cutH);
-          if (restoring) toTarget = Math.min(toTarget, 1);
-          let next = riskGuardMultiplier + move * (toTarget - riskGuardMultiplier);
-          if (raising) {
-            next = Math.min(next, riskGuardMultiplier * (1 + RISK_MAX_RAISE));
-            if (cap > 0) next = Math.min(next, Math.max(riskGuardMultiplier, ceilingM));
+        {
+          const m0 = riskGuardMultiplier;
+          const cutting = riskGuardrailChance < cutAt && m0 > floorM + 1e-6;
+          const raisingAbove = !cutting && riskGuardrailChance >= cutAt && mayRaiseAt(m0)
+            && riskSuccess(riskModel, k, opening, m0, RISK_MIN_HORIZON) >= raiseAt;
+          const restoring = !cutting && !raisingAbove && mayRaiseAt(m0) && m0 < 1 - 1e-9 && riskGuardrailChance >= raiseAt;
+          if (cutting || raisingAbove || restoring) {
+            const next = nextFor(opening, cutting ? 'cut' : raisingAbove ? 'raiseAbove' : 'restore', m0);
+            if (next !== null && Math.abs(next - m0) > 1e-6) {
+              riskGuardrailAction = next < m0 ? 'cut' : 'raise';
+              riskGuardMultiplier = next;
+              // The chance at the new spending, measured as the cut test is.
+              riskGuardrailChanceAfter = riskSuccess(riskModel, k, opening, next, cutH);
+            }
           }
-          // Never below essential spending; with no category ledger to say
-          // what is essential, never below half the plan's spending.
-          next = Math.max(next, floorM);
-          if (Math.abs(next - riskGuardMultiplier) > 1e-6) {
-            riskGuardrailAction = next < riskGuardMultiplier ? 'cut' : 'raise';
-            riskGuardMultiplier = next;
+        }
+        // The dollar lines, at the spending after any move this year (so a
+        // year that cut shows where it would cut again, not the line it has
+        // just crossed), and what spending a cut or raise there would set.
+        {
+          const m = riskGuardMultiplier;
+          const mayRaise = mayRaiseAt(m);
+          const belowPlan = m < 1 - 1e-9;
+          riskGuardrailAtFloor = m <= floorM + 1e-6;
+          riskGuardrailAtCeiling = yearsRetired >= RISK_RAISE_WAIT_YEARS && !mayRaise;
+          if (!riskModelOverride) {
+            const cutLine = riskGuardrailAtFloor ? Infinity : riskBalanceFor(riskModel, k, m, cutAt, cutH);
+            riskGuardrailCutBalance = Number.isFinite(cutLine) && !riskGuardrailAtFloor ? cutLine * (priceIndex || 1) : null;
+            if (Number.isFinite(cutLine) && cutLine > 0.5 && !riskGuardrailAtFloor) riskGuardrailMultiplierIfCut = nextFor(cutLine * (1 - 1e-9), 'cut', m);
+            const aboveLine = mayRaise ? riskBalanceFor(riskModel, k, m, raiseAt, RISK_MIN_HORIZON) : Infinity;
+            const restoreLine = mayRaise && belowPlan ? riskBalanceFor(riskModel, k, m, raiseAt, cutH) : Infinity;
+            const kind = restoreLine <= aboveLine ? 'restore' : 'raiseAbove';
+            let raiseLine = Math.min(aboveLine, restoreLine);
+            let ifRaise = Number.isFinite(raiseLine) ? nextFor(raiseLine, kind, m) : null;
+            // With a minimum, the raise line is where the raise first
+            // reaches it: search up from the chance line.
+            if (Number.isFinite(raiseLine) && ifRaise === null) {
+              let lo = raiseLine;
+              let hi = raiseLine * 4 + 1;
+              if (nextFor(hi, kind, m) === null) {
+                raiseLine = Infinity;
+                riskGuardrailRaiseTooSmall = true;
+              } else {
+                for (let i = 0; i < 30; i += 1) {
+                  const mid = (lo + hi) / 2;
+                  if (nextFor(mid, kind, m) === null) lo = mid; else hi = mid;
+                }
+                raiseLine = hi;
+                ifRaise = nextFor(hi, kind, m);
+              }
+            }
+            riskGuardrailRaiseBalance = Number.isFinite(raiseLine) ? raiseLine * (priceIndex || 1) : null;
+            if (Number.isFinite(raiseLine)) riskGuardrailMultiplierIfRaise = ifRaise;
+            riskGuardrailRaiseNeedsTen = Number.isFinite(raiseLine) && kind === 'raiseAbove';
+            riskGuardrailOpeningBalance = openingNominal;
           }
         }
       }
@@ -12315,6 +12387,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       riskGuardrailOpeningBalance,
       riskGuardrailAtFloor,
       riskGuardrailAtCeiling,
+      riskGuardrailMultiplierIfCut,
+      riskGuardrailMultiplierIfRaise,
+      riskGuardrailChanceAfter,
+      riskGuardrailRaiseTooSmall,
+      riskGuardrailRaiseNeedsTen,
       // The rate the plan's own path had that year (changelog 335), which
       // the band is drawn around. Replaces the old retirement-year anchor.
       wrGuardrailPlannedRate,

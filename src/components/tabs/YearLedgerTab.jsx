@@ -466,14 +466,16 @@ const YearLedgerTab = () => {
                           {/* Risk-based guardrails: the chance of lasting going into
                               the year, and any move the rule made. */}
                           {Number.isFinite(row.riskGuardrailChance) && (
-                            <span style={{ fontSize: 'var(--fs-2xs)', color: row.riskGuardrailAction === 'cut' ? 'var(--danger)' : row.riskGuardrailAction === 'raise' ? 'var(--success)' : 'var(--text-secondary)', display: 'block', marginTop: '2px' }}>
+                            <span style={{ fontSize: 'var(--fs-2xs)', color: row.riskGuardrailAction === 'cut' ? 'var(--danger)' : row.riskGuardrailAction === 'raise' ? 'var(--success)' : 'var(--text-secondary)', display: 'block', marginTop: '2px', whiteSpace: 'normal', maxWidth: '16em' }}>
                               {Math.round(row.riskGuardrailChance * 100)}% chance of lasting
                               {(() => {
                                 if (row.riskGuardrailAction !== 'cut' && row.riskGuardrailAction !== 'raise') return '';
                                 const prevRow = rowIndex > 0 ? projection.years[rowIndex - 1] : null;
                                 const before = prevRow && Number.isFinite(prevRow.riskGuardrailMultiplier) ? prevRow.riskGuardrailMultiplier : 1;
-                                const pctMove = before > 0 ? Math.round(Math.abs(row.riskGuardrailMultiplier / before - 1) * 100) : null;
-                                return ` · ${row.riskGuardrailAction === 'cut' ? 'cut' : 'raised'}${pctMove ? ` ${pctMove}%` : ''}`;
+                                const share = before > 0 ? Math.abs(row.riskGuardrailMultiplier / before - 1) * 100 : null;
+                                const pctMove = share === null ? '' : share < 0.5 ? ' <1%' : ` ${Math.round(share)}%`;
+                                const after = Number.isFinite(row.riskGuardrailChanceAfter) ? ` · chance now ${Math.round(row.riskGuardrailChanceAfter * 100)}%` : '';
+                                return ` · ${row.riskGuardrailAction === 'cut' ? 'spending cut' : 'spending raised'}${pctMove}${after}`;
                               })()}
                             </span>
                           )}
@@ -482,18 +484,23 @@ const YearLedgerTab = () => {
                           {Number.isFinite(row.riskGuardrailOpeningBalance) && (
                             <span data-testid="ledger-risk-dollars" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-secondary)', display: 'block', marginTop: '2px', whiteSpace: 'normal', maxWidth: '16em' }}>
                               <span style={{ display: 'block' }}>Savings going in: {formatCurrency(row.riskGuardrailOpeningBalance)}</span>
+                              {(row.riskGuardrailAction === 'cut' || row.riskGuardrailAction === 'raise') && (
+                                <span style={{ display: 'block', fontStyle: 'italic' }}>After this change:</span>
+                              )}
                               <span style={{ display: 'block' }}>
                                 {row.riskGuardrailAtFloor
                                   ? 'Spending is at its lowest; no further cut'
                                   : (Number(row.riskGuardrailCutBalance) > 0.5
-                                    ? `Plan lowers spending below ${formatCurrency(row.riskGuardrailCutBalance)}`
+                                    ? `Plan lowers spending below ${formatCurrency(row.riskGuardrailCutBalance)}${Number.isFinite(row.riskGuardrailMultiplierIfCut) && row.riskGuardrailMultiplier > 0 ? `, to ${formatCurrency(row.lifestyleExpenses * row.riskGuardrailMultiplierIfCut / row.riskGuardrailMultiplier)}` : ''}`
                                     : 'No balance would lower spending')}
                               </span>
                               {row.riskGuardrailAtCeiling
                                 ? <span style={{ display: 'block' }}>At the raise ceiling; no further raise</span>
-                                : Number.isFinite(row.riskGuardrailRaiseBalance) && (
-                                  <span style={{ display: 'block' }}>Raises it at {formatCurrency(row.riskGuardrailRaiseBalance)}</span>
-                                )}
+                                : row.riskGuardrailRaiseTooSmall
+                                  ? <span style={{ display: 'block' }}>A raise would be smaller than your smallest change</span>
+                                  : Number.isFinite(row.riskGuardrailRaiseBalance) && (
+                                    <span style={{ display: 'block' }}>Raises it at {formatCurrency(row.riskGuardrailRaiseBalance)}{Number.isFinite(row.riskGuardrailMultiplierIfRaise) && row.riskGuardrailMultiplier > 0 ? `, to ${formatCurrency(row.lifestyleExpenses * row.riskGuardrailMultiplierIfRaise / row.riskGuardrailMultiplier)}` : ''}{row.riskGuardrailRaiseNeedsTen ? ' (it must also hold ten more years)' : ''}</span>
+                                  )}
                             </span>
                           )}
                         </td>

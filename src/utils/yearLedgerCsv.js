@@ -11,6 +11,9 @@
 import { neutralizeFormula } from './csvSafety';
 
 const round = (v) => (Number.isFinite(v) ? Math.round(v) : '');
+// The year's lifestyle spending had the risk rule's multiplier been `m`.
+const riskSpendingAt = (y, m) => (Number.isFinite(m) && Number(y.riskGuardrailMultiplier) > 0
+  ? (Number(y.lifestyleExpenses) || 0) * (m / y.riskGuardrailMultiplier) : NaN);
 
 // The engine's row `salary` is pay plus part-time pay plus RSU/GSU vesting
 // plus deferred-comp payouts. The Salary column is pay alone, as on screen
@@ -63,6 +66,9 @@ export const YEAR_LEDGER_CSV_HEADERS = [
   // Dollar guardrails (What's New 488): the savings going into the year
   // below which the rule would cut, and at which it would raise.
   'Savings Going In', 'Risk Cut If Savings Below', 'Risk Raise If Savings At',
+  // What spending would become at each line, and the chance after a move
+  // (What's New 489).
+  'Risk Spending If Cut', 'Risk Spending If Raised', 'Chance After Move %',
 ];
 
 const pct2 = (v) => (Number.isFinite(v) ? Math.round(v * 100) / 100 : '');
@@ -130,6 +136,9 @@ export function buildYearLedgerCsvRows(projection) {
     round(y.riskGuardrailOpeningBalance),
     round(y.riskGuardrailCutBalance),
     round(y.riskGuardrailRaiseBalance),
+    round(riskSpendingAt(y, y.riskGuardrailMultiplierIfCut)),
+    round(riskSpendingAt(y, y.riskGuardrailMultiplierIfRaise)),
+    Number.isFinite(y.riskGuardrailChanceAfter) ? Math.round(y.riskGuardrailChanceAfter * 1000) / 10 : '',
   ]);
 }
 
