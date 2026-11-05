@@ -350,6 +350,7 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
       // What's New 499: the plan files the first alone year as a QSS.
       // How many alone years file as one (0, 1 or 2).
       qualifyingSurvivingSpouse: alone.filter((y) => y.qualifyingSurvivingSpouse).length,
+      headOfHousehold: alone.some((y) => y.headOfHousehold),
       keepsInherited: Boolean(safe.survivorKeepsInheritedIra) && survivorAge < 59.5 && rows.some((r) => r.inheritedShare > 0),
       // The inherited IRA needs a yearly withdrawal before the survivor is
       // 59 1/2: the one who died reaches (or had reached) their RMD age first.

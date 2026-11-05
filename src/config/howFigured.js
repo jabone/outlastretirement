@@ -80,7 +80,7 @@ export const HOW_FIGURED_RULES = [
     group: 'Federal income tax',
     summary: `Ordinary income (wages, pensions, the taxable part of Social Security, IRA and 401(k) withdrawals, and Roth conversions) is taxed in seven brackets from 10% to 37%, after the standard deduction. On a joint return the 10% bracket covers the first ${usd(TEN_PCT_TOP_MFJ)} of taxable income, and a single filer reaches 37% above ${usd(TOP_RATE_START_SINGLE)}. In later years every bracket grows by the Tax Bracket Inflation Rate you set.`,
     figuresYear: TAX_YEAR,
-    simplifies: 'Brackets grow at your inflation rate in a smooth line rather than by the IRS index and its rounding, and there is no head of household status; a qualifying surviving spouse is figured only for the two years after a death, when you enter the last year a child is your dependent.',
+    simplifies: 'Brackets grow at your inflation rate in a smooth line rather than by the IRS index and its rounding, and the qualifying surviving spouse and head of household statuses are figured only for a survivor, when you enter the last year a child is your dependent.',
     sources: ['tax-tables'],
   },
   {

@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 503,
+    date: '2026-11-05',
+    title: 'Head of household for a survivor with a dependent child',
+    summary: 'After the two qualifying surviving spouse years, a survivor whose child is still a dependent now files as head of household, and the child counts for the health-insurance credit.',
+    items: [
+      "**Head of household.** Once the two qualifying surviving spouse years after a death end, a widow or widower whose child is still their dependent files as head of household, with wider brackets, a larger standard deduction ($24,150 in 2026) and a wider 0% band for capital gains than a single filer. The plan used to tax those years as Single. Year by Year shows HOH as the filing status.",
+      "**The child counts for the health-insurance credit.** In every year the child is a dependent, the marketplace household for the credit before Medicare now includes the child, which lowers what the household is expected to pay. Enter the last year a child is your dependent under Household, with the survivor settings; your numbers change only if you have.",
+    ],
+  },
+  {
     id: 502,
     date: '2026-11-05',
     title: 'A survivor benefit from full retirement age, to the month',

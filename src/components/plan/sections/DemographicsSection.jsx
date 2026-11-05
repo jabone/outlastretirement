@@ -303,7 +303,7 @@ export default function DemographicsSection() {
                       <label htmlFor="field-dependentChildLastYear">Last year a child is your dependent (optional)</label>
                       <NumberInput id="field-dependentChildLastYear" min="1900" max="2150" step="1" className="form-input" placeholder="None" value={inputs.dependentChildLastYear ?? ''} onChange={(e) => updateInput('dependentChildLastYear', (e.target.value === '' ? '' : parseInt(e.target.value)))} />
                       <span data-hint-for="dependentChildLastYear" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                        A widow or widower whose child or stepchild lives at home as a dependent, in a home they pay more than half the cost of, can file as a Qualifying Surviving Spouse for the two years after the year of death, keeping the joint tax brackets and standard deduction. Leave blank if no child will be your dependent then.
+                        A widow or widower whose child or stepchild lives at home as a dependent, in a home they pay more than half the cost of, can file as a Qualifying Surviving Spouse for the two years after the year of death, keeping the joint tax brackets and standard deduction, and then as head of household while the child is still a dependent. The child also counts in your household for the health-insurance credit before Medicare. Leave blank if no child will be your dependent then.
                       </span>
                     </div>
                     {/* What's New 498: a working survivor keeps the couple's budget. */}

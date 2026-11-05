@@ -2834,6 +2834,9 @@ const DEDUCTION_MFS = 16100; // Rev. Proc. 2025-32; half of MFJ, same as Single
 const DEDUCTION_MFJ_PRETCJA = DEDUCTION_MFJ / 2;
 const DEDUCTION_MFS_PRETCJA = DEDUCTION_MFS / 2;
 const DEDUCTION_SINGLE_PRETCJA = DEDUCTION_SINGLE / 2;
+// Head of Household (What's New 503), Rev. Proc. 2025-32.
+export const DEDUCTION_HOH = 24150;
+const DEDUCTION_HOH_PRETCJA = DEDUCTION_HOH / 2;
 
 // Additional standard deduction for the aged (IRC s 63(f)) -- tax year 2026,
 // Rev. Proc. 2025-32: $1,650 per spouse aged 65+ on a married return
@@ -2861,7 +2864,7 @@ export const SENIOR_BONUS_PHASEOUT_MFJ = 150000;
 // s 63(f) add-on for `seniorCount` filers aged 65+ on this return.
 export function additionalStandardDeductionAged(status, seniorCount, inflationFactor = 1) {
   if (!(seniorCount > 0)) return 0;
-  const per = status === 'Single' ? ADDITIONAL_DEDUCTION_AGED_SINGLE_2026 : ADDITIONAL_DEDUCTION_AGED_MARRIED_2026;
+  const per = status === 'Single' || status === 'HOH' ? ADDITIONAL_DEDUCTION_AGED_SINGLE_2026 : ADDITIONAL_DEDUCTION_AGED_MARRIED_2026;
   return per * seniorCount * inflationFactor;
 }
 
@@ -3934,6 +3937,19 @@ export const BRACKETS_MFS = [
   { limit: Infinity, rate: 0.37 }
 ];
 
+// Head of Household (What's New 503): a survivor whose child is still
+// their dependent once the qualifying surviving spouse years end. Rev.
+// Proc. 2025-32, 2026.
+export const BRACKETS_HOH = [
+  { limit: 17700, rate: 0.10 },
+  { limit: 67450, rate: 0.12 },
+  { limit: 105700, rate: 0.22 },
+  { limit: 201750, rate: 0.24 },
+  { limit: 256200, rate: 0.32 },
+  { limit: 640600, rate: 0.35 },
+  { limit: Infinity, rate: 0.37 }
+];
+
 export const BRACKETS_SINGLE = [
   { limit: 12400, rate: 0.10 },
   { limit: 50400, rate: 0.12 },
@@ -3953,6 +3969,7 @@ const PRETCJA_RATES = [0.10, 0.15, 0.25, 0.28, 0.33, 0.35, 0.396];
 export const BRACKETS_MFJ_PRETCJA = BRACKETS_MFJ.map((b, i) => ({ limit: b.limit, rate: PRETCJA_RATES[i] }));
 export const BRACKETS_SINGLE_PRETCJA = BRACKETS_SINGLE.map((b, i) => ({ limit: b.limit, rate: PRETCJA_RATES[i] }));
 export const BRACKETS_MFS_PRETCJA = BRACKETS_MFS.map((b, i) => ({ limit: b.limit, rate: PRETCJA_RATES[i] }));
+export const BRACKETS_HOH_PRETCJA = BRACKETS_HOH.map((b, i) => ({ limit: b.limit, rate: PRETCJA_RATES[i] }));
 
 // One place that answers "which table applies to this filing status".
 //
@@ -3966,10 +3983,12 @@ export function bracketsFor(status, preTcja = false) {
   if (preTcja) {
     if (status === 'MFJ') return BRACKETS_MFJ_PRETCJA;
     if (status === 'MFS') return BRACKETS_MFS_PRETCJA;
+    if (status === 'HOH') return BRACKETS_HOH_PRETCJA;
     return BRACKETS_SINGLE_PRETCJA;
   }
   if (status === 'MFJ') return BRACKETS_MFJ;
   if (status === 'MFS') return BRACKETS_MFS;
+  if (status === 'HOH') return BRACKETS_HOH;
   return BRACKETS_SINGLE;
 }
 
@@ -5047,6 +5066,8 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
         federalAGI: extras.federalAGI ?? income,
         ssInIncome: extras.federalTaxableSS ?? ss,
         federalDeduction: extras.federalDeduction,
+        // The status the federal deduction was figured at (QSS: married).
+        federalStatus: extras.federalStatus,
         retirementDistributions: Math.max(0, extras.retirementDistributions || 0) + Math.max(0, extras.rothConversionTaxable || 0),
         earnedIncome: extras.earnedIncome,
         longTermGains: Math.max(0, extras.longTermGains || 0),
@@ -5478,7 +5499,7 @@ export function stateRulesTax(rules, c) {
   const seniors = ages.filter((a) => a >= 65).length;
   // Arizona takes the federal deduction without the s 63(f) 65+ add-on.
   const std = rules.standardDeduction === 'federal'
-    ? Math.max(0, (c.federalDeduction || 0) - (rules.excludeFederalAged65 ? additionalStandardDeductionAged(c.status, seniors, c.inflationFactor || 1) : 0))
+    ? Math.max(0, (c.federalDeduction || 0) - (rules.excludeFederalAged65 ? additionalStandardDeductionAged(c.federalStatus || c.status, seniors, c.inflationFactor || 1) : 0))
     : (rules.standardDeduction ? rules.standardDeduction[st] : 0) * fD;
   const extra65 = typeof rules.extraDeduction65 === 'object' && rules.extraDeduction65 !== null
     ? rules.extraDeduction65[st] : rules.extraDeduction65;
@@ -5621,8 +5642,8 @@ function capGainsTaxForOneReturn(ordinaryIncome, capitalGains, status, inflation
   // Long-term capital gains brackets — tax year 2026 (IRS Rev. Proc. 2025-32)
   // MFS = half of MFJ (Rev. Proc. 2025-32). Matches Single at the 0% edge
   // but not the 15% one: $306,850 against Single's $545,500.
-  const thresh15 = (status === 'MFJ' ? 98900 : 49450) * inflationFactor;
-  const thresh20 = (status === 'MFJ' ? 613700 : status === 'MFS' ? 306850 : 545500) * inflationFactor;
+  const thresh15 = (status === 'MFJ' ? 98900 : status === 'HOH' ? 66200 : 49450) * inflationFactor;
+  const thresh20 = (status === 'MFJ' ? 613700 : status === 'MFS' ? 306850 : status === 'HOH' ? 579600 : 545500) * inflationFactor;
   
   let tax = 0;
   let niit = 0;
@@ -8419,7 +8440,17 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       && (inputs.filingStatus === 'MFJ' || inputs.filingStatus === 'MFS')
       && year - firstAloneYear < 2 && inputs.dependentChildLastYear !== '' && inputs.dependentChildLastYear !== null
       && inputs.dependentChildLastYear !== undefined && Number.isFinite(dependentLastYear) && dependentLastYear >= year;
-    const rateStatus = qualifyingSurvivingSpouse ? 'MFJ' : currentStatus;
+    // Head of Household (What's New 503): after those years (or for an
+    // unmarried survivor), while the child is still a dependent, the
+    // survivor files as head of household -- its own brackets, deduction
+    // and capital-gains bands; everything else reads as single.
+    const childDependentThisYear = inputs.dependentChildLastYear !== '' && inputs.dependentChildLastYear !== null
+      && inputs.dependentChildLastYear !== undefined && Number.isFinite(dependentLastYear) && dependentLastYear >= year;
+    const headOfHousehold = !qualifyingSurvivingSpouse && currentStatus === 'Single' && firstAloneYear !== null && childDependentThisYear;
+    const rateStatus = qualifyingSurvivingSpouse ? 'MFJ' : headOfHousehold ? 'HOH' : currentStatus;
+    // The marketplace household: the couple (or one), plus a dependent
+    // child that year (What's New 503).
+    const acaHouseholdSize = (currentStatus === 'MFJ' ? 2 : 1) + (childDependentThisYear ? 1 : 0);
 
     const isSpouse1Retired = age1 >= inputs.retireAge1;
     const isSpouse2Retired = spouse2Alive ? (age2 >= inputs.retireAge2) : true;
@@ -8742,8 +8773,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const mfsTwoReturns = currentStatus === 'MFS' && spouse1Alive && spouse2Alive
       && mfsSplitForYear > 0 && mfsSplitForYear < 100;
     const stdDeductionBase = (inputs.tcjaSunsetEnabled
-      ? (rateStatus === 'MFJ' ? DEDUCTION_MFJ_PRETCJA : rateStatus === 'MFS' ? DEDUCTION_MFS_PRETCJA : DEDUCTION_SINGLE_PRETCJA)
-      : (rateStatus === 'MFJ' ? DEDUCTION_MFJ : rateStatus === 'MFS' ? DEDUCTION_MFS : DEDUCTION_SINGLE))
+      ? (rateStatus === 'MFJ' ? DEDUCTION_MFJ_PRETCJA : rateStatus === 'MFS' ? DEDUCTION_MFS_PRETCJA : rateStatus === 'HOH' ? DEDUCTION_HOH_PRETCJA : DEDUCTION_SINGLE_PRETCJA)
+      : (rateStatus === 'MFJ' ? DEDUCTION_MFJ : rateStatus === 'MFS' ? DEDUCTION_MFS : rateStatus === 'HOH' ? DEDUCTION_HOH : DEDUCTION_SINGLE))
       * (mfsTwoReturns ? 2 : 1);
     // Filers aged 65+ on this year's return(s). On a joint return both
     // count; a survivor counts as themself, whichever spouse survived; MFS
@@ -10208,7 +10239,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // Filled in after the solver: the 400% x FPL line for this year, the
     // household's settled ACA MAGI, and whether it crossed.
     const acaCliffThreshold = onMarketplace
-      ? ACA_SUBSIDY_CLIFF_FPL_MULTIPLE * getFederalPovertyLevel(currentStatus === 'MFJ' ? 2 : 1, year, inputs.taxBracketInflationRate)
+      ? ACA_SUBSIDY_CLIFF_FPL_MULTIPLE * getFederalPovertyLevel(acaHouseholdSize, year, inputs.taxBracketInflationRate)
       : 0;
     let acaMagi = 0;
     let acaCliffBreached = false;
@@ -11345,6 +11376,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // The state return's status when the federal rates read a joint
       // return for a Qualifying Surviving Spouse (What's New 499).
       filerStatus: currentStatus,
+      federalStatus: rateStatus,
       // Pre-Tax the survivor can take free of the 10% penalty this year:
       // the inherited IRA they still hold (What's New 497).
       penaltyFreePreTax: inheritedPreTaxShare > 0 ? preTax * inheritedPreTaxShare : 0,
@@ -11756,7 +11788,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         });
       }
       const magiEstimate = Math.max(prevAcaMagi ?? 0, otherOrdinaryAgi + ssIncome + taxableDividends + convertAmountTaxable);
-      const fplForCredit = getFederalPovertyLevel(currentStatus === 'MFJ' ? 2 : 1, year, inputs.taxBracketInflationRate);
+      const fplForCredit = getFederalPovertyLevel(acaHouseholdSize, year, inputs.taxBracketInflationRate);
       const est = acaPremiumTaxCredit({ benchmark: acaBenchmarkPremium, magi: magiEstimate, fpl: fplForCredit, premiumPaid: acaPremiumPaid });
       acaSubsidyApplied = est.credit;
       acaApplicablePct = est.applicablePct;
@@ -12379,7 +12411,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // applies in every state); the non-expansion coverage-gap branch below
     // additionally needs the 100% floor.
     if (onMarketplace) {
-      const householdSize = currentStatus === 'MFJ' ? 2 : 1;
+      const householdSize = acaHouseholdSize;
       // Read from the settled draws, so the boost below (a forced
       // conversion, plus whatever paying its tax draws from Pre-Tax or
       // Taxable) can re-settle the figure after it runs (changelog 436).
@@ -12859,6 +12891,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // Joint brackets and deduction as a Qualifying Surviving Spouse
       // (What's New 499).
       qualifyingSurvivingSpouse,
+      headOfHousehold,
       // The status the federal brackets were read at: MFJ in a QSS year.
       bracketStatus: rateStatus,
       isRetired,
@@ -13470,6 +13503,20 @@ function _runProjectionPreSanitized(inputs, monteCarloReturnOverride = null, mon
 // plan's own model, built once here (see riskModelOverride).
 // `onProgress` (optional) is called with the share of trials done, 0-1,
 // about forty times a run, so the app can show how far along it is.
+// One trial as the Monte Carlo runs it: `trialInputs` (a sampled life,
+// say) steered by the risk-based model built from `planInputs`. For tests
+// and measurements of what the rule does in a life the plan did not expect.
+export function runProjectionWithPlanModel(planInputs, trialInputs, returns = null, inflation = null) {
+  const prev = riskModelOverride;
+  const clean = sanitizeInputs(planInputs);
+  riskModelOverride = clean.riskGuardrailsEnabled ? riskGuardrailModel(clean) : null;
+  try {
+    return runProjection(trialInputs, returns, inflation);
+  } finally {
+    riskModelOverride = prev;
+  }
+}
+
 export function runMonteCarlo(rawInputs = DEFAULT_INPUTS, { onProgress = null } = {}) {
   const prev = riskModelOverride;
   const clean = sanitizeInputs(rawInputs);

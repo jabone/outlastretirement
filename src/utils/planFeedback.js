@@ -201,14 +201,14 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
       // The brackets actually used: a Qualifying Surviving Spouse keeps the
       // joint ones for two years, so the jump comes when those end.
       const bracketOf = (y) => y.bracketStatus || y.householdStatus;
-      if (bracketOf(prevYear) === 'MFJ' && bracketOf(thisYear) === 'Single') {
+      if (bracketOf(prevYear) === 'MFJ' && bracketOf(thisYear) !== 'MFJ') {
         const afterQss = !!prevYear.qualifyingSurvivingSpouse;
         const bracketJump = thisYear.marginalBracket - prevYear.marginalBracket;
         if (bracketJump > 0.02) {
           findings.push({
             type: 'danger',
             title: "Widow's/Widower's Tax Torpedo",
-            desc: `In ${thisYear.year}, ${afterQss ? "once the two qualifying surviving spouse years after a spouse's death end, the survivor's filing status becomes Single" : "your household's filing status shifts from Married Filing Jointly to Single following the loss of a spouse"}, and the surviving spouse's marginal tax bracket jumps from ${(prevYear.marginalBracket * 100).toFixed(0)}% to ${(thisYear.marginalBracket * 100).toFixed(0)}%. This happens because Single filer tax brackets are roughly half as wide as MFJ brackets, while income sources like RMDs and pensions often don't drop proportionally when one spouse passes away. Some couples convert more to Roth while both are alive, in the wider joint brackets, so less is taxed at the survivor's rates; the Tax Optimizer Hub shows what that does on this plan.`,
+            desc: `In ${thisYear.year}, ${afterQss ? `once the two qualifying surviving spouse years after a spouse's death end, the survivor's filing status becomes ${thisYear.headOfHousehold ? 'head of household' : 'Single'}` : `your household's filing status shifts from Married Filing Jointly to ${thisYear.headOfHousehold ? 'head of household' : 'Single'} following the loss of a spouse`}, and the surviving spouse's marginal tax bracket jumps from ${(prevYear.marginalBracket * 100).toFixed(0)}% to ${(thisYear.marginalBracket * 100).toFixed(0)}%. This happens because Single filer tax brackets are roughly half as wide as MFJ brackets, while income sources like RMDs and pensions often don't drop proportionally when one spouse passes away. Some couples convert more to Roth while both are alive, in the wider joint brackets, so less is taxed at the survivor's rates; the Tax Optimizer Hub shows what that does on this plan.`,
             action: { tab: 'strategy', subTab: 'optimizer', label: 'Go to Tax Optimizer Hub →' }
           });
           break; // surface only the first such transition, not every year after

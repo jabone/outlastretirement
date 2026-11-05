@@ -6,6 +6,7 @@ import {
   BRACKETS_MFJ,
   BRACKETS_MFS,
   BRACKETS_SINGLE,
+  BRACKETS_HOH,
   irmaaScaledThresholds,
   irmaaTopTierFactor,
 } from '../calculator';
@@ -19,8 +20,8 @@ export function buildTaxVisualizerData(years, useRealDollars, { mfsLivedWithSpou
   const startYear = years.length ? years[0].year : 0;
   return years.map(y => {
     const st = y.bracketStatus || y.householdStatus;
-    const status = st === 'MFJ' || st === 'MFS' ? st : 'Single';
-    const brackets = status === 'MFJ' ? BRACKETS_MFJ : status === 'MFS' ? BRACKETS_MFS : BRACKETS_SINGLE;
+    const status = st === 'MFJ' || st === 'MFS' || st === 'HOH' ? st : 'Single';
+    const brackets = status === 'MFJ' ? BRACKETS_MFJ : status === 'MFS' ? BRACKETS_MFS : status === 'HOH' ? BRACKETS_HOH : BRACKETS_SINGLE;
     const inf = y.taxBracketInflationFactor || 1;
     // The IRMAA thresholds calculateIRMAA() priced this year with: the
     // year's own threshold factor (1 when frozen), the statutory top-tier

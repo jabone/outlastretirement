@@ -150,8 +150,8 @@ describe('how the numbers are figured: dollar figures', () => {
   // engine computes with. A figure typed into the text without an entry here
   // fails the census below.
   const PINS = {
-    '$98,900': [/\(status === 'MFJ' \? 98900 : 49450\)/],
-    '$49,450': [/\(status === 'MFJ' \? 98900 : 49450\)/],
+    '$98,900': [/\(status === 'MFJ' \? 98900 : status === 'HOH' \? 66200 : 49450\)/],
+    '$49,450': [/\(status === 'MFJ' \? 98900 : status === 'HOH' \? 66200 : 49450\)/],
     '$250,000': [/const niitThresh = status === 'MFJ' \? 250000 : status === 'MFS' \? 125000 : 200000;/, /const addMedThreshold = filingStatus === 'MFJ' \? 250000 : 200000;/],
     '$200,000': [/const niitThresh = status === 'MFJ' \? 250000 : status === 'MFS' \? 125000 : 200000;/, /const addMedThreshold = filingStatus === 'MFJ' \? 250000 : 200000;/],
     '$125,000': [/const niitThresh = status === 'MFJ' \? 250000 : status === 'MFS' \? 125000 : 200000;/],
