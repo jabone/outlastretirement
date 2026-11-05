@@ -34,3 +34,11 @@ test('a benefit saved without an id gets the same id every time', async () => {
   const { sanitizeSurvivorBenefit } = await import('../calculator');
   expect(sanitizeSurvivorBenefit({ amount: 1 }, 2).id).toBe(sanitizeSurvivorBenefit({ amount: 1 }, 2).id);
 });
+
+test('a benefit set as a share of pay pays that share of the spouse’s salary', async () => {
+  const { survivorBenefitBase, sanitizeSurvivorBenefit } = await import('../calculator');
+  const b = sanitizeSurvivorBenefit({ id: 'p', whose: 1, kind: 'yearly', payPct: 50, years: 10, whileWorking: true });
+  expect(survivorBenefitBase({ salary1: 200000 }, b)).toBe(100000);
+  const p = runProjection(c({ survivorBenefits: [b] }));
+  expect(p.years[1].survivorBenefitIncome).toBeCloseTo(100000 * (p.years[0].inflFactor * (1 + DEFAULT_INPUTS.inflationRate / 100)) / p.years[0].inflFactor, -1);
+});

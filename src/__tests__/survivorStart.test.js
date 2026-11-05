@@ -110,3 +110,53 @@ describe('survivorStartComparison', () => {
     expect(survivorStartComparison({ ...ray, spouse2Enabled: false }).status).toBe('no-spouse');
   });
 });
+
+describe('the survivors’ full retirement age (review panel, 2026-11-04)', () => {
+  it('runs two birth years behind the retirement table', async () => {
+    const { getSurvivorFullRetirementAge, getFullRetirementAge } = await import('../calculator');
+    expect(getSurvivorFullRetirementAge(1956)).toBe(66);
+    expect(getSurvivorFullRetirementAge(1957)).toBeCloseTo(66 + 2 / 12, 9);
+    expect(getSurvivorFullRetirementAge(1959)).toBeCloseTo(66.5, 9);
+    expect(getSurvivorFullRetirementAge(1961)).toBeCloseTo(66 + 10 / 12, 9);
+    expect(getSurvivorFullRetirementAge(1962)).toBe(67);
+    expect(getSurvivorFullRetirementAge(1944)).toBeCloseTo(65 + 10 / 12, 9);
+    // Earlier than the retirement age for 1957-1961.
+    expect(getSurvivorFullRetirementAge(1959)).toBeLessThan(getFullRetirementAge(1959));
+  });
+});
+
+describe('one benefit first, then the other', () => {
+  it('compares starting the own benefit early and switching to the survivor benefit at full retirement age', () => {
+    // Angie has a real record of her own here, claimed (in the plan) at 67.
+    const r = survivorStartComparison({ ...ray, ss2: 22000 });
+    expect(r.status).toBe('compare');
+    const own = r.strategies.find((s) => s.id === 'ownFirst');
+    expect(own.ownAge).toBe(62);
+    // Ray claimed early, so the widow's limit stops the check growing at
+    // r.topAge: the switch comes then, not at full retirement age.
+    expect(own.survivorStartAge).toBe(r.topAge);
+    expect(r.topAge).toBeLessThan(67);
+    for (const s of r.strategies) expect(Number.isFinite(s.endBalance)).toBe(true);
+    // A better one, when there is one, beats the best single start age.
+    if (r.betterStrategy) expect(r.betterStrategy.endBalance).toBeGreaterThan(r.rows[r.best].endBalance);
+  });
+
+  it('does not offer the survivor benefit first when the own benefit at 70 never beats it', () => {
+    const r = survivorStartComparison(ray);
+    expect(r.status).toBe('compare');
+    expect(r.strategies.find((s) => s.id === 'survivorFirst')).toBeUndefined();
+  });
+
+  it('past full retirement age, still offers the survivor benefit now and the own benefit at 70', () => {
+    const r = survivorStartComparison({ ...ray, birthYear1: 1960, birthYear2: 1960, ss1: 26000, ss2: 25000, claimingAge1: 67, claimingAge2: 69, survivorStressAge: 67, retireAge2: 60 });
+    expect(r.status).toBe('past-fra');
+    const surv = r.strategies.find((s) => s.id === 'survivorFirst');
+    expect(surv).toBeTruthy();
+    expect(surv.ownAge).toBe(70);
+  });
+
+  it('is not offered once the survivor has already claimed their own benefit', () => {
+    const r = survivorStartComparison({ ...ray, ss2: 22000, claimingAge2: 60 });
+    if (r.status === 'compare') expect(r.strategies).toEqual([]);
+  });
+});

@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 494,
+    date: '2026-11-04',
+    title: 'Better Social Security answers for a survivor, and benefits as a share of pay',
+    summary: 'A survivor\u2019s benefit now uses Social Security\u2019s survivor ages, the start-age comparison tries taking one benefit first and switching, and a survivor benefit can be a share of pay.',
+    items: [
+      "**The survivor\u2019s own age table.** Social Security reaches an unreduced survivor benefit on its survivors table, which for people born 1957 to 1961 is 2 to 10 months earlier than the retirement age the plan used. A survivor born in those years now gets a slightly larger check when starting it before full retirement age. Your numbers will change if one of you was born 1957 to 1961.",
+      "**Take one benefit first, then switch.** Compare start ages for this plan (Plan \u2192 Income \u2192 Social Security) now also runs the plan with the survivor\u2019s own reduced benefit from 62 and the survivor benefit from full retirement age, and with the survivor benefit at once and their own at 70, and flags one that leaves more than any single start age. The Survivor\u2019s Guide names it in the Social Security step.",
+      "**A share of pay.** A survivor benefit under Tax & Estate \u2192 Survivor\u2019s Guide can be set as a share of that spouse\u2019s pay, such as half of salary, and follows any change to the salary.",
+    ],
+  },
+  {
     id: 493,
     date: '2026-11-04',
     title: 'Survivor benefits from work, where the money is kept, and how to open the plan',

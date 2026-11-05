@@ -39,12 +39,18 @@ export function firstSteps(g) {
   if (f.deceasedClaimedSS) ss += ' The payment that arrives in the month after the death pays for the month of death and must be returned; if it was deposited, the bank sends it back, so do not spend it.';
   if (g.ssStart?.bestAge) {
     ss += g.ssStart.bestAge === g.ssStart.planAge
-      ? ` This plan starts your survivor benefit at ${g.ssStart.planAge}, about ${money(g.ssStart.planCheck)} a year, which in this plan leaves the most.`
-      : ` This plan starts your survivor benefit at ${g.ssStart.planAge} (about ${money(g.ssStart.planCheck)} a year); starting it at ${g.ssStart.bestAge} pays a larger check for life (about ${money(g.ssStart.bestCheck)} a year) and in this plan leaves more at the end. It can start as early as 60, at a smaller amount.`;
+      ? ` This plan starts your survivor benefit at ${g.ssStart.planAge}, about ${money(g.ssStart.planCheck)} a year, which in this plan leaves the most${g.ssStart.switchPlan ? ' of the single start ages' : ''}.`
+      : ` This plan starts your survivor benefit at ${g.ssStart.planAge} (about ${money(g.ssStart.planCheck)} a year); starting it at ${g.ssStart.bestAge} pays a larger check for life (about ${money(g.ssStart.bestCheck)} a year) and in this plan leaves more at the end${g.ssStart.switchPlan ? ' than any other single start age' : ''}. It can start as early as 60, at a smaller amount.`;
   } else if (g.ssStart?.pastFra) {
     ss += ' You are past full retirement age, so the survivor benefit is not reduced whenever it starts; there is no reason to wait for it.';
   } else if (g.ssStart?.ownLarger) {
     ss += ` Your own benefit is larger than the survivor benefit, so you keep your own; ask whether ${d}'s record pays anything more.`;
+  }
+  const sw = g.ssStart?.switchPlan;
+  if (sw && sw.moreAtEnd > 1000) {
+    ss += sw.id === 'ownFirst'
+      ? ` In this plan, starting your own benefit at ${sw.ownAge} and switching to the survivor benefit at ${sw.survivorAge} leaves the most: about ${money(sw.moreAtEnd)} more at the end than the best single start age (today\u2019s dollars).`
+      : ` In this plan, taking the survivor benefit from ${sw.survivorAge} and switching to your own at ${sw.ownAge} leaves the most: about ${money(sw.moreAtEnd)} more at the end than ${g.ssStart.pastFra ? 'the plan as it is' : 'the best single start age'} (today\u2019s dollars).`;
   }
   ss += ' Unlike a spouse’s benefit, a survivor can take one benefit now and switch to the other later (for example the survivor benefit early and your own at 70, or the reverse): ask Social Security to show both, and to limit the application to the one you are starting.';
   if (g.income.ownSwitch) ss += ` This plan switches you to your own benefit at ${g.income.ownSwitch.age}, in ${g.income.ownSwitch.year}, about ${money(g.income.ownSwitch.amount)} a year: apply for it then, because Social Security may not switch you on its own.`;
@@ -109,7 +115,8 @@ export function firstSteps(g) {
   const claim = (g.benefits || []).filter((b) => b.applies);
   if (claim.length) {
     const lines = claim.map((b) => {
-      const what = b.kind === 'once' ? `${money(b.amount)} once` : `${money(b.amount)} a year for ${b.years} year${b.years === 1 ? '' : 's'}`;
+      const each = b.payPct > 0 ? (b.value > 0.5 ? `${b.payPct}% of pay (about ${money(b.value)})` : `${b.payPct}% of pay (no pay is entered for ${d} in this plan, so it counts as $0)`) : money(b.value);
+      const what = b.kind === 'once' ? `${each} once` : `${each} a year for ${b.years} year${b.years === 1 ? '' : 's'}`;
       return `${b.name || 'A benefit'}: ${what}${b.contact ? `; contact ${b.contact}` : ''}${b.details ? `. ${b.details}` : ''}${b.counted ? '' : ' (not counted in this plan\u2019s figures)'}.`;
     });
     twoMonths.push({

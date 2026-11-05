@@ -20,7 +20,7 @@
 // exception is life insurance, printed at the policy's own amount, because
 // that is the figure the insurer will quote.
 
-import { runProjection, getFullRetirementAge, rmdStartAge, sanitizeSurvivorBenefit } from '../calculator';
+import { runProjection, getSurvivorFullRetirementAge, getFullRetirementAge, rmdStartAge, sanitizeSurvivorBenefit, survivorBenefitBase } from '../calculator';
 import { yearFactor, yearEndFactor, finalBalanceFactor } from './displayDollars';
 import { sanitizeForProjection } from './oneLeverCompare';
 import { survivorStartComparison } from './survivorStart';
@@ -232,8 +232,17 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
     if (cmp.status === 'compare') {
       const pick = cmp.rows[cmp.best];
       const chosen = cmp.rows[cmp.current] || cmp.rows[0];
-      ssStart = { bestAge: pick.effectiveAge, bestCheck: pick.check, planAge: chosen.effectiveAge, planCheck: chosen.check, earliest: cmp.rows[0].effectiveAge };
-    } else if (cmp.status === 'past-fra') ssStart = { pastFra: true };
+      const bs = cmp.betterStrategy;
+      ssStart = {
+        bestAge: pick.effectiveAge, bestCheck: pick.check, planAge: chosen.effectiveAge, planCheck: chosen.check, earliest: cmp.rows[0].effectiveAge,
+        // Taking one benefit first and switching beats every single start
+        // age: the guide names it, with what it leaves over the best one.
+        switchPlan: bs ? { id: bs.id, ownAge: bs.ownAge, survivorAge: bs.survivorStartAge, moreAtEnd: bs.endBalance - pick.endBalance } : null,
+      };
+    } else if (cmp.status === 'past-fra') {
+      const bs = cmp.betterStrategy;
+      ssStart = { pastFra: true, switchPlan: bs ? { id: bs.id, ownAge: bs.ownAge, survivorAge: bs.survivorStartAge, moreAtEnd: bs.endBalance - cmp.planEndBalance } : null };
+    }
     else if (cmp.status === 'own-larger') ssStart = { ownLarger: true };
   } catch { ssStart = null; }
 
@@ -253,7 +262,7 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
   const deceasedBirth = by(deceased, 'birthYear1', 'birthYear2');
   const survivorBirth = by(survivor, 'birthYear1', 'birthYear2');
   const survivorAge = survivor === 1 ? first.age1 : first.age2;
-  const fra = getFullRetirementAge(survivorBirth);
+  const fra = getSurvivorFullRetirementAge(survivorBirth);
   const earlyPreTax = rows.some((r) => r.age < 59.5 && r.fromPreTax > 0.5);
   const firstConversion = rows[0] && rows[0].conversion > 0.5 ? rows[0].conversion : 0;
 
@@ -263,8 +272,8 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
   const retireAgeDeceased = by(deceased, 'retireAge1', 'retireAge2');
   const benefits = (Array.isArray(inputs.survivorBenefits) ? inputs.survivorBenefits : [])
     .map(sanitizeSurvivorBenefit)
-    .filter((b) => b.whose === deceased && (b.name.trim() || b.amount > 0 || b.details.trim()))
-    .map((b) => ({ ...b, applies: !b.whileWorking || deathAge < retireAgeDeceased }));
+    .filter((b) => b.whose === deceased && (b.name.trim() || b.amount > 0 || b.payPct > 0 || b.details.trim()))
+    .map((b) => ({ ...b, value: survivorBenefitBase(safe, b), applies: !b.whileWorking || deathAge < retireAgeDeceased }));
 
   return {
     status: 'ok',
@@ -328,7 +337,9 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
       irmaaAge: survivorAge >= 63,
       medicareYear: survivorAge < 65 && survivorBirth ? survivorBirth + 65 : null,
       working: after.work > 0.5,
-      workingBeforeFra: after.work > 0.5 && survivorAge < fra,
+      // The earnings test runs to the retirement FRA, even on a survivor
+      // benefit (SSA), not the survivors-table one.
+      workingBeforeFra: after.work > 0.5 && survivorAge < getFullRetirementAge(survivorBirth),
       earlyPreTax,
       firstConversion,
       rmd: rows.some((r) => r.rmd > 0.5),

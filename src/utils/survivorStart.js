@@ -21,7 +21,7 @@
 // or the Survivor Stress Test when it is on) decides who survives and at
 // what age; nothing here assumes a death the plan does not.
 
-import { runProjection, getFullRetirementAge } from '../calculator';
+import { runProjection, getSurvivorFullRetirementAge as getFullRetirementAge } from '../calculator';
 import { yearFactor, finalBalanceFactor } from './displayDollars';
 import { sanitizeForProjection } from './oneLeverCompare';
 
@@ -94,6 +94,45 @@ function breakEvenAge(later, earliest) {
   return null;
 }
 
+// One benefit first, then the other (review panel, 2026-11-04). Offered
+// only while the survivor has not yet claimed their own benefit when
+// alone, so the years together are unchanged, and each is run in full:
+//   ownFirst       the survivor's own reduced benefit from 62 (or their age),
+//                  then the survivor benefit from the age its check stops
+//                  growing (full retirement age, or earlier when the widow's
+//                  limit caps it);
+//   survivorFirst  the survivor benefit at once, then their own at 70 --
+//                  only when the plan actually switches them to it, i.e.
+//                  their own benefit at 70 beats the survivor check.
+// Each is kept only if the run does what its label says.
+function switchStrategies(safe, run, { survivor, survivorAge, firstIndex, field, earliest, topAge }) {
+  const ownField = survivor === 1 ? 'claimingAge1' : 'claimingAge2';
+  const ownClaim = Number(safe[ownField]) || 67;
+  const out = [];
+  if (!(survivorAge < ownClaim)) return { ownField, ownClaim, strategies: out };
+  const benefitKey = survivor === 1 ? 'survivorBenefit1' : 'survivorBenefit2';
+  const ageKey = survivor === 1 ? 'age1' : 'age2';
+  const candidates = [];
+  const ownEarly = Math.max(62, survivorAge);
+  if (Number.isFinite(topAge) && ownEarly < topAge && ownEarly < ownClaim) candidates.push({ id: 'ownFirst', ownAge: ownEarly, survivorStart: topAge });
+  if (ownClaim < 70 && survivorAge < 70) candidates.push({ id: 'survivorFirst', ownAge: 70, survivorStart: 0 });
+  for (const st of candidates) {
+    const proj = run({ ...safe, [ownField]: st.ownAge, [field]: st.survivorStart });
+    const years = (proj.years || []).slice(firstIndex);
+    const at = (age) => years.find((y) => y[ageKey] === age);
+    if (st.id === 'ownFirst') {
+      const y = at(st.survivorStart);
+      if (!y || !(Number(y[benefitKey]) > 0)) continue;
+    } else {
+      const y = at(70);
+      if (!y || Number(y[benefitKey]) > 0 || !(Number(y.ssIncome) > 0)) continue;
+    }
+    const sum = summarize(proj, survivor, firstIndex);
+    out.push({ ...st, survivorStartAge: st.survivorStart === 0 ? earliest : st.survivorStart, endBalance: sum.endBalance, shortYears: sum.shortYears, ssTotal: sum.ssTotal });
+  }
+  return { ownField, ownClaim, strategies: out };
+}
+
 // Returns { status, ... }:
 //   'no-spouse'      a one-person plan
 //   'no-survivor'    both die the same year, so no one is ever alone
@@ -113,7 +152,15 @@ export function survivorStartComparison(inputs, run = runProjection) {
   const birthYear = survivor === 1 ? safe.birthYear1 : safe.birthYear2;
   const fra = getFullRetirementAge(birthYear);
   const scenario = { ...first, fra };
-  if (survivorAge >= fra) return { status: 'past-fra', ...scenario };
+  if (survivorAge >= fra) {
+    // Past full retirement age the survivor benefit is unreduced whenever
+    // it starts, but taking it now and switching to a larger own benefit at
+    // 70 can still pay more.
+    const sw = switchStrategies(safe, run, { survivor, survivorAge, firstIndex: first.index, field: survivor === 1 ? 'survivorStartAge1' : 'survivorStartAge2', earliest: survivorAge, topAge: null });
+    const plan = summarize(base, survivor, first.index);
+    const better = sw.strategies.filter((st) => st.shortYears < plan.shortYears || (st.shortYears === plan.shortYears && st.endBalance > plan.endBalance + 1))[0] || null;
+    return { status: 'past-fra', ...scenario, ...sw, field: survivor === 1 ? 'survivorStartAge1' : 'survivorStartAge2', planEndBalance: plan.endBalance, betterStrategy: better };
+  }
 
   const field = survivor === 1 ? 'survivorStartAge1' : 'survivorStartAge2';
   const earliest = Math.max(60, survivorAge);
@@ -148,9 +195,21 @@ export function survivorStartComparison(inputs, run = runProjection) {
   // least; it has no row of its own, so it is flagged instead.
   const currentPastTop = chosen > rows[rows.length - 1].effectiveAge;
 
+  const { ownField, ownClaim, strategies: strategyRows } = switchStrategies(safe, run, {
+    survivor, survivorAge, firstIndex: first.index, field, earliest, topAge: rows[rows.length - 1].effectiveAge,
+  });
+  const bestRow = rows[best];
+  const better = strategyRows
+    .filter((st) => st.shortYears < bestRow.shortYears || (st.shortYears === bestRow.shortYears && st.endBalance > bestRow.endBalance + 1))
+    .sort((a, b) => a.shortYears - b.shortYears || b.endBalance - a.endBalance)[0] || null;
+
   return {
     status: 'compare',
     ...scenario,
+    ownField,
+    ownClaim,
+    strategies: strategyRows,
+    betterStrategy: better,
     field,
     rows: rows.map(({ cumulativeByAge: _cumulative, ...r }) => r),
     best,

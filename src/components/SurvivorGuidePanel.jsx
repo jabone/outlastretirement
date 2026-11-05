@@ -67,8 +67,9 @@ function NoteBox({ from, to, entry, onSave }) {
   );
 }
 
-function BenefitEditor({ b, names, onChange, onRemove }) {
+function BenefitEditor({ b, names, pay, onChange, onRemove }) {
   const set = (patch) => onChange({ ...b, ...patch });
+  const payNow = Number(pay[b.whose]) || 0;
   const id = (k) => `survivor-benefit-${b.id}-${k}`;
   return (
     <div style={card} data-testid="survivor-benefit">
@@ -88,8 +89,21 @@ function BenefitEditor({ b, names, onChange, onRemove }) {
             <option value="once">One time</option>
           </select>
         </label>
-        <BlurText id={id('amount')} label={b.kind === 'once' ? 'Amount (today’s dollars)' : 'Each year (today’s dollars)'} value={b.amount ? String(b.amount) : ''} inputMode="decimal"
-          onCommit={(v) => set({ amount: v })} />
+        <label style={lbl} htmlFor={id('basis')}>
+          <span>Set as</span>
+          <select id={id('basis')} className="form-input form-input-select" value={b.payPct > 0 ? 'pay' : 'amount'}
+            onChange={(e) => set(e.target.value === 'pay' ? { payPct: 50 } : { payPct: 0 })}>
+            <option value="amount">A dollar amount</option>
+            <option value="pay">A share of {names[b.whose]}&rsquo;s pay</option>
+          </select>
+        </label>
+        {b.payPct > 0
+          ? <div>
+              <BlurText id={id('payPct')} label={`Percent of pay${payNow > 0 ? ` (about ${money(payNow * b.payPct / 100)})` : ''}`} value={String(b.payPct)} inputMode="decimal" onCommit={(v) => set({ payPct: v })} />
+              {payNow <= 0 && <span style={{ ...muted, color: 'var(--warning-text, var(--text-muted))' }} data-testid="survivor-benefit-no-pay">No pay is entered for {names[b.whose]}, so this counts as $0. Use a dollar amount instead.</span>}
+            </div>
+          : <BlurText id={id('amount')} label={b.kind === 'once' ? 'Amount (today\u2019s dollars)' : 'Each year (today\u2019s dollars)'} value={b.amount ? String(b.amount) : ''} inputMode="decimal"
+              onCommit={(v) => set({ amount: v })} />}
         {b.kind === 'yearly' && (
           <BlurText id={id('years')} label="For how many years" value={String(b.years)} inputMode="numeric" onCommit={(v) => set({ years: v })} />
         )}
@@ -216,7 +230,7 @@ export default function SurvivorGuidePanel() {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
               {benefits.map((b, i) => (
-                <BenefitEditor key={b.id} b={b} names={names}
+                <BenefitEditor key={b.id} b={b} names={names} pay={{ 1: inputs.salary1, 2: inputs.salary2 }}
                   onChange={(nb) => setBenefits(benefits.map((x, j) => (j === i ? nb : x)))}
                   onRemove={() => setBenefits(benefits.filter((_, j) => j !== i))} />
               ))}

@@ -6257,6 +6257,21 @@ export function getFullRetirementAge(birthYear) {
   return 65;
 }
 
+// The full retirement age for a widow's or widower's survivor benefit
+// (SSA's survivors table, POMS RS 00615.301): the retirement table shifted
+// two birth years later -- 66 for births 1945-1956, rising two months a
+// year to 67 for 1962 on. For 1957-1961 births it is 2 to 10 months
+// earlier than the retirement age, so a survivor reaches an unreduced
+// benefit sooner (review panel, 2026-11-04).
+export function getSurvivorFullRetirementAge(birthYear) {
+  const y = Number(birthYear);
+  if (!Number.isFinite(y) || y >= 1962) return 67;
+  if (y >= 1957) return 66 + (y - 1956) * 2 / 12;
+  if (y >= 1945) return 66;
+  if (y >= 1940) return 65 + (y - 1939) * 2 / 12;
+  return 65;
+}
+
 // SECURE 2.0 RMD start age by year of birth: 75 for anyone born 1960 or
 // later, 73 before. The one copy of the rule; the engine's RMD loop, the
 // heir-rule helper and the Tax & Estate chart (App.jsx getRMDAge) read it.
@@ -6410,8 +6425,9 @@ export function getSpousalSSMultiplier(claimingAge, fra = 67) {
 // Before this the engine paid max(own, deceased's benefit) from 62 with
 // no survivor reduction and no RIB-LIM: too generous for a survivor under
 // FRA, too stingy for one whose spouse died before claiming after FRA.
-// The survivor FRA table differs slightly from the retirement one for
-// 1957-1961 births; the retirement FRA is used for both.
+// survivorFra is the survivor's own full retirement age on the survivors
+// table (getSurvivorFullRetirementAge), which runs earlier than the
+// retirement one for 1957-1961 births.
 export function survivorSSBenefit({ deceasedFull, deceasedClaimAge, deceasedFra = 67, deceasedDeathAge, survivorFra = 67, survivorClaimAge }) {
   const full = Math.max(0, Number(deceasedFull) || 0);
   if (full === 0) return 0;
@@ -7185,6 +7201,14 @@ export function sanitizeInputs(inputs) {
   return clean;
 }
 
+// A survivor benefit's yearly (or one-time) amount in today's dollars: its
+// share of that spouse's pay (pay rises with inflation in the plan, so a
+// share of today's salary is the share at the death), or its amount.
+export function survivorBenefitBase(inputs, b) {
+  if (b.payPct > 0) return (b.payPct / 100) * Math.max(0, Number(b.whose === 2 ? inputs.salary2 : inputs.salary1) || 0);
+  return b.amount;
+}
+
 // One survivor benefit (see DEFAULT_INPUTS.survivorBenefits), its figures
 // parsed the way a typed field is and its words kept short.
 const text = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
@@ -7202,6 +7226,10 @@ export function sanitizeSurvivorBenefit(b, index = 0) {
     name: text(b.name, 120),
     kind,
     amount: num(b.amount),
+    // A share of that spouse's pay instead of a dollar amount (an employer
+    // benefit is often "half of salary"): 0 uses amount.
+    // Up to 10 times pay: group life insurance is often a multiple of salary.
+    payPct: Math.min(1000, num(b.payPct)),
     years: Math.min(60, Math.max(1, Math.round(num(b.years) || 1))),
     whileWorking: Boolean(b.whileWorking),
     indexed: Boolean(b.indexed),
@@ -8914,13 +8942,15 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // the paid branch below fixes the start age in the first alone year.
     const deathAge1 = (inputs.survivorStressEnabled && inputs.survivorStressSpouse === 1) ? inputs.survivorStressAge : lifeExpectancy1;
     const deathAge2 = (inputs.survivorStressEnabled && inputs.survivorStressSpouse === 2) ? inputs.survivorStressAge : lifeExpectancy2;
+    const survivorFra1 = getSurvivorFullRetirementAge(inputs.birthYear1);
+    const survivorFra2 = getSurvivorFullRetirementAge(inputs.birthYear2);
     const survivorOn2 = (claimAge) => survivorSSBenefit({
       deceasedFull: ss2Full, deceasedClaimAge: claimExact2, deceasedFra: ssFra2, deceasedDeathAge: deathAge2,
-      survivorFra: ssFra1, survivorClaimAge: claimAge,
+      survivorFra: survivorFra1, survivorClaimAge: claimAge,
     }) * ssDepletionFactor;
     const survivorOn1 = (claimAge) => survivorSSBenefit({
       deceasedFull: ss1Full, deceasedClaimAge: claimExact1, deceasedFra: ssFra1, deceasedDeathAge: deathAge1,
-      survivorFra: ssFra2, survivorClaimAge: claimAge,
+      survivorFra: survivorFra2, survivorClaimAge: claimAge,
     }) * ssDepletionFactor;
     const own1Now = age1 >= inputs.claimingAge1 ? ss1Benefit : 0;
     const own2Now = age2 >= inputs.claimingAge2 ? ss2Benefit : 0;
@@ -9398,10 +9428,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       for (const b of inputs.survivorBenefits) {
         const death = survivorBenefitDeath[b.whose];
         const otherAlive = b.whose === 1 ? spouse2Alive : spouse1Alive;
-        if (!death || !otherAlive || !b.counted || !(b.amount > 0)) continue;
+        const base = survivorBenefitBase(inputs, b);
+        if (!death || !otherAlive || !b.counted || !(base > 0)) continue;
         if (b.whileWorking && !(death.age < (b.whose === 1 ? inputs.retireAge1 : inputs.retireAge2))) continue;
         const k = year - death.year;
-        const amt = b.amount * (b.indexed ? inflFactor : death.infl);
+        const amt = base * (b.indexed ? inflFactor : death.infl);
         if (b.kind === 'once') {
           if (k !== 0) continue;
           survivorBenefitLump += amt;
