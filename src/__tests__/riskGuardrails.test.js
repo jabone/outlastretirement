@@ -357,8 +357,9 @@ describe('re-planning after a life event', () => {
     expect(early[0].riskGuardrailReplanned).toBe(true);
     expect(early[0].riskGuardrailChanceAfter).toBeGreaterThanOrEqual(0.8 - 1e-9);
     // A death before retirement that left the survivor better off than the
-    // couple's own plan (spending drops more than income): no reset.
-    const better = runProjection(couple({ birthYear1: START - 60, birthYear2: START - 60, survivorStressAge: 63, lifestyleExpense: 100000 })).years.filter((y) => y.isRetired);
+    // couple's own plan (spending drops more than income, the whole budget
+    // dropping as in a plan saved before What's New 495): no reset.
+    const better = runProjection(couple({ birthYear1: START - 60, birthYear2: START - 60, survivorStressAge: 63, lifestyleExpense: 100000, survivorDropKeepsHousing: false })).years.filter((y) => y.isRetired);
     expect(better.some((y) => y.riskGuardrailReplanned)).toBe(false);
     // With a large term policy the survivor's check counts that year.
     const insured = runProjection(couple({ lifeInsuranceEnabled1: true, lifeInsuranceDeathBenefit1: 300000 })).years.filter((y) => y.isRetired);

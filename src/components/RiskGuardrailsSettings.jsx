@@ -6,6 +6,7 @@
 // after the review panel (2026-11-03): ideas in teaching order, every
 // "chance" on the screen tied together, numbers applied when a field is
 // left rather than on every keystroke.
+import { chanceToLabel } from '../utils/chanceToLabel';
 import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle, AlertTriangle } from 'lucide-react';
 import { riskGuardrailSnapshot, essentialShareOf, riskPlanningAges } from '../calculator';
@@ -52,14 +53,14 @@ function PercentField({ id, label, help, value, onCommit }) {
 // The rule in your own dollars (What's New 488/489): shown in the settings
 // box and, for the paper trail, in the printed report's Risk & Stress notes
 // (What's New 492), so the two never say different things.
-export function RiskGuardrailsNow({ snap, target, cutAt, from, money, onPaper = false }) {
+export function RiskGuardrailsNow({ snap, target, cutAt, from, money, onPaper = false, inputs = null }) {
   // On paper the screens it names are in the app, not on the page.
   const app = onPaper ? ' in the app' : '';
   return (
             <div data-testid="risk-guardrails-now" style={{ marginTop: '14px', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--card-border)', fontSize: 'var(--fs-sm)' }}>
               <p style={{ margin: 0 }}>
                 When you retire{snap.age ? ` at ${snap.age}` : ''}, your plan spends about <strong>{money(snap.planSpend)}</strong> a
-                year on lifestyle (today&rsquo;s dollars, before taxes and healthcare). At that spending your chance of lasting
+                year on lifestyle (today&rsquo;s dollars, before taxes and healthcare). At that spending your chance of lasting{chanceToLabel(snap, inputs)}
                 is <strong>{Math.round(snap.chance * 100)}%</strong>. Spending about {money(snap.atTarget)} would put it at {target}%,
                 and spending above about {money(snap.atCutLine)} would put it below {cutAt}%, where the rule cuts.
               </p>
@@ -160,7 +161,7 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
       </div>
       {on && (
         <>
-          {snap && <RiskGuardrailsNow snap={snap} target={target} cutAt={cutAt} from={from} money={money} />}
+          {snap && <RiskGuardrailsNow snap={snap} target={target} cutAt={cutAt} from={from} money={money} inputs={inputs} />}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '14px', marginTop: '16px' }}>
             <PercentField id="field-riskGuardrailCutAtPct" label="Cut when it falls below" value={typed.cutAt}
@@ -231,10 +232,10 @@ export default function RiskGuardrailsSettings({ inputs, updateInput, formatCurr
             const leOf = (n) => inputs[`lifeExpectancy${n}`];
             const cautiousLabel = pa.couple
               ? (pa.raised
-                ? `A cautious age: ${name(pa.last)} until age ${pa.cautious}, the year by which about 1 in 4 couples like you still have one of you alive`
+                ? `A cautious age: ${name(pa.last)} until age ${pa.cautious}, the year by which about 1 in 4 couples like you, once retired, still have one of you alive`
                 : `A cautious age: the same as your life expectancy (already past the age 1 in 4 couples like you reach, ${pa.cautious})`)
               : (pa.raised
-                ? `A cautious age: ${pa.cautious} (about 1 in 4 people your age and sex reach it)`
+                ? `A cautious age: ${pa.cautious} (about 1 in 4 people your sex who reach retirement live to it)`
                 : `A cautious age: the same as your life expectancy (already past the age 1 in 4 reach, ${pa.cautious})`);
             const leLabel = pa.couple
               ? `Your life expectancy: ${name(1)} ${leOf(1)}, ${name(2)} ${leOf(2)}`

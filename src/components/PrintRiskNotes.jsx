@@ -63,7 +63,7 @@ export default function PrintRiskNotes({ inputs, feeData, historicalData }) {
           {on && snap && (
             <tr>
               <td>Risk-Based Guardrails, in your dollars</td>
-              <td><RiskGuardrailsNow snap={snap} target={target} cutAt={cutAt} from={from} money={money} onPaper /></td>
+              <td><RiskGuardrailsNow snap={snap} target={target} cutAt={cutAt} from={from} money={money} onPaper inputs={inputs} /></td>
             </tr>
           )}
           {h && (

@@ -298,6 +298,8 @@ export function migratePersistedInputs(persisted) {
     // A plan saved before changelog 470 keeps the couple's full budget
     // after one death outside the stress test, as it was projected.
     if (raw.survivorExpenseDropInPlan === undefined) raw = { ...raw, survivorExpenseDropInPlan: false };
+    // And the drop on the whole budget, housing included (What's New 495).
+    if (raw.survivorDropKeepsHousing === undefined) raw = { ...raw, survivorDropKeepsHousing: false };
     // And Medicare from 65 even while still at work, as it was before
     // changelog 477 delayed it on a new plan's own employer cover.
     if (raw.medicareEmployerCoverage1 === undefined) raw = { ...raw, medicareEmployerCoverage1: 'none' };
@@ -1132,6 +1134,12 @@ export const DEFAULT_INPUTS = {
   // them is alone overstated spending in exactly the years taxes went up.
   // On for a new plan; a plan saved before keeps the full budget (off).
   survivorExpenseDropInPlan: true,
+  // What's New 495: the survivor drop applies to everyday spending but not
+  // to the housing share (rent, property tax, home insurance, upkeep; a
+  // mortgage is paid separately in full either way), which costs one
+  // person what it cost two. On for a new plan; a
+  // plan saved before keeps the drop on the whole budget.
+  survivorDropKeepsHousing: true,
   // The age each spouse starts a survivor benefit if the other dies first
   // (benefits-specialist review, 2026-11-02). 0 = as soon as possible: the
   // first alone year from 60 it pays more than their own benefit, which is
@@ -7373,9 +7381,19 @@ const RISK_MODEL_CACHE_MAX = 256;
 // the last survivor's age; which spouse that is; and whether it raised
 // anyone's age past their life expectancy.
 export function riskPlanningAges(inputs) {
-  const start = Number(inputs.planYear) || new Date().getFullYear();
-  const now = (n) => start - (Number(inputs[`birthYear${n}`]) || start);
+  const planStart = Number(inputs.planYear) || new Date().getFullYear();
   const le = (n) => Number(inputs[`lifeExpectancy${n}`]) || 0;
+  const born = (n) => Number(inputs[`birthYear${n}`]) || planStart;
+  // The odds are read from retirement, not from today (What's New 495):
+  // the rule only acts once retired, and someone who reaches retirement
+  // is likely to live longer than the table says from a younger age. The
+  // year both are retired, never before the plan starts nor past the
+  // first planned death.
+  const retireYear = (n) => born(n) + (Number(inputs[`retireAge${n}`]) || 0);
+  const lastRetire = inputs.spouse2Enabled ? Math.max(retireYear(1), retireYear(2)) : retireYear(1);
+  const firstEnd = inputs.spouse2Enabled ? Math.min(born(1) + le(1), born(2) + le(2)) : born(1) + le(1);
+  const start = Math.max(planStart, Math.min(lastRetire, firstEnd));
+  const now = (n) => start - born(n);
   if (!inputs.spouse2Enabled) {
     const cautious = ageReachedWithProbability(inputs.sex1, now(1), 0.25);
     return { couple: false, last: 1, cautious, age1: Math.max(le(1), cautious), age2: null, raised: cautious > le(1) };
@@ -7392,7 +7410,9 @@ export function riskPlanningAges(inputs) {
   // table median, as for a health reason), the couple's joint odds would
   // count years the plan says they will not have: the survivor plans to
   // their own one-in-four age instead.
-  const ill = le(first) < ageReachedWithProbability(inputs[`sex${first}`], now(first), 0.5);
+  // Judged at today's ages: from a later start the table median rises
+  // with age, and an ordinary life expectancy would read as a short one.
+  const ill = le(first) < ageReachedWithProbability(inputs[`sex${first}`], planStart - born(first), 0.5);
   const odds = ill ? null : coupleHorizonOdds({
     planYear: start, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: le(1),
     sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: le(2),
@@ -7822,6 +7842,9 @@ export function riskGuardrailSnapshot(rawInputs) {
     raiseCutBalance: firstRaise && Number.isFinite(firstRaise.riskGuardrailCutBalance) ? firstRaise.riskGuardrailCutBalance / (firstRaise.priceIndex || firstRaise.inflFactor || 1) : null,
     age: first.age1,
     chance: riskSuccess(model, 0, opening, 1),
+    // The age that chance runs to, and for whom (What's New 495).
+    toAge: Number.isFinite(first.riskGuardrailToAge) ? first.riskGuardrailToAge : null,
+    toWhom: first.riskGuardrailToWhom || null,
     planSpend: life,
     atTarget: at(pct(inputs.riskGuardrailTargetPct, 80)),
     atCutTo: at(pct(inputs.riskGuardrailCutToPct, 70)),
@@ -8172,6 +8195,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // when the chance of lasting leaves its band.
   let riskGuardMultiplier = 1.0;
   let riskDeadAge1 = null;
+  // Whom the rule's chance is measured for while both are alive: the
+  // spouse it plans as the last survivor.
+  const riskLastSpouse = inputs.spouse2Enabled && inputs.riskGuardrailsEnabled ? riskPlanningAges(inputs).last : 1;
   let riskDeadAge2 = null;
   // The model the rule used last retired year; it starts as the plan's own,
   // so a death before retirement counts as an event in the first retired
@@ -9710,6 +9736,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let riskGuardrailMultiplierIfCut = null;
     let riskGuardrailMultiplierIfRaise = null;
     let riskGuardrailChanceAfter = null;
+    // The age the chance is measured to (What's New 495): the last year the
+    // rule's model looks at, as the age then of the person it plans for.
+    let riskGuardrailToAge = null;
+    let riskGuardrailToWhom = null;
     // A raise line whose raise would be under the smallest change at any
     // balance, and whether the raise line is the ten-years-ahead test.
     let riskGuardrailRaiseTooSmall = null;
@@ -9786,6 +9816,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           return next;
         };
         riskGuardrailChance = riskSuccess(riskModel, k, opening, riskGuardMultiplier, cutH);
+        {
+          const toYear = year + Math.max(riskModel.flows.length - k, cutH) - 1;
+          const who = !inputs.spouse2Enabled ? 1 : !spouse1Alive ? 2 : !spouse2Alive ? 1 : riskLastSpouse;
+          const born = Number(who === 2 ? inputs.birthYear2 : inputs.birthYear1);
+          riskGuardrailToAge = Number.isFinite(born) && born > 0 ? toYear - born : null;
+          riskGuardrailToWhom = who;
+        }
         riskGuardrailAction = 'hold';
         {
           const m0 = riskGuardMultiplier;
@@ -9914,6 +9951,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const blendedLifestyleMultiplier = (lifestyleShape.housing * currentHousingMultiplier)
       + (lifestyleShape.medical * currentMedicalMultiplier)
       + (lifestyleShape.general * currentLifestyleMultiplier);
+    // The housing share keeps the couple's dollars after a death (What's
+    // New 495): the drop applies only to the rest of the budget, weighted by
+    // what each slice has grown to this year.
+    if (survivorExpenseMultiplier < 1 && inputs.survivorDropKeepsHousing && blendedLifestyleMultiplier > 0) {
+      const housingPart = lifestyleShape.housing * currentHousingMultiplier;
+      survivorExpenseMultiplier = (housingPart + (blendedLifestyleMultiplier - housingPart) * survivorExpenseMultiplier) / blendedLifestyleMultiplier;
+    }
     // Changelog 335: with floor-aware guardrails on, neither rule -- the
     // crash freeze and cut, or the withdrawal-rate cut -- takes spending
     // below the essential floor. Measured against the path with no freezes
@@ -12627,6 +12671,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // of the year (before any adjustment), what the rule did, and the
       // multiplier on lifestyle spending after it.
       riskGuardrailChance,
+      riskGuardrailToAge,
+      riskGuardrailToWhom,
       riskGuardrailAction,
       riskGuardrailMultiplier: inputs.riskGuardrailsEnabled ? riskGuardMultiplier : null,
       riskGuardrailCutBalance,

@@ -693,6 +693,8 @@ describe('calculator.js core logic', () => {
     it('applies the survivor spending drop only when Survivor Stress Test is explicitly enabled', () => {
       const stressInputs = {
         ...survivorInputs,
+        // The whole budget drops here (housing kept is What's New 495's).
+        survivorDropKeepsHousing: false,
         ss1: 0,
         ss2: 0,
         pension1: 0,

@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 495,
+    date: '2026-11-04',
+    title: 'Housing keeps its cost for a survivor, and the chance of lasting names its age',
+    summary: 'After a death, housing now keeps its full cost for the one left. Risk-based guardrails show the age their chance of lasting runs to, and plan to an age measured from retirement.',
+    items: [
+      "**A survivor\u2019s home costs.** When one of you dies, the plan lowers spending by the Household Expense Reduction (20% unless you changed it). It now leaves the housing share of spending out of that drop: rent, property tax, home insurance and upkeep cost one person what they cost two (a mortgage you entered under Balances & Debt is paid in full either way). With a 30% housing share, spending falls 14% instead of 20%. On for a new plan; a plan saved earlier keeps the drop on the whole budget until you switch it on under Household. Your numbers will change if you switch it on.",
+      "**The chance of lasting names its age.** Year by Year, the Risk-Based Guardrails box and the printed report now say how far ahead the chance looks: \u201c84% chance of lasting until age 95\u201d, or for a couple, \u201cuntil Lee is 95\u201d.",
+      "**A cautious age measured from retirement.** The age the rule plans to, about 1 in 4 people (or couples) like you, is now read from the year you retire instead of from today. Someone who reaches retirement tends to live longer than the odds say from a younger age, so for anyone not yet retired the rule plans a year or two further ahead and spends a little more carefully.",
+    ],
+  },
+  {
     id: 494,
     date: '2026-11-04',
     title: 'Better Social Security answers for a survivor, and benefits as a share of pay',

@@ -13,7 +13,8 @@ const ROOT = path.resolve(__dirname, '../..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 
 describe('spending drops once one spouse has reached their life expectancy (changelog 470)', () => {
-  const couple = { ...DEFAULT_INPUTS, spouse2Enabled: true, lifeExpectancy1: 85, lifeExpectancy2: 90 };
+  // The whole budget drops (housing kept is What's New 495's own test).
+  const couple = { ...DEFAULT_INPUTS, spouse2Enabled: true, lifeExpectancy1: 85, lifeExpectancy2: 90, survivorDropKeepsHousing: false };
   const yearOfAge1 = (p, age) => p.years.find((y) => y.year === couple.planYear + age - (couple.planYear - couple.birthYear1));
   it('a new plan has the switch on and cuts lifestyle spending by the stress test share from the first alone year', () => {
     expect(DEFAULT_INPUTS.survivorExpenseDropInPlan).toBe(true);

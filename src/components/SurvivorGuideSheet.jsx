@@ -51,7 +51,7 @@ function PlanInBrief({ g }) {
         <p>
           {sp.workingAtFirst ? <>Once {s} retires, in {sp.year}, the</> : <>From {sp.year}, the</>} plan spends
           about <strong>{money(sp.after)}</strong> a year on everyday living
-          {Number.isFinite(sp.before) && sp.before > 0.5 ? <> (the plan for both of you would spend about {money(sp.before)} that year; it assumes spending falls {sp.dropPct}% for one person)</> : sp.dropPct > 0 ? <> (the plan assumes spending falls {sp.dropPct}% for one person)</> : null},
+          {Number.isFinite(sp.before) && sp.before > 0.5 ? <> (the plan for both of you would spend about {money(sp.before)} that year; it assumes {sp.keepsHousing ? 'spending other than housing' : 'spending'} falls {sp.dropPct}% for one person)</> : sp.dropPct > 0 ? <> (the plan assumes {sp.keepsHousing ? 'spending other than housing' : 'spending'} falls {sp.dropPct}% for one person)</> : null},
           with healthcare and taxes on top.
           {sp.raises && sp.peak > sp.after * 1.05 ? <> With average returns the spending rule raises it, to about {money(sp.peak)} by {sp.peakAge}.</> : null}
         </p>

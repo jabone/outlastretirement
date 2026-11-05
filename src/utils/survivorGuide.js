@@ -210,6 +210,7 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
     after: retiredRow ? n0(retiredRow.lifestyleExpenses) / yearFactor(retiredRow) : null,
     before: togetherRetired && togetherRetired.isRetired ? n0(togetherRetired.lifestyleExpenses) / yearFactor(togetherRetired) : null,
     dropPct: n0(safe.survivorExpenseDropPct),
+    keepsHousing: Boolean(safe.survivorDropKeepsHousing),
     workingAtFirst: !first.isRetired,
     autoWhileWorking: safe.currentSpendingMode !== 'custom',
     peak: rows.reduce((m, r) => Math.max(m, r.lifestyle), 0),

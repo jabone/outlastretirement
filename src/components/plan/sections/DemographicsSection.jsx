@@ -6,7 +6,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useSimulation } from '../../../context/useSimulation';
 import { getPossessive } from '../getPossessive';
 import { SEX_OPTIONS, horizonOdds, coupleHorizonOdds } from '../../../utils/mortality';
-import { TAX_YEAR, getFullRetirementAge, getSSMultiplier, exactClaimAge } from '../../../calculator';
+import { TAX_YEAR, getFullRetirementAge, getSSMultiplier, exactClaimAge, spendingShapeShares } from '../../../calculator';
 import Tooltip from '../../Tooltip';
 import NumberInput from '../../NumberInput';
 import SwitchRow from '../../SwitchRow';
@@ -32,6 +32,14 @@ export default function DemographicsSection() {
   // Age this plan year: a life expectancy at or below it leaves nothing to
   // project, so the field refuses it.
   const ageNow = (birthYear) => Math.max(0, (Number(inputs.planYear) || TAX_YEAR) - (Number(birthYear) || 0));
+  // The survivor drop on the whole budget when housing keeps its cost
+  // (What's New 495), from the housing share the engine itself uses.
+  const dropPct = inputs.survivorExpenseDropPct !== undefined && inputs.survivorExpenseDropPct !== '' ? Number(inputs.survivorExpenseDropPct) : 20;
+  let housingShare = 0.3;
+  try { housingShare = spendingShapeShares(inputs).housing; } catch { /* keep the default */ }
+  const housingPct = Math.round(housingShare * 100);
+  const overallDrop = Math.round(dropPct * (1 - housingShare));
+  const hasMortgage = (Number(inputs.mortgageBalance) || 0) > 0 && (Number(inputs.mortgagePayment) || 0) > 0;
   return (
     <>
                 <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', borderBottom: '1px solid var(--card-border)', paddingBottom: '8px' }}>
@@ -270,12 +278,21 @@ export default function DemographicsSection() {
                         itself once one spouse's Life Expectancy has passed. */}
                     <div className="form-group" style={{ marginBottom: '12px' }}>
                       <SwitchRow id="toggle-survivorExpenseDropInPlan" size="sm" checked={!!inputs.survivorExpenseDropInPlan} onChange={(on) => updateInput('survivorExpenseDropInPlan', on)}>
-                        Household spending also drops {inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 20}% in the plan itself, once one of you has reached your life expectancy
+                        Household spending also drops in the plan itself, once one of you has reached your life expectancy
                       </SwitchRow>
                       <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                        The years one of you is alone are taxed as Single either way; with this on, the budget for those years falls by the same share the stress test uses. Off keeps the couple&rsquo;s full budget.
+                        The years one of you is alone are taxed as Single either way; with this on, the budget for those years falls by the same share the stress test uses: {dropPct}%{inputs.survivorDropKeepsHousing ? <> of spending other than housing, about {overallDrop}% of the whole budget</> : null}. Off keeps the couple&rsquo;s full budget.
                       </span>
                     </div>
+                    {/* What's New 495: housing costs one person what it cost two. */}
+                    {(inputs.survivorExpenseDropInPlan || inputs.survivorStressEnabled) && (
+                      <div className="form-group" style={{ marginBottom: '12px' }}>
+                        <SwitchRow id="toggle-survivorDropKeepsHousing" size="sm" checked={!!inputs.survivorDropKeepsHousing} onChange={(on) => updateInput('survivorDropKeepsHousing', on)}
+                          hint={`Rent, or for a home you own, property tax, home insurance and upkeep (the ${housingPct}% housing share of spending) cost one person what they cost two, so only the rest of the budget drops: a ${dropPct}% reduction is about ${overallDrop}% of the whole budget.${hasMortgage ? ' The mortgage payment you entered under Balances & Debt is paid in full either way.' : ''} Off drops the whole budget, housing too.`}>
+                          Housing keeps its full cost for the one left
+                        </SwitchRow>
+                      </div>
+                    )}
                     {inputs.survivorExpenseDropInPlan && !inputs.survivorStressEnabled && (
                       <div className="form-group" style={{ marginBottom: '12px' }}>
                         <label htmlFor="field-survivorExpenseDropPct">Household Expense Reduction (%)</label>

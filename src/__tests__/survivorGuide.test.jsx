@@ -50,11 +50,15 @@ describe('buildSurvivorGuide', () => {
   });
 
   it('compares spending with the same retired year of the plan together, and applies the survivor drop', () => {
-    const g = buildSurvivorGuide(couple(), 2);
+    const g = buildSurvivorGuide(couple({ survivorDropKeepsHousing: false }), 2);
     expect(g.spending.dropPct).toBe(20);
     expect(g.spending.after / g.spending.before).toBeCloseTo(0.8, 2);
+    // A new plan keeps the housing share at the couple's dollars.
+    const h = buildSurvivorGuide(couple(), 2);
+    expect(h.spending.keepsHousing).toBe(true);
+    expect(h.spending.after / h.spending.before).toBeGreaterThan(0.83);
     // A survivor still working: compared once retired, not in a working year.
-    const w = buildSurvivorGuide(couple({ birthYear1: START - 55, retireAge1: 60, salary1: 120000, lifeExpectancy1: 90 }), 2);
+    const w = buildSurvivorGuide(couple({ birthYear1: START - 55, retireAge1: 60, salary1: 120000, lifeExpectancy1: 90, survivorDropKeepsHousing: false }), 2);
     expect(w.spending.workingAtFirst).toBe(true);
     expect(w.spending.year).toBe(START + 5);
     expect(w.spending.after / w.spending.before).toBeCloseTo(0.8, 2);

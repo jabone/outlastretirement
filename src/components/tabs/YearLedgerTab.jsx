@@ -8,6 +8,7 @@
 // They share no state and no purpose; the only thing they had in common
 // was being hard to categorize. Now they're two destinations that each say
 // what they are.
+import { chanceToLabel } from '../../utils/chanceToLabel';
 import React, { useMemo, useState } from 'react';
 import { useSimulation } from '../../context/useSimulation';
 import CashFlowExplorer from '../CashFlowExplorer';
@@ -478,6 +479,7 @@ const YearLedgerTab = () => {
                           {Number.isFinite(row.riskGuardrailChance) && (
                             <span style={{ fontSize: 'var(--fs-2xs)', color: row.riskGuardrailReplanned ? 'var(--text-secondary)' : row.riskGuardrailAction === 'cut' ? 'var(--danger)' : row.riskGuardrailAction === 'raise' ? 'var(--success)' : 'var(--text-secondary)', display: 'block', marginTop: '2px', whiteSpace: 'normal', maxWidth: '16em' }}>
                               {Math.round(row.riskGuardrailChance * 100)}% chance of lasting
+                              {chanceToLabel(row, inputs)}
                               {(() => {
                                 if (row.riskGuardrailAction !== 'cut' && row.riskGuardrailAction !== 'raise') return '';
                                 const prevRow = rowIndex > 0 ? projection.years[rowIndex - 1] : null;
