@@ -214,6 +214,8 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
     keepsHousing: Boolean(safe.survivorDropKeepsHousing),
     workingAtFirst: !first.isRetired,
     autoWhileWorking: safe.currentSpendingMode !== 'custom',
+    // What's New 498: the working survivor keeps the couple's budget.
+    keepsBudget: first.survivorWorkingBudget !== null && first.survivorWorkingBudget !== undefined,
     peak: rows.reduce((m, r) => Math.max(m, r.lifestyle), 0),
     peakAge: rows.reduce((best, r) => (r.lifestyle > best.v ? { v: r.lifestyle, age: r.age } : best), { v: -1, age: null }).age,
     raises: rows.some((r) => r.ruleAction === 'raise'),

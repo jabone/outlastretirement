@@ -303,6 +303,9 @@ export function migratePersistedInputs(persisted) {
     // And the spouse's Pre-Tax moved into the survivor's own IRA at once
     // (What's New 497).
     if (raw.survivorKeepsInheritedIra === undefined) raw = { ...raw, survivorKeepsInheritedIra: false };
+    // And a working survivor's spending following their own pay in auto
+    // mode (What's New 498).
+    if (raw.survivorWorkingKeepsBudget === undefined) raw = { ...raw, survivorWorkingKeepsBudget: false };
     // And Medicare from 65 even while still at work, as it was before
     // changelog 477 delayed it on a new plan's own employer cover.
     if (raw.medicareEmployerCoverage1 === undefined) raw = { ...raw, medicareEmployerCoverage1: 'none' };
@@ -1147,6 +1150,12 @@ export const DEFAULT_INPUTS = {
   // person what it cost two. On for a new plan; a
   // plan saved before keeps the drop on the whole budget.
   survivorDropKeepsHousing: true,
+  // What's New 498: in auto spending mode a survivor who is still working
+  // spends the couple's last working-year budget less the survivor drop,
+  // drawing on savings when their own pay falls short and saving what pay
+  // leaves over -- instead of spending exactly what their own pay leaves.
+  // On for a new plan; a plan saved before keeps spending following pay.
+  survivorWorkingKeepsBudget: true,
   // What's New 497: a survivor under 59 1/2 keeps the spouse's Pre-Tax
   // share as an inherited IRA (withdrawals free of the 10% penalty, no Roth
   // conversion from it) until 59 1/2 -- or until the spouse would have
@@ -8107,6 +8116,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // survivor under 59 1/2 (What's New 497); 0 once moved into their name.
   let inheritedPreTaxShare = 0;
   let inheritedIraStarted = false;
+  // What's New 498: the couple's everyday spending (auto mode, net of debt
+  // payments) in today's dollars, from the last working year both were
+  // alive; a working survivor keeps it, less the survivor drop.
+  let coupleWorkingSpendingReal = null;
   // Whether this year's inherited IRA needs a required withdrawal: the one
   // who died has reached (or would have reached) their RMD age.
   let inheritedRmdDue = false;
@@ -11577,6 +11590,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // share retention. With this subtraction the two entries cancel exactly
     // and auto mode stays a true residual of spendable cash.
     let currentSpendingCost = lifestyleCost;
+    const survivorWorkingBudgetActive = !isRetired && inputs.survivorWorkingKeepsBudget && inputs.spouse2Enabled
+      && inputs.currentSpendingMode !== 'custom' && spouse1Alive !== spouse2Alive;
+    let survivorWorkingBudget = null;
     if (!isRetired) {
       if (inputs.currentSpendingMode === 'custom') {
         currentSpendingCost = Math.max(0, (inputs.currentHouseholdSpendingCustom || 0) * inflFactor * survivorExpenseMultiplier);
@@ -11592,6 +11608,20 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const benefitTaxShare = survivorBenefitTaxed > 0 && benefitIncomeBase > 0 ? Math.min(1, survivorBenefitTaxed / benefitIncomeBase) : 0;
         const benefitNet = survivorBenefitIncome > 0 ? survivorBenefitIncome - baseTaxes * benefitTaxShare : 0;
         currentSpendingCost = Math.max(0, salary + fixedInflows - baseTaxes - harvestTaxSavings - (totalContributions + preCutSavings) - concentratedStockVestedInTotal - Math.max(0, benefitNet));
+        // A working survivor keeps the couple's budget (What's New 498):
+        // their own pay no longer sets it. What pay leaves over is saved;
+        // a shortfall is drawn from savings like a retired year's.
+        // Capped (review panel, 2026-11-04): auto mode counts every dollar
+        // of pay not saved as spending, which for a high-earning couple is
+        // far more than a survivor would spend out of savings. So the
+        // survivor keeps the couple's budget less the drop, but no more
+        // than the larger of what their own pay leaves and the plan's
+        // retirement budget for one (lifestyleCost, already less the drop).
+        if (survivorWorkingBudgetActive && coupleWorkingSpendingReal !== null && coupleWorkingSpendingReal > 0) {
+          const ownEveryday = Math.max(0, currentSpendingCost - totalDebtPayment);
+          survivorWorkingBudget = Math.min(coupleWorkingSpendingReal * priceIndex * survivorExpenseMultiplier, Math.max(ownEveryday, lifestyleCost));
+          currentSpendingCost = survivorWorkingBudget + totalDebtPayment;
+        }
       }
     }
     // The residual, kept as its own reportable object (changelog 134). This
@@ -11799,7 +11829,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           // retirement target) -- lifestyleCost stays untouched so
           // fiTargetExpenses/fiNumber/coastFireNumber below remain correct
           // regardless of what happens to current spending.
-          const red = Math.min(currentSpendingCost, deficitToClear);
+          // A working survivor's budget is not trimmed to fit their pay
+          // (What's New 498): what savings cuts leave is drawn from savings.
+          const red = Math.min(survivorWorkingBudget !== null ? 0 : currentSpendingCost, deficitToClear);
           currentSpendingCost -= red;
           expensesExcludingTaxes -= red;
           deficitToClear -= red;
@@ -11808,8 +11840,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       };
 
       const strategy = inputs.deficitReductionStrategy || 'reduceTaxableFirst';
-      
-      if (strategy === 'reduceTaxableFirst') {
+
+      // A working survivor's budget (What's New 498) keeps both their
+      // contributions and their spending: the gap is drawn from savings
+      // below, as in a retired year, so a match is not given up.
+      if (survivorWorkingBudget !== null) {
+        // nothing to cut
+      } else if (strategy === 'reduceTaxableFirst') {
         reduceSavings();
         reduceLifestyle();
       } else if (strategy === 'reduceLifestyleFirst') {
@@ -11835,6 +11872,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (cutLog && (cutThisPass.preTax > 0.005 || cutThisPass.roth > 0.005)) cutLog.set(year, cutThisPass);
     }
 
+    // The couple's everyday spending after any trim, in today's prices, for
+    // a survivor who is still working (What's New 498).
+    if (!isRetired && inputs.currentSpendingMode !== 'custom' && spouse1Alive && spouse2Alive && inputs.spouse2Enabled && priceIndex > 0) {
+      coupleWorkingSpendingReal = currentSpendingCost / priceIndex;
+    }
     // Re-evaluate cash needed now that we've potentially slashed expenses and contributions.
     // Note: a pre-retirement cash deficit only slashes preTax/roth/taxable
     // contributions above (reduceSavings()), never hsaContribution — HSA
@@ -12930,6 +12972,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // payments (auto mode), and what is left for everything else.
         debtPayments: currentSpendingDebtShare,
         applied: currentSpendingCost,
+        // A working survivor's budget, when it set `derived` instead of the
+        // residual above (What's New 498).
+        survivorBudget: survivorWorkingBudget,
         trimmedByDeficit: Math.max(0, (currentSpendingDerived || 0) - currentSpendingDebtShare - currentSpendingCost),
       },
       healthcareBridge,
@@ -12968,6 +13013,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       drawTaxable,
       extraTax,
       lifestyleDeficit,
+      // What's New 498: a working survivor's budget (auto mode), or null.
+      survivorWorkingBudget,
       savingsDeficit,
       preTaxStart: prevYearEndingField(years, 'preTaxEnd') ?? inputs.preTaxInit,
       rothStart: prevYearEndingField(years, 'rothEnd') ?? inputs.rothInit,

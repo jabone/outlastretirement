@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 498,
+    date: '2026-11-04',
+    title: 'A survivor still working keeps the household budget',
+    summary: 'When spending today comes from pay, a spouse still working after a death now keeps the household\u2019s spending, less the survivor drop and capped, with savings covering any gap.',
+    items: [
+      "**Spending no longer follows one paycheck.** When Current Spending is worked out from pay, the plan used to have a survivor still working spend exactly what their own pay left after taxes and savings. If the one who died earned most of the money, that cut the budget far below what the household really spends, and the plan looked better than it should; if the survivor earned most of it, the reverse. Now the survivor keeps what the plan had you spending together in your last working year, in today\u2019s dollars, less the Household Expense Reduction when it is on (housing excepted when that switch is on), but no more than the larger of what their own pay leaves and the plan\u2019s retirement budget for one. Pay covers what it can and retirement contributions continue; your accounts, life insurance included, cover the rest, and pay left over goes into them.",
+      "**Where it is.** Household, with the survivor settings: on for a new plan, off for a plan saved earlier until you turn it on. The Survivor\u2019s Guide says which way the plan spends. Your numbers will change if you turn it on and the Survivor Stress Test, or a death in a simulated trial, comes before you both retire.",
+    ],
+  },
+  {
     id: 497,
     date: '2026-11-04',
     title: 'An inherited IRA for a survivor under 59\u00bd',

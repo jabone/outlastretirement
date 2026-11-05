@@ -291,6 +291,15 @@ export default function DemographicsSection() {
                         A survivor under 59½ keeps an inherited IRA until 59½
                       </SwitchRow>
                     </div>
+                    {/* What's New 498: a working survivor keeps the couple's budget. */}
+                    {inputs.currentSpendingMode !== 'custom' && (
+                      <div className="form-group" style={{ marginBottom: '12px' }}>
+                        <SwitchRow id="toggle-survivorWorkingKeepsBudget" size="sm" checked={!!inputs.survivorWorkingKeepsBudget} onChange={(on) => updateInput('survivorWorkingKeepsBudget', on)}
+                          hint="Your spending today is worked out from pay: what is left after taxes and retirement contributions. After a death, the one still working keeps what the plan has you spending together, less the household expense reduction when it is on, instead of only what their own pay leaves; at most the larger of that and the plan's retirement budget for one. Contributions continue, your accounts cover any gap, and pay left over goes into them. Off spends what the survivor's own pay leaves.">
+                          A survivor still working keeps the household budget
+                        </SwitchRow>
+                      </div>
+                    )}
                     {/* What's New 495: housing costs one person what it cost two. */}
                     {(inputs.survivorExpenseDropInPlan || inputs.survivorStressEnabled) && (
                       <div className="form-group" style={{ marginBottom: '12px' }}>

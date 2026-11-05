@@ -832,6 +832,14 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}>
+                <span style={sectionStyles.badge}>Toggle</span><br/>
+                <strong>A survivor still working keeps the household budget</strong>
+              </td>
+              <td style={sectionStyles.td}>When Current Spending is worked out from pay (auto), a death before both of you retire used to leave the one still working spending exactly what their own pay left after taxes and savings &mdash; often far less than the household really spends, or more. With this on, the survivor keeps what the plan had you spending together in your last working year, in today&rsquo;s dollars, less the Household Expense Reduction when it is on (housing excepted when that switch is on), with debt payments on top as before. It is capped at the larger of what the survivor&rsquo;s own pay leaves and the plan&rsquo;s retirement budget for one, because spending worked out from pay counts every dollar not put away as spent. Pay covers what it can and retirement contributions continue; the rest is taken from your accounts, the way a retired year&rsquo;s is, and pay left over goes into your accounts. What&rsquo;s New 498.</td>
+              <td style={sectionStyles.td}>On for a new plan (off for an older plan). Under Household, with the survivor settings; shown only with a spouse and auto spending.</td>
+            </tr>
+            <tr>
+              <td style={sectionStyles.td}>
                 <span style={sectionStyles.badge}>Toggle + Field</span><br/>
                 <strong>A survivor under 59&frac12; keeps an inherited IRA until 59&frac12; / Share in Spouse 1&rsquo;s name (%)</strong>
               </td>

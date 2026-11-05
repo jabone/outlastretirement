@@ -42,7 +42,9 @@ function PlanInBrief({ g }) {
       <h2>The plan in brief</h2>
       {sp.workingAtFirst && (
         <p>
-          While {s} works, {sp.autoWhileWorking
+          While {s} works, {sp.keepsBudget
+            ? <>the plan spends what it has you spending together{sp.dropPct > 0 ? <>, less the {sp.dropPct}% drop for one person{sp.keepsHousing ? ' (housing excepted)' : ''}</> : null}, about {money(sp.firstYear)} in {g.firstYear}. Pay covers what it can; your accounts cover the rest, and pay left over goes into them. Check that against your real bills.</>
+            : sp.autoWhileWorking
             ? <>the plan spends what is left of pay after taxes and savings, about {money(sp.firstYear)} in {g.firstYear}; check that against your real bills.</>
             : <>the plan spends the amount set for your working years, about {money(sp.firstYear)} in {g.firstYear}.</>}
         </p>
