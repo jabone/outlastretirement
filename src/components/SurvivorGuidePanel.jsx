@@ -164,7 +164,7 @@ function Preview({ g }) {
 export default function SurvivorGuidePanel() {
   const { inputs, updateInput, holdings = [] } = useSimulation();
   const [notes, setNotes] = useState(readSurvivorNotes);
-  const [printing, setPrinting] = useState(false);
+  const [printing, setPrinting] = useState(null);
   const deferred = useDeferredValue(inputs);
   const couple = Boolean(inputs?.spouse2Enabled);
   const guides = useMemo(() => {
@@ -199,14 +199,21 @@ export default function SurvivorGuidePanel() {
             of you, written as if the other died this year. Each guide opens with a note from the spouse who died, then
             the first steps and who to call, the money that keeps coming in, where the money is kept, how to open the plan
             in this app, how to run the plan each year in dollars, and the words it uses. Print it, keep it with the will,
-            and print it again each year.
+            and print it again each year. The first weeks page is the short version for the days right after a death:
+            the steps that cannot wait, who to call, and that the money is not urgent.
           </p>
         </div>
         {couple && (
-          <button type="button" className="btn-primary" data-testid="survivor-guide-print" disabled={printing || guides.length === 0}
-            onClick={() => setPrinting(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Printer size={14} /> {printing ? 'Preparing…' : 'Print the Survivor’s Guide'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'stretch' }}>
+            <button type="button" className="btn-primary" data-testid="survivor-guide-print" disabled={Boolean(printing) || guides.length === 0}
+              onClick={() => setPrinting('guide')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+              <Printer size={14} /> {printing === 'guide' ? 'Preparing\u2026' : 'Print the Survivor\u2019s Guide'}
+            </button>
+            <button type="button" className="btn-outline" data-testid="survivor-weeks-print" disabled={Boolean(printing) || guides.length === 0}
+              onClick={() => setPrinting('weeks')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+              <Printer size={14} /> {printing === 'weeks' ? 'Preparing\u2026' : 'Print the first weeks only'}
+            </button>
+          </div>
         )}
       </div>
       {!couple ? (
@@ -285,7 +292,7 @@ export default function SurvivorGuidePanel() {
       )}
       {printing && (
         <React.Suspense fallback={null}>
-          <SurvivorGuideSheet inputs={inputs} holdings={holdings} onDone={() => setPrinting(false)} />
+          <SurvivorGuideSheet inputs={inputs} holdings={holdings} weeks={printing === 'weeks'} onDone={() => setPrinting(null)} />
         </React.Suspense>
       )}
     </div>

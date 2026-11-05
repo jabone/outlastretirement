@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 496,
+    date: '2026-11-04',
+    title: 'A first-weeks page for the days right after a death',
+    summary: 'The Survivor\u2019s Guide has a short first-weeks page: the steps that cannot wait, who to call, and the money for now. The survivor spending drop shows its share of the whole budget.',
+    items: [
+      "**The first weeks.** Tax & Estate \u2192 Survivor\u2019s Guide \u2192 Print the first weeks only prints one or two pages for each of you, for the days right after a death: the note, the steps that cannot wait in one line each (Social Security, the bills, health coverage, the insurance, the pension and employer, the retirement accounts), who to call, and that the money for now is covered. It is also a choice in Print / PDF Report.",
+      "**What the survivor drop comes to.** With housing keeping its cost for the one left, the Household Expense Reduction applies to the rest of the budget; under the field the plan now says what it comes to overall, and what to enter for a 20% drop overall.",
+    ],
+  },
+  {
     id: 495,
     date: '2026-11-04',
     title: 'Housing keeps its cost for a survivor, and the chance of lasting names its age',

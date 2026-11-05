@@ -200,11 +200,35 @@ export function firstSteps(g) {
     detail: `${d} was probably named on them. Name someone new on each account’s beneficiary form too. Before working with an adviser, look them up at adviserinfo.sec.gov or brokercheck.finra.org, and ask in writing whether they are a fiduciary and how they are paid.`,
   });
 
+  // One line each for the first-weeks page (What's New 496): what to do,
+  // in the fewest words, for someone reading it in the worst week.
+  const short = shortSteps(g);
+  for (const it of [...week, ...twoMonths, ...year]) if (short[it.id]) it.short = short[it.id];
   return [
     { id: 'week', title: 'In the first week or two', items: week },
     { id: 'two-months', title: 'In the first two months', items: twoMonths },
     { id: 'year', title: 'During the first year', items: year },
   ];
+}
+
+function shortSteps(g) {
+  const { deceased: d } = g.names;
+  const f = g.flags;
+  const sw = g.ssStart || {};
+  const ssWhen = sw.bestAge ? ` The plan starts your survivor benefit at ${sw.planAge}.` : '';
+  return {
+    'go-slow': 'Do not sell the house, move, lend or invest large sums for now. Ignore anyone who calls offering help with money.',
+    certificates: 'Ask the funeral home for about ten certified copies.',
+    'social-security': `Call 1-800-772-1213: report the death, ask about the survivor benefit and the $255 payment.${f.deceasedClaimedSS ? ' Do not spend a Social Security payment that arrives next month; it is returned.' : ''}${ssWhen}`,
+    bills: `Keep paying the bills; move any that use an account in ${d}'s name alone.${f.cashReserve ? ` The cash reserve (about ${money(g.accounts.cash)}) is there for this.` : ''}`,
+    health: f.under65 ? `If your health cover was through ${d}'s job, you have 60 days to choose COBRA or a marketplace plan.` : `Medicare continues. If you put off Part B because of ${d}'s job, sign up within 8 months.`,
+    'life-insurance': f.lifeInsuranceInTrust ? 'Tell the trustee; the trust claims the policy.' : `Call the insurer with a death certificate (about ${money(g.income.lifeInsurance)}). Keep it in a savings account at first.`,
+    pension: `Call ${d}'s pension; ask in writing what continues for you.`,
+    employer: `Call ${d}'s ${f.deceasedWorking ? '' : 'former '}employer about final pay, group life insurance and benefits for you.`,
+    'other-benefits': 'Claim the other benefits listed in the full guide; each needs a death certificate.',
+    'retirement-accounts': 'Tell each retirement account firm. Do not cash out or move anything yet; ask about an inherited IRA.',
+    'final-rmd': `Ask whether ${d} had taken this year's required withdrawal.`,
+  };
 }
 
 // Blanks to fill in by hand: the app never stores account numbers, firms or

@@ -14,7 +14,7 @@ import SwitchRow from './SwitchRow';
 import PrintFrame from './PrintFrame';
 import LifePlanPacketSheet from './LifePlanPacketSheet';
 import EstateChecklistPacketSheet from './EstateChecklistPacketSheet';
-import { SurvivorGuideContent } from './SurvivorGuideSheet';
+import { SurvivorGuideContent, SurvivorFirstWeeksContent } from './SurvivorGuideSheet';
 import { PRINT_PACKET_EVENT } from './printPacketEvents';
 import { DEFAULT_CHOICES } from './printPacketChoices';
 
@@ -43,6 +43,7 @@ const OPTIONS = [
   { id: 'estate', label: 'Estate documents checklist', hint: 'Every item with its box, ticked with the date where you have reviewed it.' },
   { id: 'lifeplan', label: 'What Will You Do?', hint: 'Your Life Plan answers, printed as you wrote them. Leave out names does not change your own words.' },
   // What's New 492/493: also printable on its own from Tax & Estate.
+  { id: 'survivorWeeks', label: 'The first weeks (Survivor\u2019s Guide, short)', hint: 'One page for each of you for the days right after a death: the steps that cannot wait, who to call, and the money for now.', couple: true },
   { id: 'survivor', label: 'Survivor\u2019s Guide', hint: 'For each of you, the plan as the other would carry it on: first steps, benefits to claim, where the money is kept, how to open the plan, each year in dollars.', couple: true },
 ];
 
@@ -133,6 +134,7 @@ export default function PrintPacket({ inputs, holdings = [], formatCurrency, onH
           {printing.questions && <PlannerQuestionsSheet />}
           {printing.estate && <EstateChecklistPacketSheet showTitle={packetTitle(printing) !== 'Estate Documents Checklist'} />}
           {printing.lifeplan && <LifePlanPacketSheet showTitle={packetTitle(printing) !== 'Life Plan'} />}
+          {printing.survivorWeeks && inputs?.spouse2Enabled && <SurvivorFirstWeeksContent inputs={shown} />}
           {printing.survivor && inputs?.spouse2Enabled && <SurvivorGuideContent inputs={shown} holdings={holdings} />}
           </PrintFrame>
         </div>,

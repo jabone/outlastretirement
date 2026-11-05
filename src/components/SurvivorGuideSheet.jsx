@@ -373,6 +373,78 @@ export function SurvivorGuidePage({ guide: g, note, notes = {}, holdings = [], l
   );
 }
 
+// The first weeks (What's New 496): one page per spouse for the days right
+// after a death, beside the full guide -- the note, the steps that cannot
+// wait in one line each, the calls to make, and that money is not urgent.
+const FIRST_CALLS = ['insurance', 'employer', 'pension', 'banks', 'tax', 'attorney', 'helper'];
+export function SurvivorFirstWeeksPage({ guide: g, note }) {
+  const { deceased: d, survivor: s } = g.names;
+  const groups = firstSteps(g).filter((grp) => grp.id !== 'year');
+  const steps = groups.flatMap((grp) => grp.items).filter((it) => it.short);
+  const first = g.rows[0] || null;
+  const o = g.outcome;
+  const calls = WHERE_THINGS_ARE.filter((w) => FIRST_CALLS.includes(w.id));
+  return (
+    <div className="packet-page survivor-first-weeks" data-testid={`survivor-weeks-${g.deceased}`}>
+      <h1>The first weeks, if {d} dies</h1>
+      <p className="review-lede">
+        For {s}. Do these first; nothing else about money has to happen yet. The full Survivor&rsquo;s Guide has the rest:
+        how to run the plan each year, where the money is kept, and the words it uses.
+      </p>
+      {note?.text && (
+        <section className="packet-group">
+          <h2>A note from {d}</h2>
+          <p className="packet-answer">{note.text}</p>
+        </section>
+      )}
+      <section className="packet-group">
+        <h2>First steps <span>tick each when done</span></h2>
+        <table className="packet-table">
+          <tbody>
+            {steps.map((it) => (
+              <tr key={it.id} data-testid={`survivor-weeks-step-${it.id}`}>
+                <td className="review-check"><Box /></td>
+                <td><strong>{it.title}</strong><div>{it.short}</div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+      <section className="packet-group">
+        <h2>Who to call</h2>
+        <table className="packet-table">
+          <tbody>
+            <tr><td style={{ width: '38%' }}>Social Security</td><td>1-800-772-1213, ssa.gov</td></tr>
+            {calls.map((w) => <tr key={w.id}><td style={{ width: '38%' }}>{w.label}</td><td><Lines n={1} /></td></tr>)}
+          </tbody>
+        </table>
+      </section>
+      <section className="packet-group">
+        <h2>Money for now</h2>
+        <p>
+          {first && first.income > 0.5
+            ? <>In {g.firstYear} about {money(first.income)} keeps coming in (Social Security, pensions, work and benefits).</>
+            : <>No regular income arrives in {g.firstYear}; the year&rsquo;s money comes from savings, as the plan expects.</>}
+          {g.flags.cashReserve ? <> The cash reserve, about {money(g.accounts.cash)}, is for bills while you settle things.</> : null}
+          {g.income.lifeInsurance > 0.5 ? <> The life insurance, {money(g.income.lifeInsurance)}, can sit in a savings account until you are ready.</> : null}
+          {' '}{o.lasts && !o.nearlyEmpty
+            ? <>With average returns the plan lasts to {o.endAge}: there is time.</>
+            : <>The plan needs another look within the year; a planner can help.</>}
+        </p>
+      </section>
+      <p className="review-footer">{SURVIVOR_GUIDE_NOTE}</p>
+    </div>
+  );
+}
+
+export function SurvivorFirstWeeksContent({ inputs, notes = readSurvivorNotes() }) {
+  const guides = useMemo(() => {
+    try { return buildSurvivorGuides(inputs).filter((g) => g.status === 'ok'); } catch { return []; }
+  }, [inputs]);
+  if (!guides.length) return <div className="packet-page"><p>The first-weeks page needs a plan for two people who are both alive this year.</p></div>;
+  return <>{guides.map((g) => <SurvivorFirstWeeksPage key={g.deceased} guide={g} note={noteFrom(notes, g.deceased)} />)}</>;
+}
+
 export function SurvivorGuideContent({ inputs, notes = readSurvivorNotes(), holdings = [], lastBackupAt = getFreshnessState().lastBackupAt }) {
   const results = useMemo(() => {
     try { return buildSurvivorGuides(inputs); } catch { return []; }
@@ -392,7 +464,7 @@ export function SurvivorGuideContent({ inputs, notes = readSurvivorNotes(), hold
   );
 }
 
-export default function SurvivorGuideSheet({ inputs, holdings = [], onDone = () => {}, print }) {
+export default function SurvivorGuideSheet({ inputs, holdings = [], onDone = () => {}, print, weeks = false }) {
   useEffect(() => {
     let canceled = false;
     const id = requestAnimationFrame(() => {
@@ -406,7 +478,9 @@ export default function SurvivorGuideSheet({ inputs, holdings = [], onDone = () 
   if (typeof document === 'undefined') return null;
   return createPortal(
     <div className="section-print" data-section="survivor" data-testid="survivor-guide-sheet">
-      <PrintFrame title={'Survivor’s Guide'} note={'Dollar figures in today’s dollars'}><SurvivorGuideContent inputs={inputs} holdings={holdings} /></PrintFrame>
+      <PrintFrame title={weeks ? 'The First Weeks' : 'Survivor\u2019s Guide'} note={'Dollar figures in today\u2019s dollars'}>
+        {weeks ? <SurvivorFirstWeeksContent inputs={inputs} /> : <SurvivorGuideContent inputs={inputs} holdings={holdings} />}
+      </PrintFrame>
     </div>,
     document.body,
   );

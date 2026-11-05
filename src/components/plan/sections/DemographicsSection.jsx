@@ -297,6 +297,7 @@ export default function DemographicsSection() {
                       <div className="form-group" style={{ marginBottom: '12px' }}>
                         <label htmlFor="field-survivorExpenseDropPct">Household Expense Reduction (%)</label>
                         <NumberInput id="field-survivorExpenseDropPct" min="0" max="100" className="form-input" value={inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 20} onChange={(e) => updateInput('survivorExpenseDropPct', (e.target.value === '' ? '' : parseInt(e.target.value)))} />
+                        {inputs.survivorDropKeepsHousing && <span data-testid="survivor-drop-overall" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>Housing keeps its cost, so this is about {overallDrop}% of the whole budget. For a 20% drop overall, enter about {Math.round(20 / Math.max(0.05, 1 - housingShare))}%.</span>}
                       </div>
                     )}
                     
@@ -332,6 +333,7 @@ export default function DemographicsSection() {
                             value={inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 20}
                             onChange={(e) => updateInput('survivorExpenseDropPct', (e.target.value === '' ? '' : parseInt(e.target.value)))}
                           />
+                        {inputs.survivorDropKeepsHousing && <span data-testid="survivor-drop-overall-stress" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>Housing keeps its cost, so this is about {overallDrop}% of the whole budget. For a 20% drop overall, enter about {Math.round(20 / Math.max(0.05, 1 - housingShare))}%.</span>}
                         </div>
                       </div>
                     )}

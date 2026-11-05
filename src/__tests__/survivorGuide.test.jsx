@@ -216,3 +216,20 @@ describe('other survivor benefits, where the money is kept, opening the app (Wha
     expect(screen.queryByTestId('survivor-guide-where-money')).toBeNull();
   });
 });
+
+describe('the first weeks page (What’s New 496)', () => {
+  it('lists the steps that cannot wait in one line each, who to call, and the money for now', async () => {
+    const { SurvivorFirstWeeksPage } = await import('../components/SurvivorGuideSheet');
+    const g = buildSurvivorGuide(couple({ lifeInsuranceEnabled1: true, lifeInsuranceDeathBenefit1: 200000 }), 1);
+    render(<SurvivorFirstWeeksPage guide={g} note={{ text: 'Call Dana first.' }} />);
+    const page = screen.getByTestId('survivor-weeks-1');
+    expect(page.textContent).toMatch(/The first weeks, if Pat dies/);
+    expect(page.textContent).toMatch(/Call Dana first/);
+    expect(screen.getByTestId('survivor-weeks-step-go-slow')).toBeTruthy();
+    expect(screen.getByTestId('survivor-weeks-step-social-security').textContent).toMatch(/1-800-772-1213/);
+    expect(screen.getByTestId('survivor-weeks-step-life-insurance').textContent).toMatch(/\$200,000/);
+    // Only the first two months: nothing from the first-year list.
+    expect(screen.queryByTestId('survivor-weeks-step-estate')).toBeNull();
+    expect(page.textContent).toMatch(/Money for now/);
+  });
+});
