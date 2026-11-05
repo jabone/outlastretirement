@@ -347,6 +347,9 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
       earlyPreTax,
       // The plan keeps the spouse's Pre-Tax share as an inherited IRA until
       // the survivor is 59 1/2 (What's New 497).
+      // What's New 499: the plan files the first alone year as a QSS.
+      // How many alone years file as one (0, 1 or 2).
+      qualifyingSurvivingSpouse: alone.filter((y) => y.qualifyingSurvivingSpouse).length,
       keepsInherited: Boolean(safe.survivorKeepsInheritedIra) && survivorAge < 59.5 && rows.some((r) => r.inheritedShare > 0),
       // The inherited IRA needs a yearly withdrawal before the survivor is
       // 59 1/2: the one who died reaches (or had reached) their RMD age first.

@@ -18,7 +18,8 @@ import { planHorizon } from '../../utils/retirementReadiness';
 import { probAliveAt } from '../../utils/mortality';
 
 afterEach(cleanup);
-const demo = { ...DEFAULT_INPUTS, ...buildDemoInputs() };
+// The 2023 table as it stands: the demo's ages were set against it.
+const demo = { ...DEFAULT_INPUTS, ...buildDemoInputs(), mortalityImprovement: false };
 const projection = runProjection(demo);
 const longevity = dieWithZeroByLongevity(demo);
 const pct = (x) => `${Math.round(x * 100)}%`;

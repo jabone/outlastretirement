@@ -80,7 +80,7 @@ describe('survivorStartComparison', () => {
   });
 
   it('says when waiting would make the money run short', () => {
-    const tight = { ...ray, preTaxInit: 150000, rothInit: 0, taxableInit: 0, lifestyleExpense: 30000, survivorDropKeepsHousing: false };
+    const tight = { ...ray, preTaxInit: 150000, rothInit: 0, taxableInit: 0, lifestyleExpense: 30000, survivorDropKeepsHousing: false, survivorExpenseDropPct: 20 };
     const r = survivorStartComparison(tight);
     expect(r.status).toBe('compare');
     expect(r.cannotWait).toBe(true);

@@ -18,7 +18,8 @@ export function buildTaxVisualizerData(years, useRealDollars, { mfsLivedWithSpou
   if (!Array.isArray(years)) return [];
   const startYear = years.length ? years[0].year : 0;
   return years.map(y => {
-    const status = y.householdStatus === 'MFJ' || y.householdStatus === 'MFS' ? y.householdStatus : 'Single';
+    const st = y.bracketStatus || y.householdStatus;
+    const status = st === 'MFJ' || st === 'MFS' ? st : 'Single';
     const brackets = status === 'MFJ' ? BRACKETS_MFJ : status === 'MFS' ? BRACKETS_MFS : BRACKETS_SINGLE;
     const inf = y.taxBracketInflationFactor || 1;
     // The IRMAA thresholds calculateIRMAA() priced this year with: the

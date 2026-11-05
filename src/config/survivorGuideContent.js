@@ -9,6 +9,15 @@
 // release; the facts they checked are noted beside the items.
 
 const money = (n) => `$${Math.round(n || 0).toLocaleString('en-US')}`;
+// An age that may carry months: 66.6667 reads "66 and 8 months" (What's New 502).
+const ageLabel = (age) => {
+  const a = Number(age);
+  if (!Number.isFinite(a)) return '';
+  const whole = Math.floor(a);
+  const months = Math.round((a - whole) * 12);
+  if (months === 0 || months === 12) return String(months === 12 ? whole + 1 : whole);
+  return `${whole} and ${months} month${months === 1 ? '' : 's'}`;
+};
 
 // The first steps, grouped by when they are due. g: a buildSurvivorGuide
 // result (status 'ok'). Each group { id, title, items: [{ id, title,
@@ -39,8 +48,8 @@ export function firstSteps(g) {
   if (f.deceasedClaimedSS) ss += ' The payment that arrives in the month after the death pays for the month of death and must be returned; if it was deposited, the bank sends it back, so do not spend it.';
   if (g.ssStart?.bestAge) {
     ss += g.ssStart.bestAge === g.ssStart.planAge
-      ? ` This plan starts your survivor benefit at ${g.ssStart.planAge}, about ${money(g.ssStart.planCheck)} a year, which in this plan leaves the most${g.ssStart.switchPlan ? ' of the single start ages' : ''}.`
-      : ` This plan starts your survivor benefit at ${g.ssStart.planAge} (about ${money(g.ssStart.planCheck)} a year); starting it at ${g.ssStart.bestAge} pays a larger check for life (about ${money(g.ssStart.bestCheck)} a year) and in this plan leaves more at the end${g.ssStart.switchPlan ? ' than any other single start age' : ''}. It can start as early as 60, at a smaller amount.`;
+      ? ` This plan starts your survivor benefit at ${ageLabel(g.ssStart.planAge)}, about ${money(g.ssStart.planCheck)} a year, which in this plan leaves the most${g.ssStart.switchPlan ? ' of the single start ages' : ''}.`
+      : ` This plan starts your survivor benefit at ${ageLabel(g.ssStart.planAge)} (about ${money(g.ssStart.planCheck)} a year); starting it at ${ageLabel(g.ssStart.bestAge)} pays a larger check for life (about ${money(g.ssStart.bestCheck)} a year) and in this plan leaves more at the end${g.ssStart.switchPlan ? ' than any other single start age' : ''}. It can start as early as 60, at a smaller amount.`;
   } else if (g.ssStart?.pastFra) {
     ss += ' You are past full retirement age, so the survivor benefit is not reduced whenever it starts; there is no reason to wait for it.';
   } else if (g.ssStart?.ownLarger) {
@@ -49,8 +58,8 @@ export function firstSteps(g) {
   const sw = g.ssStart?.switchPlan;
   if (sw && sw.moreAtEnd > 1000) {
     ss += sw.id === 'ownFirst'
-      ? ` In this plan, starting your own benefit at ${sw.ownAge} and switching to the survivor benefit at ${sw.survivorAge} leaves the most: about ${money(sw.moreAtEnd)} more at the end than the best single start age (today\u2019s dollars).`
-      : ` In this plan, taking the survivor benefit from ${sw.survivorAge} and switching to your own at ${sw.ownAge} leaves the most: about ${money(sw.moreAtEnd)} more at the end than ${g.ssStart.pastFra ? 'the plan as it is' : 'the best single start age'} (today\u2019s dollars).`;
+      ? ` In this plan, starting your own benefit at ${sw.ownAge} and switching to the survivor benefit at ${ageLabel(sw.survivorAge)} leaves the most: about ${money(sw.moreAtEnd)} more at the end than the best single start age (today\u2019s dollars).`
+      : ` In this plan, taking the survivor benefit from ${ageLabel(sw.survivorAge)} and switching to your own at ${sw.ownAge} leaves the most: about ${money(sw.moreAtEnd)} more at the end than ${g.ssStart.pastFra ? 'the plan as it is' : 'the best single start age'} (today\u2019s dollars).`;
   }
   ss += ' Unlike a spouse’s benefit, a survivor can take one benefit now and switch to the other later (for example the survivor benefit early and your own at 70, or the reverse): ask Social Security to show both, and to limit the application to the one you are starting.';
   if (g.income.ownSwitch) ss += ` This plan switches you to your own benefit at ${g.income.ownSwitch.age}, in ${g.income.ownSwitch.year}, about ${money(g.income.ownSwitch.amount)} a year: apply for it then, because Social Security may not switch you on its own.`;
@@ -194,7 +203,7 @@ export function firstSteps(g) {
   year.push({
     id: 'taxes',
     title: 'Taxes this year and next',
-    detail: `For the year of the death you can still file a joint return, unless you remarry that year; it is due the following April. After that you file as single, or for two more years as a qualifying surviving spouse if a dependent child lives with you. Single tax brackets are narrower, so the same income costs more tax; this plan figures every later year as single.${f.irmaaAge ? ' Medicare’s income surcharge (IRMAA) is based on income from two years back; if it comes in high after the death, Form SSA-44 asks Social Security to use your newer, lower income, since a spouse’s death counts as a life-changing event.' : ''}`,
+    detail: `For the year of the death you can still file a joint return, unless you remarry that year; it is due the following April. After that you file as single, or for two more years as a qualifying surviving spouse if a dependent child lives with you. Single tax brackets are narrower, so the same income costs more tax; ${f.qualifyingSurvivingSpouse ? `this plan figures the next ${f.qualifyingSurvivingSpouse === 1 ? 'year' : 'two years'} as a qualifying surviving spouse, then single.` : 'this plan figures every later year as single.'}${f.irmaaAge ? ' Medicare’s income surcharge (IRMAA) is based on income from two years back; if it comes in high after the death, Form SSA-44 asks Social Security to use your newer, lower income, since a spouse’s death counts as a life-changing event.' : ''}`,
   });
   year.push({
     id: 'estate',

@@ -123,7 +123,7 @@ function HorizonNote({ inputs, projection }) {
         {people.map((p, i) => (
           <React.Fragment key={p.name}>
             {i === 0 ? ' ' : ' and '}a {noun(p.sex)} of {p.age} has a <strong>{pct(p.reachPlanTo)}</strong> chance of
-            reaching {p.planTo} (one in four reach {ageReachedWithProbability(p.sex, p.age, 0.25)}, one in ten reach {ageReachedWithProbability(p.sex, p.age, 0.10)})
+            reaching {p.planTo} (one in four reach {ageReachedWithProbability(p.sex, p.age, 0.25, p.basis)}, one in ten reach {ageReachedWithProbability(p.sex, p.age, 0.10, p.basis)})
           </React.Fragment>
         ))}.
         {people.length === 2 && (

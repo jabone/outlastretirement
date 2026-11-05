@@ -80,7 +80,7 @@ export const HOW_FIGURED_RULES = [
     group: 'Federal income tax',
     summary: `Ordinary income (wages, pensions, the taxable part of Social Security, IRA and 401(k) withdrawals, and Roth conversions) is taxed in seven brackets from 10% to 37%, after the standard deduction. On a joint return the 10% bracket covers the first ${usd(TEN_PCT_TOP_MFJ)} of taxable income, and a single filer reaches 37% above ${usd(TOP_RATE_START_SINGLE)}. In later years every bracket grows by the Tax Bracket Inflation Rate you set.`,
     figuresYear: TAX_YEAR,
-    simplifies: 'Brackets grow at your inflation rate in a smooth line rather than by the IRS index and its rounding, and there is no head of household or qualifying surviving spouse status.',
+    simplifies: 'Brackets grow at your inflation rate in a smooth line rather than by the IRS index and its rounding, and there is no head of household status; a qualifying surviving spouse is figured only for the two years after a death, when you enter the last year a child is your dependent.',
     sources: ['tax-tables'],
   },
   {
@@ -89,7 +89,7 @@ export const HOW_FIGURED_RULES = [
     group: 'Federal income tax',
     summary: `The app takes the standard deduction every year: ${usd(DEDUCTION_MFJ)} on a joint return and ${usd(DEDUCTION_SINGLE)} for a single or separate filer. Each person 65 or older adds ${usd(ADDITIONAL_DEDUCTION_AGED_MARRIED_2026)} on a married return or ${usd(ADDITIONAL_DEDUCTION_AGED_SINGLE_2026)} on a single one. Both amounts grow each year with your Tax Bracket Inflation Rate.`,
     figuresYear: TAX_YEAR,
-    simplifies: 'Itemized deductions (mortgage interest, state and local taxes, gifts to charity, medical costs) and the extra amount for blindness are not modeled. A surviving spouse files as single from the year of the death, where the law allows a joint return for that year.',
+    simplifies: 'Itemized deductions (mortgage interest, state and local taxes, gifts to charity, medical costs) and the extra amount for blindness are not modeled. A surviving spouse files a joint return for the year of the death and as single after it, or for two more years as a qualifying surviving spouse when you enter the last year a child is your dependent.',
     sources: ['tax-tables'],
   },
   {

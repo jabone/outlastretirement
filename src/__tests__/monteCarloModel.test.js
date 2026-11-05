@@ -272,7 +272,7 @@ describe('longevity uncertainty (changelog 248)', () => {
   });
 
   it('the share of trials past the horizon matches the life table', () => {
-    const plan = { ...DEFAULT_INPUTS, monteCarloSeed: 9, mcLongevityEnabled: true, sex1: 'male', sex2: 'female' };
+    const plan = { ...DEFAULT_INPUTS, monteCarloSeed: 9, mcLongevityEnabled: true, sex1: 'male', sex2: 'female', mortalityImprovement: false };
     const age1 = plan.planYear - plan.birthYear1;
     const age2 = plan.planYear - plan.birthYear2;
     // Beyond the horizon = someone alive at their Life Expectancy + 1.

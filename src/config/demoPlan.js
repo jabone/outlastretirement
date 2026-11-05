@@ -106,6 +106,9 @@ export function buildDemoInputs() {
     retireAge2: 58,
     lifeExpectancy1: 92,
     lifeExpectancy2: 94,
+    // The sample family's ages were set against the 2023 life table as it
+    // stands (What's New 500 counts falling death rates for a new plan).
+    mortalityImprovement: false,
 
     // -- Income ------------------------------------------------------------
     salary1: 245000,

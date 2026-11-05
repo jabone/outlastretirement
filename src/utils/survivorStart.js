@@ -25,6 +25,19 @@ import { runProjection, getSurvivorFullRetirementAge as getFullRetirementAge } f
 import { yearFactor, finalBalanceFactor } from './displayDollars';
 import { sanitizeForProjection } from './oneLeverCompare';
 
+// An age that may carry months (What's New 502): 66.6667 reads "66 and 8
+// months". Whole ages read as they are.
+export function ageLabel(age) {
+  const a = Number(age);
+  if (!Number.isFinite(a)) return '';
+  const whole = Math.floor(a);
+  const months = Math.round((a - whole) * 12);
+  if (months === 0 || months === 12) return String(months === 12 ? whole + 1 : whole);
+  return `${whole} and ${months} month${months === 1 ? '' : 's'}`;
+}
+// A survivors' full retirement age to the month, as a start-age value.
+export const fraStartValue = (fra) => Math.floor(fra) + Math.round((fra - Math.floor(fra)) * 12) / 12;
+
 const SHORT_EPS = 0.5;
 
 // The first year one spouse is alone, from a projection.
@@ -66,7 +79,13 @@ function summarize(proj, survivor, startIndex) {
     if (!alive) break;
     const f = yearFactor(y);
     const benefit = (Number(y[benefitKey]) || 0) / f;
-    if (benefit > 0 && startedAt === null) { check = benefit; startedAt = y[startedKey] ?? y[ageKey]; }
+    if (benefit > 0 && startedAt === null) {
+      startedAt = y[startedKey] ?? y[ageKey];
+      // A start with months pays part of its first year: the check is the
+      // yearly amount (What's New 502).
+      const months = Math.round((Number(startedAt) - Math.floor(Number(startedAt))) * 12);
+      check = months > 0 && months < 12 ? benefit * 12 / (12 - months) : benefit;
+    }
     if (startedAt !== null && ownTakesOverAt === null && benefit === 0 && (Number(y.ssIncome) || 0) > 0) ownTakesOverAt = y[ageKey];
     ssTotal += (Number(y.ssIncome) || 0) / f;
     if ((Number(y.shortfall) || 0) > SHORT_EPS) shortYears += 1;
@@ -119,7 +138,7 @@ function switchStrategies(safe, run, { survivor, survivorAge, firstIndex, field,
   for (const st of candidates) {
     const proj = run({ ...safe, [ownField]: st.ownAge, [field]: st.survivorStart });
     const years = (proj.years || []).slice(firstIndex);
-    const at = (age) => years.find((y) => y[ageKey] === age);
+    const at = (age) => years.find((y) => y[ageKey] === Math.floor(age));
     if (st.id === 'ownFirst') {
       const y = at(st.survivorStart);
       if (!y || !(Number(y[benefitKey]) > 0)) continue;
@@ -165,7 +184,11 @@ export function survivorStartComparison(inputs, run = runProjection) {
   const field = survivor === 1 ? 'survivorStartAge1' : 'survivorStartAge2';
   const earliest = Math.max(60, survivorAge);
   const ages = [0];
-  for (let a = earliest + 1; a <= Math.ceil(fra); a += 1) ages.push(a);
+  // Whole ages up to full retirement age, and that age itself to the month
+  // when it has months: waiting to the next birthday gave up months of the
+  // unreduced check (What's New 502).
+  for (let a = earliest + 1; a <= Math.floor(fra); a += 1) ages.push(a);
+  if (fraStartValue(fra) > Math.floor(fra) && fraStartValue(fra) > earliest) ages.push(fraStartValue(fra));
 
   const rows = ages.map((a) => {
     const proj = a === 0 && !(Number(safe[field]) > 0) ? base : run({ ...safe, [field]: a });
@@ -189,7 +212,7 @@ export function survivorStartComparison(inputs, run = runProjection) {
     if (r.shortYears < b.shortYears || (r.shortYears === b.shortYears && r.endBalance > b.endBalance + 1)) best = i;
   });
   const chosen = Number(safe[field]) || 0;
-  let current = rows.findIndex((r) => r.startAge === chosen);
+  let current = rows.findIndex((r) => Math.abs(r.startAge - chosen) < 0.01);
   if (current < 0) current = chosen <= earliest ? 0 : rows.length - 1;
   // A choice past the top pays the same check as the top, a year later at
   // least; it has no row of its own, so it is flagged instead.

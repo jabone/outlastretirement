@@ -14,7 +14,7 @@ import { runProjection, findDieWithZeroSpending, DIE_WITH_ZERO_CEILING } from '.
 import { sanitizeForProjection, deflateProjectionForDisplay } from './oneLeverCompare';
 import { spendingCost } from './spendingCost';
 import { firstShortfallRow } from './planVerdict';
-import { probAliveAt, probAnyAlive } from './mortality';
+import { probAliveAt, probAnyAlive, mortalityBasis } from './mortality';
 
 export const FIRST_YEARS = 5;
 
@@ -46,9 +46,10 @@ export function planHorizon(inputs, projection) {
       planTo,
       // The last year this person is in the plan.
       endYear: birthYear + planTo,
-      reachPlanTo: probAliveAt(inputs[`sex${n}`], age, planTo),
+      basis: mortalityBasis(inputs, n),
+      reachPlanTo: probAliveAt(inputs[`sex${n}`], age, planTo, mortalityBasis(inputs, n)),
       ageAtEnd: age + (lastYear - startYear),
-      aliveAtEnd: probAliveAt(inputs[`sex${n}`], age, age + (lastYear - startYear)),
+      aliveAtEnd: probAliveAt(inputs[`sex${n}`], age, age + (lastYear - startYear), mortalityBasis(inputs, n)),
     };
   };
   const people = [person(1, 'You')];

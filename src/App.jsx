@@ -64,7 +64,7 @@ import { planVerdict, verdictColor, verdictClass, returnAssumptionSentence } fro
 import { untestedRisksSentence } from './utils/untestedRisks';
 import { US_STATE_NAME } from './config/usStates';
 import { isSamplePlan, sampleStatus } from './utils/samplePlan';
-import { horizonOdds } from './utils/mortality';
+import { horizonOdds, MORTALITY_IMPROVEMENT_RATE } from './utils/mortality';
 import { trustFundLine } from './utils/trustFundLine';
 import { safeSetItem, safeRemoveItem } from './utils/safeStorage';
 import { useThemePreference } from './utils/useThemePreference';
@@ -3077,7 +3077,7 @@ export default function App() {
               // The odds come from the SSA table for this person's own age.
               const planYear = Number(inputs.planYear) || TAX_YEAR;
               const longer = (sex, birthYear, le) => {
-                const o = horizonOdds({ sex, currentAge: planYear - (Number(birthYear) || planYear), planToAge: le });
+                const o = horizonOdds({ sex, currentAge: planYear - (Number(birthYear) || planYear), planToAge: le, basis: { birthYear: Number(birthYear) || null, improvement: inputs.mortalityImprovement ? MORTALITY_IMPROVEMENT_RATE : 0 } });
                 const p = Math.round((o.reachPlanTo || 0) * 100);
                 return p > 0 ? `About ${p} in 100 people your age live to ${le} or beyond.` : '';
               };

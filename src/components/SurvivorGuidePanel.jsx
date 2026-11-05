@@ -116,7 +116,7 @@ function BenefitEditor({ b, names, pay, onChange, onRemove }) {
             hint="Off: stays at the death year's dollars.">Rises with inflation</SwitchRow>
         )}
         <SwitchRow id={id('taxed')} checked={b.taxed} onChange={(v) => set({ taxed: v })} size="sm"
-          hint="Life insurance (group or union) usually is not. An employer's survivor income or lump-sum death payment usually is.">Taxed as income</SwitchRow>
+          hint="Life insurance (group or union) usually is not. An employer's survivor income or lump-sum death payment usually is, by the federal government; Pennsylvania does not tax it, and the plan leaves it off a Pennsylvania return.">Taxed as income</SwitchRow>
         <SwitchRow id={id('counted')} checked={b.counted} onChange={(v) => set({ counted: v })} size="sm"
           hint="Off: printed on the guide only.">Count it in the plan</SwitchRow>
       </div>

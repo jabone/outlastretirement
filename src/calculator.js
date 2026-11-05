@@ -34,7 +34,7 @@ export const TAX_YEAR = 2026;
 // Add version-specific migration steps here as the schema evolves in the
 // future — this is the one place that needs to change, instead of every
 // call site guessing at the shape.
-import { sampleDeathAge, survivalCurve, ageReachedWithProbability, coupleHorizonOdds } from './utils/mortality';
+import { sampleDeathAge, survivalCurve, ageReachedWithProbability, coupleHorizonOdds, mortalityBasis, MORTALITY_IMPROVEMENT_RATE } from './utils/mortality';
 import { sampleLtcEpisode } from './utils/ltcRisk';
 import { HISTORICAL_RETURNS, HISTORY_FIRST_YEAR, HISTORY_LAST_YEAR } from './config/historicalReturns';
 import { HISTORICAL_RETURNS_PRE1928, PRE1928_FIRST_YEAR } from './config/historicalReturnsPre1928';
@@ -306,6 +306,10 @@ export function migratePersistedInputs(persisted) {
     // And a working survivor's spending following their own pay in auto
     // mode (What's New 498).
     if (raw.survivorWorkingKeepsBudget === undefined) raw = { ...raw, survivorWorkingKeepsBudget: false };
+    // And the 2023 life table's death rates, held still (What's New 500).
+    if (raw.mortalityImprovement === undefined) raw = { ...raw, mortalityImprovement: false };
+    // And the old 20% survivor drop (What's New 501).
+    if (raw.survivorExpenseDropPct === undefined) raw = { ...raw, survivorExpenseDropPct: 20 };
     // And Medicare from 65 even while still at work, as it was before
     // changelog 477 delayed it on a new plan's own employer cover.
     if (raw.medicareEmployerCoverage1 === undefined) raw = { ...raw, medicareEmployerCoverage1: 'none' };
@@ -1136,7 +1140,12 @@ export const DEFAULT_INPUTS = {
   survivorStressEnabled: false,
   survivorStressSpouse: 1, // 1 or 2
   survivorStressAge: 75,
-  survivorExpenseDropPct: 20,
+  // What's New 501: 30% of everyday spending other than housing for a new
+  // plan (with the default 30% housing share, about 21% of the whole
+  // budget), in line with household equivalence scales -- one adult needs
+  // about 67-71% of what two do (OECD modified scale; square-root scale).
+  // A plan saved before keeps 20%.
+  survivorExpenseDropPct: 30,
   // Changelog 470: the same drop applies in the plan itself once one
   // spouse's Life Expectancy has passed (and in a Monte Carlo trial that
   // samples a death), not only inside the stress test. A widow's spending
@@ -1156,6 +1165,16 @@ export const DEFAULT_INPUTS = {
   // leaves over -- instead of spending exactly what their own pay leaves.
   // On for a new plan; a plan saved before keeps spending following pay.
   survivorWorkingKeepsBudget: true,
+  // What's New 499: the last year a child is the household's dependent
+  // (blank: none). A survivor with a dependent child files as a Qualifying
+  // Surviving Spouse -- joint brackets and deduction -- for the two years
+  // after the year of death.
+  dependentChildLastYear: '',
+  // What's New 500: the life table's death rates keep falling, 0.7% a year
+  // from 2023 (utils/mortality.js), for every odds figure, sampled lifespan
+  // and the risk-based rule's cautious age. On for a new plan; a plan
+  // saved before keeps the 2023 table as it was.
+  mortalityImprovement: true,
   // What's New 497: a survivor under 59 1/2 keeps the spouse's Pre-Tax
   // share as an inherited IRA (withdrawals free of the 10% penalty, no Roth
   // conversion from it) until 59 1/2 -- or until the spouse would have
@@ -5239,6 +5258,13 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
   // HSA deduction) and so do NQDC deferrals (taxed by PA when paid, not
   // when deferred).
   if (stateType === 'pa') stateTaxableIncome += Math.max(0, extras.paCompensationAddback || 0);
+  // Pennsylvania does not tax death benefits paid to a beneficiary on an
+  // employee's death (PA-40 instructions: "Inheritances, death benefits,
+  // and income in respect of a decedent" are not taxable; "Payments paid to
+  // the estate or designated beneficiary upon an employee's death are not
+  // PA-taxable income"), so a survivor benefit taxed federally comes back
+  // out (What's New 499).
+  if (stateType === 'pa') stateTaxableIncome -= Math.max(0, extras.deathBenefitIncome || 0);
   if (stateTaxableIncome <= 0) return 0;
   
   if (stateType === 'flat_5') {
@@ -6687,7 +6713,7 @@ function solveWithdrawals(
     // income so the solver prices CA's phase-outs consistently.
     const stateTax = calculateStateTaxes(
       totalIncomeForState, pension, ssIncome, stateType,
-      taxSS, taxPension, status, age1, age2,
+      taxSS, taxPension, stateExtras.filerStatus || status, age1, age2,
       // The year's residence (stateExtras carries it, like nycResident);
       // the plan-wide input is only the fallback for a caller without one.
       stateExtras.stateTaxFlatRate ?? inputs.stateTaxFlatRate, militaryPension,
@@ -7421,13 +7447,13 @@ export function riskPlanningAges(inputs) {
   const start = Math.max(planStart, Math.min(lastRetire, firstEnd));
   const now = (n) => start - born(n);
   if (!inputs.spouse2Enabled) {
-    const cautious = ageReachedWithProbability(inputs.sex1, now(1), 0.25);
+    const cautious = ageReachedWithProbability(inputs.sex1, now(1), 0.25, mortalityBasis(inputs, 1));
     return { couple: false, last: 1, cautious, age1: Math.max(le(1), cautious), age2: null, raised: cautious > le(1) };
   }
   // The last survivor on the plan's own dates; a tie goes to the spouse
   // more likely to be alive (whose own one-in-four year is later).
   const by = (n) => Number(inputs[`birthYear${n}`]) || start;
-  const own = (n) => ageReachedWithProbability(inputs[`sex${n}`], now(n), 0.25);
+  const own = (n) => ageReachedWithProbability(inputs[`sex${n}`], now(n), 0.25, mortalityBasis(inputs, n));
   const end1 = by(1) + le(1);
   const end2 = by(2) + le(2);
   const last = end2 > end1 || (end2 === end1 && by(2) + own(2) >= by(1) + own(1)) ? 2 : 1;
@@ -7438,10 +7464,11 @@ export function riskPlanningAges(inputs) {
   // their own one-in-four age instead.
   // Judged at today's ages: from a later start the table median rises
   // with age, and an ordinary life expectancy would read as a short one.
-  const ill = le(first) < ageReachedWithProbability(inputs[`sex${first}`], planStart - born(first), 0.5);
+  const ill = le(first) < ageReachedWithProbability(inputs[`sex${first}`], planStart - born(first), 0.5, mortalityBasis(inputs, first));
   const odds = ill ? null : coupleHorizonOdds({
     planYear: start, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: le(1),
     sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: le(2),
+    improvement: inputs.mortalityImprovement ? MORTALITY_IMPROVEMENT_RATE : 0,
   });
   const cautious = odds ? odds.oneInFour[`age${last}`] : own(last);
   const ages = { age1: le(1), age2: le(2) };
@@ -7598,7 +7625,7 @@ function riskStatePatch(base, inputs, ev) {
       if (ev[`dead${d}`] !== null && ev[`dead${a}`] === null && ev[`dead${d}`] < (Number(base[`lifeExpectancy${d}`]) || 0)) {
         const deathYear = (Number(inputs[`birthYear${d}`]) || 0) + ev[`dead${d}`] + 1;
         const ageThen = deathYear - (Number(inputs[`birthYear${a}`]) || 0);
-        const own = ageReachedWithProbability(inputs[`sex${a}`], ageThen, 0.25);
+        const own = ageReachedWithProbability(inputs[`sex${a}`], ageThen, 0.25, mortalityBasis(inputs, a));
         if (own > (Number(base[`lifeExpectancy${a}`]) || 0)) survivorLe[a] = own;
       }
     }
@@ -8120,6 +8147,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // payments) in today's dollars, from the last working year both were
   // alive; a working survivor keeps it, less the survivor drop.
   let coupleWorkingSpendingReal = null;
+  // The first year one spouse is alone (What's New 499).
+  let firstAloneYear = null;
   // Whether this year's inherited IRA needs a required withdrawal: the one
   // who died has reached (or would have reached) their RMD age.
   let inheritedRmdDue = false;
@@ -8376,6 +8405,21 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         currentStatus = 'Single'; // survivor changes status to Single
       }
     }
+    // Qualifying Surviving Spouse (What's New 499): for the two years after
+    // the year of death, a survivor whose dependent child lives with them
+    // files with the joint return's brackets and standard deduction
+    // (IRC s 2(a)). Everything that reads "unmarried" -- Social Security's
+    // provisional-income thresholds, IRMAA, the senior bonus phase-out, the
+    // Additional Medicare Tax, the state return -- stays Single.
+    if (inputs.spouse2Enabled && spouse1Alive !== spouse2Alive && firstAloneYear === null) firstAloneYear = year;
+    const dependentLastYear = Number(inputs.dependentChildLastYear);
+    // A married couple only: unmarried partners (Filing Status Single with
+    // a spouse in the plan) have no surviving-spouse status.
+    const qualifyingSurvivingSpouse = currentStatus === 'Single' && firstAloneYear !== null
+      && (inputs.filingStatus === 'MFJ' || inputs.filingStatus === 'MFS')
+      && year - firstAloneYear < 2 && inputs.dependentChildLastYear !== '' && inputs.dependentChildLastYear !== null
+      && inputs.dependentChildLastYear !== undefined && Number.isFinite(dependentLastYear) && dependentLastYear >= year;
+    const rateStatus = qualifyingSurvivingSpouse ? 'MFJ' : currentStatus;
 
     const isSpouse1Retired = age1 >= inputs.retireAge1;
     const isSpouse2Retired = spouse2Alive ? (age2 >= inputs.retireAge2) : true;
@@ -8698,8 +8742,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const mfsTwoReturns = currentStatus === 'MFS' && spouse1Alive && spouse2Alive
       && mfsSplitForYear > 0 && mfsSplitForYear < 100;
     const stdDeductionBase = (inputs.tcjaSunsetEnabled
-      ? (currentStatus === 'MFJ' ? DEDUCTION_MFJ_PRETCJA : currentStatus === 'MFS' ? DEDUCTION_MFS_PRETCJA : DEDUCTION_SINGLE_PRETCJA)
-      : (currentStatus === 'MFJ' ? DEDUCTION_MFJ : currentStatus === 'MFS' ? DEDUCTION_MFS : DEDUCTION_SINGLE))
+      ? (rateStatus === 'MFJ' ? DEDUCTION_MFJ_PRETCJA : rateStatus === 'MFS' ? DEDUCTION_MFS_PRETCJA : DEDUCTION_SINGLE_PRETCJA)
+      : (rateStatus === 'MFJ' ? DEDUCTION_MFJ : rateStatus === 'MFS' ? DEDUCTION_MFS : DEDUCTION_SINGLE))
       * (mfsTwoReturns ? 2 : 1);
     // Filers aged 65+ on this year's return(s). On a joint return both
     // count; a survivor counts as themself, whichever spouse survived; MFS
@@ -8711,14 +8755,14 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // Basic standard deduction plus the s 63(f) age-65 add-on (both
     // indexed). Income-independent, so a plain number.
     const stdDeduction = stdDeductionBase * taxBracketInflationFactor
-      + additionalStandardDeductionAged(currentStatus, seniorCount, taxBracketInflationFactor);
+      + additionalStandardDeductionAged(rateStatus, seniorCount, taxBracketInflationFactor);
     // Two MFS returns: each spouse's own deduction (the MFS basic amount
     // plus their own age-65 add-on; MFS gets no senior bonus), which the
     // federal helpers floor per return (mfsSplitSpec). The pair sums to
     // stdDeduction.
     const mfsReturnDeductions = mfsTwoReturns ? [age1, age2].map((age) =>
       (stdDeductionBase / 2) * taxBracketInflationFactor
-        + additionalStandardDeductionAged(currentStatus, age >= 65 ? 1 : 0, taxBracketInflationFactor)) : null;
+        + additionalStandardDeductionAged(rateStatus, age >= 65 ? 1 : 0, taxBracketInflationFactor)) : null;
     const mfsSplitFor = (ordinaryBeforeDeduction) => mfsSplitSpec(inputs, ordinaryBeforeDeduction, mfsReturnDeductions);
     // The OBBBA senior bonus (2025-2028) depends on MAGI through its
     // phase-out, and MAGI depends on this year's Pre-Tax draws and
@@ -9042,8 +9086,18 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const own2Now = age2 >= inputs.claimingAge2 ? ss2Benefit : 0;
     // The earliest age each spouse's survivor benefit may start: 60, or the
     // later start age the plan chose (survivorStartAge1/2).
-    const survStartGate1 = Math.max(60, Math.min(70, Number(inputs.survivorStartAge1) || 0));
-    const survStartGate2 = Math.max(60, Math.min(70, Number(inputs.survivorStartAge2) || 0));
+    // A start age may carry months (What's New 502), e.g. 66 and 8 months
+    // for a survivors' full retirement age: the year of that birthday pays
+    // the survivor benefit from that month only.
+    const survStart1 = Math.max(60, Math.min(70, Number(inputs.survivorStartAge1) || 0));
+    const survStart2 = Math.max(60, Math.min(70, Number(inputs.survivorStartAge2) || 0));
+    const survStartGate1 = Math.floor(survStart1);
+    const survStartGate2 = Math.floor(survStart2);
+    const survStartMonth1 = Math.min(11, Math.round((survStart1 - survStartGate1) * 12));
+    const survStartMonth2 = Math.min(11, Math.round((survStart2 - survStartGate2) * 12));
+    // The share of the claim year the survivor benefit pays: all of it,
+    // except a claim at a birthday-plus-months age.
+    const survClaimShare = (claimAge, age) => (claimAge !== null && Math.floor(claimAge) === age && claimAge > age ? (12 - Math.round((claimAge - age) * 12)) / 12 : 1);
     const ssIfOnly1 = inputs.spouse2Enabled
       ? Math.max(own1Now, age1 >= survStartGate1 ? survivorOn2(age1) : 0)
       : own1Now;
@@ -9095,24 +9149,26 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // simply the first alone year: a survivor whose own check is larger
       // has not filed for it, and can still file later, e.g. at FRA for the
       // unreduced amount (changelog 462).
-      if (survivorClaimAge1 === null && age1 >= survStartGate1 && survivorOn2(age1) > own1Now) survivorClaimAge1 = age1;
+      if (survivorClaimAge1 === null && age1 >= survStartGate1 && survivorOn2(age1) > own1Now) survivorClaimAge1 = age1 === survStartGate1 && survStartMonth1 > 0 ? age1 + survStartMonth1 / 12 : age1;
       const survClaimEff1 = (survivorClaimAge1 !== null && age1 >= ssFra1)
         ? ssEffectiveClaimingAge(survivorClaimAge1, ssEarningsTestSurvMonths1, ssFra1)
         : survivorClaimAge1;
       const survBenefit1 = survClaimEff1 !== null ? survivorOn2(survClaimEff1) : 0;
-      survivorPaid1 = Math.max(own1Now, survBenefit1);
+      const share1 = survClaimShare(survivorClaimAge1, age1);
+      survivorPaid1 = own1Now * (1 - share1) + Math.max(own1Now, survBenefit1) * share1;
       survivorBenefitPaying1 = survBenefit1 > own1Now;
-      survivorBenefitGross1 = survivorBenefitPaying1 ? survBenefit1 : 0;
+      survivorBenefitGross1 = survivorBenefitPaying1 ? survBenefit1 * share1 : 0;
       ssIncome += survivorPaid1;
     } else if (spouse2Alive) {
-      if (survivorClaimAge2 === null && age2 >= survStartGate2 && survivorOn1(age2) > own2Now) survivorClaimAge2 = age2;
+      if (survivorClaimAge2 === null && age2 >= survStartGate2 && survivorOn1(age2) > own2Now) survivorClaimAge2 = age2 === survStartGate2 && survStartMonth2 > 0 ? age2 + survStartMonth2 / 12 : age2;
       const survClaimEff2 = (survivorClaimAge2 !== null && age2 >= ssFra2)
         ? ssEffectiveClaimingAge(survivorClaimAge2, ssEarningsTestSurvMonths2, ssFra2)
         : survivorClaimAge2;
       const survBenefit2 = survClaimEff2 !== null ? survivorOn1(survClaimEff2) : 0;
-      survivorPaid2 = Math.max(own2Now, survBenefit2);
+      const share2 = survClaimShare(survivorClaimAge2, age2);
+      survivorPaid2 = own2Now * (1 - share2) + Math.max(own2Now, survBenefit2) * share2;
       survivorBenefitPaying2 = survBenefit2 > own2Now;
-      survivorBenefitGross2 = survivorBenefitPaying2 ? survBenefit2 : 0;
+      survivorBenefitGross2 = survivorBenefitPaying2 ? survBenefit2 * share2 : 0;
       ssIncome += survivorPaid2;
     }
 
@@ -10989,7 +11045,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // household can fill to the ceiling divided by the larger return's
         // share before that return crosses the bracket (changelog 403;
         // until then an even split converted half of what fit).
-        const bracketLimit = getTaxBracketLimit(currentStatus, targetRate, taxBracketInflationFactor) / mfsLargerShare(inputs, currentStatus);
+        const bracketLimit = getTaxBracketLimit(rateStatus, targetRate, taxBracketInflationFactor) / mfsLargerShare(inputs, rateStatus);
         const ceiling = bracketLimit - inputs.rothConversionBuffer;
         // Ordinary income other than Social Security and the conversion.
         const otherOrdinary = otherOrdinaryAgi; // net of NQDC deferrals, plus NUA basis, as in baseOrdinaryTaxableIncome
@@ -11198,7 +11254,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     itemizedMedicalCosts = healthcareBridge + ltcCost;
     const medicalLineAtBasePricing = itemizedMedicalCosts;
     const baseDeduction = deductionFor(baseOrdinaryTaxableIncome + taxableDividends);
-    const ordinaryFedTaxes = calculateTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
+    const ordinaryFedTaxes = calculateTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
     // Q-10(a): rents and annuity income are net investment income for the
     // 3.8% NIIT even though they are ordinary income for the brackets.
     // The purchased annuity's taxable slice counts only when it is a
@@ -11207,7 +11263,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // (s 1411(c)(5)), so a Pre-Tax-funded annuity owes no NIIT.
     const niiAnnuity = inputs.annuitySourceAccount === 'taxable' ? taxableAnnuityOrdinary : 0;
     const niiOtherForYear = rentalAnnuity + niiAnnuity + ordinaryDividends;
-    const baseCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
+    const baseCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, rateStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
     // What the diversification actually cost, now that it is taxed inside
     // the engine: the year's capital-gains tax with the gain, less the same
     // figure without it. That is the marginal number a user wants -- it
@@ -11219,7 +11275,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       ? Math.max(0, baseCapGainsTaxes - calculateCapitalGainsTaxes(
         Math.max(0, baseOrdinaryTaxableIncome - baseDeduction),
         Math.max(0, taxableDividends - concentratedStockRealizedGain),
-        currentStatus, taxBracketInflationFactor, baseDeduction,
+        rateStatus, taxBracketInflationFactor, baseDeduction,
         Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome),
       ))
       : 0;
@@ -11235,8 +11291,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let harvestTaxSavings = 0;
     if (!isRetired && (harvestedOrdinaryOffset > 0 || harvestedGainsOffset > 0)) {
       const refDeduction = deductionFor(preHarvestOrdinaryTaxableIncome + taxableDividendsGross);
-      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
-      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), taxableDividendsGross, currentStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - preHarvestOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
+      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
+      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), taxableDividendsGross, rateStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - preHarvestOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
       harvestTaxSavings = Math.max(0, (refOrdinaryFedTaxes + refCapGainsTaxes) - (ordinaryFedTaxes + baseCapGainsTaxes));
     }
 
@@ -11260,7 +11316,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const amtAllowedDeduction = baseChoice.itemized
       ? Math.max(0, baseChoice.amount - itemizedFor(baseOrdinaryTaxableIncome + taxableDividends).salt)
       : 0;
-    const tentativeMinimumTax = calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowedDeduction), currentStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs));
+    const tentativeMinimumTax = calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowedDeduction), rateStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs));
     let amtTax = Math.max(0, tentativeMinimumTax - ordinaryFedTaxes);
 
     // A Life-Event Pre-Tax withdrawal before 59 1/2 is an early
@@ -11286,6 +11342,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // moves).
     const stateExtrasForYear = {
       calendarYear: year,
+      // The state return's status when the federal rates read a joint
+      // return for a Qualifying Surviving Spouse (What's New 499).
+      filerStatus: currentStatus,
       // Pre-Tax the survivor can take free of the 10% penalty this year:
       // the inherited IRA they still hold (What's New 497).
       penaltyFreePreTax: inheritedPreTaxShare > 0 ? preTax * inheritedPreTaxShare : 0,
@@ -11295,6 +11354,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       mfsReturnDeductions,
       // Employee 401(k) deferrals, which Pennsylvania taxes as compensation.
       paCompensationAddback: preTaxContribution,
+      // A survivor benefit taxed federally, which Pennsylvania does not tax.
+      deathBenefitIncome: survivorBenefitTaxed,
       // Changelog 203: a split move year's state tax is shared by months.
       partYear: priorResidence ? { share: moveShare, prior: priorResidence } : null,
       nycResident: residence.nycResident,
@@ -11373,7 +11434,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         yearShare: moveShare,
         year,
       };
-      const baseNiit = calculateNetInvestmentIncomeTax(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
+      const baseNiit = calculateNetInvestmentIncomeTax(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, rateStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
       foreignBase = priceForeignYear(foreignCtx, {
         preTaxOrdinary: 0, realizedGains: 0, rothDraw: 0, rothEarnings: 0,
         usRegularTax: ordinaryFedTaxes + baseCapGainsTaxes - baseNiit,
@@ -11401,8 +11462,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (convertAmountTaxable > 0) {
       const noConversionOrdinaryIncome = Math.max(0, baseOrdinaryTaxableIncome - convertAmountTaxable);
       const refDeduction = deductionFor(noConversionOrdinaryIncome + taxableDividends);
-      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(noConversionOrdinaryIncome));
-      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), taxableDividends, currentStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - noConversionOrdinaryIncome), niiOtherForYear, mfsSplitFor(noConversionOrdinaryIncome));
+      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(noConversionOrdinaryIncome));
+      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), taxableDividends, rateStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - noConversionOrdinaryIncome), niiOtherForYear, mfsSplitFor(noConversionOrdinaryIncome));
       const refTotalIncomeForState = noConversionOrdinaryIncome + taxableDividends;
       const refStateTaxes = calculateStateTaxes(
         refTotalIncomeForState, pension, ssIncome, residence.stateTaxState,
@@ -11749,11 +11810,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       const magiForBase = baseOrdinaryTaxableIncome + taxableDividends;
       const deduction2 = deductionFor(magiForBase);
       const taxable2 = Math.max(0, baseOrdinaryTaxableIncome - deduction2);
-      const ordinary2 = calculateTaxes(taxable2, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
-      const capGains2 = calculateCapitalGainsTaxes(taxable2, taxableDividends, currentStatus, taxBracketInflationFactor, deduction2, Math.max(0, deduction2 - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
+      const ordinary2 = calculateTaxes(taxable2, rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
+      const capGains2 = calculateCapitalGainsTaxes(taxable2, taxableDividends, rateStatus, taxBracketInflationFactor, deduction2, Math.max(0, deduction2 - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
       const choice2 = deductionChoice(magiForBase);
       const amtAllowed2 = choice2.itemized ? Math.max(0, choice2.amount - itemizedFor(magiForBase).salt) : 0;
-      const amt2 = Math.max(0, calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowed2), currentStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs)) - ordinary2);
+      const amt2 = Math.max(0, calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowed2), rateStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs)) - ordinary2);
       const state2 = calculateStateTaxes(
         totalIncomeForState, pension, ssIncome, residence.stateTaxState,
         residence.stateTaxSocialSecurityTaxable, residence.stateTaxPensionTaxable,
@@ -12013,7 +12074,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (cashNeeded > 0) {
       const solveResult = solveWithdrawals(
         preTax, roth, taxable, cashNeeded, baseOrdinaryTaxableIncome,
-        deductionFor, currentStatus, taxBracketInflationFactor,
+        deductionFor, rateStatus, taxBracketInflationFactor,
         inputs.withdrawalStrategy, residence.stateTaxState,
         residence.stateTaxSocialSecurityTaxable, residence.stateTaxPensionTaxable,
         pension, ssIncome, taxableDividends, inputs, ownerAge, age2, militaryPension,
@@ -12108,8 +12169,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const priceSettledYear = ({ ordinary, capGains, preTaxOrdinary, gainsNet }, conversionTaxableForState = convertAmountTaxable) => {
       const ded = deductionFor(ordinary + capGains);
       const ordinaryTaxable = Math.max(0, ordinary - ded);
-      const federal = calculateTaxes(ordinaryTaxable, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinary))
-        + calculateCapitalGainsTaxes(ordinaryTaxable, capGains, currentStatus, taxBracketInflationFactor, ded, Math.max(0, ded - ordinary), niiOtherForYear, mfsSplitFor(ordinary));
+      const federal = calculateTaxes(ordinaryTaxable, rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinary))
+        + calculateCapitalGainsTaxes(ordinaryTaxable, capGains, rateStatus, taxBracketInflationFactor, ded, Math.max(0, ded - ordinary), niiOtherForYear, mfsSplitFor(ordinary));
       const incomeForState = ordinary + capGains;
       const state = calculateStateTaxes(
         incomeForState, pension, ssIncome, residence.stateTaxState,
@@ -12567,8 +12628,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const ordinaryInc = settledOrdinary + ssAdj + h;
         const deduction = deductionFor(ordinaryInc + settledCapGains);
         const ordinaryTaxable = Math.max(0, ordinaryInc - deduction);
-        const federal = calculateTaxes(ordinaryTaxable, currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinaryInc))
-          + calculateCapitalGainsTaxes(ordinaryTaxable, settledCapGains, currentStatus, taxBracketInflationFactor, deduction, Math.max(0, deduction - ordinaryInc), niiOtherForYear, mfsSplitFor(ordinaryInc));
+        const federal = calculateTaxes(ordinaryTaxable, rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinaryInc))
+          + calculateCapitalGainsTaxes(ordinaryTaxable, settledCapGains, rateStatus, taxBracketInflationFactor, deduction, Math.max(0, deduction - ordinaryInc), niiOtherForYear, mfsSplitFor(ordinaryInc));
         const penalty = ownerAge < 65 ? h * 0.20 : 0;
         const incomeForState = ordinaryInc + settledCapGains;
         const state = calculateStateTaxes(
@@ -12795,6 +12856,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       spouse1Alive,
       spouse2Alive,
       householdStatus: currentStatus,
+      // Joint brackets and deduction as a Qualifying Surviving Spouse
+      // (What's New 499).
+      qualifyingSurvivingSpouse,
+      // The status the federal brackets were read at: MFJ in a QSS year.
+      bracketStatus: rateStatus,
       isRetired,
       isRetired1: isSpouse1Retired,
       ssOwn1,
@@ -13175,7 +13241,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         mfsReturnDeductions
           ? Math.max(0, finalOrdinaryIncome * mfsLargerShare(inputs, currentStatus) - mfsLargerReturnDeduction(mfsSplitForYear, mfsReturnDeductions))
           : Math.max(0, finalOrdinaryIncome - finalDeduction) * mfsLargerShare(inputs, currentStatus),
-        currentStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled),
+        rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled),
       shortfall,
       netChange,
       growthRate: returnRate,
@@ -13491,9 +13557,9 @@ function runMonteCarloCore(rawInputs = DEFAULT_INPUTS, onProgress = null) {
     let trialLe2 = lifeExpectancy2;
     if (longevitySampled) {
       const lifeRng = mulberry32(trialSeed(t) ^ 0x2545F491);
-      trialLe1 = sampleDeathAge(inputs.sex1, age1Init, lifeRng());
+      trialLe1 = sampleDeathAge(inputs.sex1, age1Init, lifeRng(), mortalityBasis(inputs, 1));
       const u2 = lifeRng();
-      if (inputs.spouse2Enabled) trialLe2 = sampleDeathAge(inputs.sex2, age2Init, u2);
+      if (inputs.spouse2Enabled) trialLe2 = sampleDeathAge(inputs.sex2, age2Init, u2, mortalityBasis(inputs, 2));
     }
     const trialHorizonYear = startYear + Math.max(trialLe1 - age1Init, inputs.spouse2Enabled ? (trialLe2 - age2Init) : 0);
     if (trialHorizonYear > horizonYear) trialsBeyondHorizon++;
@@ -14638,8 +14704,8 @@ export function expectedLifetimeSS(inputs, proj) {
   const startYear = years[0].year;
   const age1Init = startYear - inputs.birthYear1;
   const age2Init = inputs.spouse2Enabled ? (startYear - inputs.birthYear2) : null;
-  const p1 = survivalCurve(inputs.sex1, age1Init);
-  const p2 = inputs.spouse2Enabled ? survivalCurve(inputs.sex2, age2Init) : null;
+  const p1 = survivalCurve(inputs.sex1, age1Init, mortalityBasis(inputs, 1));
+  const p2 = inputs.spouse2Enabled ? survivalCurve(inputs.sex2, age2Init, mortalityBasis(inputs, 2)) : null;
   let expected = 0;
   years.forEach((row, k) => {
     const a = k < p1.length ? p1[k] : 0;
@@ -14675,8 +14741,8 @@ export function dieWithZeroByLongevity(rawInputs = DEFAULT_INPUTS) {
   const startYear = inputs.planYear;
   const age1Init = startYear - inputs.birthYear1;
   const age2Init = inputs.spouse2Enabled ? (startYear - inputs.birthYear2) : null;
-  const p1 = survivalCurve(inputs.sex1, age1Init);
-  const p2 = inputs.spouse2Enabled ? survivalCurve(inputs.sex2, age2Init) : null;
+  const p1 = survivalCurve(inputs.sex1, age1Init, mortalityBasis(inputs, 1));
+  const p2 = inputs.spouse2Enabled ? survivalCurve(inputs.sex2, age2Init, mortalityBasis(inputs, 2)) : null;
   const anyAlive = (k) => {
     const a = k < p1.length ? p1[k] : 0;
     const b = p2 ? (k < p2.length ? p2[k] : 0) : 0;

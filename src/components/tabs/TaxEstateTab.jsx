@@ -282,7 +282,7 @@ const TaxEstateTab = () => {
                 // use, so every bar was drawn against a slightly wrong scale.
                 const taxBrackets = getBracketFilling(
                   yearData.ordinaryTaxableIncome,
-                  yearData.householdStatus,
+                  yearData.bracketStatus || yearData.householdStatus,
                   yearData.bracketScale || yearData.taxBracketInflationFactor || 1,
                   // The repeal stress toggle changes the rates the engine
                   // charges, so the bars must be drawn from the same

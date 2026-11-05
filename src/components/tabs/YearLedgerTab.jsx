@@ -365,7 +365,7 @@ const YearLedgerTab = () => {
                           {row.age1 !== null ? row.age1 : '†'}
                           {inputs.spouse2Enabled ? ` / ${row.age2 !== null ? row.age2 : '†'}` : ''}
                         </td>
-                        <td className="lg g-tax">{row.householdStatus}</td>
+                        <td className="lg g-tax">{row.qualifyingSurvivingSpouse ? 'QSS' : row.householdStatus}</td>
                         {hasMoves && <td className="lg g-inc">{row.residenceCountry || row.residenceState}{row.moveMonth ? ` (from ${MOVE_MONTHS[row.moveMonth - 1]})` : ''}{row.foreignRegime ? ` · ${row.foreignRegime}` : ''}</td>}
                         {(() => {
                           // The engine's salary carries RSU vesting and NQDC

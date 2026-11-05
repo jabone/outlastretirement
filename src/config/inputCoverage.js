@@ -191,7 +191,7 @@ export const NOT_ASKED_IN_INTERVIEW = [
     blurb: 'What happens to the plan if one spouse dies early — surviving income, the switch to single filing, and how much spending actually drops.',
     domain: 'household',
     interviewSection: 'household',
-    keys: ['survivorStressEnabled', 'survivorStressSpouse', 'survivorStressAge', 'survivorExpenseDropPct', 'survivorExpenseDropInPlan', 'survivorDropKeepsHousing', 'survivorKeepsInheritedIra', 'survivorWorkingKeepsBudget'],
+    keys: ['survivorStressEnabled', 'survivorStressSpouse', 'survivorStressAge', 'survivorExpenseDropPct', 'survivorExpenseDropInPlan', 'survivorDropKeepsHousing', 'survivorKeepsInheritedIra', 'survivorWorkingKeepsBudget', 'dependentChildLastYear'],
   },
   {
     id: 'rsuRefresh',
@@ -323,6 +323,14 @@ export const NOT_ASKED_IN_INTERVIEW = [
     domain: 'household',
     interviewSection: 'household',
     keys: ['sex1', 'sex2'],
+  },
+  {
+    id: 'mortalityImprovement',
+    title: 'Counting the fall in death rates',
+    blurb: 'A switch under the first Life Expectancy (on for a new plan): the life-table odds count Social Security\u2019s expected fall in death rates, 0.7% a year from 2023. Read by the same odds as Sex, the lifespans Will It Last? draws and the risk-based rule\u2019s planning age. An assumption most people leave alone, so the Interview does not ask.',
+    domain: 'household',
+    interviewSection: 'household',
+    keys: ['mortalityImprovement'],
   },
   {
     id: 'residencyTimeline',

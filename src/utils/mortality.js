@@ -10,6 +10,26 @@
 // lifeExpectancy for that trial.
 import { MALE_QX, FEMALE_QX, LIFE_TABLE_MAX_AGE } from '../config/lifeTable';
 
+// Mortality improvement (What's New 500). The table freezes 2023's death
+// rates; people alive today will most likely see them keep falling. With
+// improvement on, each age's death rate is cut by this much for every
+// calendar year after the table's, the year read from the person's birth
+// year: q(x) * (1 - r)^(birthYear + x - 2023). 0.7% is the 2025 Trustees
+// Report's intermediate path for ages 65 and over (Table V.A1, the age-sex-
+// adjusted death rate falling from 4,201.9 to 2,539.8 per 100,000 between
+// 2025 and 2100, about 0.67% a year).
+export const MORTALITY_IMPROVEMENT_RATE = 0.007;
+export const LIFE_TABLE_YEAR = 2023;
+
+// The basis a plan reads its odds on, for person n (1 or 2).
+export function mortalityBasis(inputs, n) {
+  const birthYear = Math.floor(Number(inputs?.[`birthYear${n}`]));
+  return {
+    birthYear: Number.isFinite(birthYear) ? birthYear : null,
+    improvement: inputs?.mortalityImprovement ? MORTALITY_IMPROVEMENT_RATE : 0,
+  };
+}
+
 export const SEX_OPTIONS = [
   { value: 'unstated', label: 'Not stated' },
   { value: 'female', label: 'Female' },
@@ -22,14 +42,16 @@ function clampAge(age) {
   return Math.max(0, Math.min(LIFE_TABLE_MAX_AGE, a));
 }
 
-function curveFor(qx, fromAge) {
+function curveFor(qx, fromAge, basis) {
   // p[k] = P(alive at fromAge + k | alive at fromAge). p[0] = 1; the curve
   // reaches exactly 0 one step past the table's last age.
   const start = clampAge(fromAge);
+  const r = basis && basis.improvement > 0 && Number.isFinite(basis.birthYear) ? basis.improvement : 0;
   const p = [1];
   let alive = 1;
   for (let a = start; a <= LIFE_TABLE_MAX_AGE; a++) {
-    alive *= (1 - qx[a]);
+    const q = r > 0 ? qx[a] * Math.pow(1 - r, Math.max(0, basis.birthYear + a - LIFE_TABLE_YEAR)) : qx[a];
+    alive *= (1 - q);
     p.push(alive);
   }
   p[p.length - 1] = 0;
@@ -40,21 +62,21 @@ function curveFor(qx, fromAge) {
 // else = 'unstated'). Unstated is the plain average of the two curves,
 // each conditioned on being alive at fromAge -- a 50/50 mix, which is what
 // "we don't know" honestly means, not a third population.
-export function survivalCurve(sex, fromAge) {
-  if (sex === 'male') return curveFor(MALE_QX, fromAge);
-  if (sex === 'female') return curveFor(FEMALE_QX, fromAge);
-  const m = curveFor(MALE_QX, fromAge);
-  const f = curveFor(FEMALE_QX, fromAge);
+export function survivalCurve(sex, fromAge, basis = null) {
+  if (sex === 'male') return curveFor(MALE_QX, fromAge, basis);
+  if (sex === 'female') return curveFor(FEMALE_QX, fromAge, basis);
+  const m = curveFor(MALE_QX, fromAge, basis);
+  const f = curveFor(FEMALE_QX, fromAge, basis);
   return m.map((v, i) => (v + f[i]) / 2);
 }
 
 // P(alive at targetAge | alive at fromAge). 1 at or below fromAge, 0 past
 // the table.
-export function probAliveAt(sex, fromAge, targetAge) {
+export function probAliveAt(sex, fromAge, targetAge, basis = null) {
   const from = clampAge(fromAge);
   const k = Math.floor(Number(targetAge)) - from;
   if (!(k > 0)) return 1;
-  const p = survivalCurve(sex, from);
+  const p = survivalCurve(sex, from, basis);
   return k < p.length ? p[k] : 0;
 }
 
@@ -62,9 +84,9 @@ export function probAliveAt(sex, fromAge, targetAge) {
 // -- "one in four reach 92" is ageReachedWithProbability(sex, age, 0.25).
 // Returns the LAST age at which survival is still >= prob, so the sentence
 // reads as an age reached, never an age missed.
-export function ageReachedWithProbability(sex, fromAge, prob) {
+export function ageReachedWithProbability(sex, fromAge, prob, basis = null) {
   const from = clampAge(fromAge);
-  const p = survivalCurve(sex, from);
+  const p = survivalCurve(sex, from, basis);
   let k = 0;
   while (k + 1 < p.length && p[k + 1] >= prob) k++;
   return from + k;
@@ -84,9 +106,9 @@ export function probAnyAlive(p1, p2) {
 // alive. Never below fromAge (a plan cannot start with a dead person),
 // never past the table. Pure: same u, same answer, so the Monte Carlo's
 // seed reproduces it.
-export function sampleDeathAge(sex, fromAge, u) {
+export function sampleDeathAge(sex, fromAge, u, basis = null) {
   const from = clampAge(fromAge);
-  const p = survivalCurve(sex, from);
+  const p = survivalCurve(sex, from, basis);
   const target = Math.min(0.999999999, Math.max(0, Number(u) || 0));
   let k = 0;
   while (k + 1 < p.length && p[k + 1] > target) k++;
@@ -95,16 +117,16 @@ export function sampleDeathAge(sex, fromAge, u) {
 
 // The sentence behind the plan's horizon, for Readiness and the Life
 // Expectancy inputs. Every figure is a probability the caller formats.
-export function horizonOdds({ sex, currentAge, planToAge }) {
+export function horizonOdds({ sex, currentAge, planToAge, basis = null }) {
   const from = clampAge(currentAge);
   const to = Math.floor(Number(planToAge));
   return {
     currentAge: from,
     planToAge: to,
-    reachPlanTo: probAliveAt(sex, from, to),
-    median: ageReachedWithProbability(sex, from, 0.5),
-    oneInFour: ageReachedWithProbability(sex, from, 0.25),
-    oneInTen: ageReachedWithProbability(sex, from, 0.10),
+    reachPlanTo: probAliveAt(sex, from, to, basis),
+    median: ageReachedWithProbability(sex, from, 0.5, basis),
+    oneInFour: ageReachedWithProbability(sex, from, 0.25, basis),
+    oneInTen: ageReachedWithProbability(sex, from, 0.10, basis),
   };
 }
 
@@ -118,7 +140,7 @@ export function horizonOdds({ sex, currentAge, planToAge }) {
 // `oneInFour` / `oneInTen` the last plan years in which those odds still
 // hold, with each person's age in that year, so a plan can be set to
 // run until the odds are small.
-export function coupleHorizonOdds({ planYear, sex1, birthYear1, lifeExpectancy1, sex2, birthYear2, lifeExpectancy2 }) {
+export function coupleHorizonOdds({ planYear, sex1, birthYear1, lifeExpectancy1, sex2, birthYear2, lifeExpectancy2, improvement = 0 }) {
   const y0 = Math.floor(Number(planYear));
   const b1 = Math.floor(Number(birthYear1));
   const b2 = Math.floor(Number(birthYear2));
@@ -130,7 +152,9 @@ export function coupleHorizonOdds({ planYear, sex1, birthYear1, lifeExpectancy1,
   if (!(now1 > 0) || !(now2 > 0)) return null;
   const endYear = Math.max(b1 + le1, b2 + le2);
   if (!(endYear > y0)) return null;
-  const anyAliveIn = (year) => probAnyAlive(probAliveAt(sex1, now1, year - b1), probAliveAt(sex2, now2, year - b2));
+  const basis1 = { birthYear: b1, improvement };
+  const basis2 = { birthYear: b2, improvement };
+  const anyAliveIn = (year) => probAnyAlive(probAliveAt(sex1, now1, year - b1, basis1), probAliveAt(sex2, now2, year - b2, basis2));
   // The last plan year in which the joint odds are still >= prob.
   const lastYearAtLeast = (prob) => {
     let year = y0;

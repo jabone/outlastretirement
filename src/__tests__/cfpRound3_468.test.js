@@ -11,7 +11,7 @@ import { buildActionPlan } from '../utils/actionPlan';
 import { buildDemoInputs } from '../config/demoPlan';
 import { buildParkersInputs } from '../config/demoPlanParkers';
 
-const couple = { ...DEFAULT_INPUTS, spouse2Enabled: true, sex1: 'male', sex2: 'female', birthYear1: 1980, birthYear2: 1982, lifeExpectancy1: 90, lifeExpectancy2: 90 };
+const couple = { ...DEFAULT_INPUTS, spouse2Enabled: true, sex1: 'male', sex2: 'female', birthYear1: 1980, birthYear2: 1982, lifeExpectancy1: 90, lifeExpectancy2: 90, mortalityImprovement: false };
 
 describe('a couple\'s horizon (item 14)', () => {
   it('two coin-flip ages leave a good chance someone is alive when the plan ends', () => {

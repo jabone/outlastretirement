@@ -62,7 +62,7 @@ describe('a short life expectancy is judged at today’s ages', () => {
   it('an ordinary life expectancy is not read as a health problem from a later start', async () => {
     const { coupleHorizonOdds } = await import('../utils/mortality');
     const c = { ...DEFAULT_INPUTS, spouse2Enabled: true, planYear: START, sex1: 'male', birthYear1: START - 66, lifeExpectancy1: 88, retireAge1: 66,
-      sex2: 'female', birthYear2: START - 46, lifeExpectancy2: 92, retireAge2: 67 };
+      sex2: 'female', birthYear2: START - 46, lifeExpectancy2: 92, retireAge2: 67, mortalityImprovement: false };
     const pa = riskPlanningAges(c);
     // The couple's odds from the retirement start, not Lee's own age alone.
     const startYear = START - 46 + 67 > START - 66 + 88 ? START - 66 + 88 : START - 46 + 67;

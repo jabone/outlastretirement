@@ -29,6 +29,45 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 502,
+    date: '2026-11-05',
+    title: 'A survivor benefit from full retirement age, to the month',
+    summary: 'For a widow or widower whose full retirement age has months, such as 66 and 8 months, the survivor benefit can now start at that age instead of the next birthday.',
+    items: [
+      "**No months given up.** For people born 1957 to 1961, the survivors\u2019 full retirement age falls between birthdays, for example 66 and 8 months for someone born in 1960. The start-age choices used to stop at the next birthday, 67, which gave up up to ten months of the unreduced check. Now the last choice is the full retirement age itself, and the plan pays the survivor benefit from that month. Compare start ages and its switching strategies use it too, and the Survivor\u2019s Guide names the age with its months.",
+    ],
+  },
+  {
+    id: 501,
+    date: '2026-11-05',
+    title: 'A survivor\u2019s spending falls 30% for a new plan',
+    summary: 'A new plan assumes everyday spending other than housing falls 30% when one of you is alone, up from 20%, a cautious reading of how much one person needs compared with two.',
+    items: [
+      "**Why 30%.** Studies of household costs find one adult needs about two-thirds to seven-tenths of what two do. With housing keeping its full cost (30% of spending by default), a 30% drop in the rest is about 21% of the whole budget, a cautious reading of those studies. A plan saved earlier keeps 20%. Change it under Household as the Household Expense Reduction.",
+    ],
+  },
+  {
+    id: 500,
+    date: '2026-11-05',
+    title: 'Counting the fall in death rates',
+    summary: 'A new plan\u2019s odds of living to each age count the fall in death rates Social Security\u2019s actuaries expect, about 0.7% a year, so people live a little longer.',
+    items: [
+      "**Longer lives, a little.** Social Security\u2019s life table uses 2023\u2019s death rates as if they never change. They keep falling, and the 2025 Trustees Report expects about 0.7% a year more for people 65 and older. A new plan now counts that: the odds shown beside Life Expectancy, the lifespans drawn in Will It Last?, and the age the risk-based spending rule plans to. A 65-year-old\u2019s one-in-four age moves one to two years later. A plan saved earlier and the sample families keep the 2023 table; the switch is under Household, below the first Life Expectancy.",
+      "**Your numbers may change.** With lifespans drawn, a few more simulated lives run longer, so the chance of lasting can come down a little.",
+    ],
+  },
+  {
+    id: 499,
+    date: '2026-11-05',
+    title: 'Qualifying Surviving Spouse: joint tax brackets for two more years',
+    summary: 'A widow or widower with a dependent child keeps the joint tax brackets and standard deduction for the two years after the year of death, as the tax law allows.',
+    items: [
+      "**Two more years of joint brackets.** After a spouse dies, the survivor can file a joint return for that year. For the next two years, a survivor whose dependent child lives with them can file as a Qualifying Surviving Spouse, keeping the joint tax brackets and standard deduction. The plan used to tax those years as Single. Enter the last year a child is your dependent under Household, with the survivor settings, and it now figures them that way.",
+      "**Pennsylvania and death benefits.** Pennsylvania does not tax death benefits an employer pays to an employee\u2019s beneficiary. A survivor benefit marked as taxed now stays off a Pennsylvania return, while still being taxed federally.",
+      "**What stays the same.** The things the law ties to being unmarried stay at the single amounts: how much Social Security is taxed, Medicare\u2019s income surcharge (IRMAA), the senior deduction\u2019s income limit, the extra Medicare tax on pay, and your state return. Year by Year shows QSS as the filing status in those years. The Survivor\u2019s Guide says so too. Your numbers change only if you enter a year and a child is still your dependent in the years after a death in the plan.",
+    ],
+  },
+  {
     id: 498,
     date: '2026-11-04',
     title: 'A survivor still working keeps the household budget',

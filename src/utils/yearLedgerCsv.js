@@ -79,7 +79,7 @@ export function buildYearLedgerCsvRows(projection) {
     y.year,
     y.age1 ?? '',
     y.age2 ?? '',
-    y.householdStatus ?? '',
+    y.qualifyingSurvivingSpouse ? 'QSS' : (y.householdStatus ?? ''),
     y.isRetired ? 'Retired' : 'Working',
     round(payOnly(y)),
     round(y.ssIncome),

@@ -5,7 +5,7 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useSimulation } from '../../../context/useSimulation';
 import { getPossessive } from '../getPossessive';
-import { SEX_OPTIONS, horizonOdds, coupleHorizonOdds } from '../../../utils/mortality';
+import { SEX_OPTIONS, horizonOdds, coupleHorizonOdds, mortalityBasis, MORTALITY_IMPROVEMENT_RATE } from '../../../utils/mortality';
 import { TAX_YEAR, getFullRetirementAge, getSSMultiplier, exactClaimAge, spendingShapeShares } from '../../../calculator';
 import Tooltip from '../../Tooltip';
 import NumberInput from '../../NumberInput';
@@ -34,7 +34,7 @@ export default function DemographicsSection() {
   const ageNow = (birthYear) => Math.max(0, (Number(inputs.planYear) || TAX_YEAR) - (Number(birthYear) || 0));
   // The survivor drop on the whole budget when housing keeps its cost
   // (What's New 495), from the housing share the engine itself uses.
-  const dropPct = inputs.survivorExpenseDropPct !== undefined && inputs.survivorExpenseDropPct !== '' ? Number(inputs.survivorExpenseDropPct) : 20;
+  const dropPct = inputs.survivorExpenseDropPct !== undefined && inputs.survivorExpenseDropPct !== '' ? Number(inputs.survivorExpenseDropPct) : 30;
   let housingShare = 0.3;
   try { housingShare = spendingShapeShares(inputs).housing; } catch { /* keep the default */ }
   const housingPct = Math.round(housingShare * 100);
@@ -141,15 +141,22 @@ export default function DemographicsSection() {
                     </span>
                   )}
                   {(() => {
-                    const odds = horizonOdds({ sex: inputs.sex1, currentAge: (Number(inputs.planYear) || TAX_YEAR) - (Number(inputs.birthYear1) || 0), planToAge: inputs.lifeExpectancy1 });
+                    const odds = horizonOdds({ sex: inputs.sex1, currentAge: (Number(inputs.planYear) || TAX_YEAR) - (Number(inputs.birthYear1) || 0), planToAge: inputs.lifeExpectancy1, basis: mortalityBasis(inputs, 1) });
                     if (!(odds.currentAge > 0) || !(odds.planToAge > odds.currentAge)) return null;
                     return (
                       <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                        SSA table odds for a {inputs.sex1 === 'male' ? 'man' : inputs.sex1 === 'female' ? 'woman' : 'person'} of {odds.currentAge}: <strong>{Math.round(odds.reachPlanTo * 100)}%</strong> reach {odds.planToAge};
+                        SSA table odds{inputs.mortalityImprovement ? ', with falling death rates,' : ''} for a {inputs.sex1 === 'male' ? 'man' : inputs.sex1 === 'female' ? 'woman' : 'person'} of {odds.currentAge}: <strong>{Math.round(odds.reachPlanTo * 100)}%</strong> reach {odds.planToAge};
                         half reach {odds.median}, one in four reach {odds.oneInFour}, one in ten reach {odds.oneInTen}. Healthier and wealthier than average runs a few years better.
                       </span>
                     );
                   })()}
+                  {/* What's New 500: falling death rates. */}
+                  <div style={{ marginTop: '8px' }}>
+                    <SwitchRow id="toggle-mortalityImprovement" size="sm" checked={!!inputs.mortalityImprovement} onChange={(on) => updateInput('mortalityImprovement', on)}
+                      hint="Social Security's life table uses 2023's death rates. They have kept falling, and Social Security's actuaries expect about 0.7% a year more. On, the odds here, the lifespans drawn in Will It Last? and the risk-based spending rule's planning age all count that, so people live a little longer. Off uses the 2023 table as it is.">
+                      Count falling death rates in the odds
+                    </SwitchRow>
+                  </div>
                 </div>
                 <div className="form-group">
                   <label htmlFor="field-claimingAge1">{getPossessive(inputs.spouse1Name || 'Primary')} SS Claiming Age (62-70)</label>
@@ -220,11 +227,11 @@ export default function DemographicsSection() {
                         </span>
                       )}
                       {(() => {
-                    const odds = horizonOdds({ sex: inputs.sex2, currentAge: (Number(inputs.planYear) || TAX_YEAR) - (Number(inputs.birthYear2) || 0), planToAge: inputs.lifeExpectancy2 });
+                    const odds = horizonOdds({ sex: inputs.sex2, currentAge: (Number(inputs.planYear) || TAX_YEAR) - (Number(inputs.birthYear2) || 0), planToAge: inputs.lifeExpectancy2, basis: mortalityBasis(inputs, 2) });
                     if (!(odds.currentAge > 0) || !(odds.planToAge > odds.currentAge)) return null;
                     return (
                       <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                        SSA table odds for a {inputs.sex2 === 'male' ? 'man' : inputs.sex2 === 'female' ? 'woman' : 'person'} of {odds.currentAge}: <strong>{Math.round(odds.reachPlanTo * 100)}%</strong> reach {odds.planToAge};
+                        SSA table odds{inputs.mortalityImprovement ? ', with falling death rates,' : ''} for a {inputs.sex2 === 'male' ? 'man' : inputs.sex2 === 'female' ? 'woman' : 'person'} of {odds.currentAge}: <strong>{Math.round(odds.reachPlanTo * 100)}%</strong> reach {odds.planToAge};
                         half reach {odds.median}, one in four reach {odds.oneInFour}, one in ten reach {odds.oneInTen}. Healthier and wealthier than average runs a few years better.
                       </span>
                     );
@@ -232,7 +239,7 @@ export default function DemographicsSection() {
                   {(() => {
                     // Two coin-flip ages leave good odds that one of you is alive
                     // after the plan ends: the couple's own horizon line.
-                    const odds = coupleHorizonOdds({ planYear: Number(inputs.planYear) || TAX_YEAR, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: inputs.lifeExpectancy1, sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: inputs.lifeExpectancy2 });
+                    const odds = coupleHorizonOdds({ planYear: Number(inputs.planYear) || TAX_YEAR, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: inputs.lifeExpectancy1, sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: inputs.lifeExpectancy2, improvement: inputs.mortalityImprovement ? MORTALITY_IMPROVEMENT_RATE : 0 });
                     if (!odds) return null;
                     const ages = (p) => `${p.age1} and ${p.age2}`;
                     return (
@@ -281,7 +288,7 @@ export default function DemographicsSection() {
                         Household spending also drops in the plan itself, once one of you has reached your life expectancy
                       </SwitchRow>
                       <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                        The years one of you is alone are taxed as Single either way; with this on, the budget for those years falls by the same share the stress test uses: {dropPct}%{inputs.survivorDropKeepsHousing ? <> of spending other than housing, about {overallDrop}% of the whole budget</> : null}. Off keeps the couple&rsquo;s full budget.
+                        The years one of you is alone are taxed as Single either way (after a qualifying surviving spouse&rsquo;s two years, when a child is your dependent); with this on, the budget for those years falls by the same share the stress test uses: {dropPct}%{inputs.survivorDropKeepsHousing ? <> of spending other than housing, about {overallDrop}% of the whole budget</> : null}. Off keeps the couple&rsquo;s full budget.
                       </span>
                     </div>
                     {/* What's New 497: an inherited IRA before 59 1/2. */}
@@ -290,6 +297,14 @@ export default function DemographicsSection() {
                         hint="A survivor under 59½ keeps the other's Pre-Tax accounts as an inherited IRA: money taken from it has no 10% early-withdrawal penalty. Once the one who died would have reached their RMD age, it needs a yearly withdrawal. At 59½ the plan moves it into the survivor's own name; a Roth conversion first moves the part it needs. Off moves it all at once. How much is whose is set beside the Pre-Tax balance.">
                         A survivor under 59½ keeps an inherited IRA until 59½
                       </SwitchRow>
+                    </div>
+                    {/* What's New 499: Qualifying Surviving Spouse. */}
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label htmlFor="field-dependentChildLastYear">Last year a child is your dependent (optional)</label>
+                      <NumberInput id="field-dependentChildLastYear" min="1900" max="2150" step="1" className="form-input" placeholder="None" value={inputs.dependentChildLastYear ?? ''} onChange={(e) => updateInput('dependentChildLastYear', (e.target.value === '' ? '' : parseInt(e.target.value)))} />
+                      <span data-hint-for="dependentChildLastYear" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                        A widow or widower whose child or stepchild lives at home as a dependent, in a home they pay more than half the cost of, can file as a Qualifying Surviving Spouse for the two years after the year of death, keeping the joint tax brackets and standard deduction. Leave blank if no child will be your dependent then.
+                      </span>
                     </div>
                     {/* What's New 498: a working survivor keeps the couple's budget. */}
                     {inputs.currentSpendingMode !== 'custom' && (
@@ -312,7 +327,7 @@ export default function DemographicsSection() {
                     {inputs.survivorExpenseDropInPlan && !inputs.survivorStressEnabled && (
                       <div className="form-group" style={{ marginBottom: '12px' }}>
                         <label htmlFor="field-survivorExpenseDropPct">Household Expense Reduction (%)</label>
-                        <NumberInput id="field-survivorExpenseDropPct" min="0" max="100" className="form-input" value={inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 20} onChange={(e) => updateInput('survivorExpenseDropPct', (e.target.value === '' ? '' : parseInt(e.target.value)))} />
+                        <NumberInput id="field-survivorExpenseDropPct" min="0" max="100" className="form-input" value={inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 30} onChange={(e) => updateInput('survivorExpenseDropPct', (e.target.value === '' ? '' : parseInt(e.target.value)))} />
                         {inputs.survivorDropKeepsHousing && <span data-testid="survivor-drop-overall" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>Housing keeps its cost, so this is about {overallDrop}% of the whole budget. For a 20% drop overall, enter about {Math.round(20 / Math.max(0.05, 1 - housingShare))}%.</span>}
                       </div>
                     )}
@@ -346,7 +361,7 @@ export default function DemographicsSection() {
                             min="0"
                             max="100"
                             className="form-input"
-                            value={inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 20}
+                            value={inputs.survivorExpenseDropPct !== undefined ? inputs.survivorExpenseDropPct : 30}
                             onChange={(e) => updateInput('survivorExpenseDropPct', (e.target.value === '' ? '' : parseInt(e.target.value)))}
                           />
                         {inputs.survivorDropKeepsHousing && <span data-testid="survivor-drop-overall-stress" style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>Housing keeps its cost, so this is about {overallDrop}% of the whole budget. For a 20% drop overall, enter about {Math.round(20 / Math.max(0.05, 1 - housingShare))}%.</span>}

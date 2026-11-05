@@ -19,7 +19,7 @@ import { reviewDue } from './annualReview';
 import { verdictBand, verdictPct, verdictPctText } from './planVerdict';
 import { stateTaxJurisdictionFor } from '../calculator';
 import { US_STATE_NAME } from '../config/usStates';
-import { coupleHorizonOdds } from './mortality';
+import { coupleHorizonOdds, MORTALITY_IMPROVEMENT_RATE } from './mortality';
 import { planWarningFeedback, invalidInputLines, CHECK_INPUTS_TITLE } from './planNotices';
 
 export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
@@ -77,7 +77,7 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
   // Fires when the SSA table gives one in four or better; the fix runs the
   // plan to the year one in ten couples still has someone alive.
   if (inputs.spouse2Enabled && !inputs.mcLongevityEnabled) {
-    const odds = coupleHorizonOdds({ planYear: inputs.planYear, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: inputs.lifeExpectancy1, sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: inputs.lifeExpectancy2 });
+    const odds = coupleHorizonOdds({ planYear: inputs.planYear, sex1: inputs.sex1, birthYear1: inputs.birthYear1, lifeExpectancy1: inputs.lifeExpectancy1, sex2: inputs.sex2, birthYear2: inputs.birthYear2, lifeExpectancy2: inputs.lifeExpectancy2, improvement: inputs.mortalityImprovement ? MORTALITY_IMPROVEMENT_RATE : 0 });
     if (odds && odds.reachEnd >= 0.25) {
       const pct = Math.round(odds.reachEnd * 100);
       findings.push({
@@ -198,13 +198,17 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
     for (let i = 1; i < projection.years.length; i++) {
       const prevYear = projection.years[i - 1];
       const thisYear = projection.years[i];
-      if (prevYear.householdStatus === 'MFJ' && thisYear.householdStatus === 'Single') {
+      // The brackets actually used: a Qualifying Surviving Spouse keeps the
+      // joint ones for two years, so the jump comes when those end.
+      const bracketOf = (y) => y.bracketStatus || y.householdStatus;
+      if (bracketOf(prevYear) === 'MFJ' && bracketOf(thisYear) === 'Single') {
+        const afterQss = !!prevYear.qualifyingSurvivingSpouse;
         const bracketJump = thisYear.marginalBracket - prevYear.marginalBracket;
         if (bracketJump > 0.02) {
           findings.push({
             type: 'danger',
             title: "Widow's/Widower's Tax Torpedo",
-            desc: `In ${thisYear.year}, your household's filing status shifts from Married Filing Jointly to Single following the loss of a spouse, and the surviving spouse's marginal tax bracket jumps from ${(prevYear.marginalBracket * 100).toFixed(0)}% to ${(thisYear.marginalBracket * 100).toFixed(0)}%. This happens because Single filer tax brackets are roughly half as wide as MFJ brackets, while income sources like RMDs and pensions often don't drop proportionally when one spouse passes away. Some couples convert more to Roth while both are alive, in the wider joint brackets, so less is taxed at the survivor's rates; the Tax Optimizer Hub shows what that does on this plan.`,
+            desc: `In ${thisYear.year}, ${afterQss ? "once the two qualifying surviving spouse years after a spouse's death end, the survivor's filing status becomes Single" : "your household's filing status shifts from Married Filing Jointly to Single following the loss of a spouse"}, and the surviving spouse's marginal tax bracket jumps from ${(prevYear.marginalBracket * 100).toFixed(0)}% to ${(thisYear.marginalBracket * 100).toFixed(0)}%. This happens because Single filer tax brackets are roughly half as wide as MFJ brackets, while income sources like RMDs and pensions often don't drop proportionally when one spouse passes away. Some couples convert more to Roth while both are alive, in the wider joint brackets, so less is taxed at the survivor's rates; the Tax Optimizer Hub shows what that does on this plan.`,
             action: { tab: 'strategy', subTab: 'optimizer', label: 'Go to Tax Optimizer Hub →' }
           });
           break; // surface only the first such transition, not every year after

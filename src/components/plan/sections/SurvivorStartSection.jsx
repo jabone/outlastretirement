@@ -7,7 +7,7 @@
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import { useSimulation } from '../../../context/useSimulation';
 import { getSurvivorFullRetirementAge as getFullRetirementAge } from '../../../calculator';
-import { survivorStartComparison } from '../../../utils/survivorStart';
+import { survivorStartComparison, ageLabel, fraStartValue } from '../../../utils/survivorStart';
 import { getPossessive } from '../getPossessive';
 
 const money = (n) => (Number.isFinite(n) ? `$${Math.round(n).toLocaleString('en-US')}` : '—');
@@ -15,10 +15,14 @@ const note = { fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', display: '
 
 // The start-age choices: as soon as possible, then 61 up to full
 // retirement age.
-function ageOptions(fra) {
-  const top = Math.ceil(fra);
+function ageOptions(fra, chosen) {
+  const top = fraStartValue(fra);
   const out = [<option key={0} value={0}>As soon as possible (from 60)</option>];
-  for (let a = 61; a <= top; a += 1) out.push(<option key={a} value={a}>At {a}{a === top ? ' (full retirement age)' : ''}</option>);
+  for (let a = 61; a <= Math.floor(top); a += 1) out.push(<option key={a} value={a}>At {a}{a === top ? ' (full retirement age)' : ''}</option>);
+  if (top > Math.floor(top)) out.push(<option key={top} value={top}>At {ageLabel(top)} (full retirement age)</option>);
+  // A saved whole age past a months-long full retirement age (the old top).
+  const c = Number(chosen) || 0;
+  if (c > top && !out.some((o) => Number(o.props.value) === c)) out.push(<option key={c} value={c}>At {ageLabel(c)}</option>);
   return out;
 }
 
@@ -42,8 +46,8 @@ function Strategies({ result, who, onUse }) {
             <li key={st.id} data-testid={`survivor-strategy-${st.id}`} style={{ border: `${isBetter ? 2 : 1}px solid ${isBetter ? 'var(--success)' : 'var(--border-color, rgba(128,128,128,0.35))'}`, borderRadius: '8px', padding: '8px 12px', fontSize: 'var(--fs-xs)', lineHeight: 1.5 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', alignItems: 'baseline' }}>
                 <strong>{st.id === 'ownFirst'
-                  ? `Own benefit at ${st.ownAge}, survivor benefit from ${st.survivorStartAge}`
-                  : `Survivor benefit from ${st.survivorStartAge}, own benefit at ${st.ownAge}`}</strong>
+                  ? `Own benefit at ${st.ownAge}, survivor benefit from ${ageLabel(st.survivorStartAge)}`
+                  : `Survivor benefit from ${ageLabel(st.survivorStartAge)}, own benefit at ${st.ownAge}`}</strong>
                 <span style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
                   {isBetter && <span style={{ color: 'var(--status-success-text)', fontWeight: 600 }}>{result.status === 'past-fra' ? 'Leaves more than the plan as it is' : 'Leaves more than any single start age'}</span>}
                   <button type="button" className="btn-outline" style={{ padding: '2px 10px', minHeight: 0, lineHeight: 1.4, fontSize: 'var(--fs-xs)', whiteSpace: 'nowrap' }}
@@ -112,7 +116,7 @@ function Comparison({ inputs, names, onUse }) {
               style={{ border: `${isBest ? 2 : 1}px solid ${isBest ? 'var(--success)' : 'var(--border-color, rgba(128,128,128,0.35))'}`, borderRadius: '8px', padding: '10px 12px', fontSize: 'var(--fs-xs)', lineHeight: 1.5 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
                 <strong style={{ fontSize: 'var(--fs-sm)' }}>
-                  Start at {r.effectiveAge}{r.startAge === 0 ? ' (as soon as possible)' : ''}
+                  Start at {ageLabel(r.effectiveAge)}{r.startAge === 0 ? ' (as soon as possible)' : ''}
                 </strong>
                 <span style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
                   {isBest && <span style={{ color: 'var(--status-success-text)', fontWeight: 600 }}>Best for this plan</span>}
@@ -132,12 +136,12 @@ function Comparison({ inputs, names, onUse }) {
       </ul>
       {result.cappedEarly && (
         <p style={note}>
-          {who(result.deceased)} claimed before full retirement age, so the survivor check stops growing at {result.topAge}.
-          Waiting past {result.topAge} only gives up checks.
+          {who(result.deceased)} claimed before full retirement age, so the survivor check stops growing at {ageLabel(result.topAge)}.
+          Waiting past {ageLabel(result.topAge)} only gives up checks.
         </p>
       )}
       {result.currentPastTop && (
-        <p style={note}>The age chosen now is past {result.topAge}: it pays the same check as {result.topAge}, starting later.</p>
+        <p style={note}>The age chosen now is past {ageLabel(result.topAge)}: it pays the same check as {ageLabel(result.topAge)}, starting later.</p>
       )}
       {takeover && (
         <p style={note}>
@@ -147,7 +151,7 @@ function Comparison({ inputs, names, onUse }) {
       )}
       {result.cannotWait && (
         <p style={note} data-testid="survivor-start-cannot-wait">
-          Starting at {result.shortFromAge} or later leaves years when the money runs short: this plan cannot wait that long for the survivor check.
+          Starting at {ageLabel(result.shortFromAge)} or later leaves years when the money runs short: this plan cannot wait that long for the survivor check.
         </p>
       )}
       {allShort && (
@@ -182,15 +186,15 @@ export default function SurvivorStartSection() {
       <div style={{ marginTop: '8px' }}>
         <label htmlFor="field-survivorStartAge1">{names[1]} starts a survivor benefit</label>
         <select id="field-survivorStartAge1" className="form-input form-input-select" value={Number(inputs.survivorStartAge1) || 0}
-          onChange={(e) => updateInput('survivorStartAge1', parseInt(e.target.value, 10))}>
-          {ageOptions(fra1)}
+          onChange={(e) => updateInput('survivorStartAge1', parseFloat(e.target.value))}>
+          {ageOptions(fra1, inputs.survivorStartAge1)}
         </select>
       </div>
       <div style={{ marginTop: '8px' }}>
         <label htmlFor="field-survivorStartAge2">{names[2]} starts a survivor benefit</label>
         <select id="field-survivorStartAge2" className="form-input form-input-select" value={Number(inputs.survivorStartAge2) || 0}
-          onChange={(e) => updateInput('survivorStartAge2', parseInt(e.target.value, 10))}>
-          {ageOptions(fra2)}
+          onChange={(e) => updateInput('survivorStartAge2', parseFloat(e.target.value))}>
+          {ageOptions(fra2, inputs.survivorStartAge2)}
         </select>
       </div>
       <button type="button" className="btn-outline" style={{ marginTop: '10px', padding: '6px 14px' }} aria-expanded={showCompare}

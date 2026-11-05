@@ -51,7 +51,7 @@ describe('row fields ssIfBoth / ssIfOnly1 / ssIfOnly2', () => {
 });
 
 describe('expectedLifetimeSS', () => {
-  const plan = sanitizeInputs({ ...DEFAULT_INPUTS, spouse2Enabled: true, sex1: 'male', sex2: 'female', ss1: 30000, ss2: 20000, claimingAge1: 67, claimingAge2: 67, partTimeIncome1: 0 });
+  const plan = sanitizeInputs({ ...DEFAULT_INPUTS, mortalityImprovement: false, spouse2Enabled: true, sex1: 'male', sex2: 'female', ss1: 30000, ss2: 20000, claimingAge1: 67, claimingAge2: 67, partTimeIncome1: 0 });
   const extended = runProjection({ ...plan, lifeExpectancy1: LIFE_TABLE_MAX_AGE, lifeExpectancy2: LIFE_TABLE_MAX_AGE });
 
   it('is the survival-weighted sum of the three alive-state amounts', () => {
