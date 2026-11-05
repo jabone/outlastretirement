@@ -106,6 +106,14 @@ export const NOT_ASKED_IN_INTERVIEW = [
     keys: ['employerMatchCapPayPct'],
   },
   {
+    id: 'preTaxOwnedPct',
+    title: 'Whose name the Pre-Tax money is in',
+    blurb: 'The share of the Pre-Tax balance in each spouse\u2019s name, half each for a new plan. It matters only for a survivor under 59\u00bd who keeps the other\u2019s share as an inherited IRA (What\u2019s New 497). It lives on Plan Settings \u2192 Balances, beside the Pre-Tax balance.',
+    domain: 'balances',
+    interviewSection: 'balances',
+    keys: ['preTaxOwnedPct'],
+  },
+  {
     id: 'medicareSupplementCost',
     title: 'Medicare supplement and out-of-pocket costs',
     blurb: 'What Medicare leaves to you after 65, per person per year: a Medigap or Advantage premium, dental, vision, hearing and out-of-pocket costs. Part B and Part D premiums are computed; this is the rest, $4,500 for a new plan. It lives on Plan Settings \u2192 Spending, under Healthcare Bridge Cost.',
@@ -183,7 +191,7 @@ export const NOT_ASKED_IN_INTERVIEW = [
     blurb: 'What happens to the plan if one spouse dies early — surviving income, the switch to single filing, and how much spending actually drops.',
     domain: 'household',
     interviewSection: 'household',
-    keys: ['survivorStressEnabled', 'survivorStressSpouse', 'survivorStressAge', 'survivorExpenseDropPct', 'survivorExpenseDropInPlan', 'survivorDropKeepsHousing'],
+    keys: ['survivorStressEnabled', 'survivorStressSpouse', 'survivorStressAge', 'survivorExpenseDropPct', 'survivorExpenseDropInPlan', 'survivorDropKeepsHousing', 'survivorKeepsInheritedIra'],
   },
   {
     id: 'rsuRefresh',

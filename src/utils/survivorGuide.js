@@ -89,6 +89,7 @@ function yearRow(y, survivor, endFactor) {
     filing: y.householdStatus || null,
     retired: Boolean(survivor === 1 ? (y.isRetired1 ?? y.isRetired) : y.isRetired),
     survivorBenefit: n0(survivor === 1 ? y.survivorBenefit1 : y.survivorBenefit2) / f,
+    inheritedShare: n0(y.inheritedPreTaxShare),
   };
 }
 
@@ -342,6 +343,13 @@ export function buildSurvivorGuide(inputs, deceased, { run = runProjection } = {
       // benefit (SSA), not the survivors-table one.
       workingBeforeFra: after.work > 0.5 && survivorAge < getFullRetirementAge(survivorBirth),
       earlyPreTax,
+      // The plan keeps the spouse's Pre-Tax share as an inherited IRA until
+      // the survivor is 59 1/2 (What's New 497).
+      keepsInherited: Boolean(safe.survivorKeepsInheritedIra) && survivorAge < 59.5 && rows.some((r) => r.inheritedShare > 0),
+      // The inherited IRA needs a yearly withdrawal before the survivor is
+      // 59 1/2: the one who died reaches (or had reached) their RMD age first.
+      inheritedRmd: Boolean(safe.survivorKeepsInheritedIra) && survivorAge < 59.5 && deceasedBirth
+        ? rmdStartAge(deceasedBirth) - deathAge < 59.5 - survivorAge : false,
       firstConversion,
       rmd: rows.some((r) => r.rmd > 0.5),
       rmdAge: survivorBirth ? rmdStartAge(survivorBirth) : null,

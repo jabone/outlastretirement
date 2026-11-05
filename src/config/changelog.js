@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 497,
+    date: '2026-11-04',
+    title: 'An inherited IRA for a survivor under 59\u00bd',
+    summary: 'A survivor under 59\u00bd can now keep the spouse\u2019s Pre-Tax accounts as an inherited IRA, taking money without the 10% penalty until 59\u00bd, then moving it into their own name.',
+    items: [
+      "**Without the 10% penalty.** A widow or widower under 59\u00bd who moves a spouse\u2019s IRA or 401(k) into their own IRA pays a 10% penalty on anything taken out before 59\u00bd. Kept as an inherited IRA, it has none. The plan now does that: from the year after a death, a survivor under 59\u00bd takes Pre-Tax money from the inherited share first, Life Event withdrawals included, without the penalty, and at 59\u00bd it moves into the survivor\u2019s own name.",
+      "**The rules that come with it.** Once the one who died would have reached their required-withdrawal age (at once, if they had), the inherited IRA needs a yearly withdrawal based on the survivor\u2019s life expectancy, still without the penalty. A Roth conversion uses the survivor\u2019s own share first and moves any more into their name; money the survivor adds is their own.",
+      "**Whose is whose.** Beside the Pre-Tax balance under Balances, a new field says how much of it is in each spouse\u2019s name (half each unless you change it). The switch is under Household, with the survivor settings: on for a new plan, off for a plan saved earlier until you turn it on. The Survivor\u2019s Guide tells the survivor to ask for an inherited IRA. Your numbers will change if you turn it on and the Survivor Stress Test, or a death in a simulated trial, leaves a survivor under 59\u00bd.",
+    ],
+  },
+  {
     id: 496,
     date: '2026-11-04',
     title: 'A first-weeks page for the days right after a death',

@@ -300,6 +300,9 @@ export function migratePersistedInputs(persisted) {
     if (raw.survivorExpenseDropInPlan === undefined) raw = { ...raw, survivorExpenseDropInPlan: false };
     // And the drop on the whole budget, housing included (What's New 495).
     if (raw.survivorDropKeepsHousing === undefined) raw = { ...raw, survivorDropKeepsHousing: false };
+    // And the spouse's Pre-Tax moved into the survivor's own IRA at once
+    // (What's New 497).
+    if (raw.survivorKeepsInheritedIra === undefined) raw = { ...raw, survivorKeepsInheritedIra: false };
     // And Medicare from 65 even while still at work, as it was before
     // changelog 477 delayed it on a new plan's own employer cover.
     if (raw.medicareEmployerCoverage1 === undefined) raw = { ...raw, medicareEmployerCoverage1: 'none' };
@@ -634,6 +637,10 @@ export const DEFAULT_INPUTS = {
 
   // Assets
   preTaxInit: 80000,
+  // The share of the Pre-Tax balance in spouse 1's name (What's New 497),
+  // for a survivor who keeps the other's share as an inherited IRA. The
+  // plan otherwise pools Pre-Tax for the household.
+  preTaxOwnedPct1: 50,
   rothInit: 20000,
   taxableInit: 15000,
   // 'manual' (default, and the only option that's ever REACHABLE for
@@ -1140,6 +1147,13 @@ export const DEFAULT_INPUTS = {
   // person what it cost two. On for a new plan; a
   // plan saved before keeps the drop on the whole budget.
   survivorDropKeepsHousing: true,
+  // What's New 497: a survivor under 59 1/2 keeps the spouse's Pre-Tax
+  // share as an inherited IRA (withdrawals free of the 10% penalty, no Roth
+  // conversion from it) until 59 1/2 -- or until the spouse would have
+  // reached their RMD age, when an inherited IRA starts required
+  // withdrawals -- then moves it into their own name. Off moves it into the
+  // survivor's own IRA at once, as the plan did before. On for a new plan.
+  survivorKeepsInheritedIra: true,
   // The age each spouse starts a survivor benefit if the other dies first
   // (benefits-specialist review, 2026-11-02). 0 = as soon as possible: the
   // first alone year from 60 it pays more than their own benefit, which is
@@ -6694,7 +6708,8 @@ function solveWithdrawals(
     let earlyWithdrawalPenalty = 0;
     let stateEarlyTax = 0;
     if (age1 < 59.5) {
-      const earlyDistribution = preTaxOrdinary + rothPenalizedDraw;
+      const penaltyFreeOrdinary = Math.min(preTaxOrdinary, Math.max(0, Number(stateExtras.penaltyFreePreTax) || 0) * preTaxTaxableShare);
+      const earlyDistribution = preTaxOrdinary - penaltyFreeOrdinary + rothPenalizedDraw;
       earlyWithdrawalPenalty = earlyDistribution * 0.10;
       stateEarlyTax = stateEarlyDistributionTax(stateType, earlyDistribution, age1);
     }
@@ -6993,6 +7008,8 @@ export function sanitizeInputs(inputs) {
   }
   // Changelog 441: a plan saved before the weighting yields existed gets
   // the defaults; a blank or negative figure does too.
+  // What's New 497: a blank share in Spouse 1's name reads as half.
+  if (inputs.preTaxOwnedPct1 === undefined || inputs.preTaxOwnedPct1 === null || inputs.preTaxOwnedPct1 === '' || !Number.isFinite(Number(inputs.preTaxOwnedPct1))) clean.preTaxOwnedPct1 = defaults.preTaxOwnedPct1;
   for (const k of ['taxableStockYieldPct', 'taxableBondYieldPct']) {
     const v = Number(inputs[k]);
     if (inputs[k] === undefined || inputs[k] === null || inputs[k] === '' || !Number.isFinite(v) || v < 0) clean[k] = defaults[k];
@@ -8086,6 +8103,36 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   // The year, age and price level at each spouse's death, for the survivor
   // benefits (What's New 493).
   const survivorBenefitDeath = { 1: null, 2: null };
+  // The share of the Pre-Tax pool still held as an inherited IRA by a
+  // survivor under 59 1/2 (What's New 497); 0 once moved into their name.
+  let inheritedPreTaxShare = 0;
+  let inheritedIraStarted = false;
+  // Whether this year's inherited IRA needs a required withdrawal: the one
+  // who died has reached (or would have reached) their RMD age.
+  let inheritedRmdDue = false;
+  // Keeping the share right as money moves (review panel, 2026-11-04):
+  // money added to Pre-Tax is the survivor's own; a draw comes from the
+  // inherited IRA first (it has no penalty); a conversion comes from the
+  // survivor's own share first (the rest is moved into their name, then
+  // converted). Each takes the pool before the move.
+  const inheritedAdd = (before, added) => {
+    if (inheritedPreTaxShare > 0 && added > 0 && before + added > 0) inheritedPreTaxShare = Math.min(1, (inheritedPreTaxShare * before) / (before + added));
+  };
+  const inheritedDrawFirst = (before, amount) => {
+    if (!(inheritedPreTaxShare > 0) || !(amount > 0)) return 0;
+    const inherited = before * inheritedPreTaxShare;
+    const used = Math.min(inherited, amount);
+    const after = before - amount;
+    inheritedPreTaxShare = after > 0 ? Math.min(1, Math.max(0, inherited - used) / after) : 0;
+    return used;
+  };
+  const inheritedOwnFirst = (before, amount) => {
+    if (!(inheritedPreTaxShare > 0) || !(amount > 0)) return;
+    const inherited = before * inheritedPreTaxShare;
+    const fromInherited = Math.max(0, amount - (before - inherited));
+    const after = before - amount;
+    inheritedPreTaxShare = after > 0 ? Math.min(1, Math.max(0, inherited - fromInherited) / after) : 0;
+  };
   // The basis reset at the first death happens once (changelog 360).
   let firstDeathBasisResetDone = false;
   let firstDeathBasisResetShareApplied = null;
@@ -9165,6 +9212,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
             // IRA (IRC s 402(c)(1)): no income recognized now, no cash to
             // spend, and the whole amount is taxed later as it comes out of
             // the Pre-Tax bucket (audit Q-9(a), changelog 126).
+            inheritedAdd(preTax, lump1);
             preTax += lump1;
           } else {
             // Taken in cash: ordinary income in the year received, with the
@@ -9217,6 +9265,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         if (spouse2Alive && reachedStartAge2ThisYear) {
           const lump2 = inputs.pension2LumpSumValue * inflFactor;
           if (inputs.pension2LumpSumRollover) {
+            inheritedAdd(preTax, lump2);
             preTax += lump2;
           } else {
             pension += lump2;
@@ -9441,6 +9490,29 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // while-working benefit pays only if the death came before that
     // spouse's retirement age. Amounts are today's dollars, priced at the
     // death year and level after it unless indexed.
+    // The inherited IRA phase (What's New 497).
+    if (inputs.survivorKeepsInheritedIra && inputs.spouse2Enabled && spouse1Alive !== spouse2Alive) {
+      const survivorN = spouse1Alive ? 1 : 2;
+      const survivorAgeNow = survivorN === 1 ? age1 : age2;
+      const deceasedN = survivorN === 1 ? 2 : 1;
+      const deceasedWouldBe = year - (Number(deceasedN === 1 ? inputs.birthYear1 : inputs.birthYear2) || year);
+      const deceasedRmdAge = rmdStartAge(deceasedN === 1 ? inputs.birthYear1 : inputs.birthYear2);
+      // Kept while the survivor is under 59 1/2 (review panel, 2026-11-04):
+      // past the deceased's RMD age it needs a yearly required withdrawal,
+      // still free of the penalty.
+      const inPhase = survivorAgeNow < 59.5;
+      inheritedRmdDue = deceasedWouldBe >= deceasedRmdAge;
+      if (!inheritedIraStarted) {
+        inheritedIraStarted = true;
+        const typed = inputs.preTaxOwnedPct1 === '' || inputs.preTaxOwnedPct1 === null ? NaN : Number(inputs.preTaxOwnedPct1);
+        const own1 = Math.min(100, Math.max(0, Number.isFinite(typed) ? typed : 50)) / 100;
+        inheritedPreTaxShare = inPhase ? (deceasedN === 1 ? own1 : 1 - own1) : 0;
+      } else if (!inPhase) {
+        inheritedPreTaxShare = 0;
+      }
+    } else if (inheritedPreTaxShare > 0) {
+      inheritedPreTaxShare = 0;
+    }
     let survivorBenefitIncome = 0;
     let survivorBenefitLump = 0;
     let survivorBenefitTaxed = 0;
@@ -10396,6 +10468,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
               taxableInflowOrdinary += mAmount;
             }
             if (m.targetAccount === 'preTax') {
+              inheritedAdd(preTax, mAmount);
               preTax += mAmount;
             } else if (m.targetAccount === 'roth') {
               roth += mAmount;
@@ -10516,12 +10589,16 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
 
     // Force deduct targeted outflows from respective accounts
     let actualMilestonePreTax = 0;
+    // The part of a Life-Event Pre-Tax withdrawal that came from an
+    // inherited IRA, free of the 10% penalty (What's New 497).
+    let milestoneInheritedPreTax = 0;
     let milestonePreTaxBasisRecovered = 0;
     let actualMilestoneRoth = 0;
     let actualMilestoneTaxable = 0;
     
     if (milestoneOutflowPreTax > 0) {
       actualMilestonePreTax = Math.min(preTax, milestoneOutflowPreTax);
+      milestoneInheritedPreTax = inheritedDrawFirst(preTax, actualMilestonePreTax);
       preTax -= actualMilestonePreTax;
       milestonePreTaxBasisRecovered = actualMilestonePreTax * preTaxBasisRatioForYear;
       preTaxBasis = Math.max(0, preTaxBasis - milestonePreTaxBasisRecovered);
@@ -10553,6 +10630,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const totalContributions = preTaxContribution + rothContribution + taxableContribution + hsaContribution + backdoorRothContribution + nqdcDeferral1 + nqdcDeferral2;
 
     // Apply contributions
+    inheritedAdd(preTax, preTaxContribution + employerMatchAmount + backdoorRothContribution);
     preTax += preTaxContribution + employerMatchAmount + backdoorRothContribution;
     preTaxBasis += backdoorRothContribution;
     roth += rothContribution;
@@ -10570,6 +10648,14 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // of the milestone, over-distributing by min(milestone, RMD).
     let rmdAmount = 0;
     if (rmdApplies && rmdDivisor > 0) rmdAmount = Math.min(Math.max(0, preTax), Math.max(0, rmdFromPriorBalance - actualMilestonePreTax));
+    // An inherited IRA past the deceased's RMD age needs its own yearly
+    // withdrawal, on the survivor's single life expectancy (What's New 497;
+    // free of the penalty, like any draw from it).
+    if (inheritedPreTaxShare > 0 && inheritedRmdDue && !(rmdAmount > 0)) {
+      const le = singleLifeExpectancy(ownerAge);
+      if (le > 0) rmdAmount = Math.min(Math.max(0, preTax), Math.max(0, (preTax * inheritedPreTaxShare) / le - milestoneInheritedPreTax));
+    }
+    inheritedDrawFirst(preTax, rmdAmount);
     preTax = Math.max(0, preTax - rmdAmount);
 
     // Qualified Charitable Distribution. The money still leaves the Pre-Tax
@@ -11033,6 +11119,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           }
         }
       }
+      // From the survivor's own share first; any more is moved into their
+      // name and converted (What's New 497).
+      inheritedOwnFirst(preTax, convertAmount);
       preTax = Math.max(0, preTax - convertAmount);
       roth += convertAmount;
     }
@@ -11166,8 +11255,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // taxable share, plus California's 2.5% -- the same age test and state
     // rule the withdrawal solver applies to its own draws. It used to be
     // taxed as ordinary income with no penalty at all.
-    const milestoneEarlyPenalty = ownerAge < 59.5 ? milestonePreTaxTaxable * 0.10 : 0;
-    const milestoneStateEarlyTax = stateEarlyDistributionTax(residence.stateTaxState, milestonePreTaxTaxable, ownerAge);
+    const milestonePenalized = Math.max(0, milestonePreTaxTaxable - milestoneInheritedPreTax * (1 - preTaxBasisRatioForYear));
+    const milestoneEarlyPenalty = ownerAge < 59.5 ? milestonePenalized * 0.10 : 0;
+    const milestoneStateEarlyTax = stateEarlyDistributionTax(residence.stateTaxState, milestonePenalized, ownerAge);
     let baseFedTaxes = ordinaryFedTaxes + baseCapGainsTaxes + amtTax + milestoneEarlyPenalty;
     
     const totalIncomeForState = baseOrdinaryTaxableIncome + taxableDividends;
@@ -11183,6 +11273,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // moves).
     const stateExtrasForYear = {
       calendarYear: year,
+      // Pre-Tax the survivor can take free of the 10% penalty this year:
+      // the inherited IRA they still hold (What's New 497).
+      penaltyFreePreTax: inheritedPreTaxShare > 0 ? preTax * inheritedPreTaxShare : 0,
       // Two MFS returns: the state tax is priced per return too.
       mfsSplitPct: mfsTwoReturns ? mfsSplitForYear : null,
       // ...and the federal side floors each return's own deduction.
@@ -11927,6 +12020,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
 
       rothDrawSplitThisYear = rothSplitFor(solveResult.dRoth);
       consumeRothLayers(solveResult.dRoth, rothLayers);
+      inheritedDrawFirst(preTax, solveResult.dPreTax);
       preTax = Math.max(0, preTax - solveResult.dPreTax);
       preTaxBasis = Math.max(0, preTaxBasis - solveResult.dPreTax * preTaxBasisRatioForYear);
       roth = Math.max(0, roth - solveResult.dRoth);
@@ -12001,6 +12095,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const taxBefore = priceSettledYear(before);
         let toFund = remaining;
         let preTaxTaken = 0;
+        let penaltyFreeTopUp = 0;
         let rothPenalized = 0;
         for (const bucket of order) {
           if (toFund <= 0) break;
@@ -12020,6 +12115,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           } else if (bucket === 'preTax') {
             const take = Math.min(preTax, toFund);
             if (take > 0) {
+              penaltyFreeTopUp += inheritedDrawFirst(preTax, take);
               preTax -= take;
               preTaxBasis = Math.max(0, preTaxBasis - take * preTaxBasisRatioForYear);
               drawPreTax += take;
@@ -12046,7 +12142,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const taxAfter = priceSettledYear(after);
         // The 10% federal penalty and any state additional tax on a
         // pre-59 1/2 Pre-Tax or penalized Roth draw, as the solver charges.
-        const earlyDistribution = ownerAge < 59.5 ? preTaxTaken * (1 - preTaxBasisRatioForYear) + rothPenalized : 0;
+        const earlyDistribution = ownerAge < 59.5 ? Math.max(0, preTaxTaken - penaltyFreeTopUp) * (1 - preTaxBasisRatioForYear) + rothPenalized : 0;
         const federal = Math.max(0, taxAfter.federal - taxBefore.federal) + earlyDistribution * 0.10;
         const state = Math.max(0, taxAfter.state - taxBefore.state) + (earlyDistribution > 0 ? stateEarlyDistributionTax(residence.stateTaxState, earlyDistribution, ownerAge) : 0);
         extraTax += federal + state;
@@ -12093,6 +12189,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const stepTaxable = step * taxableShare;
         const before = priceSettledYear(settledIncomeNow(), convertAmountTaxable);
         convertAmount -= step;
+        if (step > 0) inheritedAdd(preTax, step); else inheritedOwnFirst(preTax, -step);
         preTax += step;
         roth = Math.max(0, roth - step);
         preTaxBasis = Math.max(0, preTaxBasis + (step - stepTaxable));
@@ -12125,6 +12222,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
             if (cash <= 0.005) break;
             const back = ownerAge >= 59.5 ? Math.min(cash, Math.max(0, drawPreTax - actualMilestonePreTax)) : 0;
             if (back > 0) {
+              inheritedAdd(preTax, back);
               preTax += back;
               drawPreTax -= back;
               preTaxBasis += back * preTaxBasisRatioForYear;
@@ -12201,6 +12299,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         if (gapAmount > 0) {
           if (inputs.acaSubsidyProtectionEnabled && preTax > 0) {
             acaSubsidyBoost = Math.min(preTax, gapAmount);
+            inheritedOwnFirst(preTax, acaSubsidyBoost);
             preTax = Math.max(0, preTax - acaSubsidyBoost);
             roth += acaSubsidyBoost;
             convertAmount += acaSubsidyBoost;
@@ -12960,6 +13059,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // First-death payout invested into the survivor's Taxable this year
       // (audit F-1); 0 in every other year.
       lifeInsurancePayoutToSurvivor,
+      // The share of Pre-Tax still held as an inherited IRA at the year's end.
+      inheritedPreTaxShare,
       survivorBenefitIncome,
       survivorBenefitLump,
       taxLossHarvestedThisYear,

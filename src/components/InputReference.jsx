@@ -832,6 +832,14 @@ const InputReference = () => {
             </tr>
             <tr>
               <td style={sectionStyles.td}>
+                <span style={sectionStyles.badge}>Toggle + Field</span><br/>
+                <strong>A survivor under 59&frac12; keeps an inherited IRA until 59&frac12; / Share in Spouse 1&rsquo;s name (%)</strong>
+              </td>
+              <td style={sectionStyles.td}>When one spouse dies and the other is under 59&frac12;, the survivor can keep the one who died&rsquo;s Pre-Tax accounts as an inherited (beneficiary) IRA instead of moving them into their own IRA. Money taken from it has no 10% early-withdrawal penalty. With the switch on, the plan holds that share as inherited until the survivor is 59&frac12;, then treats it as moved into the survivor&rsquo;s name. Pre-Tax draws, Life Event withdrawals included, come from it first. Once the one who died would have reached their RMD age (at once, if they had), it needs a yearly withdrawal based on the survivor&rsquo;s life expectancy. A Roth conversion uses the survivor&rsquo;s own share first and moves any more into their name. Money the survivor adds is their own. <strong>Share in Spouse 1&rsquo;s name</strong>, beside the Pre-Tax balance, sets how much of the Pre-Tax money is whose (the plan otherwise keeps it as one household pool); blank reads as 50. What&rsquo;s New 497.</td>
+              <td style={sectionStyles.td}>On for a new plan (off for an older plan); 50% in each spouse&rsquo;s name. The switch is under Household, with the survivor settings; the share under Balances, beside the Pre-Tax balance; both shown only with a spouse.</td>
+            </tr>
+            <tr>
+              <td style={sectionStyles.td}>
                 <span style={sectionStyles.badge}>Text Input</span><br/>
                 <strong>Starting Balances (Pre-Tax, Roth, Taxable) &mdash; Balances &amp; Debt</strong>
               </td>

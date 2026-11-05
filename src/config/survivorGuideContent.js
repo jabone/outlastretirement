@@ -139,10 +139,17 @@ export function firstSteps(g) {
     // early-withdrawal penalty; an inherited IRA cannot be converted to Roth.
     let acc = 'As the spouse named as beneficiary you can usually move each IRA, 401(k) or similar account into an IRA of your own, or keep it as an inherited IRA. You do not have to decide quickly: you can keep it inherited now and move it into your own name later.';
     if (f.under595) acc += ' At your age this choice matters: money taken from an inherited IRA before 59½ has no 10% early-withdrawal penalty, while money taken from your own IRA usually does.';
-    acc += ' This plan treats the accounts as your own';
-    if (f.conversions) acc += ', so its Roth conversions assume they are in your name (an inherited IRA cannot be converted)';
-    if (f.earlyPreTax) acc += ', and its taxes include the 10% penalty on Pre-Tax money taken before 59½, which keeping an inherited IRA would avoid';
-    acc += '. Ask before cashing an account out: the whole amount from a Pre-Tax account would be taxable income in one year. The beneficiary form decides who inherits these accounts, not the will.';
+    if (f.keepsInherited) {
+      acc += ` This plan keeps ${d}'s share as an inherited IRA until you are 59½ and takes money from it without the penalty${f.conversions ? '; a Roth conversion uses your own share first and moves any more into your name' : ''}.`;
+      if (f.inheritedRmd) acc += ` Because ${d} would have reached the age for required withdrawals by then, it needs a yearly required withdrawal: ask the firm for the amount each year.`;
+      acc += ' Ask the firm to set it up as an inherited (beneficiary) IRA, not to move it into your own IRA yet; a 401(k) can often stay in the plan as a beneficiary account instead. You can move part of it into your own name at any time, and at 59½ moving the rest is a choice, not a deadline.';
+    } else {
+      acc += ' This plan treats the accounts as your own';
+      if (f.conversions) acc += ', so its Roth conversions assume they are in your name (an inherited IRA cannot be converted)';
+      if (f.earlyPreTax) acc += ', and its taxes include the 10% penalty on Pre-Tax money taken before 59½, which keeping an inherited IRA would avoid';
+      acc += '.';
+    }
+    acc += ' Ask before cashing an account out: the whole amount from a Pre-Tax account would be taxable income in one year. The beneficiary form decides who inherits these accounts, not the will.';
     twoMonths.push({ id: 'retirement-accounts', title: 'Call each retirement account’s firm', detail: acc });
   }
   if (f.hsa) {

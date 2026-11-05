@@ -1,7 +1,7 @@
 {
   "version": "cfe-full-backup-1",
   "schemaVersion": 4,
-  "timestamp": "2026-11-05T01:35:20.709Z",
+  "timestamp": "2026-11-05T03:36:23.703Z",
   "isDemoPlan": true,
   "activeInputs": {
     "spouse1Name": "Sam",
@@ -24,6 +24,7 @@
     "mfsIncomeSplitPct": 50,
     "mfsLivedWithSpouse": true,
     "preTaxInit": 890000,
+    "preTaxOwnedPct1": 50,
     "rothInit": 215000,
     "taxableInit": 342000,
     "initialBalancesSource": "manual",
@@ -180,6 +181,7 @@
     "survivorExpenseDropPct": 20,
     "survivorExpenseDropInPlan": false,
     "survivorDropKeepsHousing": true,
+    "survivorKeepsInheritedIra": true,
     "survivorStartAge1": 0,
     "survivorStartAge2": 0,
     "survivorBenefits": [],
@@ -538,6 +540,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -694,6 +697,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -1032,10 +1036,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 8570757.007912517,
         "successProbability": 100,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.733Z",
+      "savedAt": "2026-11-05T03:36:23.742Z",
       "tag": "demo"
     },
     {
@@ -1062,6 +1066,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -1218,6 +1223,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -1556,10 +1562,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11511405.545201283,
         "successProbability": 100,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.735Z",
+      "savedAt": "2026-11-05T03:36:23.746Z",
       "tag": "demo"
     },
     {
@@ -1586,6 +1592,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -1742,6 +1749,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -2080,10 +2088,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 11718652.262290727,
         "successProbability": 100,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.743Z",
+      "savedAt": "2026-11-05T03:36:23.751Z",
       "tag": "demo"
     },
     {
@@ -2110,6 +2118,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -2266,6 +2275,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -2604,10 +2614,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 16383183.882891104,
         "successProbability": 100,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.750Z",
+      "savedAt": "2026-11-05T03:36:23.767Z",
       "tag": "demo"
     },
     {
@@ -2634,6 +2644,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -2790,6 +2801,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -3128,10 +3140,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 17063884.60781297,
         "successProbability": 100,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.760Z",
+      "savedAt": "2026-11-05T03:36:23.783Z",
       "tag": "demo"
     },
     {
@@ -3158,6 +3170,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -3314,6 +3327,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -3652,10 +3666,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12517952.111033713,
         "successProbability": 100,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.764Z",
+      "savedAt": "2026-11-05T03:36:23.795Z",
       "tag": "demo"
     },
     {
@@ -3682,6 +3696,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -3838,6 +3853,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -4176,10 +4192,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 12284721.296279434,
         "successProbability": 100,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.770Z",
+      "savedAt": "2026-11-05T03:36:23.804Z",
       "tag": "demo"
     },
     {
@@ -4206,6 +4222,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -4362,6 +4379,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -4700,10 +4718,10 @@
         "isSuccessful": false,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 48.4,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.781Z",
+      "savedAt": "2026-11-05T03:36:23.814Z",
       "tag": "demo"
     },
     {
@@ -4730,6 +4748,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -4886,6 +4905,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -5224,10 +5244,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 4875660.851516838,
         "successProbability": 90,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.793Z",
+      "savedAt": "2026-11-05T03:36:23.827Z",
       "tag": "demo"
     },
     {
@@ -5254,6 +5274,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -5410,6 +5431,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -5748,10 +5770,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 64.3,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.804Z",
+      "savedAt": "2026-11-05T03:36:23.842Z",
       "tag": "demo"
     },
     {
@@ -5778,6 +5800,7 @@
         "mfsIncomeSplitPct": 50,
         "mfsLivedWithSpouse": true,
         "preTaxInit": 890000,
+        "preTaxOwnedPct1": 50,
         "rothInit": 215000,
         "taxableInit": 342000,
         "initialBalancesSource": "manual",
@@ -5934,6 +5957,7 @@
         "survivorExpenseDropPct": 20,
         "survivorExpenseDropInPlan": false,
         "survivorDropKeepsHousing": true,
+        "survivorKeepsInheritedIra": true,
         "survivorStartAge1": 0,
         "survivorStartAge2": 0,
         "survivorBenefits": [],
@@ -6272,10 +6296,10 @@
         "isSuccessful": true,
         "peakPortfolioWorth": 2661763.622488751,
         "successProbability": 99.6,
-        "oddsVersion": 495
+        "oddsVersion": 497
       },
       "planYearAtSave": 2026,
-      "savedAt": "2026-11-05T01:35:20.816Z",
+      "savedAt": "2026-11-05T03:36:23.853Z",
       "tag": "demo"
     }
   ],

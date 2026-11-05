@@ -38,6 +38,17 @@ export default function InitialBalancesSection() {
                 <div className="form-group">
                   <label htmlFor="field-preTaxInit">Pre-Tax Portfolio (Traditional IRA / 401k) ($)</label>
                   <NumberInput id="field-preTaxInit" commas step="10000" min="0" className="form-input" value={inputs.preTaxInit} disabled={inputs.initialBalancesSource === 'holdings'} onChange={(e) => updateInput('preTaxInit', (e.target.value === '' ? '' : parseFloat(e.target.value)))} />
+                  {/* What's New 497: whose name the Pre-Tax money is in, for
+                      a survivor who keeps the other's share as an inherited IRA. */}
+                  {inputs.spouse2Enabled && (
+                    <>
+                      <label htmlFor="field-preTaxOwnedPct1" style={{ marginTop: '10px', display: 'block', fontSize: 'var(--fs-xs)' }}>Share in Spouse 1&rsquo;s name (%)</label>
+                      <NumberInput id="field-preTaxOwnedPct1" min="0" max="100" step="5" className="form-input" value={inputs.preTaxOwnedPct1 ?? 50} onChange={(e) => updateInput('preTaxOwnedPct1', (e.target.value === '' ? '' : Math.min(100, Math.max(0, parseFloat(e.target.value)))))} />
+                      <span data-hint-for="preTaxOwnedPct1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                        How much of these accounts is in {inputs.spouse1Name || 'Spouse 1'}&rsquo;s name; the rest is {inputs.spouse2Name || 'Spouse 2'}&rsquo;s. If it is all in one name, enter 100 or 0. It matters only for a survivor under 59½, who can keep the other&rsquo;s share as an inherited IRA.
+                      </span>
+                    </>
+                  )}
                 </div>
                 <div className="form-group">
                   <label htmlFor="field-rothInit">Roth Portfolio (Roth IRA / 401k) ($)</label>

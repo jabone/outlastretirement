@@ -22,6 +22,9 @@ describe('after Spouse 1 dies, the survivor\'s age governs the accounts', () => 
     // The survivor is under 65: the computed marketplace credit (changelog
     // 415) would differ between the two ages under test, so it is off.
     acaCreditSource: 'manual',
+    // Rolled into the survivor's own name (an inherited IRA would spare
+    // the penalty, What's New 497).
+    survivorKeepsInheritedIra: false,
     milestones: [{ id: 1, name: 'Roof', type: 'outflow', amount: 50000, startAge: 72, endAge: 72, sourceAccount: 'preTax' }],
   };
   it('charges the 10% penalty on a survivor\'s early Pre-Tax life event', () => {

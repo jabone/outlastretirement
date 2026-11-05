@@ -284,6 +284,13 @@ export default function DemographicsSection() {
                         The years one of you is alone are taxed as Single either way; with this on, the budget for those years falls by the same share the stress test uses: {dropPct}%{inputs.survivorDropKeepsHousing ? <> of spending other than housing, about {overallDrop}% of the whole budget</> : null}. Off keeps the couple&rsquo;s full budget.
                       </span>
                     </div>
+                    {/* What's New 497: an inherited IRA before 59 1/2. */}
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <SwitchRow id="toggle-survivorKeepsInheritedIra" size="sm" checked={!!inputs.survivorKeepsInheritedIra} onChange={(on) => updateInput('survivorKeepsInheritedIra', on)}
+                        hint="A survivor under 59½ keeps the other's Pre-Tax accounts as an inherited IRA: money taken from it has no 10% early-withdrawal penalty. Once the one who died would have reached their RMD age, it needs a yearly withdrawal. At 59½ the plan moves it into the survivor's own name; a Roth conversion first moves the part it needs. Off moves it all at once. How much is whose is set beside the Pre-Tax balance.">
+                        A survivor under 59½ keeps an inherited IRA until 59½
+                      </SwitchRow>
+                    </div>
                     {/* What's New 495: housing costs one person what it cost two. */}
                     {(inputs.survivorExpenseDropInPlan || inputs.survivorStressEnabled) && (
                       <div className="form-group" style={{ marginBottom: '12px' }}>
