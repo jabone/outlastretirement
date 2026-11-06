@@ -91,8 +91,8 @@ describe('Learn pages', () => {
     expect(hub).not.toMatch(/\b\d+ of \d+\b/);
     // Lessons 1-6 under the basics, lesson 7 under big decisions.
     const basics = hub.slice(hub.indexOf('The basics ·'), hub.indexOf('Big decisions ·'));
-    for (let n = 1; n <= 6; n += 1) expect(basics).toContain(`Lesson ${n} ·`);
-    expect(hub.slice(hub.indexOf('Big decisions ·'))).toContain('Lesson 7 ·');
+    for (let n = 1; n <= 6; n += 1) expect(basics).toContain(`<span class="label">Lesson ${n}</span>`);
+    expect(hub.slice(hub.indexOf('Big decisions ·'))).toContain('<span class="label">Lesson 7</span>');
   });
 
   it('the Live Pricing walkthrough stands alone: off the hub and the path, back to the written steps', () => {
@@ -114,7 +114,7 @@ describe('Learn pages', () => {
     expect(l7).toContain(`property="og:title" content="${title}"`);
     expect(l7).toContain(`name="twitter:title" content="${title}"`);
     expect(l7).toContain('<p class="eyebrow">Lessons · Big decisions</p>');
-    expect(l7).toContain('<p class="meta">Lesson 7 · about 3 minutes · 7 pictures</p>');
+    expect(l7).toContain('<p class="meta">Lesson 7 · 7 pictures</p>');
     expect(l7).toContain('<a href="/learn/my-plan-runs-short">← Lesson 6</a>');
     expect(read('public/learn/my-plan-runs-short.html')).toContain('<a href="/learn/three-questions">Next: What do you want your retirement to do? →</a>');
     // Lesson 1 still names the tour it follows.

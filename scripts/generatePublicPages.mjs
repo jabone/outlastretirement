@@ -381,7 +381,7 @@ const LEARN_STANDALONE = LEARN_LESSONS.filter((l) => learnHasPage(l) && l.standa
 // "Start here", then each group headed with its lesson count.
 function learnHubPage() {
   const item = (l) => `          <li>
-            <span class="label">${esc(l.label)}${learnHasPage(l) ? ` · about ${l.minutes} minutes` : ''}</span>
+            <span class="label">${esc(l.label)}</span>
             ${learnHasPage(l) ? `<a class="name" href="${learnHref(l)}">${esc(l.title)}</a>` : `<span class="name">${esc(l.title)}</span>`}
             <span class="sum">${esc(l.summary)}${learnHasPage(l) ? '' : ' <span class="soon">Coming soon.</span>'}</span>
           </li>`;
@@ -434,9 +434,9 @@ ${t.paras.map((para) => `        <p>${esc(para)}</p>`).join('\n')}${t.list ? `\n
         <p>${esc(s.say)}</p>
       </section>`).join('\n\n') : parts;
   const body = `      <p class="lead">${esc(lesson.summary)}</p>
-      <p class="meta">${[esc(lesson.label), ['start', 'basics'].includes(lesson.group) ? 'Start here' : null, `about ${lesson.minutes} minutes`, lesson.slides ? `${lesson.slides.length} pictures` : null].filter(Boolean).join(' · ')}</p>
+      <p class="meta">${[esc(lesson.label), ['start', 'basics'].includes(lesson.group) ? 'Start here' : null, lesson.slides ? `${lesson.slides.length} pictures` : null].filter(Boolean).join(' · ')}</p>
       <p class="standing">${esc(lesson.standing || LEARN_STANDING_LINE)}</p>
-${lesson.video ? `      <p class="watch"><a class="btn-go" href="${esc(lesson.video)}" target="_blank" rel="noopener">${lesson.standalone ? 'Watch the walkthrough' : 'Watch this lesson'} (${lesson.minutes} minutes)</a> <span class="soon">Opens YouTube in a new tab.</span></p>\n` : ''}
+${lesson.video ? `      <p class="watch"><a class="btn-go" href="${esc(lesson.video)}" target="_blank" rel="noopener">${lesson.standalone ? 'Watch the walkthrough' : 'Watch this lesson'}</a> <span class="soon">Opens YouTube in a new tab.</span></p>\n` : ''}
 ${slides}
 
       <section class="try">

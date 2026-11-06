@@ -87,13 +87,13 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'who-pays-me-when-i-stop-working',
-    video: 'https://www.youtube.com/watch?v=5BgymcX7s2s',
+    video: 'https://www.youtube.com/watch?v=eUBbalFt8sc',
     group: 'basics',
     label: 'Lesson 2',
     title: 'Who pays me when I stop working?',
     description: 'The three places retirement money comes from, Social Security, your savings and everything else, and the yearly gap your savings have to fill.',
     summary: 'Social Security, your savings, and the gap between what comes in and what you need.',
-    minutes: 4,
+    minutes: 3,
     tryHref: '/app/?demo=parkers&tab=yearledger',
     tryLabel: 'Open Ray and Angie’s Year by Year',
     slides: [
