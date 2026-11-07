@@ -63,7 +63,7 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'will-my-money-last',
-    video: 'https://www.youtube.com/watch?v=yQ0UeDhok-A',
+    video: 'https://www.youtube.com/watch?v=FyshzW5Krt8',
     group: 'basics',
     label: 'Lesson 1',
     title: 'Will my money last?',
@@ -111,7 +111,7 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'what-will-retirement-cost-me',
-    video: 'https://www.youtube.com/watch?v=AbugIL7MEkU',
+    video: 'https://www.youtube.com/watch?v=H0_4eOPI9xQ',
     group: 'basics',
     label: 'Lesson 3',
     title: 'What will retirement cost me?',
@@ -134,7 +134,7 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'build-my-own-plan',
-    video: 'https://www.youtube.com/watch?v=tMNii4HGtLM',
+    video: 'https://www.youtube.com/watch?v=QLx8ZhEyO4c',
     group: 'basics',
     label: 'Lesson 4',
     title: 'Can I build my own plan in ten minutes?',
@@ -160,7 +160,7 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'how-do-i-read-my-answer',
-    video: 'https://www.youtube.com/watch?v=IK_pxQBcm7w',
+    video: 'https://www.youtube.com/watch?v=2-t3lM-LD3c',
     group: 'basics',
     label: 'Lesson 5',
     title: 'How do I read my answer?',
@@ -171,7 +171,7 @@ export const LEARN_LESSONS = [
     slides: [
       { title: 'How do I read my answer?', alt: 'Title slide: How do I read my answer? The Dashboard says the same thing three ways: a verdict, a chart, and a year. Beside it, a magnifying glass over a small chart.', say: 'You have a plan now, and a page full of numbers. Today we learn to read it. There are only three things to look at. As always: this is an educational walkthrough using a fictional family. It isn’t financial advice.' },
       { title: 'Three things to look at', alt: 'Three things to look at on the Dashboard: 1, the verdict, the answer in plain words; 2, the chart, your savings over your whole life; 3, the year the money runs out, if it does.', say: 'The verdict, in words. The chart, a picture of your savings over your whole life. And the year, when the money runs out, if it does. We will use Ray and Angie’s plan so you can follow along.' },
-      { title: 'The answer, in plain words', alt: 'App screenshot: the row of cards at the top of the Dashboard, with the Will It Last? card at the top right outlined. It reads Runs short.', say: 'Start at the top right. This card answers the question in plain words. Ray and Angie’s says runs short, with the year under it, 2054. Press What this means for the rest. Yours might say on track, mostly on track, at risk, or runs short. You will see the same words in the corner of every page, so you always know where you stand.' },
+      { title: 'The answer, in plain words', alt: 'App screenshot: the row of cards at the top of the Dashboard, with the Will It Last? card at the top right outlined. It reads Runs short, says the money runs out in 2054, and has a What this means link.', say: 'Start at the top right. This card answers the question in plain words. Ray and Angie’s says runs short, with the year under it, 2054. Press What this means for the rest. Yours might say on track, mostly on track, at risk, or runs short. You will see the same words in the corner of every page, so you always know where you stand.' },
       { title: 'What the words mean', alt: 'A table of what each verdict means. On track: the plan lasts in at least nine of ten simulated markets. Mostly on track: in at least three of four. At risk: it works only if the markets are kind. Runs short: even an average market is not enough.', say: 'On track means the plan lasts in at least nine of ten simulated markets. Mostly on track means at least three of four. At risk means it only works if the markets are kind. Runs short means that even in an average market, the money ends before you do.' },
       { title: 'Left is today. Right is the rest of your life.', alt: 'App screenshot: the Dashboard savings chart from 2026 to 2068, with the start of the green line circled at $159,000. An arrow under the chart runs from today on the left to the end of the plan on the right.', say: 'Now the chart. The left edge is today. The right edge is the end of the plan. The height of the green line is how much you have saved. Ray and Angie start at one hundred fifty-nine thousand dollars.' },
       { title: 'The top of the hill', alt: 'App screenshot: the same chart with the highest point of the line circled: $345,812 in 2036, the year before they retire. After that the line goes downhill.', say: 'The line climbs while they work. The highest point is the year before they retire: about three hundred forty-six thousand dollars. From there it goes downhill, because now they are spending it.' },
@@ -183,7 +183,7 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'my-plan-runs-short',
-    video: 'https://www.youtube.com/watch?v=Rfddafcw5M8',
+    video: 'https://www.youtube.com/watch?v=BL0FKE3L8tg',
     group: 'basics',
     label: 'Lesson 6',
     title: 'My plan runs short. Now what?',
@@ -234,7 +234,7 @@ export const LEARN_LESSONS = [
   },
   {
     slug: 'start-social-security',
-    video: 'https://www.youtube.com/watch?v=-kXBc8yPiEk',
+    video: 'https://www.youtube.com/watch?v=6LuefEYcyWA',
     group: 'decisions',
     label: 'Lesson 8',
     eyebrow: 'Big decisions',
