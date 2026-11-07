@@ -355,9 +355,17 @@ export function computeRetirementIncomeBases(holdings = [], { asOfDate = new Dat
   let recurring = 0;
   let capitalGains = 0;
   let returnOfCapital = 0;
+  // The same three figures for brokerage (taxable) holdings alone. A
+  // dividend inside an IRA, 401(k), Roth or HSA stays in that account:
+  // spending it is a withdrawal like any other, so only the brokerage part
+  // is cash the household can spend without one.
+  const taxable = { estimate: 0, ttmRecurring: 0, ttmAll: 0 };
 
   for (const h of holdings || []) {
-    estimate += computeAnnualDividendIncome(h);
+    const isTaxable = h?.taxTreatment === 'taxable';
+    const est = computeAnnualDividendIncome(h);
+    estimate += est;
+    if (isTaxable) taxable.estimate += est;
     const character = holdingCharacter(h);
     for (const year of years) {
       for (const rec of collectActualDistributions(h, year)) {
@@ -365,7 +373,11 @@ export function computeRetirementIncomeBases(holdings = [], { asOfDate = new Dat
         const rowId = matrixRowForRecord(rec, character);
         if (rowId === 'returnOfCapital') returnOfCapital += rec.amount;
         else if (rowId === 'ltcg' || rowId === 'capitalGainDistribution') capitalGains += rec.amount;
-        else recurring += rec.amount;
+        else {
+          recurring += rec.amount;
+          if (isTaxable) taxable.ttmRecurring += rec.amount;
+        }
+        if (isTaxable) taxable.ttmAll += rec.amount;
       }
     }
   }
@@ -376,6 +388,7 @@ export function computeRetirementIncomeBases(holdings = [], { asOfDate = new Dat
     ttmAll: recurring + capitalGains + returnOfCapital,
     capitalGains,
     returnOfCapital,
+    taxable,
     // Empty history is why a basis can be unavailable: offering "last twelve
     // months" as $0 would quietly zero someone's retirement coverage.
     hasTrailingHistory: recurring + capitalGains + returnOfCapital > 0,
@@ -387,6 +400,17 @@ export const RETIREMENT_INCOME_BASES = [
   { value: 'ttmRecurring', label: 'Last 12 months, recurring', hint: 'Dividends and interest actually received. Excludes capital gains and return of capital.' },
   { value: 'ttmAll', label: 'Last 12 months, everything', hint: 'Every distribution received, capital gains included. Complete, but extrapolates windfalls.' },
 ];
+
+// The chosen basis split into brokerage (taxable) and everything held
+// inside retirement and health accounts, with the same fallback as
+// resolveRetirementIncomeBasis so the two parts always sum to its total.
+export function resolveRetirementIncomeSplit(bases, choice) {
+  const total = resolveRetirementIncomeBasis(bases, choice);
+  if (!bases || !bases.taxable) return { total, taxable: 0, sheltered: total };
+  const key = (choice === 'ttmRecurring' || choice === 'ttmAll') && bases.hasTrailingHistory ? choice : 'estimate';
+  const taxable = Math.min(total, Math.max(0, Number(bases.taxable[key]) || 0));
+  return { total, taxable, sheltered: Math.max(0, total - taxable) };
+}
 
 export function resolveRetirementIncomeBasis(bases, choice) {
   if (!bases) return 0;

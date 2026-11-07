@@ -190,10 +190,15 @@ export function fundingSummary(rows) {
   const first = rows[0];
   const last = rows[rows.length - 1];
   const whole = (v) => `${Math.round(Number(v) || 0)}%`;
-  const cashDividendPct = first.spending > 0 ? ((Number(first.dividendsAsCash) || 0) / first.spending) * 100 : 0;
-  const parts = [`In ${first.year}, guaranteed income covers ${whole(first.guaranteedPct)} of spending (taxes included), dividends taken as cash ${whole(cashDividendPct)}, and selling investments ${whole(first.shareSalesPct)}.`];
+  const share = (v) => (first.spending > 0 ? ((Number(v) || 0) / first.spending) * 100 : 0);
+  const accounts = [
+    ['the brokerage account', (Number(first.taxableSpent) || 0) + (Number(first.dividendCashSpent) || 0)],
+    ['IRAs and 401(k)s', first.preTaxSpent],
+    ['Roth accounts', first.rothSpent],
+  ].filter(([, v]) => (Number(v) || 0) > 0.5).map(([name, v]) => `${name} ${whole(share(v))}`);
+  const parts = [`In ${first.year}, guaranteed income covers ${whole(first.guaranteedPct)} of spending (taxes included)${accounts.length ? `, and withdrawals cover ${accounts.join(', ')}` : ''}.`];
   if (last !== first) parts.push(`By ${last.year}, guaranteed income covers ${whole(last.guaranteedPct)}.`);
-  const short = rows.find((r) => (Number(r.deficit) || 0) > 0.5);
+  const short = rows.find((r) => (Number(r.notCovered ?? r.deficit) || 0) > 0.5);
   parts.push(short ? `From ${short.year}, spending is not fully covered.` : 'Spending is covered in every retired year.');
   return parts.join(' ');
 }

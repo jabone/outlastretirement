@@ -133,13 +133,13 @@ describe('second group (changelog 315)', () => {
     expect(scenarioSummary(many, ['a', 'b', 'c', 'd', 'e', 'f'])).toBe('Of 6 scenarios, the strongest is f, at $6 million in 2063; the weakest is a, at $1 in 2063.');
   });
 
-  it('funding: first-year mix, later coverage, and whether spending is covered', () => {
+  it('funding: first-year mix by account, later coverage, and whether spending is covered', () => {
     const rows = [
-      { year: 2031, spending: 100000, guaranteedPct: 20, dividendsAsCash: 10000, shareSalesPct: 70, deficit: 0 },
-      { year: 2063, spending: 150000, guaranteedPct: 55, dividendsAsCash: 0, shareSalesPct: 45, deficit: 0 },
+      { year: 2031, spending: 100000, guaranteedPct: 20, taxableSpent: 30000, dividendCashSpent: 10000, preTaxSpent: 40000, rothSpent: 0, notCovered: 0 },
+      { year: 2063, spending: 150000, guaranteedPct: 55, taxableSpent: 0, dividendCashSpent: 0, preTaxSpent: 67500, rothSpent: 0, notCovered: 0 },
     ];
-    expect(fundingSummary(rows)).toBe('In 2031, guaranteed income covers 20% of spending (taxes included), dividends taken as cash 10%, and selling investments 70%. By 2063, guaranteed income covers 55%. Spending is covered in every retired year.');
-    expect(fundingSummary([{ ...rows[0], deficit: 5000 }])).toMatch(/From 2031, spending is not fully covered\.$/);
+    expect(fundingSummary(rows)).toBe('In 2031, guaranteed income covers 20% of spending (taxes included), and withdrawals cover the brokerage account 40%, IRAs and 401(k)s 40%. By 2063, guaranteed income covers 55%. Spending is covered in every retired year.');
+    expect(fundingSummary([{ ...rows[0], notCovered: 5000 }])).toMatch(/From 2031, spending is not fully covered\.$/);
   });
 
   it('every second-group chart carries its summary', () => {

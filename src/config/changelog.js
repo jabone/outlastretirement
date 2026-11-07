@@ -29,6 +29,20 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 504,
+    date: '2026-11-07',
+    title: 'Retirement Income shows withdrawals by account',
+    summary: 'Premium\u2019s Retirement Income page now shows each retired year\u2019s withdrawals by account (brokerage, IRA/401(k), Roth) instead of splitting them into dividends and share sales.',
+    items: [
+      "**Why.** A dividend inside an IRA is cash inside the IRA: spending it is still an IRA withdrawal, taxed like any other. Which account a dollar comes from is what your plan decides and what decides the tax, so that is how the page now shows it. Your plan\u2019s numbers and verdict are unchanged.",
+      "**What your holdings pay out** is now split into brokerage accounts (cash you can spend without a withdrawal, taxed each year whether spent or reinvested) and IRAs, 401(k)s, Roth and HSA accounts (it stays in the account).",
+      "**New cards.** Withdrawals From Savings gives the first retired year by account, in your withdrawal order. Brokerage Dividends shows what the plan taxes that year and how much of the brokerage withdrawal they would cover if taken as cash.",
+      "**The year-by-year table** now has From Brokerage, From IRA/401(k) and From Roth, plus total taxes, Roth conversions, charity gifts from the IRA and any amount not covered, so every year adds up. Year and Age stay in view on a phone, and columns your plan never uses are left out.",
+      "**Fixed.** When Plan Settings takes brokerage dividends as cash, the page counted them twice, and money sent from an IRA to charity could show as reinvested. Both now come straight from the plan.",
+      "**The income-investing what-if** stays, collapsed, with a plain note: a dividend isn\u2019t extra money, because the share price drops by about the amount paid. The Assumed Dividend Growth Rate field is gone; the page now uses your plan\u2019s own figures.",
+    ],
+  },
+  {
     id: 503,
     date: '2026-11-05',
     title: 'Head of household for a survivor with a dependent child',

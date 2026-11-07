@@ -1271,25 +1271,31 @@ export function DividendMonthChart({ data, activeMonth = null, onSelectMonth, fo
 // 13. How Retirement Is Funded (Detailed Holdings -> Retirement Income)
 //
 // Stacked areas, one dollar axis, bottom to top: Social Security, pensions &
-// annuities, other income, the holdings' dividends taken as cash, and shares
-// sold -- their sum is what the plan spends that year
+// annuities, other income, brokerage dividends the plan takes as cash, and
+// the withdrawals by account -- brokerage, IRA/401(k), Roth -- in the
+// amounts actually spent. Their sum is what the plan spends that year
 // (computeRetirementFunding, retirementFunding.js), drawn as a dashed line on
-// top so a funded plan reads as "the stack reaches the line". Fixed
-// per-entity colors: these identify a source, not a rank, so they stay put
-// when a year has none of one.
+// top so a funded plan reads as "the stack reaches the line". Money withdrawn
+// but not needed (an RMD beyond spending) sits above the line, light, because
+// it was moved, not spent. Fixed per-entity colors: these identify a source,
+// not a rank, so they stay put when a year has none of one.
 //
 // The tooltip is custom so it can list the sources in the SAME order the
 // eye reads the stack (top first), skip the ones that are $0 that year, and
-// give each its share of spending. Recharts' default listed them in
-// declaration order, with "Other income: $0" and "RMDs: $0" every year.
+// give each its share of spending.
 const FUNDING_SERIES = [
   { key: 'socialSecurity', name: 'Social Security', color: 'var(--series-3)' },
   { key: 'pensions', name: 'Pensions & annuities', color: 'var(--series-4)' },
   { key: 'otherIncome', name: 'Other income (rental, work, deferred comp)', color: 'var(--series-7)' },
-  { key: 'dividendsAsCash', name: 'Dividends taken as cash', color: 'var(--series-1)' },
-  { key: 'shareSales', name: 'Shares sold', color: 'var(--series-2)' },
+  { key: 'fromStockSale', name: 'Company stock sale', color: 'var(--series-8)' },
+  { key: 'fromCashReserve', name: 'From the cash reserve', color: 'var(--series-4)' },
+  { key: 'dividendCashSpent', name: 'Brokerage dividends taken as cash', color: 'var(--series-6)' },
+  { key: 'taxableSpent', name: 'From brokerage (taxable)', color: 'var(--series-1)' },
+  { key: 'preTaxSpent', name: 'From IRA/401(k) (pre-tax)', color: 'var(--series-2)' },
+  { key: 'rothSpent', name: 'From Roth', color: 'var(--series-5)' },
+  { key: 'otherCash', name: 'Other cash', color: 'var(--text-muted)' },
 ];
-const FUNDING_SURPLUS = { key: 'forcedSurplus', name: 'RMD withdrawn but not spent (reinvested)', color: 'var(--series-2)' };
+const FUNDING_SURPLUS = { key: 'notSpent', name: 'Withdrawn but not spent this year', color: 'var(--series-2)' };
 
 export function RetirementFundingTooltip({ active, payload, format }) {
   const row = active && payload && payload[0] && payload[0].payload;
@@ -1297,13 +1303,14 @@ export function RetirementFundingTooltip({ active, payload, format }) {
   const pct = (v) => (row.spending > 0 ? `${Math.round((v / row.spending) * 100)}%` : '');
   const lines = [...FUNDING_SERIES].reverse().filter((s) => row[s.key] > 0.5);
   const cell = { padding: '2px 0' };
+  const note = { fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: '2px' };
   // Never wider than the phone (changelog 295): the card used to hold a
   // 260px minimum and grow with its longest line, which ran it off the
   // right edge and made the page drag sideways.
   const narrow = typeof window !== 'undefined' && window.innerWidth <= 600;
   return (
     <div style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: narrow ? '8px 10px' : '10px 12px', fontSize: narrow ? 'var(--fs-xs)' : 'var(--fs-sm)', minWidth: narrow ? 0 : '260px', maxWidth: 'min(340px, calc(100vw - 72px))', boxSizing: 'border-box' }}>
-      <div style={{ fontWeight: 600, marginBottom: '6px' }}>{row.year} &middot; age {row.age1}</div>
+      <div style={{ fontWeight: 600, marginBottom: '6px' }}>{row.year}{row.age != null ? <> &middot; age {row.age}</> : null}</div>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', marginBottom: '6px' }}>
         <span>Spending need (incl. taxes)</span><strong>{format(row.spending)}</strong>
       </div>
@@ -1319,15 +1326,23 @@ export function RetirementFundingTooltip({ active, payload, format }) {
           ))}
         </tbody>
       </table>
-      <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: '6px' }}>
-        {row.shareSales > 0.5
-          ? `${Math.round(row.incomePct)}% paid without selling shares`
-          : 'Paid without selling any shares'}
-      </div>
-      {row.forcedSurplus > 0.5 && (
-        <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: '2px' }}>
-          Plus {format(row.forcedSurplus)} of required minimum distributions withdrawn but not needed &mdash; reinvested, not spent
-        </div>
+      {row.notCovered > 0.5 && (
+        <div style={{ ...note, color: 'var(--danger)' }}>Not covered: {format(row.notCovered)}</div>
+      )}
+      {row.movedToBrokerage > 0.5 && (
+        <div style={note}>Plus {format(row.movedToBrokerage)} withdrawn but not needed &mdash; moved to the brokerage account, not spent</div>
+      )}
+      {row.toCashReserve > 0.5 && (
+        <div style={note}>Plus {format(row.toCashReserve)} set aside in the cash reserve</div>
+      )}
+      {row.oneTimeFromAccount > 0.5 && (
+        <div style={note}>Plus {format(row.oneTimeFromAccount)} for {row.oneTimeNames && row.oneTimeNames.length ? row.oneTimeNames.join(', ') : 'a one-time expense'}, paid straight from an account</div>
+      )}
+      {row.toCharity > 0.5 && (
+        <div style={note}>{format(row.toCharity)} from the IRA straight to charity (QCD) &mdash; not spent, not taxed</div>
+      )}
+      {row.rothConversion > 0.5 && (
+        <div style={note}>{format(row.rothConversion)} converted to Roth &mdash; moved, not spent; taxed as income</div>
       )}
     </div>
   );
@@ -1339,7 +1354,7 @@ export function RetirementFundingChart({ data, formatCurrency }) {
   // A source no year uses (no pension, no other income) is left out of the
   // legend entirely rather than listed at $0.
   const used = FUNDING_SERIES.filter((s) => data.some((row) => row[s.key] > 0.5));
-  const hasSurplus = data.some((row) => row.forcedSurplus > 0.5);
+  const hasSurplus = data.some((row) => row.notSpent > 0.5);
   return (
     <ResponsiveContainer width="100%" height="100%">
       <ComposedChart data={data} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
@@ -1351,8 +1366,8 @@ export function RetirementFundingChart({ data, formatCurrency }) {
         {used.map((s) => (
           <Area key={s.key} type="monotone" stackId="fund" name={s.name} dataKey={s.key} stroke={s.color} fill={s.color} fillOpacity={0.75} strokeWidth={1} dot={false} />
         ))}
-        {/* Above the spending line by construction: RMDs the plan must take
-            but doesn't spend (it reinvests them). Light and dashed so it
+        {/* Above the spending line by construction: money the plan must withdraw
+            but doesn't spend (it moves it to the brokerage account). Light and dashed so it
             reads as "moved", not "spent". */}
         {hasSurplus && (
           <Area type="monotone" stackId="fund" name={FUNDING_SURPLUS.name} dataKey={FUNDING_SURPLUS.key} stroke={FUNDING_SURPLUS.color} fill={FUNDING_SURPLUS.color} fillOpacity={0.18} strokeWidth={1} strokeDasharray="3 3" dot={false} />

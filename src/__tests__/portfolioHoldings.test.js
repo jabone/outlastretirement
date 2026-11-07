@@ -70,6 +70,7 @@ import {
   sumActualDistributions,
   computeDistributionMatrix,
   computeRetirementIncomeBases,
+  resolveRetirementIncomeSplit,
   resolveRetirementIncomeBasis,
   trailingTwelveMonthKeys,
   computeDripCashSplit,
@@ -1978,6 +1979,22 @@ describe('portfolioHoldings', () => {
       expect(b.ttmRecurring).toBe(0);
       expect(b.returnOfCapital).toBeCloseTo(40, 5);
       expect(b.ttmAll).toBeCloseTo(40, 5);
+    });
+
+    it('splits each basis into brokerage and sheltered accounts, summing to the total', () => {
+      const brokerage = createHolding({ symbol: 'AAA', shares: 100, currentPrice: 50, annualDividendPerShare: 2, taxTreatment: 'taxable' });
+      brokerage.distributionEvents = [
+        createDistributionEvent({ date: '2025-09-15', type: 'dividend', grossAmount: 300 }),
+        createDistributionEvent({ date: '2025-12-15', type: 'capitalGainDistribution', grossAmount: 1000 }),
+      ];
+      const ira = createHolding({ symbol: 'BBB', shares: 100, currentPrice: 50, annualDividendPerShare: 3, taxTreatment: 'preTax' });
+      ira.distributionEvents = [createDistributionEvent({ date: '2025-10-15', type: 'dividend', grossAmount: 500 })];
+      const bases = computeRetirementIncomeBases([brokerage, ira], { asOfDate });
+      expect(bases.taxable).toEqual({ estimate: 200, ttmRecurring: 300, ttmAll: 1300 });
+      expect(resolveRetirementIncomeSplit(bases, 'estimate')).toEqual({ total: 500, taxable: 200, sheltered: 300 });
+      expect(resolveRetirementIncomeSplit(bases, 'ttmRecurring')).toEqual({ total: 800, taxable: 300, sheltered: 500 });
+      expect(resolveRetirementIncomeSplit(bases, 'ttmAll')).toEqual({ total: 1800, taxable: 1300, sheltered: 500 });
+      expect(resolveRetirementIncomeSplit(null, 'estimate')).toEqual({ total: 0, taxable: 0, sheltered: 0 });
     });
 
     it('ignores anything outside the trailing window', () => {

@@ -1,10 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { computeRetirementFunding, computeRetirementRoadmap, projectDividendIncome, findSocialSecurityFull } from '../utils/retirementFunding.js';
 import { runProjection, DEFAULT_INPUTS } from '../calculator.js';
+import { buildParkersInputs } from '../config/demoPlanParkers.js';
+import { buildDemoInputs } from '../config/demoPlan.js';
+
+const identity = (r) => r.guaranteed + r.otherIncome + r.fromStockSale + r.fromCashReserve + r.dividendCash + r.fromTaxable + r.fromPreTax + r.fromRoth + r.otherCash - r.notSpent + r.notCovered;
 
 describe('computeRetirementFunding', () => {
   const proj = runProjection({ ...DEFAULT_INPUTS, taxableInit: 400000 });
-  const funding = computeRetirementFunding(proj, 12000, { dividendGrowthRate: 0 });
+  const funding = computeRetirementFunding(proj);
 
   it('carries the plan verdict and one row per retired year, from the engine\'s own fields', () => {
     expect(funding.isSuccessful).toBe(proj.isSuccessful);
@@ -14,23 +18,29 @@ describe('computeRetirementFunding', () => {
     expect(r.year).toBe(y.year);
     expect(r.spending).toBe(y.totalExpenses);
     expect(r.guaranteed).toBeCloseTo(y.ssIncome + y.pension + y.annuityPayout, 6);
-    expect(r.withdrawals).toBeCloseTo(y.drawdown, 6);
+    expect(r.fromTaxable).toBeCloseTo(y.drawTaxable, 6);
+    expect(r.fromRoth).toBeCloseTo(y.drawRoth, 6);
+    expect(r.taxableDividends).toBeCloseTo(y.taxableDividends, 6);
   });
 
-  it('splits withdrawals into dividends-as-cash and share sales without inventing income', () => {
+  it('every row reconciles to spending, by account, with nothing left to an unnamed source', () => {
     for (const r of funding.rows) {
-      expect(r.dividendsAsCash + r.shareSales).toBeCloseTo(r.neededFromPortfolio, 3);
-      expect(r.neededFromPortfolio + r.forcedSurplus).toBeCloseTo(r.withdrawals, 3);
-      expect(r.dividendsAsCash).toBeLessThanOrEqual(r.dividends + 1e-9);
+      expect(identity(r)).toBeCloseTo(r.spending, 2);
+      expect(r.otherCash).toBe(0);
     }
   });
 
-  it('dividends that exceed the plan\'s withdrawals do not count as extra spending cover', () => {
-    const rich = computeRetirementFunding(proj, 10_000_000, { dividendGrowthRate: 0 });
-    const r = rich.rows[0];
-    expect(r.dividendsAsCash).toBeCloseTo(r.neededFromPortfolio, 3);
-    expect(r.shareSales).toBe(0);
-    expect(r.incomePct).toBeLessThanOrEqual(100.000001);
+  it('ignores the old dividend-total argument', () => {
+    const legacy = computeRetirementFunding(proj, 10_000_000, { dividendGrowthRate: 0 });
+    expect(legacy.rows[0]).toEqual(funding.rows[0]);
+  });
+
+  it('reinvested brokerage dividends could cover at most the brokerage withdrawal', () => {
+    for (const r of funding.rows) {
+      expect(r.dividendCover).toBeLessThanOrEqual(r.fromTaxable + 1e-9);
+      expect(r.dividendCover).toBeLessThanOrEqual(r.taxableDividends + 1e-9);
+      expect(r.dividendCash).toBe(0);
+    }
   });
 
   it('grows dividends nominally or net of inflation depending on the display basis', () => {
@@ -39,42 +49,126 @@ describe('computeRetirementFunding', () => {
   });
 });
 
+describe('computeRetirementFunding — dividends the plan takes as cash', () => {
+  for (const mode of ['cash', 'asNeeded']) {
+    it(`${mode}: the engine's dividend cash is its own line, outside the brokerage withdrawal, and rows still reconcile`, () => {
+      const inputs = { ...DEFAULT_INPUTS, taxableInit: 600000, dividendPayoutMode: mode };
+      const proj = runProjection(inputs);
+      const funding = computeRetirementFunding(proj, { dividendPayoutMode: mode });
+      const retired = proj.years.filter((y) => y.isRetired);
+      expect(funding.rows.some((r) => r.dividendCash > 0)).toBe(true);
+      funding.rows.forEach((r, i) => {
+        expect(r.dividendCash).toBeCloseTo(retired[i].dividendCash || 0, 6);
+        expect(r.dividendCover).toBe(0);
+        expect(identity(r)).toBeCloseTo(r.spending, 2);
+      });
+    });
+  }
+});
+
+describe('computeRetirementFunding — conversions, charity and HSA', () => {
+  const inputs = { ...DEFAULT_INPUTS, preTaxInit: 2_500_000, rothInit: 200000, taxableInit: 400000, hsaInit: 80000, rothConversionStrategy: 'maxBracket', rothConversionBracket: 0.22, qcdAnnualAmount: 15000 };
+  const proj = runProjection(inputs);
+  const funding = computeRetirementFunding(proj);
+
+  it('charity gifts from the IRA are never counted as pre-tax withdrawals or as money moved to brokerage', () => {
+    const retired = proj.years.filter((y) => y.isRetired);
+    const qcd = funding.rows.filter((r) => r.toCharity > 0);
+    expect(qcd.length).toBeGreaterThan(0);
+    funding.rows.forEach((r, i) => {
+      expect(r.fromPreTax).toBeCloseTo(Math.max(0, retired[i].drawPreTax - (retired[i].qcdAmount || 0)), 6);
+      expect(identity(r)).toBeCloseTo(r.spending, 2);
+    });
+  });
+
+  it('Roth conversions and taxes are reported, never as spending sources', () => {
+    expect(funding.rows.some((r) => r.rothConversion > 0)).toBe(true);
+    expect(funding.rows.every((r) => r.taxes >= 0)).toBe(true);
+  });
+});
+
+describe('computeRetirementFunding — every source and use is named', () => {
+  const P = buildParkersInputs();
+  const C = buildDemoInputs();
+  const big = { ...DEFAULT_INPUTS, preTaxInit: 2_500_000, rothInit: 200000, taxableInit: 400000, hsaInit: 80000, rothConversionStrategy: 'maxBracket', rothConversionBracket: 0.22, qcdAnnualAmount: 15000 };
+  const cases = {
+    parkers: P,
+    carters: C,
+    cartersCash: { ...C, dividendPayoutMode: 'cash' },
+    companyStock: { ...DEFAULT_INPUTS, taxableInit: 0, concentratedStockEnabled: true, concentratedStockInit: 1_500_000, concentratedStockDiversifyPct: 10, concentratedStockFlatTaxEnabled: true },
+    cashReserve: { ...DEFAULT_INPUTS, taxableInit: 400000, cashFloorEnabled: true, cashFloorInit: 100000 },
+    survivor: { ...C, survivorStressEnabled: true, survivorStressSpouse: 1, survivorStressAge: 70 },
+    proRata: { ...big, withdrawalStrategy: 'ProRata' },
+    preTaxFirst: { ...big, withdrawalStrategy: 'PreTaxFirst' },
+  };
+  for (const [name, inputs] of Object.entries(cases)) {
+    it(`${name}: every row adds up to spending within $5, with nothing left to "other cash"`, () => {
+      const funding = computeRetirementFunding(runProjection(inputs), { dividendPayoutMode: inputs.dividendPayoutMode || 'reinvest' });
+      for (const r of funding.rows) {
+        expect(Math.abs(identity(r) - r.spending)).toBeLessThan(5);
+        expect(r.otherCash).toBe(0);
+      }
+    });
+  }
+  it('a company-stock sale is named as its own source', () => {
+    const funding = computeRetirementFunding(runProjection(cases.companyStock));
+    expect(funding.rows.some((r) => r.fromStockSale > 0)).toBe(true);
+  });
+});
+
+describe('computeRetirementFunding — years the plan cannot cover', () => {
+  it('names the gap so a short year still adds up', () => {
+    const proj = runProjection({ ...DEFAULT_INPUTS, preTaxInit: 50000, rothInit: 0, taxableInit: 0 });
+    const funding = computeRetirementFunding(proj);
+    const short = funding.rows.filter((r) => r.notCovered > 0);
+    expect(short.length).toBeGreaterThan(0);
+    for (const r of funding.rows) expect(identity(r)).toBeCloseTo(r.spending, 2);
+  });
+});
+
 describe('computeRetirementRoadmap', () => {
-  const proj = runProjection(DEFAULT_INPUTS);
-  const funding = computeRetirementFunding(proj, 5000, { dividendGrowthRate: 5 });
+  const proj = runProjection({ ...DEFAULT_INPUTS, taxableInit: 400000 });
+  const funding = computeRetirementFunding(proj);
   const holdings = [
     { id: 'a', symbol: 'SCHD', taxTreatment: 'taxable', dripEnabled: true, shares: 100, annualDividendPerShare: 1 },
     { id: 'b', symbol: 'VOO', taxTreatment: 'preTax', dripEnabled: true, shares: 10, annualDividendPerShare: 6 },
     { id: 'c', symbol: 'O', taxTreatment: 'taxable', dripEnabled: false, shares: 100, annualDividendPerShare: 3 },
-    { id: 'd', symbol: 'GROWTH', taxTreatment: 'taxable', dripEnabled: false, shares: 100, annualDividendPerShare: 0 }, // pays nothing: no DRIP advice
+    { id: 'd', symbol: 'GROWTH', taxTreatment: 'taxable', dripEnabled: false, shares: 100, annualDividendPerShare: 0 }, // pays nothing
   ];
+  const imperative = /^(take|switch|keep|consider|trim|turn|let)\b/i;
 
-  it('while working: keep DRIP on, suggest turning it on where it is off, and flip Taxable DRIP to cash at retirement', () => {
+  it('while working: states facts about cash dividends, the brokerage draw at retirement, and the order', () => {
     const rm = computeRetirementRoadmap({ holdings, funding, inputs: DEFAULT_INPUTS, yearsToRetirement: 21, dividendTotals: { drip: 4000, cash: 1000 } });
     expect(rm.retired).toBe(false);
-    expect(rm.step1.bullets.map((b) => b.kind)).toEqual(['keepDrip', 'turnOnDrip', 'noTrim']);
-    expect(rm.step1.bullets[1].symbols).toEqual(['O']);
-    expect(rm.step1.bullets.some((b) => /stop drip/i.test(b.text))).toBe(false);
-    expect(rm.step2.bullets[0].kind).toBe('flipDrip');
-    expect(rm.step2.bullets[0].text).toMatch(/3 Taxable holdings/);
-    expect(rm.step2.bullets[1].text).toMatch(/Social Security at 67/);
-    expect(rm.step3.bullets[0].text).toMatch(/Taxable → Pre-Tax → Roth/);
+    expect(rm.step1.bullets.map((b) => b.kind)).toEqual(['cashDividends', 'noTrim']);
+    expect(rm.step1.bullets[0].symbols).toEqual(['O']);
+    const first = funding.firstRetired;
+    expect(rm.step2.bullets[0].kind).toBe(first.fromTaxable > 0.5 ? 'dividendsCouldCover' : 'noBrokerageDraw');
+    expect(rm.step2.bullets.at(-1).text).toMatch(/Social Security at 67/);
+    expect(rm.step3.bullets[0].text).toMatch(/brokerage, then IRA\/401\(k\), then Roth/);
     expect(rm.step3.bullets.at(-1).text).toMatch(proj.isSuccessful ? /last through the end of your plan/ : /Runs short/);
+    for (const s of [rm.step1, rm.step2, rm.step3]) for (const b of s.bullets) expect(b.text).not.toMatch(imperative);
   });
 
-  it('already retired: take dividends in cash now instead of "keep compounding"', () => {
+  it('already retired: the brokerage line comes first, no "keep compounding"', () => {
     const rm = computeRetirementRoadmap({ holdings, funding, inputs: DEFAULT_INPUTS, yearsToRetirement: 0 });
     expect(rm.retired).toBe(true);
-    expect(rm.step1.bullets[0].kind).toBe('dripToCash');
+    expect(['dividendsCouldCover', 'noBrokerageDraw']).toContain(rm.step1.bullets[0].kind);
     expect(rm.step2.bullets[0].kind).toBe('guaranteed');
   });
 
-  it('cites the largest real overweight position from the rebalance plan', () => {
+  it('says nothing about brokerage dividends when no brokerage holding pays any', () => {
+    const rm = computeRetirementRoadmap({ holdings: [holdings[1]], funding, inputs: DEFAULT_INPUTS, yearsToRetirement: 0 });
+    expect(rm.step1.bullets.some((b) => /brokerage/.test(b.text))).toBe(false);
+  });
+
+  it('names the largest real overweight position from the rebalance plan, without telling anyone to trim', () => {
     const rebalancePlan = { rows: [{ id: 'a', action: 'sell', diffDollars: -1500 }, { id: 'c', action: 'sell', diffDollars: -9000 }] };
     const rm = computeRetirementRoadmap({ holdings, funding, inputs: DEFAULT_INPUTS, rebalancePlan, yearsToRetirement: 5 });
     const trim = rm.step1.bullets.find((b) => b.kind === 'trim');
     expect(trim.symbol).toBe('O');
     expect(trim.amountDollars).toBe(9000);
+    expect(trim.text).toMatch(/^Your largest position above its Target %/);
   });
 });
 
@@ -144,20 +238,20 @@ describe('compareSsClaimingAges', () => {
 });
 
 describe('computeRetirementFunding — RMDs beyond spending', () => {
-  it('counts only the withdrawals spending consumes as funding; the rest is a forced surplus that is never stacked as spent', () => {
+  it('money withdrawn but not needed is moved to brokerage, never counted as spent', () => {
     // A large pre-tax balance makes RMDs exceed spending late in the plan.
     const proj = runProjection({ ...DEFAULT_INPUTS, preTaxInit: 3_000_000 });
-    const funding = computeRetirementFunding(proj, 0, { dividendGrowthRate: 0 });
-    const surplusRows = funding.rows.filter((r) => r.forcedSurplus > 0);
+    const funding = computeRetirementFunding(proj);
+    const surplusRows = funding.rows.filter((r) => r.movedToBrokerage > 0);
     expect(surplusRows.length).toBeGreaterThan(0);
     for (const r of funding.rows) {
-      expect(r.neededFromPortfolio + r.forcedSurplus).toBeCloseTo(r.withdrawals, 3);
-      expect(r.guaranteed + r.otherIncome + r.neededFromPortfolio).toBeLessThanOrEqual(r.spending + 1);
-      expect(r.dividendsAsCash + r.shareSales).toBeCloseTo(r.neededFromPortfolio, 3);
+      expect(identity(r)).toBeCloseTo(r.spending, 2);
+      expect(r.preTaxSpent + r.dividendCashSpent + r.taxableSpent + r.rothSpent).toBeCloseTo(r.fromSavings, 2);
     }
     expect(surplusRows[0].rmd).toBeGreaterThan(0);
     const rm = computeRetirementRoadmap({ holdings: [], funding, inputs: DEFAULT_INPUTS, yearsToRetirement: 21 });
-    expect(rm.step3.bullets.some((b) => b.kind === 'rmdSurplus')).toBe(true);
+    const b = rm.step3.bullets.find((x) => x.kind === 'rmdSurplus');
+    expect(b.text).toMatch(/in kind/);
   });
 });
 
@@ -166,7 +260,7 @@ describe('Social Security, named on its own', () => {
   // Retire at 62, claim at 67: five retired years with no Social Security,
   // then the benefit starts. The single "Guaranteed income" band hid that.
   const proj = runProjection({ ...DEFAULT_INPUTS, retireAge1: 62, claimingAge1: 67, taxableInit: 900000 });
-  const funding = computeRetirementFunding(proj, 12000, { dividendGrowthRate: 0 });
+  const funding = computeRetirementFunding(proj);
 
   it('splits guaranteed income into Social Security and pensions/annuities, summing to the whole', () => {
     const retired = proj.years.filter((y) => y.isRetired);
