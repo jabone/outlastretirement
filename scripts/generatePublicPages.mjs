@@ -379,9 +379,15 @@ const LEARN_STANDALONE = LEARN_LESSONS.filter((l) => learnHasPage(l) && l.standa
 
 // The hub, one section per group (LEARN_GROUPS): the tour on its own under
 // "Start here", then each group headed with its lesson count.
+// Lesson numbers are internal (they name decks and work orders); the public
+// pages never show them, so a lesson can be added anywhere in the path
+// without renumbering, re-rendering or re-recording the ones after it.
+const publicLabel = (l) => (/^Lesson\b/.test(l.label || '') ? null : l.label);
+const groupTitle = (l) => (LEARN_GROUPS.find((g) => g.id === l.group) || {}).title;
+
 function learnHubPage() {
   const item = (l) => `          <li>
-            <span class="label">${esc(l.label)}</span>
+${publicLabel(l) ? `            <span class="label">${esc(publicLabel(l))}</span>\n` : ''}
             ${learnHasPage(l) ? `<a class="name" href="${learnHref(l)}">${esc(l.title)}</a>` : `<span class="name">${esc(l.title)}</span>`}
             <span class="sum">${esc(l.summary)}${learnHasPage(l) ? '' : ' <span class="soon">Coming soon.</span>'}</span>
           </li>`;
@@ -434,7 +440,7 @@ ${t.paras.map((para) => `        <p>${esc(para)}</p>`).join('\n')}${t.list ? `\n
         <p>${esc(s.say)}</p>
       </section>`).join('\n\n') : parts;
   const body = `      <p class="lead">${esc(lesson.summary)}</p>
-      <p class="meta">${[esc(lesson.label), ['start', 'basics'].includes(lesson.group) ? 'Start here' : null, lesson.slides ? `${lesson.slides.length} pictures` : null].filter(Boolean).join(' · ')}</p>
+      <p class="meta">${[publicLabel(lesson) ? esc(publicLabel(lesson)) : esc(groupTitle(lesson) || ''), ['start', 'basics'].includes(lesson.group) && lesson.group !== 'start' ? 'Start here' : null, lesson.slides ? `${lesson.slides.length} pictures` : null].filter(Boolean).join(' · ')}</p>
       <p class="standing">${esc(lesson.standing || LEARN_STANDING_LINE)}</p>
 ${lesson.video ? `      <p class="watch"><a class="btn-go" href="${esc(lesson.video)}" target="_blank" rel="noopener">${lesson.standalone ? 'Watch the walkthrough' : 'Watch this lesson'}</a> <span class="soon">Opens YouTube in a new tab.</span></p>\n` : ''}
 ${slides}
@@ -447,16 +453,16 @@ ${slides}
 
       <nav class="pager" aria-label="Lessons">
 ${lesson.standalone ? `        <a href="${esc(lesson.backHref)}">← ${esc(lesson.backLabel)}</a>
-        <a href="/learn">All lessons →</a>` : `        ${prev ? `<a href="${learnHref(prev)}">← ${esc(prev.label)}${group(prev) === group(lesson) || group(prev) === 'start' ? `: ${esc(prev.title)}` : ''}</a>` : '<a href="/learn">← All lessons</a>'}
-        ${next ? `<a href="${learnHref(next)}">${group(next) === group(lesson) || group(lesson) === 'start' ? `${esc(next.label)}: ` : 'Next: '}${esc(next.title)} →</a>` : '<a href="/learn">All lessons →</a>'}`}
+        <a href="/learn">All lessons →</a>` : `        ${prev ? `<a href="${learnHref(prev)}">← Previous: ${esc(prev.title)}</a>` : '<a href="/learn">← All lessons</a>'}
+        ${next ? `<a href="${learnHref(next)}">Next: ${esc(next.title)} →</a>` : '<a href="/learn">All lessons →</a>'}`}
       </nav>`;
   return page({
     path: learnHref(lesson),
-    title: /^Lesson/.test(lesson.label) ? `${lesson.title} (${lesson.label})` : lesson.title,
+    title: lesson.title,
     description: lesson.description,
     css: LEARN_CSS,
     h1: lesson.h1 || lesson.title,
-    eyebrow: `Lessons · ${lesson.eyebrow || lesson.label}`,
+    eyebrow: `Lessons · ${lesson.eyebrow || publicLabel(lesson) || groupTitle(lesson)}`,
     body,
   });
 }

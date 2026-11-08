@@ -384,6 +384,27 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     pin('start-social-security', 5, 'Angie to 65', waitSS.retireAge2);
   });
 
+  it("lesson 9's account figures: balances, the 2037 draws, the tax, the first RMD", () => {
+    const L = 'which-account-do-we-draw-from';
+    const realEnd = (year, field) => { const i = years.findIndex((y) => y.year === year); return years[i][field] / yearEndFactor(years, i); };
+    pin(L, 3, '401(k)s $150,000', plan.preTaxInit, 1, 'last');
+    pin(L, 3, 'brokerage $9,000', plan.taxableInit);
+    expect(plan.rothInit).toBe(0);
+    pin(L, 3, '401(k)s $331,374', realEnd(2036, 'preTaxEnd'), 1, 'last');
+    pin(L, 3, 'brokerage $14,438', realEnd(2036, 'taxableEnd'));
+    pin(L, 5, 'Draw Taxable $14,438', real(2037, 'drawTaxable'));
+    pin(L, 5, 'Draw PreTax $19,273', real(2037, 'drawPreTax'));
+    pin(L, 5, '$34,424', real(2038, 'drawPreTax'));
+    pin(L, 5, 'about $20,000 a year', real(2039, 'drawPreTax'), 2000);
+    pin(L, 6, '2037, $85', real(2037, 'totalTaxesPaid'), 1, 'last');
+    pin(L, 6, '2038, $2,111', real(2038, 'totalTaxesPaid'), 1, 'last');
+    for (let y = 2039; y <= 2044; y += 1) expect(Math.round(real(y, 'totalTaxesPaid')), `lesson 9 slide 6 says $0 tax in ${y}`).toBe(0);
+    pin(L, 8, 'about $6,600 required', real(2047, 'rmdAmount'), 100);
+    pin(L, 8, 'already take about $23,000', real(2047, 'drawPreTax'), 1000);
+    expect(row(2047).age1).toBe(75);
+    expect(row(2046).rmdAmount || 0).toBe(0);
+  });
+
   it('the plan retires at 65 on $46,000, with the mortgage done that year (lessons 1 and 3)', () => {
     pin('will-my-money-last', 7, 'working until 65', plan.retireAge1);
     pin('will-my-money-last', 7, '$46,000 a year', plan.lifestyleExpense);

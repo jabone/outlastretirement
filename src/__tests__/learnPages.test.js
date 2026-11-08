@@ -84,22 +84,24 @@ describe('Learn pages', () => {
     expect(LEARN_LESSONS.filter((l) => l.group === 'start').map((l) => l.slug)).toEqual(['site-tour']);
     expect(hub).toContain('<h2>Start here</h2>');
     expect(hub).toContain('<h2>The basics · 6 lessons</h2>');
-    expect(hub).toContain('<h2>Big decisions · 2 lessons</h2>');
+    expect(hub).toContain('<h2>Big decisions · 3 lessons</h2>');
     // The groups appear in order, and no "X of N" anywhere.
     expect(hub.indexOf('Start here</h2>')).toBeLessThan(hub.indexOf('The basics ·'));
     expect(hub.indexOf('The basics ·')).toBeLessThan(hub.indexOf('Big decisions ·'));
     expect(hub).not.toMatch(/\b\d+ of \d+\b/);
-    // Lessons 1-6 under the basics, lesson 7 under big decisions.
+    // The basics hold the first six, in order; Big decisions the rest.
+    // Lesson numbers are internal and never shown on the site.
     const basics = hub.slice(hub.indexOf('The basics ·'), hub.indexOf('Big decisions ·'));
-    for (let n = 1; n <= 6; n += 1) expect(basics).toContain(`<span class="label">Lesson ${n}</span>`);
-    expect(hub.slice(hub.indexOf('Big decisions ·'))).toContain('<span class="label">Lesson 7</span>');
+    expect(basics).toContain('href="/learn/will-my-money-last"');
+    expect(hub.slice(hub.indexOf('Big decisions ·'))).toContain('href="/learn/three-questions"');
+    expect(hub).not.toMatch(/class="label">Lesson \d/);
   });
 
   it('the Live Pricing walkthrough stands alone: off the hub and the path, back to the written steps', () => {
     const hub = read('public/learn.html');
     const page = read('public/learn/live-pricing-setup.html');
     expect(hub).not.toContain('live-pricing-setup');
-    expect(read('public/learn/start-social-security.html')).toContain('<a href="/learn">All lessons →</a>');
+    expect(read('public/learn/which-account-do-we-draw-from.html')).toContain('<a href="/learn">All lessons →</a>');
     expect(page).toContain('<a href="/pricing-script#first-time">← The written steps, with pictures</a>');
     expect(page).toContain('Watch the walkthrough');
     expect(page).not.toContain(esc(LEARN_STANDING_LINE));
@@ -107,18 +109,19 @@ describe('Learn pages', () => {
     expect(read('public/pricing-script.html')).toContain('href="/learn/live-pricing-setup"');
   });
 
-  it('lesson 7 sits under Big decisions and links back to lesson 6, which points ahead to it', () => {
+  it('lesson 7 sits under Big decisions and links back to lesson 6, which points ahead to it, with no lesson numbers shown', () => {
     const l7 = read('public/learn/three-questions.html');
-    const title = 'What do you want your retirement to do? (Lesson 7) — OutlastRetirement';
+    const title = 'What do you want your retirement to do? — OutlastRetirement';
     expect(l7).toContain(`<title>${title}</title>`);
     expect(l7).toContain(`property="og:title" content="${title}"`);
     expect(l7).toContain(`name="twitter:title" content="${title}"`);
     expect(l7).toContain('<p class="eyebrow">Lessons · Big decisions</p>');
-    expect(l7).toContain('<p class="meta">Lesson 7 · 7 pictures</p>');
-    expect(l7).toContain('<a href="/learn/my-plan-runs-short">← Lesson 6</a>');
+    expect(l7).toContain('<p class="meta">Big decisions · 7 pictures</p>');
+    expect(l7).toContain('<a href="/learn/my-plan-runs-short">← Previous: My plan runs short. Now what?</a>');
     expect(read('public/learn/my-plan-runs-short.html')).toContain('<a href="/learn/three-questions">Next: What do you want your retirement to do? →</a>');
     // Lesson 1 still names the tour it follows.
-    expect(read('public/learn/will-my-money-last.html')).toContain('← Site tour: A two-minute tour of OutlastRetirement</a>');
+    expect(read('public/learn/will-my-money-last.html')).toContain('← Previous: A two-minute tour of OutlastRetirement</a>');
+    for (const l of LEARN_LESSONS.filter(learnHasPage)) expect(read(`public/learn/${l.slug}.html`), l.slug).not.toMatch(/<title>[^<]*\(Lesson \d/);
   });
 
   it('each address is rewritten to its page', () => {
