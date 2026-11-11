@@ -120,7 +120,7 @@ describe('Learn pages', () => {
     expect(l7).toContain('<a href="/learn/my-plan-runs-short">← Previous: My plan runs short. Now what?</a>');
     expect(read('public/learn/my-plan-runs-short.html')).toContain('<a href="/learn/three-questions">Next: What do you want your retirement to do? →</a>');
     // Lesson 1 still names the tour it follows.
-    expect(read('public/learn/will-my-money-last.html')).toContain('← Previous: A two-minute tour of OutlastRetirement</a>');
+    expect(read('public/learn/will-my-money-last.html')).toContain('← Previous: A short tour of OutlastRetirement</a>');
     for (const l of LEARN_LESSONS.filter(learnHasPage)) expect(read(`public/learn/${l.slug}.html`), l.slug).not.toMatch(/<title>[^<]*\(Lesson \d/);
   });
 

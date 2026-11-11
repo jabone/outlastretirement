@@ -127,8 +127,9 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     // Lesson 5 reads the same chart more closely: the left edge, the exact
     // peak the circle points at, the sentence under the chart, and the year
     // the line touches the floor.
-    pin('how-do-i-read-my-answer', 5, '$159,000', plan.preTaxInit + plan.rothInit + plan.taxableInit + plan.hsaInit);
-    says('how-do-i-read-my-answer', 5, 'one hundred fifty-nine thousand dollars');
+    pin('how-do-i-read-my-answer', 5, 'about $173,000', realEndingBalance(TAX_YEAR), 1000);
+    says('how-do-i-read-my-answer', 5, 'one hundred fifty-nine thousand dollars today');
+    says('how-do-i-read-my-answer', 5, 'about one hundred seventy-three thousand');
     pin('how-do-i-read-my-answer', 6, '$345,812 in 2036', realEndingBalance(peakYear));
     expect(peakYear).toBe(2036);
     says('how-do-i-read-my-answer', 6, 'about three hundred forty-six thousand dollars');
@@ -364,7 +365,11 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     pin('start-social-security', 3, 'at 62, $11,900', angie(62), 1, 'last');
     pin('start-social-security', 3, 'at 70, $21,080', angie(70), 1, 'last');
     pin('start-social-security', 3, '$42,000 a year', plan.ss1 + plan.ss2);
-    pin('start-social-security', 4, '$12,600 a year less', (plan.ss1 - ray(62)) + (plan.ss2 - angie(62)));
+    // Slide 4 compares stopping at 62 with their plan (Ray claims at 65, Angie at 63).
+    pin('start-social-security', 4, 'Ray $17,500', ray(62), 100);
+    pin('start-social-security', 4, 'instead of $21,700', ray(65), 100);
+    pin('start-social-security', 4, 'instead of $12,700', angie(63), 100);
+    pin('start-social-security', 4, 'about $5,000 a year less', (ray(65) - ray(62)) + (angie(63) - angie(62)), 1000);
     pin('start-social-security', 6, '$48,000 a year together', ray(70) + plan.ss2);
     says('start-social-security', 3, 'thirteen thousand five hundred dollar difference');
     // Stopping at 62 runs short when Ray is 67; the two verdicts are the
