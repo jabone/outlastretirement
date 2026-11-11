@@ -20,8 +20,8 @@ const engine = read('calculator.js');
 describe('figures the prose quotes but the engine does not export', () => {
   const PINS = [
     // [what the prose says, where, the engine literal it must match]
-    ['$98,900 of joint taxable', guide, /\(status === 'MFJ' \? 98900 : status === 'HOH' \? 66200 : 49450\)/],
-    ['income ($49,450 single)', guide, /\(status === 'MFJ' \? 98900 : status === 'HOH' \? 66200 : 49450\)/],
+    ['$98,900 of joint taxable', guide, /zeroTop: \{ MFJ: 98900, Single: 49450, MFS: 49450, HOH: 66200 \}/],
+    ['income ($49,450 single)', guide, /zeroTop: \{ MFJ: 98900, Single: 49450, MFS: 49450, HOH: 66200 \}/],
     ['a $32,200 standard deduction', guide, /const DEDUCTION_MFJ = 32200;/],
     ['$24,500 base for {TAX_YEAR}', dict, /const ELECTIVE_DEFERRAL_LIMIT_2026 = 24500;/],
     ['$7,500 base for {TAX_YEAR}', dict, /const IRA_LIMIT_2026 = 7500;/],

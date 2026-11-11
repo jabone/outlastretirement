@@ -208,8 +208,8 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     pin('who-pays-me-when-i-stop-working', 8, 'the 2037 row', retirementYear);
     pin('who-pays-me-when-i-stop-working', 8, 'the year Ray is 65', row(retirementYear).age1);
     pin('who-pays-me-when-i-stop-working', 8, 'In: $34,417', real(retirementYear, 'ssIncome'));
-    pin('who-pays-me-when-i-stop-working', 8, 'Out: $68,128', real(retirementYear, 'totalExpenses'));
-    pin('who-pays-me-when-i-stop-working', 8, 'From savings: $33,711', real(retirementYear, 'drawdown'));
+    pin('who-pays-me-when-i-stop-working', 8, 'Out: $68,103', real(retirementYear, 'totalExpenses'));
+    pin('who-pays-me-when-i-stop-working', 8, 'From savings: $33,687', real(retirementYear, 'drawdown'));
   });
 
   it('what they spend today, from the shortcut (lesson 3 slides 2 and 5)', () => {
@@ -398,11 +398,15 @@ describe('the figures the lessons quote are the ones the app shows', () => {
     pin(L, 3, '401(k)s $331,374', realEnd(2036, 'preTaxEnd'), 1, 'last');
     pin(L, 3, 'brokerage $14,438', realEnd(2036, 'taxableEnd'));
     pin(L, 5, 'Draw Taxable $14,438', real(2037, 'drawTaxable'));
-    pin(L, 5, 'Draw PreTax $19,273', real(2037, 'drawPreTax'));
-    pin(L, 5, '$34,424', real(2038, 'drawPreTax'));
+    pin(L, 5, 'Draw PreTax $19,249', real(2037, 'drawPreTax'));
+    pin(L, 5, '$34,400', real(2038, 'drawPreTax'));
     pin(L, 5, 'about $20,000 a year', real(2039, 'drawPreTax'), 2000);
-    pin(L, 6, '2037, $85', real(2037, 'totalTaxesPaid'), 1, 'last');
-    pin(L, 6, '2038, $2,111', real(2038, 'totalTaxesPaid'), 1, 'last');
+    pin(L, 6, '2037, $60', real(2037, 'totalTaxesPaid'), 1, 'last');
+    // The narration rounds it in words so the recording outlives a few
+    // dollars' drift: under a hundred dollars that year.
+    says(L, 6, 'less than a hundred dollars in 2037');
+    expect(real(2037, 'totalTaxesPaid')).toBeLessThan(100);
+    pin(L, 6, '2038, $2,087', real(2038, 'totalTaxesPaid'), 1, 'last');
     for (let y = 2039; y <= 2044; y += 1) expect(Math.round(real(y, 'totalTaxesPaid')), `lesson 9 slide 6 says $0 tax in ${y}`).toBe(0);
     pin(L, 8, 'about $6,600 required', real(2047, 'rmdAmount'), 100);
     pin(L, 8, 'already take about $23,000', real(2047, 'drawPreTax'), 1000);

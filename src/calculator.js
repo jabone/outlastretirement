@@ -8,19 +8,21 @@
 // of silently merging a possibly-incompatible shape into the live plan.
 export const INPUTS_SCHEMA_VERSION = 4;
 
-// The tax year every hardcoded dollar figure below (brackets, contribution
-// limits, IRMAA thresholds, the federal poverty level, state estate tax
-// tables, etc.) was last verified against -- see TAX_UPDATE_PROCESS.md at
-// the repo root for the annual checklist that bumps this and its downstream
-// constants. This is DIFFERENT from "what calendar year does a given PLAN
+// The tax year of every dollar figure below that is not yet kept by year
+// (contribution limits, IRMAA thresholds, the ACA tables, state estate tax
+// tables, etc.), and the year a new plan starts in. The federal income-tax
+// figures are kept one table per tax year (FEDERAL_TAX_TABLES), as are
+// SSA's announced figures (SS_ANNOUNCED) and the poverty guidelines
+// (FPL_TABLES); this year's table must exist. See TAX_UPDATE_PROCESS.md at
+// the repo root: tables are added as they are published, and this moves on
+// January 1. This is DIFFERENT from "what calendar year does a given PLAN
 // think it's in" -- that's inputs.planYear (below in DEFAULT_INPUTS), a
 // per-plan, user-advanceable value (see the "Advance Year" flow in
 // PlanYearPanel.jsx) that starts out equal to TAX_YEAR for a brand-new plan
 // but can move independently of it. Advancing a plan's own planYear forward
 // (e.g. a year later, without a code update) keeps its ages and projection
-// timeline current; it does NOT change which year's tax figures this file
-// actually computes with -- those only move when TAX_YEAR itself is bumped
-// here, which requires a code change. Moved to the top of the file (rather
+// timeline current; the year-keyed tables then price each projection year
+// on its own published figures, and the rest are carried from TAX_YEAR. Moved to the top of the file (rather
 // than living alongside the dollar-figure constants further down, where it
 // used to sit) specifically so DEFAULT_INPUTS below can reference it without
 // a temporal-dead-zone error -- `const` bindings aren't accessible until
@@ -2828,15 +2830,12 @@ export const QCD_START_AGE = 71;
 export const DEDUCTION_MFJ = 32200;
 export const DEDUCTION_SINGLE = 16100;
 const DEDUCTION_MFS = 16100; // Rev. Proc. 2025-32; half of MFJ, same as Single
-// Approximation of the standard deduction reverting under a TCJA sunset --
-// see the tcjaSunsetEnabled comment in DEFAULT_INPUTS for what this does and
-// doesn't account for (notably: no personal exemption modeling).
-const DEDUCTION_MFJ_PRETCJA = DEDUCTION_MFJ / 2;
-const DEDUCTION_MFS_PRETCJA = DEDUCTION_MFS / 2;
-const DEDUCTION_SINGLE_PRETCJA = DEDUCTION_SINGLE / 2;
 // Head of Household (What's New 503), Rev. Proc. 2025-32.
 export const DEDUCTION_HOH = 24150;
-const DEDUCTION_HOH_PRETCJA = DEDUCTION_HOH / 2;
+// The standard deduction reverting under a TCJA sunset is approximated as
+// half of each year's figure (FEDERAL_TAX_TABLES' preTcjaDeduction) -- see
+// the tcjaSunsetEnabled comment in DEFAULT_INPUTS for what this does and
+// doesn't account for (notably: no personal exemption modeling).
 
 // Additional standard deduction for the aged (IRC s 63(f)) -- tax year 2026,
 // Rev. Proc. 2025-32: $1,650 per spouse aged 65+ on a married return
@@ -2862,10 +2861,13 @@ export const SENIOR_BONUS_PHASEOUT_SINGLE = 75000;
 export const SENIOR_BONUS_PHASEOUT_MFJ = 150000;
 
 // s 63(f) add-on for `seniorCount` filers aged 65+ on this return.
+// inflationFactor: a bare factor (the TAX_YEAR figures) or a federal tax
+// context (federalTaxContext), whose table supplies the year's figures.
 export function additionalStandardDeductionAged(status, seniorCount, inflationFactor = 1) {
   if (!(seniorCount > 0)) return 0;
-  const per = status === 'Single' || status === 'HOH' ? ADDITIONAL_DEDUCTION_AGED_SINGLE_2026 : ADDITIONAL_DEDUCTION_AGED_MARRIED_2026;
-  return per * seniorCount * inflationFactor;
+  const addOn = federalTableOf(inflationFactor).agedAddOn;
+  const per = status === 'Single' || status === 'HOH' ? addOn.unmarried : addOn.married;
+  return per * seniorCount * federalFactorOf(inflationFactor);
 }
 
 // OBBBA senior bonus for `seniorCount` filers aged 65+, after the MAGI
@@ -2986,17 +2988,21 @@ export const FPL_2025_PER_ADDITIONAL_PERSON = 5500;
 export const FPL_2026_BASE = 15960; // 1-person household, 48 states + DC
 export const FPL_2026_PER_ADDITIONAL_PERSON = 5680;
 const FPL_TABLES = { 2025: [FPL_2025_BASE, FPL_2025_PER_ADDITIONAL_PERSON], 2026: [FPL_2026_BASE, FPL_2026_PER_ADDITIONAL_PERSON] };
-const FPL_LATEST_TABLE_YEAR = 2026;
+// The newest table is whichever year is newest in FPL_TABLES: adding a
+// January's guideline is adding a key, nothing else.
+const FPL_LATEST_TABLE_YEAR = Math.max(...Object.keys(FPL_TABLES).map(Number));
 
 // The Federal Poverty Level that governs marketplace coverage in
 // `coverageYear`, for a household of the given size (1 = single filer,
-// 2 = MFJ couple -- this app doesn't model dependents, so household size
-// never exceeds 2): the guideline published the year BEFORE. Beyond the
-// newest table the latest guideline is indexed forward at `inflationRate`
-// (percent a year) from the coverage year it governs, so each January's
-// update replaces one year of estimate. Called with the coverage year
-// alone it answers for 2026 coverage.
-export function getFederalPovertyLevel(householdSize, coverageYear = 2026, inflationRate = 0) {
+// 2 = MFJ couple, plus a dependent child where the plan has one): the
+// guideline published the year BEFORE. Beyond the newest table the latest
+// guideline is indexed forward at `inflationRate` (percent a year) from
+// the coverage year it governs, so each January's update replaces one
+// year of estimate. Called with the household size alone it answers for
+// TAX_YEAR coverage (the help copy's cliff figures), so the January
+// TAX_YEAR switch moves them with it; it used to be a literal 2026, which
+// that switch would have left behind (audit C3, 2026-11-09).
+export function getFederalPovertyLevel(householdSize, coverageYear = TAX_YEAR, inflationRate = 0) {
   const size = Math.max(1, householdSize);
   const tableYear = Math.min(FPL_LATEST_TABLE_YEAR, Math.max(2025, coverageYear - 1));
   const [base, perPerson] = FPL_TABLES[tableYear];
@@ -3979,17 +3985,16 @@ export const BRACKETS_HOH_PRETCJA = BRACKETS_HOH.map((b, i) => ({ limit: b.limit
 // most (the top bracket and the AMT exemption). Routing every lookup
 // through these makes adding a status a change in one place instead of
 // fifteen, and makes "did we miss a site?" a question a test can answer.
-export function bracketsFor(status, preTcja = false) {
-  if (preTcja) {
-    if (status === 'MFJ') return BRACKETS_MFJ_PRETCJA;
-    if (status === 'MFS') return BRACKETS_MFS_PRETCJA;
-    if (status === 'HOH') return BRACKETS_HOH_PRETCJA;
-    return BRACKETS_SINGLE_PRETCJA;
-  }
-  if (status === 'MFJ') return BRACKETS_MFJ;
-  if (status === 'MFS') return BRACKETS_MFS;
-  if (status === 'HOH') return BRACKETS_HOH;
-  return BRACKETS_SINGLE;
+//
+// `table` (optional): a year's entry of FEDERAL_TAX_TABLES. Without it this
+// is FEDERAL_TAX_TABLES[TAX_YEAR] -- the same table a bare factor means in
+// every federal helper -- not the named 2026 constants, so after the
+// January switch a caller that omits the table gets the new year's
+// schedule rather than a silent 2026 one. (The BRACKETS_* exports remain
+// the 2026 figures by name.)
+export function bracketsFor(status, preTcja = false, table = null) {
+  const t = table || FEDERAL_TAX_TABLES[TAX_YEAR];
+  return byStatus(preTcja ? t.preTcjaBrackets : t.brackets, status);
 }
 
 // Married filing separately is a single person's return, so anything that
@@ -4035,6 +4040,203 @@ export const AMT_PHASEOUT_MFS_2026 = 500000;
 export const AMT_RATE_BREAKPOINT_2026 = 244500; // same dollar figure for MFJ and Single
 export const AMT_RATE_BREAKPOINT_MFS_2026 = 122250; // half of joint (Rev. Proc. 2025-32 s.03; audit Q-12)
 export const AMT_PHASEOUT_RATE = 0.5; // OBBBA raised this from 0.25
+
+// --- Federal tax tables, one per tax year -------------------------------
+//
+// Every indexed federal income-tax figure the projection reads, keyed by
+// the tax year the IRS published it for (the annual inflation-adjustment
+// Revenue Procedure). A projection year Y reads the newest table whose year
+// is Y or earlier, scaled by the bracket inflation from that table's year
+// to Y; a year after the newest table is that table carried forward at the
+// plan's Tax Bracket Inflation Rate (or a trial's own path), and a
+// published year is exact in every run. The same pattern as SS_ANNOUNCED
+// and FPL_TABLES: a new year's figures are ADDED as a new key, never
+// written over the old one, so a plan still in the earlier year keeps
+// pricing that year on its own published figures.
+//
+// Not here, because they are not keyed by tax year yet: the IRMAA tables
+// (CMS), the contribution, HSA and QCD limits (they index at the general
+// inflation rate), the Social Security figures (SS_ANNOUNCED) and the ACA
+// tables. The unindexed statutory figures (NIIT, the Social Security
+// thresholds, the senior deduction) are never here.
+//
+// Shape of a table:
+//   brackets[status]            ordinary brackets, { limit, rate } rows
+//   standardDeduction[status]   basic standard deduction
+//   agedAddOn.married/unmarried s 63(f) amount per person aged 65+
+//   capGains.zeroTop[status]    top of the 0% band (where 15% starts)
+//   capGains.fifteenTop[status] top of the 15% band (where 20% starts)
+//   amt.exemption/phaseout[MFJ|Single|MFS], amt.breakpoint.joint/MFS
+//   estate.basicExclusion, estate.gstExemption
+// status is 'MFJ', 'Single', 'MFS' or 'HOH'; anything else reads Single,
+// as bracketsFor always has. QSS is priced as MFJ upstream (rateStatus).
+function buildFederalTaxTable(t) {
+  const preTcjaBrackets = {};
+  const preTcjaDeduction = {};
+  for (const st of Object.keys(t.brackets)) {
+    preTcjaBrackets[st] = Object.freeze(t.brackets[st].map((b, i) => ({ limit: b.limit, rate: PRETCJA_RATES[i] })));
+  }
+  for (const st of Object.keys(t.standardDeduction)) preTcjaDeduction[st] = t.standardDeduction[st] / 2;
+  return Object.freeze({ ...t, preTcjaBrackets: Object.freeze(preTcjaBrackets), preTcjaDeduction: Object.freeze(preTcjaDeduction) });
+}
+
+export const FEDERAL_TAX_TABLES = Object.freeze({
+  // Rev. Proc. 2025-32 (and P.L. 119-21 for the estate exclusion).
+  2026: buildFederalTaxTable({
+    brackets: { MFJ: BRACKETS_MFJ, Single: BRACKETS_SINGLE, MFS: BRACKETS_MFS, HOH: BRACKETS_HOH },
+    standardDeduction: { MFJ: DEDUCTION_MFJ, Single: DEDUCTION_SINGLE, MFS: DEDUCTION_MFS, HOH: DEDUCTION_HOH },
+    agedAddOn: { married: ADDITIONAL_DEDUCTION_AGED_MARRIED_2026, unmarried: ADDITIONAL_DEDUCTION_AGED_SINGLE_2026 },
+    capGains: {
+      zeroTop: { MFJ: 98900, Single: 49450, MFS: 49450, HOH: 66200 },
+      fifteenTop: { MFJ: 613700, Single: 545500, MFS: 306850, HOH: 579600 },
+    },
+    amt: {
+      exemption: { MFJ: AMT_EXEMPTION_MFJ_2026, Single: AMT_EXEMPTION_SINGLE_2026, MFS: AMT_EXEMPTION_MFS_2026 },
+      phaseout: { MFJ: AMT_PHASEOUT_MFJ_2026, Single: AMT_PHASEOUT_SINGLE_2026, MFS: AMT_PHASEOUT_MFS_2026 },
+      breakpoint: { joint: AMT_RATE_BREAKPOINT_2026, MFS: AMT_RATE_BREAKPOINT_MFS_2026 },
+    },
+    estate: { basicExclusion: 15000000, gstExemption: 15000000 },
+  }),
+  // Rev. Proc. 2026-35 (IR-2026-133, November 5, 2026). MFS is half of MFJ
+  // (Single's figures except the 35% ceiling, the 15% capital-gains
+  // ceiling and the AMT figures). Verified 2026-11-11 against the release
+  // and an independent reading of the Rev. Proc. (audit, 2026-11-09).
+  2027: buildFederalTaxTable({
+    brackets: {
+      MFJ: [
+        { limit: 25600, rate: 0.10 },
+        { limit: 104050, rate: 0.12 },
+        { limit: 218250, rate: 0.22 },
+        { limit: 416650, rate: 0.24 },
+        { limit: 529100, rate: 0.32 },
+        { limit: 793650, rate: 0.35 },
+        { limit: Infinity, rate: 0.37 },
+      ],
+      Single: [
+        { limit: 12800, rate: 0.10 },
+        { limit: 52025, rate: 0.12 },
+        { limit: 109125, rate: 0.22 },
+        { limit: 208325, rate: 0.24 },
+        { limit: 264550, rate: 0.32 },
+        { limit: 661375, rate: 0.35 },
+        { limit: Infinity, rate: 0.37 },
+      ],
+      MFS: [
+        { limit: 12800, rate: 0.10 },
+        { limit: 52025, rate: 0.12 },
+        { limit: 109125, rate: 0.22 },
+        { limit: 208325, rate: 0.24 },
+        { limit: 264550, rate: 0.32 },
+        { limit: 396825, rate: 0.35 },
+        { limit: Infinity, rate: 0.37 },
+      ],
+      HOH: [
+        { limit: 18250, rate: 0.10 },
+        { limit: 69650, rate: 0.12 },
+        { limit: 109100, rate: 0.22 },
+        { limit: 208300, rate: 0.24 },
+        { limit: 264550, rate: 0.32 },
+        { limit: 661350, rate: 0.35 },
+        { limit: Infinity, rate: 0.37 },
+      ],
+    },
+    standardDeduction: { MFJ: 33200, Single: 16600, MFS: 16600, HOH: 24925 },
+    agedAddOn: { married: 1700, unmarried: 2100 },
+    capGains: {
+      zeroTop: { MFJ: 102100, Single: 51050, MFS: 51050, HOH: 68350 },
+      fifteenTop: { MFJ: 633600, Single: 563200, MFS: 316800, HOH: 598400 },
+    },
+    amt: {
+      exemption: { MFJ: 144700, Single: 93000, MFS: 72350 },
+      phaseout: { MFJ: 1031900, Single: 515950, MFS: 515950 },
+      breakpoint: { joint: 252500, MFS: 126250 },
+    },
+    estate: { basicExclusion: 15480000, gstExemption: 15480000 },
+  }),
+});
+
+export const FEDERAL_TAX_TABLE_YEARS = Object.freeze(Object.keys(FEDERAL_TAX_TABLES).map(Number).sort((a, b) => a - b));
+export const FEDERAL_TAX_LATEST_TABLE_YEAR = FEDERAL_TAX_TABLE_YEARS[FEDERAL_TAX_TABLE_YEARS.length - 1];
+
+// The table year a projection year reads: the newest table at or before
+// it. A year before the oldest table reads the oldest (carried back).
+export function federalTaxTableYear(year) {
+  const y = Number(year);
+  let pick = FEDERAL_TAX_TABLE_YEARS[0];
+  if (!Number.isFinite(y)) return TAX_YEAR in FEDERAL_TAX_TABLES ? TAX_YEAR : pick;
+  for (const t of FEDERAL_TAX_TABLE_YEARS) if (t <= y) pick = t;
+  return pick;
+}
+
+// A federal tax context: the table a year reads and the factor that scales
+// it. Every federal helper below takes one where it used to take a bare
+// inflation factor, and still takes the bare factor: a number means "the
+// TAX_YEAR table times this factor", which is exactly what it meant before
+// the tables were keyed by year, so a caller that only knows a factor (a
+// display helper, the Premium module) is unchanged.
+//
+//   year        the projection year
+//   factor      the bracket inflation factor from TAX_YEAR to `year` (the
+//               number every caller already has)
+//   factorSince (tableYear) => the factor from tableYear to `year` on the
+//               same inflation path. Needed only when the year reads a
+//               table other than TAX_YEAR's; without it the context falls
+//               back to the TAX_YEAR table and `factor`, today's behavior.
+//
+// Reading the TAX_YEAR table passes `factor` through untouched, so a plan
+// in that table's years prices to the bit what it priced before.
+//
+// carryEveryTable: use factorSince for the TAX_YEAR table too. The
+// projection passes it, because `factor` is only 1 in TAX_YEAR on a path
+// that starts there: a plan that starts earlier carries a vintage step,
+// and in a sampled trial or a history replay that step is the path's own
+// inflation, so the TAX_YEAR figures would not be exact in TAX_YEAR (and
+// after the January switch every plan still in the old year would read
+// the new year's figures off by a year of its path). factorSince is 1 in
+// the table's own year, so every published year is exact in every mode.
+export function federalTaxContext(year, factor = 1, factorSince = null, carryEveryTable = false) {
+  const tableYear = federalTaxTableYear(year);
+  if ((tableYear === TAX_YEAR && !carryEveryTable) || typeof factorSince !== 'function') {
+    const base = TAX_YEAR in FEDERAL_TAX_TABLES ? TAX_YEAR : tableYear;
+    return { year, tableYear: base, table: FEDERAL_TAX_TABLES[base], factor };
+  }
+  return { year, tableYear, table: FEDERAL_TAX_TABLES[tableYear], factor: factorSince(tableYear) };
+}
+
+// The same, for a caller indexing at one fixed rate (the estate and heir
+// figures): the factor from a table year to `year` is the rate compounded
+// over the years between.
+export function federalTaxContextAtRate(year, ratePct, factor = 1) {
+  const g = 1 + (Number(ratePct) || 0) / 100;
+  return federalTaxContext(year, factor, (t) => Math.pow(g, year - t));
+}
+
+// The context a projection row was priced with, rebuilt from the row
+// (federalTaxYear, federalTaxFactor). A caller that re-prices a row's figures
+// through the federal helpers passes this, not the row's
+// taxBracketInflationFactor: that factor is from TAX_YEAR, and a year that
+// reads a later table would otherwise be priced on the TAX_YEAR figures.
+export function federalTaxContextOfRow(row) {
+  if (row && FEDERAL_TAX_TABLES[row.federalTaxYear] && Number.isFinite(row.federalTaxFactor)) {
+    return { year: row.year, tableYear: row.federalTaxYear, table: FEDERAL_TAX_TABLES[row.federalTaxYear], factor: row.federalTaxFactor };
+  }
+  return federalTaxContext(row ? row.year : TAX_YEAR, row && Number.isFinite(row.taxBracketInflationFactor) ? row.taxBracketInflationFactor : 1);
+}
+
+const isFederalTaxContext = (f) => f !== null && typeof f === 'object' && f.table !== undefined;
+// The table and the factor of a context or a bare factor (see above).
+export function federalTableOf(f) {
+  return isFederalTaxContext(f) ? f.table : FEDERAL_TAX_TABLES[TAX_YEAR];
+}
+export function federalFactorOf(f) {
+  return isFederalTaxContext(f) ? f.factor : f;
+}
+const byStatus = (map, status) => (map[status] !== undefined ? map[status] : map.Single);
+
+// The basic standard deduction for a status from a table (unscaled).
+export function standardDeductionFor(status, preTcja = false, table = FEDERAL_TAX_TABLES[TAX_YEAR]) {
+  return byStatus(preTcja ? table.preTcjaDeduction : table.standardDeduction, status);
+}
 
 // Returns the AMT "tentative minimum tax" on the given AMTI approximation.
 // Callers compare this against the regular ordinary-income tax and charge
@@ -4143,9 +4345,13 @@ function amtForOneReturn(amti, status, inflationFactor = 1) {
   // MFS's AMT exemption is LOWER than Single's ($70,100 vs $90,100),
   // because it is half of MFJ. Falling through to the Single value would
   // understate AMT for exactly the filers most likely to hit it.
-  const exemption = (status === 'MFJ' ? AMT_EXEMPTION_MFJ_2026 : status === 'MFS' ? AMT_EXEMPTION_MFS_2026 : AMT_EXEMPTION_SINGLE_2026) * inflationFactor;
-  const phaseoutThreshold = (status === 'MFJ' ? AMT_PHASEOUT_MFJ_2026 : status === 'MFS' ? AMT_PHASEOUT_MFS_2026 : AMT_PHASEOUT_SINGLE_2026) * inflationFactor;
-  const breakpoint = (status === 'MFS' ? AMT_RATE_BREAKPOINT_MFS_2026 : AMT_RATE_BREAKPOINT_2026) * inflationFactor;
+  // inflationFactor may be a federal tax context (the year's own table).
+  const amt = federalTableOf(inflationFactor).amt;
+  const f = federalFactorOf(inflationFactor);
+  const amtStatus = status === 'MFJ' ? 'MFJ' : status === 'MFS' ? 'MFS' : 'Single';
+  const exemption = amt.exemption[amtStatus] * f;
+  const phaseoutThreshold = amt.phaseout[amtStatus] * f;
+  const breakpoint = (status === 'MFS' ? amt.breakpoint.MFS : amt.breakpoint.joint) * f;
 
   let effectiveExemption = exemption;
   if (amti > phaseoutThreshold) {
@@ -4170,11 +4376,13 @@ export function getBracketFilling(taxableIncome, status, inflationFactor = 1, pr
   // stress toggle is on, so the bars' rate labels and per-bar tax match
   // what the engine is actually charging (the stat tiles and marginal
   // bracket already followed the toggle; the bars did not).
-  const brackets = bracketsFor(status, preTcja);
+  // inflationFactor may be a federal tax context: the year's own table.
+  const brackets = bracketsFor(status, preTcja, federalTableOf(inflationFactor));
+  const factor = federalFactorOf(inflationFactor);
 
   let prevLimit = 0;
   return brackets.map(b => {
-    const currentLimit = b.limit === Infinity ? Infinity : b.limit * inflationFactor;
+    const currentLimit = b.limit === Infinity ? Infinity : b.limit * factor;
     const ratePercent = `${(b.rate * 100).toFixed(0)}%`;
     const capacity = currentLimit === Infinity ? Infinity : currentLimit - prevLimit;
 
@@ -5072,6 +5280,9 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
         earnedIncome: extras.earnedIncome,
         longTermGains: Math.max(0, extras.longTermGains || 0),
         inflationFactor: extras.inflationFactor ?? 1,
+        // The year's federal tables, for a state that reads a federal
+        // figure (Arizona's deduction without the 65+ add-on).
+        federalTax: extras.federalTax,
       });
     }
     stateType = 'flat_5';
@@ -5499,7 +5710,7 @@ export function stateRulesTax(rules, c) {
   const seniors = ages.filter((a) => a >= 65).length;
   // Arizona takes the federal deduction without the s 63(f) 65+ add-on.
   const std = rules.standardDeduction === 'federal'
-    ? Math.max(0, (c.federalDeduction || 0) - (rules.excludeFederalAged65 ? additionalStandardDeductionAged(c.federalStatus || c.status, seniors, c.inflationFactor || 1) : 0))
+    ? Math.max(0, (c.federalDeduction || 0) - (rules.excludeFederalAged65 ? additionalStandardDeductionAged(c.federalStatus || c.status, seniors, c.federalTax || c.inflationFactor || 1) : 0))
     : (rules.standardDeduction ? rules.standardDeduction[st] : 0) * fD;
   const extra65 = typeof rules.extraDeduction65 === 'object' && rules.extraDeduction65 !== null
     ? rules.extraDeduction65[st] : rules.extraDeduction65;
@@ -5542,14 +5753,14 @@ export function calculateTaxes(taxableIncome, status, inflationFactor = 1, useTc
 
 function ordinaryTaxForOneReturn(taxableIncome, status, inflationFactor = 1, useTcjaSunset = false) {
   if (taxableIncome <= 0) return 0;
-  const brackets = useTcjaSunset
-    ? bracketsFor(status, true)
-    : bracketsFor(status);
+  // inflationFactor may be a federal tax context: the year's own table.
+  const brackets = bracketsFor(status, useTcjaSunset, federalTableOf(inflationFactor));
+  const factor = federalFactorOf(inflationFactor);
   let tax = 0;
   let prevLimit = 0;
 
   for (let i = 0; i < brackets.length; i++) {
-    const currentLimit = brackets[i].limit === Infinity ? Infinity : brackets[i].limit * inflationFactor;
+    const currentLimit = brackets[i].limit === Infinity ? Infinity : brackets[i].limit * factor;
     const rate = brackets[i].rate;
     if (taxableIncome > currentLimit) {
       tax += (currentLimit - prevLimit) * rate;
@@ -5639,11 +5850,14 @@ function capGainsTaxForOneReturn(ordinaryIncome, capitalGains, status, inflation
     return magiForNiit > niitThreshEarly ? Math.min(grossGains + otherNii, magiForNiit - niitThreshEarly) * 0.038 : 0;
   }
   
-  // Long-term capital gains brackets — tax year 2026 (IRS Rev. Proc. 2025-32)
-  // MFS = half of MFJ (Rev. Proc. 2025-32). Matches Single at the 0% edge
-  // but not the 15% one: $306,850 against Single's $545,500.
-  const thresh15 = (status === 'MFJ' ? 98900 : status === 'HOH' ? 66200 : 49450) * inflationFactor;
-  const thresh20 = (status === 'MFJ' ? 613700 : status === 'MFS' ? 306850 : status === 'HOH' ? 579600 : 545500) * inflationFactor;
+  // Long-term capital gains bands, from the year's federal table
+  // (FEDERAL_TAX_TABLES; a bare factor reads the TAX_YEAR table). MFS =
+  // half of MFJ: it matches Single at the 0% edge but not the 15% one
+  // ($306,850 against Single's $545,500 in 2026).
+  const cgBands = federalTableOf(inflationFactor).capGains;
+  const cgFactor = federalFactorOf(inflationFactor);
+  const thresh15 = byStatus(cgBands.zeroTop, status) * cgFactor;
+  const thresh20 = byStatus(cgBands.fifteenTop, status) * cgFactor;
   
   let tax = 0;
   let niit = 0;
@@ -5700,7 +5914,8 @@ export function getTaxBracketLimit(status, rate, inflationFactor = 1) {
   // 0% has no bracket of its own: its ceiling is $0 of taxable income,
   // the top of the deductions (changelog 463).
   if (rate === 0) return 0;
-  const brackets = bracketsFor(status);
+  // inflationFactor may be a federal tax context: the year's own table.
+  const brackets = bracketsFor(status, false, federalTableOf(inflationFactor));
   const limits = brackets.reduce((acc, b) => { acc[b.rate] = b.limit; return acc; }, {});
   const val = limits[rate];
   // An unknown rate falls back to a $0 ceiling. sanitizeInputs keeps a
@@ -5708,7 +5923,7 @@ export function getTaxBracketLimit(status, rate, inflationFactor = 1) {
   // this with a rate it was never meant to carry; 0% is handled above.
   if (val === undefined) return 0;
   if (val === Infinity) return Infinity;
-  return val * inflationFactor;
+  return val * federalFactorOf(inflationFactor);
 }
 
 // IRS Publication 590-B Uniform Lifetime Table (2022 update, current as of 2026).
@@ -6244,13 +6459,23 @@ export function irmaaScaledThresholds(status, mfsLivedWithSpouse, thresholdInfla
 // Inflation factor to apply to the frozen top tier in a given projection
 // year: 1 (flat at its statutory nominal level) through 2027, then the
 // growth accumulated since 2027 only.
-export function irmaaTopTierFactor(year, thresholdInflationFactor, baseYear) {
+//
+// `baseYear` is the year in which thresholdInflationFactor is 1: the
+// vintage of the threshold table, TAX_YEAR (the default). Every factor the
+// projection passes is carried from TAX_YEAR (changelog 419), so passing the
+// plan's first year here recovered the wrong rate whenever a plan did not
+// start in TAX_YEAR: a plan starting in 2029 put the 2030 top tier at
+// $672,444 instead of $538,445, and its first year was not indexed at all.
+// Once the table's own year is past the freeze, its top figure is already
+// an indexed one and moves with the other tiers.
+export function irmaaTopTierFactor(year, thresholdInflationFactor, baseYear = TAX_YEAR) {
   if (!(year > IRMAA_TOP_TIER_FREEZE_THROUGH_YEAR)) return 1;
-  const yearsOfGrowth = year - baseYear;
-  if (!(yearsOfGrowth > 0) || !(thresholdInflationFactor > 0)) return 1;
+  if (!(thresholdInflationFactor > 0)) return 1;
+  if (baseYear >= IRMAA_TOP_TIER_FREEZE_THROUGH_YEAR) return thresholdInflationFactor;
   // thresholdInflationFactor is (1+r)^(year-baseYear); recover r and
-  // re-raise it over the years since the freeze lifted.
-  const rate = Math.pow(thresholdInflationFactor, 1 / yearsOfGrowth);
+  // re-raise it over the years since the freeze lifted. (year > the freeze
+  // year > baseYear here, so the exponent is positive.)
+  const rate = Math.pow(thresholdInflationFactor, 1 / (year - baseYear));
   return Math.pow(rate, year - IRMAA_TOP_TIER_FREEZE_THROUGH_YEAR);
 }
 
@@ -8761,6 +8986,26 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       : (monteCarloInflationOverride !== null && mcIndexingDiverged)
         ? historyIndexedFactor('taxBracketInflationFactor', inputs.taxBracketInflationRate + mcInflationDelta, bracketVintage)
         : Math.pow(1 + inputs.taxBracketInflationRate / 100, year - startYear) * bracketVintage;
+    // The year's federal tax context (FEDERAL_TAX_TABLES): the newest
+    // published table at or before this year and the factor that carries it
+    // here. A year after that table is the table times this path's own
+    // bracket inflation since the table's year -- in a trial or a replay
+    // that is this path's factor now over its factor then, so the published
+    // year itself is exact in every path. Before the plan's first year the
+    // path has not begun, so the planned rate stands in. The TAX_YEAR
+    // table is carried the same way (carryEveryTable): for a plan starting
+    // in TAX_YEAR that is taxBracketInflationFactor itself, bit for bit.
+    const bracketPathChained = historyIndexing || (monteCarloInflationOverride !== null && mcIndexingDiverged);
+    const fedTax = federalTaxContext(year, taxBracketInflationFactor, (tableYear) => {
+      if (tableYear === year) return 1;
+      const g = 1 + inputs.taxBracketInflationRate / 100;
+      if (!bracketPathChained) return Math.pow(g, year - tableYear);
+      const tableRow = tableYear >= startYear && tableYear < year ? years[tableYear - startYear] : null;
+      const atTable = tableRow && tableRow.taxBracketInflationFactor !== undefined
+        ? tableRow.taxBracketInflationFactor
+        : Math.pow(g, tableYear - TAX_YEAR);
+      return taxBracketInflationFactor / atTable;
+    }, true);
     // MFS with both spouses alive and the income split between them is TWO
     // returns (see forEachSeparateReturn), and each return carries its own
     // MFS standard deduction and its own spouse's age-65 add-on. The
@@ -8772,9 +9017,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const mfsSplitForYear = effectiveMfsSplitPct(inputs);
     const mfsTwoReturns = currentStatus === 'MFS' && spouse1Alive && spouse2Alive
       && mfsSplitForYear > 0 && mfsSplitForYear < 100;
-    const stdDeductionBase = (inputs.tcjaSunsetEnabled
-      ? (rateStatus === 'MFJ' ? DEDUCTION_MFJ_PRETCJA : rateStatus === 'MFS' ? DEDUCTION_MFS_PRETCJA : rateStatus === 'HOH' ? DEDUCTION_HOH_PRETCJA : DEDUCTION_SINGLE_PRETCJA)
-      : (rateStatus === 'MFJ' ? DEDUCTION_MFJ : rateStatus === 'MFS' ? DEDUCTION_MFS : rateStatus === 'HOH' ? DEDUCTION_HOH : DEDUCTION_SINGLE))
+    const stdDeductionBase = standardDeductionFor(rateStatus, !!inputs.tcjaSunsetEnabled, fedTax.table)
       * (mfsTwoReturns ? 2 : 1);
     // Filers aged 65+ on this year's return(s). On a joint return both
     // count; a survivor counts as themself, whichever spouse survived; MFS
@@ -8785,15 +9028,15 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         && (currentStatus === 'MFJ' || mfsTwoReturns || !spouse1Alive) ? 1 : 0);
     // Basic standard deduction plus the s 63(f) age-65 add-on (both
     // indexed). Income-independent, so a plain number.
-    const stdDeduction = stdDeductionBase * taxBracketInflationFactor
-      + additionalStandardDeductionAged(rateStatus, seniorCount, taxBracketInflationFactor);
+    const stdDeduction = stdDeductionBase * fedTax.factor
+      + additionalStandardDeductionAged(rateStatus, seniorCount, fedTax);
     // Two MFS returns: each spouse's own deduction (the MFS basic amount
     // plus their own age-65 add-on; MFS gets no senior bonus), which the
     // federal helpers floor per return (mfsSplitSpec). The pair sums to
     // stdDeduction.
     const mfsReturnDeductions = mfsTwoReturns ? [age1, age2].map((age) =>
-      (stdDeductionBase / 2) * taxBracketInflationFactor
-        + additionalStandardDeductionAged(rateStatus, age >= 65 ? 1 : 0, taxBracketInflationFactor)) : null;
+      (stdDeductionBase / 2) * fedTax.factor
+        + additionalStandardDeductionAged(rateStatus, age >= 65 ? 1 : 0, fedTax)) : null;
     const mfsSplitFor = (ordinaryBeforeDeduction) => mfsSplitSpec(inputs, ordinaryBeforeDeduction, mfsReturnDeductions);
     // The OBBBA senior bonus (2025-2028) depends on MAGI through its
     // phase-out, and MAGI depends on this year's Pre-Tax draws and
@@ -11076,7 +11319,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // household can fill to the ceiling divided by the larger return's
         // share before that return crosses the bracket (changelog 403;
         // until then an even split converted half of what fit).
-        const bracketLimit = getTaxBracketLimit(rateStatus, targetRate, taxBracketInflationFactor) / mfsLargerShare(inputs, rateStatus);
+        const bracketLimit = getTaxBracketLimit(rateStatus, targetRate, fedTax) / mfsLargerShare(inputs, rateStatus);
         const ceiling = bracketLimit - inputs.rothConversionBuffer;
         // Ordinary income other than Social Security and the conversion.
         const otherOrdinary = otherOrdinaryAgi; // net of NQDC deferrals, plus NUA basis, as in baseOrdinaryTaxableIncome
@@ -11180,7 +11423,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           const factorIn2 = inputs.irmaaFreezeEnabled
             ? 1
             : taxBracketInflationFactor * Math.pow(1 + inputs.taxBracketInflationRate / 100, 2);
-          const topIn2 = inputs.irmaaFreezeEnabled ? 1 : irmaaTopTierFactor(year + 2, factorIn2, startYear);
+          const topIn2 = inputs.irmaaFreezeEnabled ? 1 : irmaaTopTierFactor(year + 2, factorIn2, TAX_YEAR);
           const tiersIn2 = irmaaScaledThresholds(currentStatus, inputs.mfsLivedWithSpouse, factorIn2, topIn2);
           const tierIdx = Math.max(0, Math.min(tiersIn2.length - 1, Math.floor(inputs.rothConversionIrmaaTier)));
           // MFS prices each spouse on their own share of the MAGI (see
@@ -11285,7 +11528,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     itemizedMedicalCosts = healthcareBridge + ltcCost;
     const medicalLineAtBasePricing = itemizedMedicalCosts;
     const baseDeduction = deductionFor(baseOrdinaryTaxableIncome + taxableDividends);
-    const ordinaryFedTaxes = calculateTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
+    const ordinaryFedTaxes = calculateTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), rateStatus, fedTax, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
     // Q-10(a): rents and annuity income are net investment income for the
     // 3.8% NIIT even though they are ordinary income for the brackets.
     // The purchased annuity's taxable slice counts only when it is a
@@ -11294,7 +11537,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // (s 1411(c)(5)), so a Pre-Tax-funded annuity owes no NIIT.
     const niiAnnuity = inputs.annuitySourceAccount === 'taxable' ? taxableAnnuityOrdinary : 0;
     const niiOtherForYear = rentalAnnuity + niiAnnuity + ordinaryDividends;
-    const baseCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, rateStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
+    const baseCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, rateStatus, fedTax, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
     // What the diversification actually cost, now that it is taxed inside
     // the engine: the year's capital-gains tax with the gain, less the same
     // figure without it. That is the marginal number a user wants -- it
@@ -11306,7 +11549,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       ? Math.max(0, baseCapGainsTaxes - calculateCapitalGainsTaxes(
         Math.max(0, baseOrdinaryTaxableIncome - baseDeduction),
         Math.max(0, taxableDividends - concentratedStockRealizedGain),
-        rateStatus, taxBracketInflationFactor, baseDeduction,
+        rateStatus, fedTax, baseDeduction,
         Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome),
       ))
       : 0;
@@ -11322,8 +11565,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     let harvestTaxSavings = 0;
     if (!isRetired && (harvestedOrdinaryOffset > 0 || harvestedGainsOffset > 0)) {
       const refDeduction = deductionFor(preHarvestOrdinaryTaxableIncome + taxableDividendsGross);
-      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
-      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), taxableDividendsGross, rateStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - preHarvestOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
+      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), rateStatus, fedTax, inputs.tcjaSunsetEnabled, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
+      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, preHarvestOrdinaryTaxableIncome - refDeduction), taxableDividendsGross, rateStatus, fedTax, refDeduction, Math.max(0, refDeduction - preHarvestOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(preHarvestOrdinaryTaxableIncome));
       harvestTaxSavings = Math.max(0, (refOrdinaryFedTaxes + refCapGainsTaxes) - (ordinaryFedTaxes + baseCapGainsTaxes));
     }
 
@@ -11347,7 +11590,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const amtAllowedDeduction = baseChoice.itemized
       ? Math.max(0, baseChoice.amount - itemizedFor(baseOrdinaryTaxableIncome + taxableDividends).salt)
       : 0;
-    const tentativeMinimumTax = calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowedDeduction), rateStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs));
+    const tentativeMinimumTax = calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowedDeduction), rateStatus, fedTax, effectiveMfsSplitPct(inputs));
     let amtTax = Math.max(0, tentativeMinimumTax - ordinaryFedTaxes);
 
     // A Life-Event Pre-Tax withdrawal before 59 1/2 is an early
@@ -11415,6 +11658,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       // later re-pricings add their own draw's gains on top.
       longTermGains: Math.max(0, forcedRealizedGains - harvestedGainsOffset),
       inflationFactor: taxBracketInflationFactor,
+      // The year's federal tables, for a state that reads a federal figure
+      // (Arizona's deduction without the 65+ add-on).
+      federalTax: fedTax,
       // Changelog 430: California's figures carry forward from their 2025
       // vintage by this rate for the year before the plan's indexing starts.
       taxBracketInflationRate: inputs.taxBracketInflationRate,
@@ -11466,7 +11712,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         yearShare: moveShare,
         year,
       };
-      const baseNiit = calculateNetInvestmentIncomeTax(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, rateStatus, taxBracketInflationFactor, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
+      const baseNiit = calculateNetInvestmentIncomeTax(Math.max(0, baseOrdinaryTaxableIncome - baseDeduction), taxableDividends, rateStatus, fedTax, baseDeduction, Math.max(0, baseDeduction - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
       foreignBase = priceForeignYear(foreignCtx, {
         preTaxOrdinary: 0, realizedGains: 0, rothDraw: 0, rothEarnings: 0,
         usRegularTax: ordinaryFedTaxes + baseCapGainsTaxes - baseNiit,
@@ -11494,8 +11740,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (convertAmountTaxable > 0) {
       const noConversionOrdinaryIncome = Math.max(0, baseOrdinaryTaxableIncome - convertAmountTaxable);
       const refDeduction = deductionFor(noConversionOrdinaryIncome + taxableDividends);
-      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(noConversionOrdinaryIncome));
-      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), taxableDividends, rateStatus, taxBracketInflationFactor, refDeduction, Math.max(0, refDeduction - noConversionOrdinaryIncome), niiOtherForYear, mfsSplitFor(noConversionOrdinaryIncome));
+      const refOrdinaryFedTaxes = calculateTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), rateStatus, fedTax, inputs.tcjaSunsetEnabled, mfsSplitFor(noConversionOrdinaryIncome));
+      const refCapGainsTaxes = calculateCapitalGainsTaxes(Math.max(0, noConversionOrdinaryIncome - refDeduction), taxableDividends, rateStatus, fedTax, refDeduction, Math.max(0, refDeduction - noConversionOrdinaryIncome), niiOtherForYear, mfsSplitFor(noConversionOrdinaryIncome));
       const refTotalIncomeForState = noConversionOrdinaryIncome + taxableDividends;
       const refStateTaxes = calculateStateTaxes(
         refTotalIncomeForState, pension, ssIncome, residence.stateTaxState,
@@ -11541,7 +11787,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // index them while the top one correctly stays put until 2028.
     const irmaaTopFactor = inputs.irmaaFreezeEnabled
       ? 1
-      : irmaaTopTierFactor(year, taxBracketInflationFactor, startYear);
+      : irmaaTopTierFactor(year, taxBracketInflationFactor, TAX_YEAR);
     // Two-year lookback (changelog 121; SSA "Medicare Premiums: Rules for
     // Higher-Income Beneficiaries"): this year's tier comes from the MAGI
     // and filing status of the return filed two years ago, priced against
@@ -11842,11 +12088,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       const magiForBase = baseOrdinaryTaxableIncome + taxableDividends;
       const deduction2 = deductionFor(magiForBase);
       const taxable2 = Math.max(0, baseOrdinaryTaxableIncome - deduction2);
-      const ordinary2 = calculateTaxes(taxable2, rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
-      const capGains2 = calculateCapitalGainsTaxes(taxable2, taxableDividends, rateStatus, taxBracketInflationFactor, deduction2, Math.max(0, deduction2 - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
+      const ordinary2 = calculateTaxes(taxable2, rateStatus, fedTax, inputs.tcjaSunsetEnabled, mfsSplitFor(baseOrdinaryTaxableIncome));
+      const capGains2 = calculateCapitalGainsTaxes(taxable2, taxableDividends, rateStatus, fedTax, deduction2, Math.max(0, deduction2 - baseOrdinaryTaxableIncome), niiOtherForYear, mfsSplitFor(baseOrdinaryTaxableIncome));
       const choice2 = deductionChoice(magiForBase);
       const amtAllowed2 = choice2.itemized ? Math.max(0, choice2.amount - itemizedFor(magiForBase).salt) : 0;
-      const amt2 = Math.max(0, calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowed2), rateStatus, taxBracketInflationFactor, effectiveMfsSplitPct(inputs)) - ordinary2);
+      const amt2 = Math.max(0, calculateAMT(Math.max(0, baseOrdinaryTaxableIncome - amtAllowed2), rateStatus, fedTax, effectiveMfsSplitPct(inputs)) - ordinary2);
       const state2 = calculateStateTaxes(
         totalIncomeForState, pension, ssIncome, residence.stateTaxState,
         residence.stateTaxSocialSecurityTaxable, residence.stateTaxPensionTaxable,
@@ -12106,7 +12352,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (cashNeeded > 0) {
       const solveResult = solveWithdrawals(
         preTax, roth, taxable, cashNeeded, baseOrdinaryTaxableIncome,
-        deductionFor, rateStatus, taxBracketInflationFactor,
+        deductionFor, rateStatus, fedTax,
         inputs.withdrawalStrategy, residence.stateTaxState,
         residence.stateTaxSocialSecurityTaxable, residence.stateTaxPensionTaxable,
         pension, ssIncome, taxableDividends, inputs, ownerAge, age2, militaryPension,
@@ -12201,8 +12447,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const priceSettledYear = ({ ordinary, capGains, preTaxOrdinary, gainsNet }, conversionTaxableForState = convertAmountTaxable) => {
       const ded = deductionFor(ordinary + capGains);
       const ordinaryTaxable = Math.max(0, ordinary - ded);
-      const federal = calculateTaxes(ordinaryTaxable, rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinary))
-        + calculateCapitalGainsTaxes(ordinaryTaxable, capGains, rateStatus, taxBracketInflationFactor, ded, Math.max(0, ded - ordinary), niiOtherForYear, mfsSplitFor(ordinary));
+      const federal = calculateTaxes(ordinaryTaxable, rateStatus, fedTax, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinary))
+        + calculateCapitalGainsTaxes(ordinaryTaxable, capGains, rateStatus, fedTax, ded, Math.max(0, ded - ordinary), niiOtherForYear, mfsSplitFor(ordinary));
       const incomeForState = ordinary + capGains;
       const state = calculateStateTaxes(
         incomeForState, pension, ssIncome, residence.stateTaxState,
@@ -12660,8 +12906,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         const ordinaryInc = settledOrdinary + ssAdj + h;
         const deduction = deductionFor(ordinaryInc + settledCapGains);
         const ordinaryTaxable = Math.max(0, ordinaryInc - deduction);
-        const federal = calculateTaxes(ordinaryTaxable, rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinaryInc))
-          + calculateCapitalGainsTaxes(ordinaryTaxable, settledCapGains, rateStatus, taxBracketInflationFactor, deduction, Math.max(0, deduction - ordinaryInc), niiOtherForYear, mfsSplitFor(ordinaryInc));
+        const federal = calculateTaxes(ordinaryTaxable, rateStatus, fedTax, inputs.tcjaSunsetEnabled, mfsSplitFor(ordinaryInc))
+          + calculateCapitalGainsTaxes(ordinaryTaxable, settledCapGains, rateStatus, fedTax, deduction, Math.max(0, deduction - ordinaryInc), niiOtherForYear, mfsSplitFor(ordinaryInc));
         const penalty = ownerAge < 65 ? h * 0.20 : 0;
         const incomeForState = ordinaryInc + settledCapGains;
         const state = calculateStateTaxes(
@@ -13266,6 +13512,10 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       irmaaCapCeiling,
       ordinaryTaxableIncome: Math.max(0, finalOrdinaryIncome - finalDeduction),
       taxBracketInflationFactor,
+      // The federal table this year read (FEDERAL_TAX_TABLES) and the factor
+      // that carried it to this year; the bracket chart draws from these.
+      federalTaxYear: fedTax.tableYear,
+      federalTaxFactor: fedTax.factor,
       // The bracket the household's next ordinary dollar lands in. On MFS
       // that dollar splits across two returns, and the larger return sets
       // the rate, so its share of the household's taxable income is what
@@ -13274,7 +13524,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         mfsReturnDeductions
           ? Math.max(0, finalOrdinaryIncome * mfsLargerShare(inputs, currentStatus) - mfsLargerReturnDeduction(mfsSplitForYear, mfsReturnDeductions))
           : Math.max(0, finalOrdinaryIncome - finalDeduction) * mfsLargerShare(inputs, currentStatus),
-        rateStatus, taxBracketInflationFactor, inputs.tcjaSunsetEnabled),
+        rateStatus, fedTax, inputs.tcjaSunsetEnabled),
       shortfall,
       netChange,
       growthRate: returnRate,
@@ -13443,11 +13693,10 @@ function prevYearEndingField(years, field) {
 
 function getMarginalTaxRate(taxableIncome, status, inflationFactor = 1, useTcjaSunset = false) {
   if (taxableIncome <= 0) return 0;
-  const brackets = useTcjaSunset
-    ? bracketsFor(status, true)
-    : bracketsFor(status);
+  const brackets = bracketsFor(status, useTcjaSunset, federalTableOf(inflationFactor));
+  const factor = federalFactorOf(inflationFactor);
   for (let i = 0; i < brackets.length; i++) {
-    const limit = brackets[i].limit === Infinity ? Infinity : brackets[i].limit * inflationFactor;
+    const limit = brackets[i].limit === Infinity ? Infinity : brackets[i].limit * factor;
     if (taxableIncome <= limit) {
       return brackets[i].rate;
     }
@@ -15778,11 +16027,13 @@ export function computeAgeFinderResultsReal(rawInputs) {
 // stated income, which the user enters in today's dollars -- so both sides
 // of the stack sit in the same money as the inheritance.
 function getHeirBracketTax(taxableIncome, status, inflationFactor = 1) {
-  const brackets = bracketsFor(status);
+  // inflationFactor may be a federal tax context: the year's own table.
+  const brackets = bracketsFor(status, false, federalTableOf(inflationFactor));
+  const factor = federalFactorOf(inflationFactor);
   let tax = 0;
   let prevLimit = 0;
   for (const raw of brackets) {
-    const b = { limit: raw.limit === Infinity ? Infinity : raw.limit * inflationFactor, rate: raw.rate };
+    const b = { limit: raw.limit === Infinity ? Infinity : raw.limit * factor, rate: raw.rate };
     if (taxableIncome > prevLimit) {
       const capacity = b.limit - prevLimit;
       const filled = Math.min(capacity, taxableIncome - prevLimit);
@@ -16013,7 +16264,7 @@ function runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, strategy, gro
 // levy an inheritance tax (paid by each beneficiary, based on their own
 // bequest); Maryland levies both. Verified for 2026 against each
 // jurisdiction's own revenue department / statute (see src/config/sources.js
-// and TAX_UPDATE_PROCESS.md section 9), NOT against a secondary summary —
+// and TAX_UPDATE_PROCESS.md section 11), NOT against a secondary summary —
 // an earlier version of this table came from a single aggregated source and
 // had 6 of the 13 estate exemptions wrong.
 //
@@ -16207,7 +16458,10 @@ export const STATE_ESTATE_INHERITANCE_TAX_TABLE = {
   // spouse claim the first spouse's unused state exclusion; MN's 2025
   // portability bill (SF 30) was not enacted and WA expressly does not
   // recognize portability, so neither carries the flag.
-  CT: { estateExemption: 15000000, estateTopRate: 0.12, giftAddBack: 'all', indexed: true },
+  // CT's exemption IS the federal basic exclusion (CGS s 12-391), so the
+  // engine reads the estate year's federal table (followsFederalExclusion);
+  // estateExemption is the 2026 figure, used without a federal context.
+  CT: { estateExemption: 15000000, estateTopRate: 0.12, giftAddBack: 'all', indexed: true, followsFederalExclusion: true },
   HI: { estateExemption: 5490000, estateTopRate: 0.20, portability: true },
   // IL's $4,000,000 is "a taxable threshold and not a credit against tax"
   // (Illinois AG estate tax fact sheet): cross it and the s 2011 table
@@ -16559,8 +16813,15 @@ export function stateGrossEstateTax(stateCode, grossEstate, opts = {}) {
   // nobody has been granted. The rate schedules themselves -- the s 2011
   // credit table, NY s 952(b), MN's and OR's tables -- are frozen in
   // statute and are never indexed.
-  const indexFactor = table.indexed ? Math.max(1, opts.inflationFactor || 1) : 1;
-  const exemption = table.estateExemption * indexFactor * (table.portability && opts.married ? 2 : 1);
+  // A state whose exemption is the federal exclusion by statute (CT) reads
+  // the estate year's federal figure when the caller passes the context
+  // (opts.federalTax): the published exclusion, carried from its year.
+  const followsFederal = table.followsFederalExclusion && opts.federalTax !== undefined && opts.federalTax !== null;
+  const exemptionBase = followsFederal ? federalTableOf(opts.federalTax).estate.basicExclusion : table.estateExemption;
+  const indexFactor = followsFederal
+    ? Math.max(1, federalFactorOf(opts.federalTax) || 1)
+    : table.indexed ? Math.max(1, opts.inflationFactor || 1) : 1;
+  const exemption = exemptionBase * indexFactor * (table.portability && opts.married ? 2 : 1);
   let base = grossEstate;
   if (table.giftAddBack === 'all') base += Math.max(0, opts.lifetimeTaxableGifts || 0);
   else if (table.giftAddBack === 'threeYear') base += Math.max(0, opts.recentTaxableGifts || 0);
@@ -16716,7 +16977,7 @@ export function computeGiftingTotals(rawInputs) {
 //
 // Source: Rev. Proc. 2025-32 section 4.14 for the exemption, and the Form
 // 706-GS(T) instructions for the rate.
-export const GST_EXEMPTION_2026 = 15000000; // IRC 2631(c); same figure as the estate exclusion
+export const GST_EXEMPTION_2026 = FEDERAL_TAX_TABLES[2026].estate.gstExemption; // IRC 2631(c); same figure as the estate exclusion
 export const GST_RATE = 0.40;               // flat, equal to the top estate rate
 
 // CRITICAL asymmetry, and the reason this can't reuse the estate
@@ -16731,7 +16992,7 @@ export const GST_RATE = 0.40;               // flat, equal to the top estate rat
 // $15,000,000, understating the tax by up to $6,000,000.
 export const GST_EXEMPTION_IS_PORTABLE = false;
 
-export const FEDERAL_ESTATE_EXEMPTION_2026 = 15000000; // per person
+export const FEDERAL_ESTATE_EXEMPTION_2026 = FEDERAL_TAX_TABLES[2026].estate.basicExclusion; // per person
 export const FEDERAL_ESTATE_TOP_RATE = 0.40;
 
 // filingStatus is the DECEDENT'S (household's) filing status, not the
@@ -16764,14 +17025,27 @@ export const FEDERAL_ESTATE_TOP_RATE = 0.40;
 // (s 2010(c)(4)), so it is carried only to the year of that death, while
 // the survivor's own exclusion is indexed to the plan end. null (the
 // default) indexes both to the plan end, the behavior before this existed.
+// Either factor may be a federal tax context (federalTaxContext): the
+// exclusion is then that year's published figure, scaled from its year.
 export function calculateFederalEstateTax(grossEstate, filingStatus, heirShare, lifetimeTaxableGifts = 0, stateDeathTaxes = 0, inflationFactor = 1, dsueInflationFactor = null) {
   if (grossEstate <= 0 || heirShare <= 0) return 0;
   const married = filingStatus === 'MFJ' || filingStatus === 'MFS';
-  const ownFactor = Math.max(1, inflationFactor || 1);
-  const dsueFactor = dsueInflationFactor === null || dsueInflationFactor === undefined
-    ? ownFactor
-    : Math.max(1, Math.min(ownFactor, dsueInflationFactor || 1));
-  const fullExemption = FEDERAL_ESTATE_EXEMPTION_2026 * (ownFactor + (married ? dsueFactor : 0));
+  const ownBase = federalTableOf(inflationFactor).estate.basicExclusion;
+  const ownFactor = Math.max(1, federalFactorOf(inflationFactor) || 1);
+  const noDsue = dsueInflationFactor === null || dsueInflationFactor === undefined;
+  const dsueBase = noDsue ? ownBase : federalTableOf(dsueInflationFactor).estate.basicExclusion;
+  let fullExemption;
+  if (dsueBase === ownBase) {
+    const dsueFactor = noDsue
+      ? ownFactor
+      : Math.max(1, Math.min(ownFactor, federalFactorOf(dsueInflationFactor) || 1));
+    fullExemption = ownBase * (ownFactor + (married ? dsueFactor : 0));
+  } else {
+    // The two deaths read different years' tables: compare in dollars.
+    const own = ownBase * ownFactor;
+    const dsue = Math.max(dsueBase, Math.min(own, dsueBase * Math.max(1, federalFactorOf(dsueInflationFactor) || 1)));
+    fullExemption = own + (married ? dsue : 0);
+  }
   const exemption = Math.max(0, fullExemption - Math.max(0, lifetimeTaxableGifts));
   const taxableEstate = Math.max(0, grossEstate - Math.max(0, stateDeathTaxes || 0) - exemption);
   return taxableEstate * FEDERAL_ESTATE_TOP_RATE * heirShare;
@@ -17202,8 +17476,8 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
   // restores the old behavior of measuring a 2056 estate against 2026
   // thresholds, which is worth being able to see rather than argue about.
   const estateVintageYears = (Number(inputs.planYear) || TAX_YEAR) - TAX_YEAR;
-  const estateInflationFactor = (() => {
-    if (inputs.estateIndexingEnabled === false) return 1;
+  // Years from TAX_YEAR to the estate's year (the plan's last year).
+  const estateYearsFromTaxYear = (() => {
     const age1Start = inputs.planYear - inputs.birthYear1;
     const age2Start = inputs.planYear - inputs.birthYear2;
     const years = Math.max(
@@ -17213,10 +17487,27 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
         inputs.spouse2Enabled ? inputs.lifeExpectancy2 - age2Start : 0,
       ),
     );
+    return Math.max(0, years + estateVintageYears);
+  })();
+  const estateInflationFactor = (() => {
+    if (inputs.estateIndexingEnabled === false) return 1;
     // Changelog 419: the exemption is the TAX_YEAR's figure, so the years
     // of indexing run from that vintage, not from the plan's first year.
-    return Math.pow(1 + (inputs.taxBracketInflationRate || 0) / 100, Math.max(0, years + estateVintageYears));
+    return Math.pow(1 + (inputs.taxBracketInflationRate || 0) / 100, estateYearsFromTaxYear);
   })();
+  // The federal figures of the estate's year (the exclusion, the GST
+  // exemption, the heirs' brackets): that year's published table carried
+  // from its own year (FEDERAL_TAX_TABLES). With indexing off nothing is
+  // carried past a published year: the estate year reads the newest
+  // published table as published (a 2027+ death the $15,480,000 the law
+  // sets), which is all the switch can mean once later years are law.
+  const publishedAsIs = (year) => {
+    const tableYear = federalTaxTableYear(year);
+    return { year, tableYear, table: FEDERAL_TAX_TABLES[tableYear], factor: 1 };
+  };
+  const estateFederalTax = inputs.estateIndexingEnabled === false
+    ? publishedAsIs(TAX_YEAR + estateYearsFromTaxYear)
+    : federalTaxContextAtRate(TAX_YEAR + estateYearsFromTaxYear, inputs.taxBracketInflationRate || 0, estateInflationFactor);
   // Married for estate purposes whether the couple files jointly or
   // separately -- portability does not depend on filing status.
   const estateMarried = inputs.filingStatus === 'MFJ' || inputs.filingStatus === 'MFS';
@@ -17225,12 +17516,21 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
   // the earlier of the two spouses' last years on the same life-expectancy
   // axis the plan-end factor uses.
   const dsueInflationFactor = (() => {
-    if (inputs.estateIndexingEnabled === false || !estateMarried) return 1;
-    if (!inputs.spouse2Enabled) return estateInflationFactor; // no second life modeled
+    if (!estateMarried) return 1;
+    if (inputs.estateIndexingEnabled === false) {
+      if (!inputs.spouse2Enabled) return estateFederalTax;
+      const a1 = inputs.planYear - inputs.birthYear1;
+      const a2 = inputs.planYear - inputs.birthYear2;
+      const firstDeath = Math.max(0, Math.min(inputs.lifeExpectancy1 - a1, inputs.lifeExpectancy2 - a2));
+      return publishedAsIs(TAX_YEAR + Math.max(0, firstDeath + estateVintageYears));
+    }
+    if (!inputs.spouse2Enabled) return estateFederalTax; // no second life modeled
     const age1Start = inputs.planYear - inputs.birthYear1;
     const age2Start = inputs.planYear - inputs.birthYear2;
     const years = Math.max(0, Math.min(inputs.lifeExpectancy1 - age1Start, inputs.lifeExpectancy2 - age2Start));
-    return Math.pow(1 + (inputs.taxBracketInflationRate || 0) / 100, Math.max(0, years + estateVintageYears));
+    const fromTaxYear = Math.max(0, years + estateVintageYears);
+    const factor = Math.pow(1 + (inputs.taxBracketInflationRate || 0) / 100, fromTaxYear);
+    return federalTaxContextAtRate(TAX_YEAR + fromTaxYear, inputs.taxBracketInflationRate || 0, factor);
   })();
 
   const skipShareOfEstate = rawHeirs.reduce((sum, h) => {
@@ -17241,7 +17541,7 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
   const skipEstateValue = totalGrossEstate * skipShareOfEstate;
   // IRC s 2631(c) sets the GST exemption equal to the estate basic
   // exclusion amount, so it is indexed on exactly the same schedule.
-  const gstExemptionAvailable = GST_EXEMPTION_2026 * estateInflationFactor;
+  const gstExemptionAvailable = federalTableOf(estateFederalTax).estate.gstExemption * federalFactorOf(estateFederalTax);
   const gstTaxableTotal = Math.max(0, skipEstateValue - gstExemptionAvailable);
   const totalGstTax = gstTaxableTotal * GST_RATE;
 
@@ -17267,6 +17567,8 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
     return {
       married: estateMarried, lifetimeTaxableGifts, recentTaxableGifts,
       inflationFactor: estateInflationFactor,
+      // Connecticut's exemption is the federal exclusion of the same year.
+      federalTax: estateFederalTax,
       // How much of totalGrossEstate is life-insurance money. The five
       // inheritance-tax states exempt insurance paid to a named
       // beneficiary, which is what every heir here is (audit Q-18(c)).
@@ -17309,7 +17611,7 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
     // year one, stacked on their own income at their own filing status.
     const heirHsa = maxHsa * normalizedShare;
     const hsaHeirTax = heirHsa > 0
-      ? Math.max(0, getHeirBracketTax(heirIncome + heirHsa, status, estateInflationFactor) - getHeirBracketTax(heirIncome, status, estateInflationFactor))
+      ? Math.max(0, getHeirBracketTax(heirIncome + heirHsa, status, estateFederalTax) - getHeirBracketTax(heirIncome, status, estateFederalTax))
       : 0;
     // s 2033 assets outside the buckets (changelog 133). Cash, the stock
     // position and home equity pass with a s 1014 basis step-up, so they
@@ -17328,7 +17630,7 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
     // Stacked ABOVE the HSA so the two IRD items don't each price
     // themselves from the bottom bracket and understate the pair.
     const nqdcHeirTax = heirNqdc > 0
-      ? Math.max(0, getHeirBracketTax(heirIncome + heirHsa + heirNqdc, status, estateInflationFactor) - getHeirBracketTax(heirIncome + heirHsa, status, estateInflationFactor))
+      ? Math.max(0, getHeirBracketTax(heirIncome + heirHsa + heirNqdc, status, estateFederalTax) - getHeirBracketTax(heirIncome + heirHsa, status, estateFederalTax))
       : 0;
 
     // Real-world detail: with multiple heirs, the SECURE Act 10-Year Rule
@@ -17346,7 +17648,7 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
     // required beginning date -- annual RMDs are mandatory in years 1-9
     // (audit Q-21). Swap it for the RMD schedule and say so in the result.
     const heirStrategy = (heirStrategyChosen === 'lump_sum_end' && inheritanceCtx.decedentPastRbd) ? 'rmd_10' : heirStrategyChosen;
-    const { totalHeirTax, annualWithdrawals, totalWithdrawn } = runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, heirStrategy, growthRate, inheritanceCtx, estateInflationFactor, heirHsa + heirNqdc);
+    const { totalHeirTax, annualWithdrawals, totalWithdrawn } = runHeirWithdrawalSchedule(heirPreTax, heirIncome, status, heirStrategy, growthRate, inheritanceCtx, estateFederalTax, heirHsa + heirNqdc);
     // The heir's own state's income tax on the same withdrawals (changelog
     // 263) -- keyed to where the HEIR lives, unlike every death tax below.
     const { stateIncomeTax: heirStateTax, stateCode: heirStateCode } = heirStateIncomeTax(
@@ -17362,7 +17664,7 @@ export function calculateHeirEstateTax(rawInputs, endingPreTax, endingRoth, endi
     const stateEstateTax = calculateStateEstateInheritanceTax(stateCode, totalGrossEstate, normalizedShare, relationship, stateOpts);
     // Federal taxable estate is reduced by the state death taxes paid
     // (IRC 2058) before the exemption applies -- see calculateFederalEstateTax.
-    const federalEstateTax = calculateFederalEstateTax(totalGrossEstate, estateFilingStatus, normalizedShare, lifetimeTaxableGifts, totalStateDeathTaxes, estateInflationFactor, estateMarried ? dsueInflationFactor : null);
+    const federalEstateTax = calculateFederalEstateTax(totalGrossEstate, estateFilingStatus, normalizedShare, lifetimeTaxableGifts, totalStateDeathTaxes, estateFederalTax, estateMarried ? dsueInflationFactor : null);
     // Life insurance proceeds split proportionally like the other assets --
     // always reach the heir tax-free at the federal level regardless of
     // ownership; stateEstateTax/federalEstateTax above already reflect

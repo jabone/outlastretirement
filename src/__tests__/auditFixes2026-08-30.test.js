@@ -136,8 +136,11 @@ describe('F-4: IRC 2058 state death tax deduction', () => {
     );
     const ct = mk('CT');
     const tx = mk('TX');
-    expect(ct.totalStateEstateTax).toBeCloseTo(2400000, 0);
-    expect(tx.totalFederalEstateTax - ct.totalFederalEstateTax).toBeCloseTo(2400000 * 0.40, 0);
+    // Connecticut's exemption is the federal exclusion of the estate's year:
+    // with indexing off, the published $15,480,000 (2027 on), so 12% of
+    // $19,520,000.
+    expect(ct.totalStateEstateTax).toBeCloseTo(2342400, 0);
+    expect(tx.totalFederalEstateTax - ct.totalFederalEstateTax).toBeCloseTo(2342400 * 0.40, 0);
   });
 });
 

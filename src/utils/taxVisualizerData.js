@@ -3,10 +3,9 @@
 // (utils/displayDollars.js). Lifted out of App.jsx so it can be tested
 // against the engine's own figures.
 import {
-  BRACKETS_MFJ,
-  BRACKETS_MFS,
-  BRACKETS_SINGLE,
-  BRACKETS_HOH,
+  TAX_YEAR,
+  FEDERAL_TAX_TABLES,
+  bracketsFor,
   irmaaScaledThresholds,
   irmaaTopTierFactor,
 } from '../calculator';
@@ -17,19 +16,23 @@ import { yearFactor } from './displayDollars';
 // compressed per-return schedule, living apart the single one.
 export function buildTaxVisualizerData(years, useRealDollars, { mfsLivedWithSpouse = true } = {}) {
   if (!Array.isArray(years)) return [];
-  const startYear = years.length ? years[0].year : 0;
   return years.map(y => {
     const st = y.bracketStatus || y.householdStatus;
     const status = st === 'MFJ' || st === 'MFS' || st === 'HOH' ? st : 'Single';
-    const brackets = status === 'MFJ' ? BRACKETS_MFJ : status === 'MFS' ? BRACKETS_MFS : status === 'HOH' ? BRACKETS_HOH : BRACKETS_SINGLE;
+    // The year's own federal table (the row says which one it read) and
+    // the factor that carried it to this year. A row from before the tables
+    // were keyed by year reads the TAX_YEAR table and its bracket factor.
+    const table = FEDERAL_TAX_TABLES[y.federalTaxYear] || FEDERAL_TAX_TABLES[TAX_YEAR];
+    const brackets = bracketsFor(status, false, table);
     const inf = y.taxBracketInflationFactor || 1;
+    const fedFactor = FEDERAL_TAX_TABLES[y.federalTaxYear] && Number.isFinite(y.federalTaxFactor) ? y.federalTaxFactor : inf;
     // The IRMAA thresholds calculateIRMAA() priced this year with: the
     // year's own threshold factor (1 when frozen), the statutory top-tier
     // freeze, and the MFS schedule for a separate return. A tier the
     // schedule does not have (MFS living together has two) is null, so no
     // line is drawn and no comparison can land on it.
     const irmaaFactor = y.irmaaThresholdFactor ?? inf;
-    const topFactor = irmaaFactor === 1 ? 1 : irmaaTopTierFactor(y.year, irmaaFactor, startYear);
+    const topFactor = irmaaFactor === 1 ? 1 : irmaaTopTierFactor(y.year, irmaaFactor, TAX_YEAR);
     const irmaaLines = irmaaScaledThresholds(status, mfsLivedWithSpouse, irmaaFactor, topFactor)
       .map((t) => (Number.isFinite(t) ? t / (useRealDollars ? yearFactor(y) : 1) : null));
     // The rows are already in the display basis (today's or future
@@ -151,12 +154,12 @@ export function buildTaxVisualizerData(years, useRealDollars, { mfsLivedWithSpou
       // shared BRACKETS_MFJ/BRACKETS_SINGLE constants in calculator.js
       // rather than a second hardcoded copy — that duplication caused
       // real drift bugs earlier (see #15 in the project's fix history).
-      limit10: stdDeduction + brackets[0].limit * inf / shown,
-      limit12: stdDeduction + brackets[1].limit * inf / shown,
-      limit22: stdDeduction + brackets[2].limit * inf / shown,
-      limit24: stdDeduction + brackets[3].limit * inf / shown,
-      limit32: stdDeduction + brackets[4].limit * inf / shown,
-      limit35: stdDeduction + brackets[5].limit * inf / shown,
+      limit10: stdDeduction + brackets[0].limit * fedFactor / shown,
+      limit12: stdDeduction + brackets[1].limit * fedFactor / shown,
+      limit22: stdDeduction + brackets[2].limit * fedFactor / shown,
+      limit24: stdDeduction + brackets[3].limit * fedFactor / shown,
+      limit32: stdDeduction + brackets[4].limit * fedFactor / shown,
+      limit35: stdDeduction + brackets[5].limit * fedFactor / shown,
 
       // The factor the limits above were built with. Published so nothing
       // downstream has to reverse-derive it out of limit10 against a
@@ -164,10 +167,14 @@ export function buildTaxVisualizerData(years, useRealDollars, { mfsLivedWithSpou
       // panel did until changelog 176, using constants (24800 / 12400)
       // that no longer matched the deduction in use.
       taxBracketInflationFactor: inf,
-      // The scale the drawn lines use: the bracket inflation over the display
-      // divisor. The Filing Detail's bracket bars fill against this so they
-      // match the lines and the (converted) taxable income.
-      bracketScale: inf / shown,
+      // The federal table the lines are drawn from (with bracketScale, what
+      // the Filing Detail's bars are drawn against).
+      federalTaxYear: FEDERAL_TAX_TABLES[y.federalTaxYear] ? y.federalTaxYear : TAX_YEAR,
+      // The scale the drawn lines use: the factor from the year's federal
+      // table over the display divisor. The Filing Detail's bracket bars
+      // fill against this so they match the lines and the (converted)
+      // taxable income.
+      bracketScale: fedFactor / shown,
 
       // IRMAA thresholds, in the same dollars as the bars (see irmaaLines
       // above). For a separate (MFS) return they are per return: each

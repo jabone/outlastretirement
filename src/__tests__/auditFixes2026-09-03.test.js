@@ -13,6 +13,7 @@ import {
   effectiveMfsSplitPct, MFS_DEFAULT_INCOME_SPLIT_PCT,
   NY_ESTATE_SCHEDULE, MN_ESTATE_SCHEDULE, OR_ESTATE_SCHEDULE,
   STATE_ESTATE_INHERITANCE_TAX_TABLE, GST_EXEMPTION_2026, FEDERAL_ESTATE_EXEMPTION_2026,
+  FEDERAL_TAX_TABLES, FEDERAL_TAX_LATEST_TABLE_YEAR, federalTaxContextAtRate,
 } from '../calculator';
 // The reference household (the pre-467 default plan): see referenceHousehold.js.
 import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
@@ -206,11 +207,30 @@ describe('Q-13: a nominal estate is measured against thresholds carried to the s
   });
 
   it('a zero inflation rate leaves everything exactly where it was', () => {
+    // At 0% nothing is carried forward, and with indexing off the estate
+    // still reads the newest published exclusion as published, so the two
+    // agree: both measure against the estate year's published table.
     const flat = { taxBracketInflationRate: 0 };
     const a = bigEstate(flat);
     const b = bigEstate({ ...flat, estateIndexingEnabled: false });
     expect(a.totalFederalEstateTax).toBeCloseTo(b.totalFederalEstateTax, 6);
     expect(a.netInherited).toBeCloseTo(b.netInherited, 6);
+  });
+
+  it('with indexing off a 2027+ death uses the published 2027 exclusion, uncarried', () => {
+    const off = bigEstate({ estateIndexingEnabled: false });
+    const latest = FEDERAL_TAX_TABLES[FEDERAL_TAX_LATEST_TABLE_YEAR].estate.basicExclusion;
+    expect(off.totalFederalEstateTax).toBeCloseTo((20000000 - latest) * 0.40, 2);
+  });
+
+  it('Connecticut\'s exemption is the federal exclusion of the same year ($15,480,000 in 2027)', () => {
+    const fed2027 = federalTaxContextAtRate(2027, 2.5, 1.025);
+    const estate = FEDERAL_TAX_TABLES[2027].estate.basicExclusion + 1000000;
+    expect(FEDERAL_TAX_TABLES[2027].estate.basicExclusion).toBe(15480000);
+    const withFederal = stateGrossEstateTax('CT', estate, { federalTax: fed2027, inflationFactor: 1.025 });
+    // 12% on the $1,000,000 over the federal figure, not over $15,375,000.
+    expect(withFederal).toBeCloseTo(120000, 2);
+    expect(stateGrossEstateTax('CT', estate, { inflationFactor: 1.025 })).toBeCloseTo((estate - 15375000) * 0.12, 2);
   });
 });
 
@@ -257,7 +277,7 @@ describe('Q-10(b): a concentrated-stock sale is taxed by the real engine', () =>
   it('leaves a plan with no concentrated position completely untouched', () => {
     const off = runProjection(DEFAULT_INPUTS).years;
     expect(off[0].concentratedStockDiversificationTax).toBe(0);
-    expect(off.at(-1).totalPortfolioEnding).toBeCloseTo(36762.2363, 4);
+    expect(off.at(-1).totalPortfolioEnding).toBeCloseTo(37633.6111, 4);
   });
 });
 

@@ -62,7 +62,7 @@ export const HOW_FIGURED_GROUPS = [
 // here, so the December update cannot refresh a card and leave the table
 // behind.
 export const FIGURE_VINTAGES = [
-  { area: 'Federal income tax', year: TAX_YEAR, note: 'The IRS figures for the current tax year; later years grow them by your Tax Bracket Inflation Rate.' },
+  { area: 'Federal income tax', year: TAX_YEAR, note: 'The IRS figures for each tax year it has published (the current year and, once out, the next); years after the newest grow from it by your Tax Bracket Inflation Rate.' },
   { area: 'Social Security', year: TAX_YEAR, note: 'The wage base, the earnings-test amounts and the announced increase; the benefit formula is set in law.' },
   { area: 'Medicare and health coverage', year: TAX_YEAR, note: 'Part B and Part D premiums, the income-surcharge tiers and the poverty line behind the marketplace credit.' },
   { area: 'Retirement accounts', year: TAX_YEAR, note: 'Contribution and catch-up limits, the HSA limits and the charitable-distribution limit.' },
@@ -87,7 +87,7 @@ export const HOW_FIGURED_RULES = [
     id: 'standard-deduction',
     title: 'Standard deduction and the extra amount at 65',
     group: 'Federal income tax',
-    summary: `The app takes the standard deduction every year: ${usd(DEDUCTION_MFJ)} on a joint return and ${usd(DEDUCTION_SINGLE)} for a single or separate filer. Each person 65 or older adds ${usd(ADDITIONAL_DEDUCTION_AGED_MARRIED_2026)} on a married return or ${usd(ADDITIONAL_DEDUCTION_AGED_SINGLE_2026)} on a single one. Both amounts grow each year with your Tax Bracket Inflation Rate.`,
+    summary: `The app takes the standard deduction every year: ${usd(DEDUCTION_MFJ)} on a joint return and ${usd(DEDUCTION_SINGLE)} for a single or separate filer. Each person 65 or older adds ${usd(ADDITIONAL_DEDUCTION_AGED_MARRIED_2026)} on a married return or ${usd(ADDITIONAL_DEDUCTION_AGED_SINGLE_2026)} on a single one. Those are the ${TAX_YEAR} figures. A later year the IRS has already published uses its published amounts; years after the newest published one grow from it with your Tax Bracket Inflation Rate.`,
     figuresYear: TAX_YEAR,
     simplifies: 'Itemized deductions (mortgage interest, state and local taxes, gifts to charity, medical costs) and the extra amount for blindness are not modeled. A surviving spouse files a joint return for the year of the death and as single after it, or for two more years as a qualifying surviving spouse when you enter the last year a child is your dependent.',
     sources: ['tax-tables'],
@@ -310,7 +310,7 @@ export const HOW_FIGURED_RULES = [
     id: 'federal-estate',
     title: 'Federal estate tax and portability',
     group: 'Estate and inheritance',
-    summary: `The estate is valued once, at the end of the plan: your accounts, home equity, other property and life insurance you own. Federal estate tax is 40% of what exceeds the exemption, ${usd(FEDERAL_ESTATE_EXEMPTION_2026)} per person, grown each year by your Tax Bracket Inflation Rate unless you turn that off. A married couple gets two exemptions, on the assumption that the first spouse's estate elects portability; lifetime gifts above the annual exclusion use up part of it, and state estate tax paid is deducted first.`,
+    summary: `The estate is valued once, at the end of the plan: your accounts, home equity, other property and life insurance you own. Federal estate tax is 40% of what exceeds the exemption, ${usd(FEDERAL_ESTATE_EXEMPTION_2026)} per person in ${TAX_YEAR}. A later year the IRS has already published uses its published exemption, and years after the newest published one grow from it with your Tax Bracket Inflation Rate unless you turn that off. A married couple gets two exemptions, on the assumption that the first spouse's estate elects portability; lifetime gifts above the annual exclusion use up part of it, and state estate tax paid is deducted first.`,
     figuresYear: TAX_YEAR,
     simplifies: 'Only the second death is modeled; trusts, marital-deduction planning, probate costs and debts are not, and an annuity you bought is left out of the estate.',
     sources: ['estate-tax', 'estate-portability'],

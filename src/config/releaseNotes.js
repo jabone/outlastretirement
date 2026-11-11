@@ -24,8 +24,10 @@ export const RELEASE_NOTES_WEEKS = 6;
 export const RELEASE_WEEKS = [
   {
     weekOf: '2026-11-09',
-    headline: 'No more analytics, and privacy wording that matches the code',
+    headline: 'The IRS\u2019s 2027 tax figures, and no more analytics',
     bullets: [
+      { title: 'The IRS\u2019s 2027 tax figures, used from 2027 on', ids: [506],
+        text: 'From 2027 your plan uses the brackets, standard deduction, capital-gains bands, AMT amounts and estate exclusion the IRS published for 2027, instead of 2026 figures grown by inflation; later years grow from those. Most plans pay slightly less federal tax. Medicare and retirement-account limits for 2027 follow when they are published.' },
       { title: 'No more analytics, and privacy wording that matches the code', ids: [505],
         text: 'The optional usage analytics are gone: the app no longer counts visits or tabs at all. An independent check also found places where the privacy page, the Verify page and the app said less than the code does; they now say exactly what Premium sends, what Live Pricing sends, what works offline and what a backup holds, and our pages send no referring address to other sites.' },
     ],

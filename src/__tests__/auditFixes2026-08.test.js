@@ -276,7 +276,8 @@ describe('2.5 Age-65+ additional standard deduction (IRC 63(f)) and the OBBBA se
     expect(at64.seniorCount).toBe(0);
     expect(at64.stdDeduction).toBeCloseTo(16100, 0);
     expect(at65.seniorCount).toBe(1);
-    expect(at65.stdDeduction).toBeCloseTo(16100 + 2050 + 6000, 0); // 2027, bonus still live
+    // 2027, bonus still live, on the published 2027 figures (Rev. Proc. 2026-35).
+    expect(at65.stdDeduction).toBeCloseTo(16600 + 2100 + 6000, 0);
   });
 
   it('the OBBBA bonus disappears in 2029 while the 63(f) add-on stays', () => {
@@ -285,7 +286,7 @@ describe('2.5 Age-65+ additional standard deduction (IRC 63(f)) and the OBBBA se
     const y2029 = proj.years.find(y => y.year === 2029);
     expect(y2028.seniorBonusDeduction).toBeCloseTo(6000, 0);
     expect(y2029.seniorBonusDeduction).toBe(0);
-    expect(y2029.stdDeduction).toBeCloseTo(16100 + 2050, 0);
+    expect(y2029.stdDeduction).toBeCloseTo(16600 + 2100, 0); // the 2027 table, no further indexing at 0%
   });
 
   it('a joint return counts both spouses and phases the bonus out against household MAGI', () => {

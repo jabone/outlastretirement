@@ -29,6 +29,18 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 506,
+    date: '2026-11-11',
+    title: 'The IRS\u2019s 2027 tax figures, used from 2027 on',
+    summary: 'Your plan now uses the IRS\u2019s published 2027 brackets, deductions and capital-gains bands for 2027 and later years, instead of 2026 figures grown by inflation. Your numbers may change a little.',
+    items: [
+      "**What changed.** The app keeps one set of federal tax figures per year. 2026 stays as it was. From 2027 it uses the figures the IRS published on November 5: brackets for every filing status, the standard deduction and the extra amount at 65, the 0% and 15% capital-gains bands, the AMT amounts and the estate exclusion. Years after 2027 grow from the 2027 figures by your plan\u2019s inflation rate.",
+      "**How much.** The IRS raised most 2027 figures about 3%, a little more than the 2.5% the app had assumed, so most plans pay slightly less federal tax. For the Parkers demo it is about $540 less over their whole retirement, in today\u2019s dollars.",
+      "**Still estimated.** Medicare premiums and surcharge thresholds, 401(k) and IRA limits and the IRA-to-charity limit for 2027 are not published yet. Until they are, those keep growing from 2026, as before.",
+      "**Fixed.** The highest Medicare surcharge tier was set too high in some years for a plan that starts after 2026. Connecticut\u2019s estate exemption now follows the federal one each year, as its law says, and Arizona uses the 2027 amount at 65.",
+    ],
+  },
+  {
     id: 505,
     date: '2026-11-11',
     title: 'No more analytics, and privacy wording that matches the code',

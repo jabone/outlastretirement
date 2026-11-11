@@ -113,7 +113,7 @@ describe('E6 MFS: state tax per return', () => {
 });
 
 describe('E10 the surviving spouse keeps their own 65+ deduction', () => {
-  it('Spouse 1 dies first; Spouse 2 (67, Single) gets $2,050 + the senior bonus', () => {
+  it('Spouse 1 dies first; Spouse 2 (67, Single) gets the unmarried 65+ amount + the senior bonus', () => {
     // Spouse 1 (70 in 2026) lives through 2026; 2027 is the first survivor
     // year. (A life expectancy below today's age is run as today's age,
     // E28, so "already died" cannot be written as 69 at 70 any more.)
@@ -122,7 +122,8 @@ describe('E10 the surviving spouse keeps their own 65+ deduction', () => {
     const y = p.years.find((r) => r.year === 2027);
     expect(y.householdStatus).toBe('Single');
     expect(y.seniorCount).toBe(1);
-    expect(y.stdDeduction).toBeCloseTo(16100 + 2050 + 6000, 0);
+    // 2027 reads the published 2027 table: $16,600 + $2,100 (Rev. Proc. 2026-35).
+    expect(y.stdDeduction).toBeCloseTo(16600 + 2100 + 6000, 0);
   });
 });
 

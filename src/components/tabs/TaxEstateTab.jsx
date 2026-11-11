@@ -3,7 +3,7 @@ import EstateChecklist from '../EstateChecklist';
 import SurvivorGuidePanel from '../SurvivorGuidePanel';
 import EstateHeirsSection from '../plan/sections/EstateHeirsSection';
 import { useSimulation } from '../../context/useSimulation';
-import { getBracketFilling, STATE_ESTATE_INHERITANCE_TAX_TABLE } from '../../calculator';
+import { getBracketFilling, STATE_ESTATE_INHERITANCE_TAX_TABLE, FEDERAL_TAX_TABLES, TAX_YEAR } from '../../calculator';
 import { HEIR_STRATEGY_LABELS } from '../../config/heirStrategyLabels';
 import { TAX_INCOME_SERIES } from '../../config/taxIncomeSeries';
 import { BarChart2, Heart, Loader2, Calendar, TrendingUp, FileText, AlertTriangle, Lightbulb } from 'lucide-react';
@@ -280,10 +280,12 @@ const TaxEstateTab = () => {
                 // (limit10 - stdDeduction) / (24800 or 12400) -- hardcoded
                 // constants that no longer matched the standard deduction in
                 // use, so every bar was drawn against a slightly wrong scale.
+                // The bars read the same year's federal table the lines were
+                // drawn from (federalTaxYear), at the same scale.
                 const taxBrackets = getBracketFilling(
                   yearData.ordinaryTaxableIncome,
                   yearData.bracketStatus || yearData.householdStatus,
-                  yearData.bracketScale || yearData.taxBracketInflationFactor || 1,
+                  { table: FEDERAL_TAX_TABLES[yearData.federalTaxYear] || FEDERAL_TAX_TABLES[TAX_YEAR], factor: yearData.bracketScale || (FEDERAL_TAX_TABLES[yearData.federalTaxYear] ? yearData.federalTaxFactor : yearData.taxBracketInflationFactor) || 1 },
                   // The repeal stress toggle changes the rates the engine
                   // charges, so the bars must be drawn from the same
                   // schedule or their labels and per-bar tax are wrong.
@@ -787,7 +789,7 @@ const TaxEstateTab = () => {
                     marginal rate anyway). */}
                 <div style={{ marginTop: '12px', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: heirTaxResults.totalFederalEstateTax > 0 ? 'rgba(239,68,68,0.02)' : 'rgba(255,255,255,0.02)' }}>
                   <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
-                    <Tooltip text="Federal estate tax under 2026 law: a $15,000,000 per-person exemption ($30,000,000 married with portability) and a flat 40% above it. State estate and inheritance tax paid is deducted before the federal tax is figured." more="Federal Estate Tax">
+                    <Tooltip text="Federal estate tax: 40% above the year's per-person exemption (published by the IRS, grown from the newest after that; doubled for a couple with portability), after state estate and inheritance tax paid." more="Federal Estate Tax">
                       Federal Estate Tax
                     </Tooltip>
                   </div>

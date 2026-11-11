@@ -933,7 +933,7 @@ describe('calculator.js core logic', () => {
     it('is inert with the flag off, and inert without a ledger', () => {
       // Branches on DATA, never entitlement -- so nothing changes for a plan
       // that has not opted in, and GOLDEN is the guard.
-      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(37633.6111, 2);
       const noLedger = { ...DEFAULT_INPUTS, ...solvent, ...crashAtRetirement };
       expect(runProjection({ ...noLedger, floorAwareGuardrailsEnabled: true }).endingBalance)
         .toBeCloseTo(runProjection(noLedger).endingBalance, 6);
@@ -985,7 +985,7 @@ describe('calculator.js core logic', () => {
       const led = runProjection(withLedger(ledgerOf(14400, 0, 33600), { housingExpensePct: 30 }));
       const classic = runProjection({ ...DEFAULT_INPUTS, housingExpensePct: 30 });
       expect(led.endingBalance).toBeCloseTo(classic.endingBalance, 6);
-      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(37633.6111, 2);
     });
 
     it('compounds the health slice at medicalInflationRate', () => {
@@ -1149,9 +1149,9 @@ describe('calculator.js core logic', () => {
     it('leaves the engine completely alone', () => {
       // The ledger sums at edit time; calculator.js only ever reads the
       // annual lifestyleExpense total, exactly as with monthly mode.
-      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(37633.6111, 2);
       const withLedger = runProjection({ ...DEFAULT_INPUTS, spendingBlueprint: ledger() });
-      expect(withLedger.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(withLedger.endingBalance).toBeCloseTo(37633.6111, 2);
     });
   });
 
@@ -1283,7 +1283,7 @@ describe('calculator.js core logic', () => {
       const r = computeSpendingBridge(DEFAULT_INPUTS, 53084.5);
       expect(r.steps.filter((st) => st.direction !== 'start' && st.amount > 0).map((st) => st.id))
         .toEqual(currentDebtService(DEFAULT_INPUTS) > 0 ? ['mortgage'] : []);
-      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(37633.6111, 2);
     });
   });
 
@@ -1350,7 +1350,7 @@ describe('calculator.js core logic', () => {
 
     it('changes nothing about the projection itself', () => {
       // Pure reporting: the GOLDEN regression value is the guard.
-      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(runProjection(DEFAULT_INPUTS).endingBalance).toBeCloseTo(37633.6111, 2);
     });
   });
 
@@ -2421,7 +2421,7 @@ describe('calculator.js core logic', () => {
       // with the announced wage base and earnings-test amounts) lifted the
       // default couple's benefits for every later year and lands at
       // 131,290.75.
-      expect(proj.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(proj.endingBalance).toBeCloseTo(37633.6111, 2);
     });
   });
 
@@ -2438,7 +2438,7 @@ describe('calculator.js core logic', () => {
     // source it was verified against, so an edit to the table that isn't also
     // an edit to a citation here is a red flag in review. It is NOT a
     // substitute for re-verifying against the actual source each January —
-    // see TAX_UPDATE_PROCESS.md section 9.
+    // see TAX_UPDATE_PROCESS.md section 11.
     it('pins each estate-tax jurisdiction to its verified 2026 exemption and top rate', () => {
       const T = STATE_ESTATE_INHERITANCE_TAX_TABLE;
       // Indexed annually — these five WILL change every January.
@@ -2742,7 +2742,7 @@ describe('calculator.js core logic', () => {
       // claimingAge1/2's existing Full Retirement Age default) and
       // preTaxContribution1 (6000->7000, still inside the 10-15%
       // recommended savings-rate band) were bumped to restore solvency.
-      expect(proj.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(proj.endingBalance).toBeCloseTo(37633.6111, 2);
       expect(proj.years.every(y => y.nuaOrdinaryIncome === 0)).toBe(true);
     });
 
@@ -2810,7 +2810,7 @@ describe('calculator.js core logic', () => {
       // claimingAge1/2's existing Full Retirement Age default) and
       // preTaxContribution1 (6000->7000, still inside the 10-15%
       // recommended savings-rate band) were bumped to restore solvency.
-      expect(proj.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(proj.endingBalance).toBeCloseTo(37633.6111, 2);
       expect(proj.years.every(y => y.mortgageBalance === 0 && y.otherDebtBalance === 0)).toBe(true);
     });
 
@@ -3025,7 +3025,7 @@ describe('calculator.js core logic', () => {
       // Golden regression value for DEFAULT_INPUTS' (solvent) ending
       // balance -- see the comment on the identical assertion in the
       // Multi-heir estate splitting describe block above for the history.
-      expect(off.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(off.endingBalance).toBeCloseTo(37633.6111, 2);
       expect(off.years.every(y => y.homeValue === 0 && y.reverseMortgageBalance === 0)).toBe(true);
     });
 
@@ -3096,7 +3096,7 @@ describe('calculator.js core logic', () => {
       // Golden regression value for DEFAULT_INPUTS' (solvent) ending
       // balance -- see the comment on the identical assertion in the
       // Multi-heir estate splitting describe block above for the history.
-      expect(off.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(off.endingBalance).toBeCloseTo(37633.6111, 2);
       expect(off.years.every(y => y.lifeInsuranceCashValue === 0 && y.lifeInsuranceNetDeathBenefit === 0)).toBe(true);
     });
 
@@ -3244,7 +3244,7 @@ describe('calculator.js core logic', () => {
       // Golden regression value for DEFAULT_INPUTS' (solvent) ending
       // balance -- see the comment on the identical assertion in the
       // Multi-heir estate splitting describe block above for the history.
-      expect(off.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(off.endingBalance).toBeCloseTo(37633.6111, 2);
       expect(off.years.every(y => y.preTaxBasis === 0 && y.backdoorRothContribution === 0)).toBe(true);
     });
 
@@ -3524,7 +3524,7 @@ describe('calculator.js core logic', () => {
       // Golden regression value for DEFAULT_INPUTS' (solvent) ending
       // balance -- see the comment on the identical assertion in the
       // Multi-heir estate splitting describe block above for the history.
-      expect(off.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(off.endingBalance).toBeCloseTo(37633.6111, 2);
     });
 
     it('401k mode uses the age-based elective deferral limit instead of the manual amount', () => {
@@ -3702,7 +3702,7 @@ describe('calculator.js core logic', () => {
       // Golden regression value for DEFAULT_INPUTS' (solvent) ending
       // balance -- see the comment on the identical assertion in the
       // Multi-heir estate splitting describe block above for the history.
-      expect(off.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(off.endingBalance).toBeCloseTo(37633.6111, 2);
       expect(off.years.every(y => y.lossCarryforward === 0 && y.taxLossHarvestedThisYear === 0)).toBe(true);
     });
 
@@ -4336,7 +4336,7 @@ describe('calculator.js core logic', () => {
   describe('Concentrated Stock Position (runProjection)', () => {
     it('has no effect on any existing plan when disabled (fully backward compatible)', () => {
       const proj = runProjection(DEFAULT_INPUTS);
-      expect(proj.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(proj.endingBalance).toBeCloseTo(37633.6111, 2);
       proj.years.forEach(y => {
         expect(y.concentratedStockBalance).toBe(0);
         expect(y.concentratedStockDiversified).toBe(0);
@@ -4746,7 +4746,7 @@ describe('calculator.js core logic', () => {
 
     it('has no effect on any existing plan when disabled (fully backward compatible)', () => {
       const proj = runProjection(DEFAULT_INPUTS);
-      expect(proj.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(proj.endingBalance).toBeCloseTo(37633.6111, 2);
       proj.years.forEach(y => {
         expect(y.cashReserveBalance).toBe(0);
         expect(y.cashReserveDraw).toBe(0);
@@ -5075,7 +5075,7 @@ describe('calculator.js core logic', () => {
   describe('Non-Qualified Deferred Compensation (NQDC) (runProjection)', () => {
     it('has no effect on any existing plan when disabled (fully backward compatible)', () => {
       const proj = runProjection(DEFAULT_INPUTS);
-      expect(proj.endingBalance).toBeCloseTo(36762.2363, 2);
+      expect(proj.endingBalance).toBeCloseTo(37633.6111, 2);
       proj.years.forEach(y => {
         expect(y.nqdcBalance1).toBe(0);
         expect(y.nqdcBalance2).toBe(0);
@@ -5986,8 +5986,10 @@ describe('calculator.js core logic', () => {
     });
 
     it('charges 40% on the skip share above the exemption', () => {
-      // $28,000,000 estate, all to a grandchild, $15,000,000 sheltered.
-      expect(skipEstate().totalGenerationSkippingTax).toBeCloseTo((28000000 - 15000000) * 0.40, 2);
+      // $28,000,000 estate, all to a grandchild. With indexing off the plan's
+      // final year reads the newest published exemption as published
+      // ($15,480,000 for 2027 and later, Rev. Proc. 2026-35).
+      expect(skipEstate().totalGenerationSkippingTax).toBeCloseTo((28000000 - 15480000) * 0.40, 2);
     });
 
     it('charges nothing for a non-skip heir, however large the estate', () => {

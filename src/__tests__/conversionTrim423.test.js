@@ -4,7 +4,7 @@
 // bracket the conversion had already filled and overshot the target by the
 // whole draw.
 import { describe, it, expect } from 'vitest';
-import { runProjection, getTaxBracketLimit, calculateTaxes } from '../calculator';
+import { runProjection, getTaxBracketLimit, calculateTaxes, federalTaxContextOfRow } from '../calculator';
 // The reference household (the pre-469 default plan): see referenceHousehold.js.
 import { REFERENCE_INPUTS as DEFAULT_INPUTS } from './referenceHousehold';
 
@@ -17,7 +17,8 @@ const base = {
   acaCreditSource: 'manual', itemizeDeductions: 'never', taxableQualifiedDividendFollowsAllocation: false,
   acaCliffProtectionEnabled: false, rothConversionIrmaaCapEnabled: false,
 };
-const ceilingFor = (y) => getTaxBracketLimit('Single', 0.22, y.taxBracketInflationFactor);
+// The year's own federal table (a later year reads its published table).
+const ceilingFor = (y) => getTaxBracketLimit('Single', 0.22, federalTaxContextOfRow(y));
 
 describe('the max-bracket fill is trimmed to the solver\'s draw', () => {
   it('a Pre-Tax First plan lands on the bracket ceiling to the dollar, conversion and draw together', () => {
@@ -31,7 +32,7 @@ describe('the max-bracket fill is trimmed to the solver\'s draw', () => {
       // Changelog 435: landing on the ceiling is not enough -- the year
       // must owe the ceiling's tax. The only federal tax beyond the
       // ordinary brackets is the 15% on the taxable account's dividends.
-      const atCeiling = calculateTaxes(ceilingFor(y), 'Single', y.taxBracketInflationFactor, DEFAULT_INPUTS.tcjaSunsetEnabled);
+      const atCeiling = calculateTaxes(ceilingFor(y), 'Single', federalTaxContextOfRow(y), DEFAULT_INPUTS.tcjaSunsetEnabled);
       expect(y.federalTax - atCeiling).toBeGreaterThanOrEqual(-1);
       expect(y.federalTax - atCeiling).toBeLessThanOrEqual(0.15 * y.taxableDividends + 1);
     }
@@ -46,7 +47,7 @@ describe('the max-bracket fill is trimmed to the solver\'s draw', () => {
     // ceiling, because the trim loop priced each pass before the draw it
     // returned to Pre-Tax came off the year's income.
     const y = runProjection(base).years[0];
-    const atCeiling = calculateTaxes(ceilingFor(y), 'Single', y.taxBracketInflationFactor, DEFAULT_INPUTS.tcjaSunsetEnabled);
+    const atCeiling = calculateTaxes(ceilingFor(y), 'Single', federalTaxContextOfRow(y), DEFAULT_INPUTS.tcjaSunsetEnabled);
     expect(y.federalTax).toBeLessThan(atCeiling + 200);
     expect(y.convertAmount).toBeGreaterThan(30000);
   });

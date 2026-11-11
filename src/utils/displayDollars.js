@@ -42,11 +42,11 @@ const byClass = (cls, fields) => Object.fromEntries(fields.map((f) => [f, cls]))
 export const ROW_FIELD_CLASS = Object.freeze({
   ...byClass(NONE, [
     // Who and when
-    'year', 'age1', 'age2', 'seniorCount', 'moveMonth',
+    'year', 'federalTaxYear', 'age1', 'age2', 'seniorCount', 'moveMonth',
     'ssEarningsTestCreditMonths1', 'ssEarningsTestCreditMonths2', 'ssClaimMonthsPaid1', 'ssClaimMonthsPaid2', 'survivorStartedAt1', 'survivorStartedAt2',
     // Price levels and inflation factors
     'priceIndex', 'inflFactor', 'ssColaFactor', 'medicalInflFactor', 'ltcInflFactor',
-    'partBInflFactor', 'partDInflFactor', 'irmaaThresholdFactor', 'taxBracketInflationFactor', 'statutoryInflFactor',
+    'partBInflFactor', 'partDInflFactor', 'irmaaThresholdFactor', 'taxBracketInflationFactor', 'federalTaxFactor', 'statutoryInflFactor',
     // Rates, shares and multipliers
     'growthRate', 'householdStockShare', 'accountReturns', 'accountStockShares', 'feeRatePct', 'marginalBracket', 'lifestyleMultiplier', 'housingMultiplier', 'medicalMultiplier',
     'phaseMultiplier', 'essentialShare', 'concentratedStockConcentrationPct',

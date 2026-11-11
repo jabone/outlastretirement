@@ -35,4 +35,4 @@ export const REFERENCE_INPUTS = Object.freeze({
   bondReturnRate: 4.0,
 });
 
-export const REFERENCE_ENDING_BALANCE = 36762.2363;
+export const REFERENCE_ENDING_BALANCE = 37633.6111;

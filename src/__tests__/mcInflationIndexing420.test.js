@@ -3,7 +3,7 @@
 // factors and the statutory limits by the sampled delta, compounding year
 // on year -- not only the spending slices.
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS, SS_ANNOUNCED } from '../calculator';
+import { runProjection, DEFAULT_INPUTS, SS_ANNOUNCED, FEDERAL_TAX_TABLES } from '../calculator';
 
 const START = DEFAULT_INPUTS.planYear;
 const plan = {
@@ -60,7 +60,29 @@ describe('sampled inflation moves the indexing', () => {
     }
     // The deduction (and every bracket ceiling) is a step larger that year;
     // spending rose with the shock too, so the tax itself is not comparable.
-    expect(hit[1].stdDeduction).toBeCloseTo(base[1].stdDeduction * 1.055 / 1.025, 2);
+    // A year the IRS has published (FEDERAL_TAX_TABLES) is its published
+    // figure in every trial, so a shock there moves nothing federal.
+    if (FEDERAL_TAX_TABLES[START + 1]) {
+      expect(hit[1].stdDeduction).toBe(base[1].stdDeduction);
+    } else {
+      expect(hit[1].stdDeduction).toBeCloseTo(base[1].stdDeduction * 1.055 / 1.025, 2);
+    }
+  });
+
+  it('a shock after the newest published table lifts the deduction from that table on', () => {
+    const returns = flatReturns(plan);
+    // The first year with no table of its own.
+    let k = 1;
+    while (FEDERAL_TAX_TABLES[START + k]) k += 1;
+    const shock = {}; Object.keys(returns).forEach((y) => { shock[y] = plan.inflationRate; });
+    shock[START + k] = plan.inflationRate + 3;
+    const base = runProjection(plan, returns, null).years;
+    const hit = runProjection(plan, returns, shock).years;
+    // Up to the shock nothing federal moves; in the shock year the
+    // deduction is 5.5% over the prior year instead of 2.5%, and it stays.
+    expect(hit[k - 1].stdDeduction).toBe(base[k - 1].stdDeduction);
+    expect(hit[k].stdDeduction).toBeCloseTo(base[k].stdDeduction * 1.055 / 1.025, 2);
+    expect(hit[k + 1].stdDeduction).toBeCloseTo(base[k + 1].stdDeduction * 1.055 / 1.025, 2);
   });
 
   it('a COLA the user set keeps following the sampled rate from their figure', () => {

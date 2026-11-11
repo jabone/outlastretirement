@@ -2,7 +2,7 @@
 // (TAX_RULES_SPEC Rule 4.9). Hand-worked cases for each kind of rule the
 // table carries, plus checks that every record is well formed.
 import { describe, it, expect } from 'vitest';
-import { calculateStateTaxes, stateRulesTax, stateTaxJurisdictionFor, DEFAULT_INPUTS, runProjection } from '../calculator';
+import { calculateStateTaxes, stateRulesTax, stateTaxJurisdictionFor, DEFAULT_INPUTS, runProjection, federalTaxContextAtRate } from '../calculator';
 import { STATE_TAX_RULES } from '../config/stateTaxRules';
 import { STATE_TAX_RULE_SOURCES } from '../config/stateTaxRuleSources';
 import { stateRulesSummary, stateRulesRate } from '../utils/stateRulesSummary';
@@ -170,6 +170,17 @@ describe('stateRulesTax, worked by hand', () => {
   it('Arizona takes the federal deduction without the federal 65+ add-on, plus its own $2,100', () => {
     const at65 = tax('AZ', { fd: 32200 + 2 * 1650 });
     expect(at65).toBeCloseTo((77500 - 32200 - 2 * 2100) * 0.025, 6);
+  });
+
+  it('Arizona takes off the year\'s own federal 65+ amount: $1,700 each in 2027, not $1,650 carried', () => {
+    // Through calculateStateTaxes, as the projection calls it: the federal
+    // context in the extras reaches the rules engine.
+    const fed = federalTaxContextAtRate(2027, 2.5, 1.025);
+    const az = calculateStateTaxes(77500, 0, 0, 'state_rules', false, true, 'MFJ', 67, 67, 5, 0, null, false, {
+      stateCode: 'AZ', federalAGI: 77500, federalDeduction: 33200 + 2 * 1700, federalStatus: 'MFJ',
+      inflationFactor: 1.025, federalTax: fed,
+    });
+    expect(az).toBeCloseTo((77500 - 33200 - 2 * 2100 * 1.025) * 0.025, 6);
   });
 
   it('Nebraska uses its own 65+ amounts', () => {

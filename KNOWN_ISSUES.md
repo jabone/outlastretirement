@@ -679,7 +679,7 @@ that excess, which the engine now walks. A $5,000,000 estate owes $240,000,
 not $400,000.) The app was carrying a rate that had already
 expired, overstating a large Washington estate's tax by three-quarters. A rate
 with a sunset date cannot be copied forward, which is now called out
-explicitly in `TAX_UPDATE_PROCESS.md` section 9.
+explicitly in `TAX_UPDATE_PROCESS.md` section 11.
 
 No jurisdictions entered or left the list for 2026 (Oregon SB 1511 failed;
 Maryland SB 211 died in committee).
