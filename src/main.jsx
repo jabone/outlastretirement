@@ -11,10 +11,6 @@ import '@fontsource-variable/plus-jakarta-sans';
 import './index.css'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
-// GatedAnalytics wraps the Vercel Analytics / Speed Insights components
-// behind the Local-Only Mode flag (changelog 115) -- while that mode is
-// on, no beacon of any kind leaves the browser.
-import GatedAnalytics from './components/GatedAnalytics.jsx';
 import OfflineIndicator from './components/OfflineIndicator.jsx';
 import UpdateToast from './components/UpdateToast.jsx';
 import LocalOnlyBanner from './components/LocalOnlyBanner.jsx';
@@ -60,7 +56,6 @@ function renderApp() {
       <ErrorBoundary recovery fallbackMessage="Something went wrong and the app stopped rendering. Try Again, or reload the page. Your saved data is still in this browser's storage; if the problem keeps coming back, download a copy of it before resetting.">
         <App />
       </ErrorBoundary>
-      <GatedAnalytics />
       <LocalOnlyBanner />
       <StorageBanners />
       <OfflineIndicator />

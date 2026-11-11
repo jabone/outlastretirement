@@ -170,8 +170,9 @@ export default defineConfig({
         //   The app's own brand marks stay (the sidebar and print header
         //   show them), re-included through the list below.
         // - Unreferenced icons (icons.svg, icon-1024.jpg).
-        // - The PDF reader and Detailed Holdings: Premium-only, 1.9 MB
-        //   together. They are cached on first use instead (runtimeCaching).
+        // (The PDF reader and Detailed Holdings used to be listed here; they
+        // now come from the Premium module server, which the worker never
+        // caches, so Premium areas need a connection after each reload.)
         // Paths are relative to the build output, so app/index.html stays.
         globIgnores: [
           'index.html', '404.html', 'privacy.html', 'verify.html', 'terms.html', 'premium.html', 'accessibility.html', 'changelog.html', 'how-the-math-works.html', 'pricing-script.html',
@@ -180,14 +181,13 @@ export default defineConfig({
           'home-installed.js', 'home-returning.js', 'pricing-script.js', 'copy-text.js',
           'brand/**',
           'icons.svg', 'icon-1024.jpg',
-          'assets/pdf-*.js', 'assets/pdf.worker*', 'assets/PortfolioTab-*.js',
         ],
         additionalManifestEntries: BRAND_MARKS.map((url) => ({ url, revision: BRAND_MARK_REVISION })),
         // Headroom over the largest chunk; a silently skipped chunk would
         // break offline for that tab.
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
-        // Vercel Analytics / Speed Insights beacons are external and
-        // optional -- never intercept or cache them.
+        // Vercel's own /_vercel/ paths are never the app shell -- never
+        // intercept or cache them.
         navigateFallbackDenylist: [/^\/_vercel\//],
         // The service worker's job is the APP, which must work offline.
         // The worker is registered at /sw.js, so its scope is the whole
@@ -197,20 +197,6 @@ export default defineConfig({
         // asked for the landing page (or the Terms).
         navigateFallback: '/app/index.html',
         navigateFallbackAllowlist: [/^\/app/],
-        // The chunks left out of the precache above, cached the first time
-        // they load so they then work offline too. Their names carry a
-        // content hash, so a cached copy never goes stale; old versions age
-        // out.
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.origin === self.location.origin && /^\/assets\/(pdf-[^/]+\.js|pdf\.worker[^/]*|PortfolioTab-[^/]+\.js)$/.test(url.pathname),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'on-demand-chunks',
-              expiration: { maxEntries: 12, maxAgeSeconds: 60 * 60 * 24 * 90 },
-            },
-          },
-        ],
       },
       manifest: {
         name: 'OutlastRetirement',

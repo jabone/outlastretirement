@@ -89,17 +89,12 @@ describe('privacy tenet: the app sends nothing on its own', () => {
     }
   });
 
-  it('sends no analytics beacon until the user opts in AND Local-Only is off', () => {
-    // Off by default is the claim. Both flags are read synchronously so a
-    // first-time visitor sends nothing, not even the initial page view.
-    const gated = stripComments(readFileSync(join(SRC, 'components', 'GatedAnalytics.jsx'), 'utf8'));
-    expect(gated).toMatch(/if \(localOnly \|\| !optedIn\) return null;/);
-    // And nothing else may import the analytics package directly, which would
-    // bypass that component entirely.
+  it('has no analytics at all', () => {
+    // "The App has no analytics" (privacy policy, since 2026-11-11). No file
+    // may bring the analytics or speed-insights packages back.
     for (const file of sourceFiles(SRC, [], { css: false })) {
       const rel = relative(SRC, file).split('\\').join('/');
-      if (rel === 'components/GatedAnalytics.jsx') continue;
-      expect(stripComments(readFileSync(file, 'utf8')), `${rel} imports analytics directly`)
+      expect(stripComments(readFileSync(file, 'utf8')), `${rel} imports analytics`)
         .not.toMatch(/@vercel\/analytics|@vercel\/speed-insights/);
     }
   });

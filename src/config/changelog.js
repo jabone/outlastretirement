@@ -29,6 +29,20 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 505,
+    date: '2026-11-11',
+    title: 'No more analytics, and privacy wording that matches the code',
+    summary: 'The optional usage analytics are gone, so the app counts nothing. The privacy page, Verify page and app now say exactly what Premium, Live Pricing and backups involve.',
+    items: [
+      "**No analytics.** The optional Anonymous Usage Analytics switch is gone, along with the code behind it. The app no longer counts visits or tabs at all, and if you had turned it on, it is off for good. An independent check had found it kept sending until the page was reloaded after you turned it off; it also told us very little, since only a few people ever switched it on.",
+      "**What Premium sends, said everywhere.** With Premium, the app sends your key to our module server to fetch the Premium code (the demo sends a built-in demo key). The Premium FAQ said activating a key \u201csends nothing anywhere\u201d; the Local-Only card, the Guide and the privacy page now list this connection too. Your plan is still never sent.",
+      "**Live Pricing, exactly.** It sends the ticker symbols of all your live-priced holdings together, as typed in each Symbol field, not one bare symbol.",
+      "**Offline, exactly.** The free app works offline. Premium areas and the demo\u2019s Detailed Holdings need a connection again after each reload, because their code is not stored on your device.",
+      "**Backups.** A backup file also holds your Premium key (with your email address inside) and your Live Pricing links, and a cloud-folder copy has no password. The backup screen, the crash screen and the privacy page now say so.",
+      "**No referring address.** Our pages now ask your browser to send no referring address to any site, including sites you open from a link here.",
+    ],
+  },
+  {
     id: 504,
     date: '2026-11-07',
     title: 'Retirement Income shows withdrawals by account',

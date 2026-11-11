@@ -44,13 +44,11 @@ import { useFullBackupActions } from '../../context/useFullBackupActions';
 import { eraseEverythingOnDevice } from '../../utils/eraseDevice';
 import { getFreshnessState, setPortfolioReminderCadence, computeFreshnessStatus, formatAgeDays } from '../../utils/dataFreshness';
 import { isLocalOnlyMode, setLocalOnlyMode, subscribeLocalOnlyMode } from '../../utils/localOnlyMode';
-import { isAnalyticsEnabled, setAnalyticsEnabled, subscribeAnalyticsEnabled } from '../../utils/analyticsOptIn';
-import { ANALYTICS_SENDS } from '../../config/analyticsDisclosure';
 
 // Local-Only Mode card (changelog 115). Self-contained so it owns its own
 // subscription: the same flag is toggled from the top-of-app banner, and
 // this switch must follow along live. See utils/localOnlyMode.js for what
-// the mode actually enforces (no analytics beacons, no pricing fetches --
+// the mode actually enforces (no Premium module fetches, no pricing fetches --
 // refused at the sheetPricing.js choke points, fail-closed).
 const LocalOnlyModeCard = () => {
   const [on, setOn] = useState(isLocalOnlyMode);
@@ -67,11 +65,12 @@ const LocalOnlyModeCard = () => {
       </div>
       <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: '0 0 10px', lineHeight: 1.5 }}>
         Your numbers never leave your device either way &mdash; this switch goes further and stops the app
-        making the optional connections too. <strong>With it off</strong>, the only things the app can send are the Live Pricing refresh
-        (bare ticker symbols, and only if you&rsquo;ve connected a Sheet) and &mdash; only if you turn on Usage
-        Analytics below &mdash; anonymous page-view counts. By default both are off, so nothing leaves but the
-        app loading itself, like any website. <strong>With it on</strong>, the app <strong>sends none of your data and makes no optional
-        connections</strong>: analytics and Live Pricing are both refused at the code level. Your browser still loads the app and checks for updates when you reload. Everything else &mdash; projections, optimizers, charts, exports &mdash; works exactly
+        making the optional connections too. <strong>With it off</strong>, the only things the app can send are: with Premium, your
+        Premium key to our module server to fetch the Premium code (the demo sends a built-in demo key), and
+        the Live Pricing refresh (ticker symbols, and only if you&rsquo;ve connected a Sheet). The app has no
+        analytics. Without Premium, nothing leaves but the app loading itself, like any website. <strong>With it on</strong>,
+        the app <strong>sends none of your data and makes no optional connections</strong>: Premium modules
+        and Live Pricing are both refused at the code level. Your browser still loads the app and checks for updates when you reload. Everything else &mdash; projections, optimizers, charts, exports &mdash; works exactly
         the same, and a small reminder stays at the top of the app so you&rsquo;ll know why prices aren&rsquo;t
         refreshing.
       </p>
@@ -89,52 +88,6 @@ const LocalOnlyModeCard = () => {
           <span className="slider-round"></span>
         </span>
       </div>
-    </div>
-  );
-};
-
-// Anonymous usage analytics -- OFF by default (changelog 149), the app's
-// only third-party beacon. Sits beside Local-Only Mode; when that mode is
-// on, analytics never send regardless of this switch (GatedAnalytics).
-const AnalyticsOptInCard = () => {
-  const [on, setOn] = useState(isAnalyticsEnabled);
-  const [localOnly, setLocalOnly] = useState(isLocalOnlyMode);
-  useEffect(() => subscribeAnalyticsEnabled(setOn), []);
-  useEffect(() => subscribeLocalOnlyMode(setLocalOnly), []);
-  return (
-    <div style={{
-      padding: '14px', borderRadius: '8px',
-      border: '1px solid var(--card-border)', backgroundColor: 'var(--bg-secondary)',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-        <Eye size={18} style={{ flexShrink: 0, color: 'var(--accent-text)' }} />
-        <span style={{ fontWeight: 600 }}>Anonymous Usage Analytics</span>
-      </div>
-      <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', margin: '0 0 10px', lineHeight: 1.5 }}>
-        <strong>Off by default.</strong> Turn this on to share anonymous page-view counts with the developer. Each view sends {ANALYTICS_SENDS}
-        It goes to our own domain; leaving this off sends no usage beacon at all. Local-Only Mode
-        overrides it either way &mdash; while that&rsquo;s on, nothing is sent no matter what this is set to.
-      </p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <label htmlFor="toggle-analyticsOptIn" style={{ fontSize: 'var(--fs-sm)', margin: 0, cursor: 'pointer' }}>
-          Share anonymous usage analytics
-        </label>
-        <span className="custom-switch">
-          <input
-            id="toggle-analyticsOptIn"
-            type="checkbox"
-            checked={on && !localOnly}
-            disabled={localOnly}
-            onChange={(e) => setAnalyticsEnabled(e.target.checked)}
-          />
-          <span className="slider-round"></span>
-        </span>
-      </div>
-      {localOnly && (
-        <p style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', margin: '8px 0 0' }}>
-          Paused while Local-Only Mode is on.
-        </p>
-      )}
     </div>
   );
 };
@@ -766,7 +719,6 @@ const PreferencesTab = () => {
           </div>
 
           <LocalOnlyModeCard />
-          <AnalyticsOptInCard />
 
           <button
             type="button"
@@ -801,8 +753,9 @@ const PreferencesTab = () => {
             <div style={{ color: 'var(--text-secondary)' }}>
               <strong style={{ color: 'var(--warning)' }}>Handle backup files like a password file.</strong> They&rsquo;re
               plain, unencrypted JSON &mdash; and if you have an active Premium Access Key, the file carries that working
-              credential too. Anything with access to wherever you store them (Google Drive, iCloud, a shared folder)
-              can read them in the clear.
+              credential too, with your email address inside it, along with your Live Pricing Sheet links (anyone with
+              those links can read the ticker symbols in your Sheet). Anything with access to wherever you store them
+              (Google Drive, iCloud, a shared folder) can read them in the clear.
             </div>
           </div>
 

@@ -16,7 +16,6 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const { FREE_GROUPS } = await import(pathToFileURL(join(root, 'src/config/freeOffering.js')).href);
 const { PREMIUM_AREAS } = await import(pathToFileURL(join(root, 'src/config/premiumOffering.js')).href);
 const { SITE_NAV } = await import(pathToFileURL(join(root, 'src/config/siteNav.js')).href);
-const { ANALYTICS_SENDS } = await import(pathToFileURL(join(root, 'src/config/analyticsDisclosure.js')).href);
 const { requestAccessHtml, REQUEST_ACCESS_CSS, syncIndexHtml, readIndex, INDEX_PATH } = await import(pathToFileURL(join(root, 'scripts/requestAccessHtml.mjs')).href);
 
 const esc = (s) => String(s)
@@ -97,7 +96,7 @@ ${premium}
 
     <h2>Questions</h2>
     <p><strong>Does Premium change the projection?</strong> No. Free and Premium run the same calculations. Premium adds detail around them, and a few Premium features can fill plan fields from your holdings or spending when you choose to link them.</p>
-    <p><strong>Is anything sent anywhere?</strong> Not your plan. Your plan, holdings and spending stay in your browser in both. Two optional features, both off by default, send something when you turn them on: Live Pricing sends ticker symbols (never amounts) to a Google Sheet you own, whose script looks them up with Google Finance and Yahoo Finance from Google&rsquo;s servers; and Anonymous Usage Analytics sends ${esc(ANALYTICS_SENDS)} Premium itself makes one connection: when a Premium area first opens, the app sends your access key, which carries the email address it was issued to and nothing from your plan, to our module server at premium.outlastretirement.com to fetch that area&rsquo;s code. The <a href="/privacy">Privacy Policy</a> says exactly what each sends.</p>
+    <p><strong>Is anything sent anywhere?</strong> Not your plan. Your plan, holdings and spending stay in your browser in both. There are no analytics. One optional feature, off by default, sends something when you turn it on: Live Pricing sends ticker symbols (never amounts) to a Google Sheet you own, whose script looks them up with Google Finance and Yahoo Finance from Google&rsquo;s servers. Premium itself makes one connection: when a Premium area first opens, the app sends your access key, which carries the email address it was issued to and nothing from your plan, to our module server at premium.outlastretirement.com to fetch that area&rsquo;s code. The <a href="/privacy">Privacy Policy</a> says exactly what each sends.</p>
     <p><strong>Is this advice?</strong> No. OutlastRetirement is educational software, not financial, tax or legal advice.</p>
     <p><a href="/app/?demo=1">Try the demo plan</a> to see both, including a read-only preview of Premium&rsquo;s Detailed Holdings.</p>
     </main>

@@ -272,7 +272,7 @@
             <p>There&rsquo;s no server doing the math. The calculations run in your browser, on your device, and your plan is saved there too.</p>
           </div>
           <div class="note">
-            <p><strong>To be honest about it:</strong> the first visit needs a connection to download the app, and the optional Live Pricing refresh needs one too. This page and the home page aren&rsquo;t saved for offline use; the app is.</p>
+            <p><strong>To be honest about it:</strong> the first visit needs a connection to download the app, and the optional Live Pricing refresh needs one too. The free app works offline; Premium areas, and the demo&rsquo;s Detailed Holdings, need a connection again after each reload, because their code is not saved on your device. This page and the home page aren&rsquo;t saved for offline use; the app is.</p>
           </div>
           <p class="phone-note">This test works on a phone as well as a computer.</p>
         </div>
@@ -285,7 +285,7 @@
           <div class="frame-body">
             <div class="offline-banner">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5CC08A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M5 12.86a10 10 0 0 1 5.17-2.69"/><path d="M19 12.86a10 10 0 0 0-2-1.42"/><path d="M2 8.82a15 15 0 0 1 4.18-2.64"/><path d="M22 8.82a15 15 0 0 0-11.29-3.76"/><path d="m2 2 20 20"/></svg>
-              <strong>You&rsquo;re offline &mdash; and everything still works.</strong>
+              <strong>You&rsquo;re offline &mdash; and your plan still works.</strong>
             </div>
             <div class="mini">
               <div class="mini-label">Annual spending</div>
@@ -319,7 +319,7 @@
             <div class="card">
               <h3>What you&rsquo;ll see</h3>
               <ul class="marks yes">
-                <li>Only files from <strong>www.outlastretirement.com</strong> (and <strong>premium.outlastretirement.com</strong> when a Premium area, or the demo&rsquo;s Detailed Holdings, opens)</li>
+                <li>Only files from <strong>www.outlastretirement.com</strong> (and <strong>premium.outlastretirement.com</strong> when a Premium area, Preferences, or the demo&rsquo;s Detailed Holdings opens; the demo sends a built-in demo key, so that request shows an Authorization header)</li>
                 <li>After your first visit, most rows say <em>(ServiceWorker)</em>: they came from the copy saved on your device, not the internet</li>
               </ul>
             </div>
@@ -333,7 +333,7 @@
             </div>
           </div>
           <div class="note" style="margin-top:14px;">
-            <p><strong>Two things appear only if you turn them on.</strong> Live Pricing shows requests to Google (<code>script.google.com</code>) when you press Refresh, carrying ticker symbols at most. Anonymous analytics, if you opt in, shows requests to <code>/_vercel/insights</code> on our own domain. Browser extensions can add rows of their own; a private window without extensions gives the cleanest list.</p>
+            <p><strong>One thing appears only if you turn it on.</strong> Live Pricing shows requests to Google (<code>script.google.com</code>) when you press Refresh, carrying ticker symbols at most. There are no analytics requests at all. Browser extensions can add rows of their own; a private window without extensions gives the cleanest list.</p>
           </div>
           <p class="phone-note">Developer tools need a computer. On a phone, the airplane-mode test (Test 1) is the one to try.</p>
         </div>
@@ -368,7 +368,7 @@
       <div class="split">
         <div>
           <p class="lede">Every page we send comes with a rule sheet called a <strong>Content-Security-Policy</strong>. It tells your browser which addresses this site is allowed to contact.</p>
-          <p style="color:var(--text-2);">Ours allows only our own site, plus Google&rsquo;s spreadsheet servers for the optional Live Pricing. If any code tried to send data anywhere else, your browser would block it &mdash; not us, your browser.</p>
+          <p style="color:var(--text-2);">Ours allows only our own site, our Premium module server, and Google&rsquo;s spreadsheet hosts for the optional Live Pricing. If code on the page tried to send data anywhere else as a request, an image, a font, a script, a form or a frame, your browser would block it &mdash; not us, your browser. The policy does not cover the page itself moving to another address, and it allows any address on those Google hosts, not only Sheets.</p>
           <h3 style="margin-top:22px;">See it yourself</h3>
           <ol class="steps">
             <li>In developer tools, open the <strong>Network</strong> tab.</li>
@@ -408,7 +408,7 @@
           </dl>
           <details class="more">
             <summary>More detail</summary>
-            <p><strong>What the lines cover.</strong> <code>connect-src</code> governs everything the page&rsquo;s code actively sends: data requests, live connections and analytics beacons. The other lines close the side routes. <code>img-src</code> and <code>font-src</code> stop data being smuggled out by loading an image or font from someone else&rsquo;s server; <code>script-src</code> stops outside code; <code>form-action</code> stops a form posting elsewhere; <code>frame-src</code> and <code>object-src</code> stop other sites being embedded.</p>
+            <p><strong>What the lines cover.</strong> <code>connect-src</code> governs everything the page&rsquo;s code actively sends: data requests, live connections and beacons. The other lines close the side routes. <code>img-src</code> and <code>font-src</code> stop data being smuggled out by loading an image or font from someone else&rsquo;s server; <code>script-src</code> stops outside code; <code>form-action</code> stops a form posting elsewhere; <code>frame-src</code> and <code>object-src</code> stop other sites being embedded.</p>
             <p><strong>The three Google addresses.</strong></p>
             <ul>
               <li><code>script.google.com</code>: your own Apps Script. Refresh asks it for the price table, and it registers new ticker symbols.</li>
@@ -433,7 +433,7 @@
       <ul>
         <li><strong>That the site runs the published code.</strong> Preferences shows the version the app is running (&ldquo;Version 409&rdquo;, say): the number of the newest entry in What&rsquo;s New. The repository&rsquo;s <code>src/config/changelogLatest.js</code> carries the same number. Since October 18, 2026 the site is built and deployed <em>from</em> that repository by its own public workflow (<code>.github/workflows/ci.yml</code>, the <code>deploy</code> job), after its tests pass on the exact commit, so the site cannot run code the repository does not publish; the workflow&rsquo;s runs are public under the repository&rsquo;s Actions tab. If the site ever shows a higher number than the repository, something has gone wrong with that, and the Changelog page lists what the site has that the repository does not yet.</li>
         <li><strong>The policy the browser enforces</strong> (test 3) is <code>vercel.json</code>, and a test, <code>src/__tests__/cspHeader.test.js</code>, fails the build if anyone widens it.</li>
-        <li><strong>Where a request could be made.</strong> The open app has no <code>fetch</code> of its own except the Premium module loader, <code>src/premium/registry.js</code>; the optional analytics (<code>src/components/GatedAnalytics.jsx</code>) and the update check (<code>src/utils/pwa.js</code>) are the other two things that touch the network, and all three ask <code>src/utils/localOnlyMode.js</code> first. Live Pricing&rsquo;s URL rules are <code>src/utils/pricingSource.js</code>; its request is made by the Detailed Holdings module. <code>src/__tests__/privacyTenets.test.js</code> pins the privacy policy&rsquo;s claims to the code.</li>
+        <li><strong>Where a request could be made.</strong> The open app has two <code>fetch</code> calls of its own: the Premium module loader, <code>src/premium/registry.js</code>, and its keyless supporting-file loader, <code>src/premium/vendorImport.js</code>; the update check (<code>src/utils/pwa.js</code>) is the only other thing that touches the network, and all three ask <code>src/utils/localOnlyMode.js</code> first. There is no analytics code. Live Pricing&rsquo;s URL rules are <code>src/utils/pricingSource.js</code>; its request is made by the Detailed Holdings module. <code>src/__tests__/privacyTenets.test.js</code> pins the privacy policy&rsquo;s claims to the code.</li>
         <li><strong>What a Premium key carries.</strong> The loader sends it and nothing else; <code>src/utils/premiumJwt.js</code> is what reads it.</li>
       </ul>
       <p>What is not there: the Premium modules themselves. They are a separate, closed work, fetched from our module server only when a key is present; what <em>loads</em> them, and the interface they are written against (<code>PREMIUM_MODULE_CONTRACT.md</code>), is in the open code. And the published source is the source of the site you are reading; we do not yet offer a way to prove byte-for-byte that the files your browser received were built from it, so treat the three tests above as the proof and the code as the explanation.</p>
@@ -461,12 +461,6 @@
             <td data-label="Where">www.outlastretirement.com</td>
           </tr>
           <tr>
-            <td>Anonymous analytics</td>
-            <td data-label="Off by default?"><span class="pill on">Yes</span><span class="sub">off unless you opt in</span></td>
-            <td data-label="What it sends">The tab you opened (its name only), the site you came from (usually just its domain), and what our host Vercel reads from the request itself: approximate country or region, device type, operating system and browser, and the time. No cookies, no link parameters, never anything from your plan.</td>
-            <td data-label="Where">www.outlastretirement.com, processed by Vercel, our host</td>
-          </tr>
-          <tr>
             <td>Live Pricing <span class="sub">prices Detailed Holdings</span></td>
             <td data-label="Off by default?"><span class="pill on">Yes</span><span class="sub">off unless you set it up</span></td>
             <td data-label="What it sends">Ticker symbols only &mdash; never amounts, share counts or balances</td>
@@ -476,7 +470,7 @@
             <td>Premium modules <span class="sub">Premium only</span></td>
             <td data-label="Off by default?"><span class="pill on">Yes</span><span class="sub">nothing without a Premium key</span></td>
             <td data-label="What it sends">Your Premium Access key, as a request header &mdash; never your plan</td>
-            <td data-label="Where">Our module server, premium.outlastretirement.com, which answers with signed code. Loaded once per area the first time you open it; Local-Only Mode stops it.</td>
+            <td data-label="Where">Our module server, premium.outlastretirement.com, which answers with signed code. Loaded once per area each time the page loads; the demo sends a built-in demo key. Local-Only Mode stops it.</td>
           </tr>
           <tr>
             <td>Contacting us</td>
@@ -486,7 +480,7 @@
           </tr>
         </tbody>
       </table>
-      <p class="never"><strong>Never touch the network:</strong> backups (saved where you choose, encrypted if you set a password) and imports of PDFs, CSVs and bank exports (read in your browser). Your Premium key is checked on your device first and sent only to our module server when a Premium area loads, as the table above says.</p>
+      <p class="never"><strong>Never touch the network:</strong> backups (saved where you choose, encrypted if you set a password; the file also holds your Premium key and Live Pricing links, and a cloud-folder copy has no password) and imports of PDFs, CSVs and bank exports (read in your browser). Your Premium key is checked on your device first and sent only to our module server when a Premium area loads, as the table above says.</p>
       <p class="trio"><span>No accounts.</span> <span>No logins.</span> <span>No bank linking.</span></p>
     </section>
 

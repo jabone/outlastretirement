@@ -75,7 +75,6 @@ export const DEVICE_KEYS = Object.freeze([
   'retire_plan_mc_auto_run',
   'retire_plan_plan_mode',
   'retire_plan_last_quick_update',
-  'cfe_analytics_opt_in',
   'cfe_local_only_mode',
   'cfe_premium_pricing_script_ack_v1',
   'cfe_premium_expiry_dismissed_v1',
@@ -99,9 +98,11 @@ export const TRANSIENT_KEYS = Object.freeze([
 
 // Keys an earlier build wrote that nothing reads any more. Removed from this
 // browser once at startup (removeRetiredKeys) so they don't linger. The
-// localhost-only "fake Premium" switch was taken out of the app entirely.
+// localhost-only "fake Premium" switch was taken out of the app entirely,
+// and the analytics opt-in went with analytics itself (2026-11-11).
 export const RETIRED_KEYS = Object.freeze([
   'cfe_dev_premium',
+  'cfe_analytics_opt_in',
 ]);
 
 export function removeRetiredKeys(storage = globalThis.localStorage) {

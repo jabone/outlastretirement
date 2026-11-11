@@ -23,6 +23,14 @@ export const RELEASE_NOTES_WEEKS = 6;
 
 export const RELEASE_WEEKS = [
   {
+    weekOf: '2026-11-09',
+    headline: 'No more analytics, and privacy wording that matches the code',
+    bullets: [
+      { title: 'No more analytics, and privacy wording that matches the code', ids: [505],
+        text: 'The optional usage analytics are gone: the app no longer counts visits or tabs at all. An independent check also found places where the privacy page, the Verify page and the app said less than the code does; they now say exactly what Premium sends, what Live Pricing sends, what works offline and what a backup holds, and our pages send no referring address to other sites.' },
+    ],
+  },
+  {
     weekOf: '2026-11-02',
     headline: 'When a survivor starts Social Security, and Medicare and HSA rules a benefits counselor would check',
     bullets: [
@@ -132,38 +140,30 @@ export const RELEASE_WEEKS = [
         text: 'Statement import now reads Charles Schwab statements. A holding’s ledger lets you edit or remove a tax lot on the spot and flags lots that look entered twice; removing a duplicate lowers that holding’s shares and dividends to what your statement shows. The research link beside a holding now updates when the ticker it is priced by changes, instead of opening a search page for the old ticker. Links you typed yourself are never changed. A holding whose price came through is no longer marked Not found, and an updated pricing Sheet script (version 4, which you paste into your own Sheet) fills in dividends for preferred shares and other securities Yahoo Finance only partly covers. The notice that your script is out of date now has a Copy button and links to a page that shows the script.' },
     ],
   },
-  {
-    weekOf: '2026-09-28',
-    headline: 'Every retirement since 1928, guardrails that show their cost, and privacy you can check',
-    bullets: [
-      { title: 'Every retirement since 1928', ids: [335, 336, 358, 359, 363, 364],
-        text: 'The Dashboard’s savings chart now shades where savings ended in 8 of 10 simulated markets, and the verdict checks the plan against real markets even before the Monte Carlo has run. Risk & Stress now runs your plan through every real retirement start since 1928 and tells you how many it lasted through, which start was hardest, and the most you could spend each year and still last through all of them: your own version of William Bengen’s SAFEMAX, the research behind the 4% rule, worked out after tax. You can also replay any single start year with that period’s actual returns and inflation. The year-by-year table for every start, the side-by-side comparison of spending rules and the spending that lasts in 95% or 90% of starts are in Readiness in Full (Premium).' },
-      { title: 'Guardrails show what they cost', ids: [335, 339, 356],
-        text: 'Spending guardrails skip the inflation raise after a down year and cut spending 10% after a crash in the first retired year, then restore both once the portfolio is back on your plan’s path. Withdrawal-rate guardrails now react only to markets and inflation. Both now show how far spending fell over the whole retirement, not just the balance left, and the Dashboard and Risk & Stress describe the rule the same way. If you use either one, your numbers will change.' },
-      { title: 'Every state by its own rules, and where the rules come from', ids: [345, 348, 349, 350, 356, 361, 362],
-        text: 'The 35 states and DC that used a flat 5% now use their own 2026 rules: rates, deductions, how they treat Social Security, and their retirement exclusions, so a Georgia or Iowa retiree is no longer overcharged and a high earner in New Jersey or Massachusetts no longer undercharged. Washington residents can choose Washington under state tax to include its capital gains tax, its income tax on incomes over $1 million from 2028, and its graduated estate tax. A new Help section, How the numbers are figured, explains each tax and benefit rule and links to the official source, and the website now has these release notes and a How the math works page. The Guide, Input Dictionary, privacy, terms and Premium pages were checked line by line against the app.' },
-      { title: 'Calculation corrections', ids: [338, 339, 340, 346, 347, 360],
-        text: 'A batch of fixes to tax rules (the senior deduction, Social Security taxation, separate returns, several states) and to how money moves year to year (required distributions, the cash reserve, a surviving spouse’s accounts, and the HSA as a last resort before a shortfall), and a couple’s taxable account now takes a new cost basis at the first death, not only when heirs inherit. Monte Carlo, guardrails, optimizers and the printed report now follow your today’s-dollars setting. Some plans’ numbers will change, especially couples over 65 or with gains in a taxable account, separate filers, and plans with a cash reserve or an annuity purchase.' },
-      { title: 'Privacy you can check, and safer backups', ids: [316, 318, 319, 320, 321, 322, 337, 347, 356],
-        text: 'The site now tells your browser to block connections anywhere except this site and the Google addresses Live Pricing uses. A new Verify it yourself page walks through three checks that take about two minutes, and now reads properly on a phone. Analytics stays off unless you turn it on, and now sends only the name of the tab. Backup Everything now includes your Life Plan and annual review, a new encrypted backup will not open if it has been altered, and Preferences can erase everything on this device.' },
-      { title: 'Clearer and quicker to use', ids: [307, 308, 309, 310, 311, 312, 313, 314, 315, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 341, 342, 344, 351, 357, 366, 367, 368, 369, 370],
-        text: 'One verdict everywhere (On track, Mostly on track, At risk, Runs short). The demo opens on its answer and includes plans that fail, each paired with the change that rescues it. A new Free and Premium page lists what each includes. The app downloads about 40% less before the Dashboard appears, and the home page shows current screenshots. Charts have written summaries, tap targets are larger, plan fields explain entries they cannot use, and Print / PDF Report has the same header and footer on every page and no blank last pages.' },
-      { title: 'Retirement abroad: Colombia, and the foreign tax credit', ids: [355, 365], premium: true,
-        text: 'Colombia joins the country summaries, for 18 in all: its income tax, the pension exemption that covers US Social Security, its yearly wealth tax and its tax on inheritances, filled in for you. How the numbers are figured now explains the US foreign tax credit and its two baskets, and dividends taxed at ordinary rates now count on the investment side.' },
-      { title: 'Detailed Holdings', ids: [317, 343, 352, 353, 354, 371, 372, 373], premium: true,
-        text: 'Importing a brokerage statement now uses a reader built for that brokerage (Fidelity, Morgan Stanley / E*TRADE, PNC Investments, T. Rowe Price, Vanguard employer plans), imports a statement with several accounts one account at a time, and checks the rows against the statement’s own total. The importers open at the top of Holdings instead of below the table. You can now type a holding’s price yourself, by clicking it in the Live Price column, to correct a wrong quote. Imports read spreadsheet-style numbers like $1,250.10 and sales take shares from the right lots. The time of the last price refresh is shown. The holdings CSV adds a ticker column, shows correct share counts for holdings tracked by lot, and explains why a 401(k) fund priced through a proxy ticker has a different price than the proxy.' },
-    ],
-  },
 ];
 
 // Older history, a quarter at a time. `through` is the last day the summary
 // covers; weeks after it are still shown week by week above.
 export const RELEASE_QUARTERS = [
   {
+    quarter: '2026-Q4',
+    label: 'October 2026, first week',
+    from: '2026-10-01',
+    through: '2026-10-04',
+    headline: 'Every retirement since 1928, and privacy you can check',
+    ids: [
+      352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373,
+    ],
+    bullets: [
+      { title: 'Every retirement since 1928, and privacy you can check',
+        text: 'Risk & Stress runs your plan through every real retirement start since 1928, guardrails show what they cost in spending, and every state uses its own 2026 rules. The site tells your browser to block connections anywhere but this site, a Verify it yourself page shows how to check, and analytics sends only the tab name.' },
+    ],
+  },
+  {
     quarter: '2026-Q3',
     label: 'July – September 2026',
     from: '2026-07-24',
-    through: '2026-09-27',
+    through: '2026-09-30',
     headline: 'The core planner, Detailed Holdings, and a full tax-engine audit',
     ids: [
       ...Array.from({ length: 27 }, (_, i) => i + 1),
@@ -190,6 +190,8 @@ export const RELEASE_QUARTERS = [
       221, 222, 223, 224, 225, 226, 227, 228, 240, 242, 251, 252, 256, 257, 258, 262, 264, 270, 284, 286, 287, 290,
       215, 232, 253, 271, 272, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 288, 289, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306,
       204, 205, 206, 207, 233, 234, 235, 245,
+      // Week of September 28 (to the end of September)
+      307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351,
     ],
     bullets: [
       { title: 'Retirement Readiness and a steadier Monte Carlo',

@@ -128,10 +128,11 @@ the stress tests and the Monte Carlo's bootstrap comes from:
 
 ## Privacy
 
-The app sends nothing about a plan anywhere. The one connection the free app
-can make is Live Pricing to a Google Sheet the user connects themselves; the
-one connection Premium adds is the fetch of a signed module, carrying the
-Premium Access key and nothing else. Both are stopped by Local-Only Mode,
+The app sends nothing about a plan anywhere. The free app makes no connection
+beyond loading itself; there are no analytics. Premium adds two: the fetch of a
+signed module, carrying the Premium Access key and nothing else (the demo uses a
+built-in demo key), and Live Pricing to a Google Sheet the user connects
+themselves, carrying ticker symbols. All are stopped by Local-Only Mode,
 enforced in the code at the point a request would be made. `/privacy` on the
 site says all of this in full, and `src/__tests__/privacyTenets.test.js`
 keeps the code and the policy from drifting apart.

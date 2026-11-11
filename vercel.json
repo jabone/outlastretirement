@@ -56,7 +56,7 @@
         },
         {
           "key": "Referrer-Policy",
-          "value": "strict-origin"
+          "value": "no-referrer"
         },
         {
           "key": "X-Content-Type-Options",

@@ -5,7 +5,7 @@ import { isLocalOnlyMode, setLocalOnlyMode, subscribeLocalOnlyMode } from '../ut
 // The Local-Only Mode "nag" (changelog 115, the owner's design): while the
 // mode is on, a pill floats at the top of every tab saying so, with a
 // one-click way out. It exists because the mode's whole job is to refuse
-// things (analytics, price refreshes), and a refusal months from now
+// things (Premium module fetches, price refreshes), and a refusal months from now
 // with no visible cause would read as a bug. Floating rather than a
 // layout bar: unlike the demo banner, nothing here is dangerous enough
 // to justify pushing the whole app down, and it must coexist below that

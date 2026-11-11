@@ -103,6 +103,12 @@ export default class ErrorBoundary extends React.Component {
               </>
             )}
           </div>
+          {this.props.recovery && (
+            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginTop: '10px' }}>
+              The downloaded file is not encrypted. It holds your whole plan, and your Premium key and Live Pricing
+              links if you have them, so keep it somewhere private.
+            </p>
+          )}
         </div>
       );
     }

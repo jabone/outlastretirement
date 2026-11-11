@@ -3,8 +3,9 @@
 //
 // While ON, the app makes no optional connections (it still loads its own
 // files when you reload, which carry none of your data):
-//   - the Vercel Analytics / Speed Insights components are not rendered
-//     (main.jsx), so no page-view beacons leave the browser;
+//   - Premium modules are not fetched (src/premium/registry.js and
+//     vendorImport.js call assertNetworkAllowed first). The app has no
+//     analytics at all since 2026-11-11;
 //   - every Live Pricing fetch in sheetPricing.js refuses at the choke
 //     point (assertNetworkAllowed below) -- fail-closed, same philosophy
 //     as usePortfolioHoldings' mutation gate, so no future caller can
@@ -20,8 +21,7 @@
 // nothing and is half of the privacy story itself.
 //
 // Storage: plain localStorage, read synchronously at module load so the
-// very first render of main.jsx can already omit the analytics
-// components. Changes broadcast through a listener set so the banner and
+// very first render already knows the setting. Changes broadcast through a listener set so the banner and
 // Preferences toggle stay in sync without a reload. The flag is a device
 // preference like pricingSource -- it is NOT part of plan data and rides
 // in no backup payload.

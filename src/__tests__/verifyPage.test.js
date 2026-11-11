@@ -42,9 +42,11 @@ describe('/verify', () => {
   });
 
   it('lists every feature that can make a connection', () => {
-    for (const feature of ['Loading the app', 'Update check', 'Anonymous analytics', 'Live Pricing', 'Contacting us']) {
+    for (const feature of ['Loading the app', 'Update check', 'Live Pricing', 'Contacting us']) {
       expect(page, feature).toContain(`<td>${feature}`);
     }
+    // Analytics were removed on 2026-11-11; the table must not list them.
+    expect(page).not.toContain('<td>Anonymous analytics');
     // Things that never connect are named under the table, not in it: the
     // table is only what can actually touch the network.
     for (const feature of ['Backups', 'Premium key']) {

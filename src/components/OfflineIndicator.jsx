@@ -12,8 +12,8 @@ import { WifiOff } from 'lucide-react';
 // buried in the Guide, because a premium user's very next click might be
 // Refresh Prices and the badge must not have oversold. The claim is
 // deliberately about PLANNING, not "the app never talks to the network"
-// (the deployment includes anonymous page-view analytics -- see the
-// Guide's privacy section for the full, honest accounting).
+// (Premium code and Live Pricing need the network -- see the Guide's
+// privacy section for the full, honest accounting).
 // Changelog 461: the full card sat over the page for as long as the
 // connection was gone, covering figures with no way to move it. It now
 // shows in full when the connection drops, shrinks by itself to a small

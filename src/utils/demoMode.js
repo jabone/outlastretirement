@@ -108,7 +108,7 @@ export const DEMO_EXIT_KEEPS = new Set([
   'retire_plan_announcements_dismissed', 'retire_plan_status_bar_hidden',
   'retire_plan_kpi_open_mobile', 'retire_plan_nav_more_open', 'retire_plan_ledger_preset', 'retire_plan_safari_notice_until', 'retire_plan_folds_v1',
   'retire_plan_round_far_dollars', 'retire_plan_print_choices',
-  'cfe_analytics_opt_in', 'cfe_local_only_mode', 'cfe_premium_jwt',
+  'cfe_local_only_mode', 'cfe_premium_jwt',
 ]);
 
 // Everything in this browser's storage except the demo key itself, as raw

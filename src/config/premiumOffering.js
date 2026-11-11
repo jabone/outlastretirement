@@ -295,7 +295,7 @@ export const PREMIUM_FACTS = [
   },
   {
     q: 'Does my data leave my browser?',
-    a: 'No. The whole app computes locally and stores your plan in your own browser. There is no account and no server holding your figures. The access key is verified in your browser too — activating it sends nothing anywhere.',
+    a: 'No. The whole app computes locally and stores your plan in your own browser. There is no account and no server holding your figures. The access key is checked in your browser first, then sent to our module server to fetch the Premium code. Your plan is never sent.',
   },
   {
     q: 'What about live prices?',
