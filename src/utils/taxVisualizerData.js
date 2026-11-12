@@ -32,7 +32,10 @@ export function buildTaxVisualizerData(years, useRealDollars, { mfsLivedWithSpou
     // schedule does not have (MFS living together has two) is null, so no
     // line is drawn and no comparison can land on it.
     const irmaaFactor = y.irmaaThresholdFactor ?? inf;
-    const topFactor = irmaaFactor === 1 ? 1 : irmaaTopTierFactor(y.year, irmaaFactor, TAX_YEAR);
+    // The row's own top-tier factor when it has one (it follows the path's
+    // inflation since the freeze ended); an older row recovers it.
+    const topFactor = Number.isFinite(y.irmaaTopTierFactor) ? y.irmaaTopTierFactor
+      : irmaaFactor === 1 ? 1 : irmaaTopTierFactor(y.year, irmaaFactor, TAX_YEAR);
     const irmaaLines = irmaaScaledThresholds(status, mfsLivedWithSpouse, irmaaFactor, topFactor)
       .map((t) => (Number.isFinite(t) ? t / (useRealDollars ? yearFactor(y) : 1) : null));
     // The rows are already in the display basis (today's or future

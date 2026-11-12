@@ -6468,10 +6468,23 @@ export function irmaaScaledThresholds(status, mfsLivedWithSpouse, thresholdInfla
 // $672,444 instead of $538,445, and its first year was not indexed at all.
 // Once the table's own year is past the freeze, its top figure is already
 // an indexed one and moves with the other tiers.
-export function irmaaTopTierFactor(year, thresholdInflationFactor, baseYear = TAX_YEAR) {
+//
+// factorSince, when given, is (fromYear) => the threshold factor from
+// fromYear to `year` on the same inflation path (the same function the
+// projection hands federalTaxContext). The top tier then indexes by exactly
+// the path's own inflation since the freeze ended. Without it the rate is
+// recovered from the whole factor as a geometric mean, which is exact only
+// for a path at one constant rate: in a Monte Carlo trial or a history
+// replay it would let inflation sampled in the frozen years leak into the
+// top tier (5.5% in 2027 then 2.5% put 2028 at $519,946, not $512,500).
+export function irmaaTopTierFactor(year, thresholdInflationFactor, baseYear = TAX_YEAR, factorSince = null) {
   if (!(year > IRMAA_TOP_TIER_FREEZE_THROUGH_YEAR)) return 1;
   if (!(thresholdInflationFactor > 0)) return 1;
   if (baseYear >= IRMAA_TOP_TIER_FREEZE_THROUGH_YEAR) return thresholdInflationFactor;
+  if (typeof factorSince === 'function') {
+    const since = factorSince(IRMAA_TOP_TIER_FREEZE_THROUGH_YEAR);
+    if (since > 0) return since;
+  }
   // thresholdInflationFactor is (1+r)^(year-baseYear); recover r and
   // re-raise it over the years since the freeze lifted. (year > the freeze
   // year > baseYear here, so the exponent is positive.)
@@ -8996,16 +9009,19 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // table is carried the same way (carryEveryTable): for a plan starting
     // in TAX_YEAR that is taxBracketInflationFactor itself, bit for bit.
     const bracketPathChained = historyIndexing || (monteCarloInflationOverride !== null && mcIndexingDiverged);
-    const fedTax = federalTaxContext(year, taxBracketInflationFactor, (tableYear) => {
-      if (tableYear === year) return 1;
+    // The bracket factor from an earlier year to this one on this path. The
+    // IRMAA top tier reads it too (from the end of its statutory freeze).
+    const bracketFactorSince = (fromYear) => {
+      if (fromYear === year) return 1;
       const g = 1 + inputs.taxBracketInflationRate / 100;
-      if (!bracketPathChained) return Math.pow(g, year - tableYear);
-      const tableRow = tableYear >= startYear && tableYear < year ? years[tableYear - startYear] : null;
-      const atTable = tableRow && tableRow.taxBracketInflationFactor !== undefined
-        ? tableRow.taxBracketInflationFactor
-        : Math.pow(g, tableYear - TAX_YEAR);
-      return taxBracketInflationFactor / atTable;
-    }, true);
+      if (!bracketPathChained) return Math.pow(g, year - fromYear);
+      const fromRow = fromYear >= startYear && fromYear < year ? years[fromYear - startYear] : null;
+      const atFrom = fromRow && fromRow.taxBracketInflationFactor !== undefined
+        ? fromRow.taxBracketInflationFactor
+        : Math.pow(g, fromYear - TAX_YEAR);
+      return taxBracketInflationFactor / atFrom;
+    };
+    const fedTax = federalTaxContext(year, taxBracketInflationFactor, bracketFactorSince, true);
     // MFS with both spouses alive and the income split between them is TWO
     // returns (see forEachSeparateReturn), and each return carries its own
     // MFS standard deduction and its own spouse's age-65 add-on. The
@@ -11423,7 +11439,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
           const factorIn2 = inputs.irmaaFreezeEnabled
             ? 1
             : taxBracketInflationFactor * Math.pow(1 + inputs.taxBracketInflationRate / 100, 2);
-          const topIn2 = inputs.irmaaFreezeEnabled ? 1 : irmaaTopTierFactor(year + 2, factorIn2, TAX_YEAR);
+          // From the freeze to year+2: the path so far, then two more
+          // years at the planned rate.
+          const gIn2 = 1 + inputs.taxBracketInflationRate / 100;
+          const topIn2 = inputs.irmaaFreezeEnabled ? 1 : irmaaTopTierFactor(year + 2, factorIn2, TAX_YEAR,
+            (fromYear) => (fromYear >= year ? Math.pow(gIn2, year + 2 - fromYear) : bracketFactorSince(fromYear) * gIn2 * gIn2));
           const tiersIn2 = irmaaScaledThresholds(currentStatus, inputs.mfsLivedWithSpouse, factorIn2, topIn2);
           const tierIdx = Math.max(0, Math.min(tiersIn2.length - 1, Math.floor(inputs.rothConversionIrmaaTier)));
           // MFS prices each spouse on their own share of the MAGI (see
@@ -11784,10 +11804,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // hypothetical irmaaFreezeEnabled stress test, so it applies either way:
     // with the stress test on, every tier is already flat and this changes
     // nothing; with it off, the lower four tiers index as CMS really does
-    // index them while the top one correctly stays put until 2028.
+    // index them while the top one correctly stays put until 2028. From
+    // 2028 it indexes by this path's own bracket inflation since 2027, so
+    // inflation sampled or replayed in the frozen years never reaches it.
     const irmaaTopFactor = inputs.irmaaFreezeEnabled
       ? 1
-      : irmaaTopTierFactor(year, taxBracketInflationFactor, TAX_YEAR);
+      : irmaaTopTierFactor(year, taxBracketInflationFactor, TAX_YEAR, bracketFactorSince);
     // Two-year lookback (changelog 121; SSA "Medicare Premiums: Rules for
     // Higher-Income Beneficiaries"): this year's tier comes from the MAGI
     // and filing status of the return filed two years ago, priced against
@@ -13330,6 +13352,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       partDCost,
       irmaaTrueUp,
       irmaaThresholdFactor,
+      irmaaTopTierFactor: irmaaTopFactor,
       // Which year's MAGI set this year's IRMAA tier (changelog 121):
       // the return filed two years earlier ('lookback'), this year's own
       // MAGI because no earlier projection year exists ('current'), or

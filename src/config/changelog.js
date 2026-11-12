@@ -29,6 +29,16 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 507,
+    date: '2026-11-11',
+    title: 'Live Pricing sends only tickers, and a Medicare fix in simulations',
+    summary: 'Live Pricing now sends only symbols shaped like a ticker, never names or account numbers. The top Medicare surcharge tier is now right in market simulations and history replays.',
+    items: [
+      "**Live Pricing sends only tickers.** The Symbol field is free text, and some people type an account number, a plan name or a note there. Refresh now sends a Symbol only if it looks like a ticker (letters, digits and . - ^ = :, such as BRK.B, BTC-USD or MUTF:VFIAX). Anything else, such as a name, an account number or a single word of seven or more letters, stays on your device: the holding keeps its current price and shows Not refreshed.",
+      "**Fixed.** The highest Medicare surcharge tier is fixed in law through 2027 and grows with inflation after that. In market simulations and history replays, inflation from the frozen years leaked into it, setting it a little too high in later years. It now grows only from 2028. Plans that use one inflation rate were already right and do not change.",
+    ],
+  },
+  {
     id: 506,
     date: '2026-11-11',
     title: 'The IRS\u2019s 2027 tax figures, used from 2027 on',

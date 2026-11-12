@@ -30,6 +30,8 @@ export const RELEASE_WEEKS = [
         text: 'From 2027 your plan uses the brackets, standard deduction, capital-gains bands, AMT amounts and estate exclusion the IRS published for 2027, instead of 2026 figures grown by inflation; later years grow from those. Most plans pay slightly less federal tax. Medicare and retirement-account limits for 2027 follow when they are published.' },
       { title: 'No more analytics, and privacy wording that matches the code', ids: [505],
         text: 'The optional usage analytics are gone: the app no longer counts visits or tabs at all. An independent check also found places where the privacy page, the Verify page and the app said less than the code does; they now say exactly what Premium sends, what Live Pricing sends, what works offline and what a backup holds, and our pages send no referring address to other sites.' },
+      { title: 'Live Pricing sends only tickers, and a Medicare fix in simulations', ids: [507],
+        text: 'Refresh sends a Symbol only if it looks like a ticker, so a name, account number or note typed there stays on your device and that holding shows Not refreshed. The top Medicare surcharge tier now grows only from 2028 in market simulations and history replays, as the law says.' },
     ],
   },
   {
