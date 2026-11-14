@@ -34,6 +34,8 @@ export const RELEASE_WEEKS = [
         text: 'Refresh sends a Symbol only if it looks like a ticker, so a name, account number or note typed there stays on your device and that holding shows Not refreshed. The top Medicare surcharge tier now grows only from 2028 in market simulations and history replays, as the law says.' },
       { title: 'Worth a closer look, on the Dashboard', ids: [508],
         text: 'A new Dashboard card names the years and amounts in your own plan where a small change could matter (a Medicare or marketplace line, room in the 12% bracket, a better withdrawal order or Social Security age, gifts to charity from an IRA), each linked to the page that tests it.' },
+      { title: 'A faster app', ids: [509],
+        text: 'A smaller first download, no more freezes while simulated markets run, and the Dashboard\'s background figures in a few seconds instead of over ten. The home page also fetches the app\'s own files quietly, so the click through is quicker.' },
     ],
   },
   {

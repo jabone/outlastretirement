@@ -15,6 +15,7 @@ import {
   findHistoricalSafeMax,
   computeFeeComparison,
   historicalByStockShare, historicalByRiskTarget,
+  getMinimumRequiredReturn,
 } from './calculator.js';
 import { guardrailsComparisonForDisplay } from './utils/guardrailsDisplay.js';
 
@@ -42,7 +43,18 @@ import { guardrailsComparisonForDisplay } from './utils/guardrailsDisplay.js';
 let latestRequestId = null;
 const yieldToQueue = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-export async function runHeavyAnalyses({ requestId, inputs, useRealDollars }, { isCurrent = () => true, pause = yieldToQueue } = {}) {
+// Results go out in two waves (performance audit 2026-11-13). The first
+// ten analyses take about a second and a half and feed the Dashboard and
+// the Tax pages; the history replays and the fee comparison take about ten
+// more. `onPartial` receives the first wave as soon as it is done, so those
+// pages fill in without waiting for the history.
+//
+// The two history tables only Premium shows (by stock share, by risk
+// target, about two seconds) run only when `premiumTables` is set: a
+// Premium key, or demo mode, which previews Premium.
+export const FIRST_WAVE_STEPS = 10;
+
+export async function runHeavyAnalyses({ requestId, inputs, useRealDollars, premiumTables = true }, { isCurrent = () => true, pause = yieldToQueue, onPartial = null } = {}) {
   const out = {};
   const steps = [
     () => { out.stressComparisonData = computeStressComparisonData(inputs, useRealDollars); },
@@ -64,6 +76,9 @@ export async function runHeavyAnalyses({ requestId, inputs, useRealDollars }, { 
     () => { out.guardrailsComparisonData = guardrailsComparisonForDisplay(inputs, useRealDollars); },
     // Changelog 255: spend-to-zero at three longevity odds (120 projections).
     () => { out.dieWithZeroLongevityData = dieWithZeroByLongevity(inputs); },
+    // The lowest return the plan can live on (43 projections; the printed
+    // report reads it). Moved here from the main thread, 2026-11-13.
+    () => { out.minimumRequiredReturn = getMinimumRequiredReturn(inputs); },
     // Changelog 335: every real retirement since 1928, each spending rule
     // over the same starts (about 200 projections).
     () => { out.historicalStartsData = runHistoricalStarts(inputs); },
@@ -76,19 +91,20 @@ export async function runHeavyAnalyses({ requestId, inputs, useRealDollars }, { 
     },
     // Changelog 452: the same starts at several stock shares (Premium table).
     () => {
-      if (out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, byStockShare: historicalByStockShare(inputs) };
+      if (premiumTables && out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, byStockShare: historicalByStockShare(inputs) };
     },
     // What's New 487: risk-based guardrails at 70/80/90% (Premium table).
     () => {
-      if (out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, byRiskTarget: historicalByRiskTarget(inputs) };
+      if (premiumTables && out.historicalStartsData) out.historicalStartsData = { ...out.historicalStartsData, byRiskTarget: historicalByRiskTarget(inputs) };
     },
     // Changelog 447: what fees cost -- the plan beside the same plan with
     // (or without) an advisor fee, through the historical starts too.
     () => { out.feeComparisonData = computeFeeComparison(inputs, { historical: true }); },
   ];
-  for (const step of steps) {
+  for (let i = 0; i < steps.length; i++) {
     if (!isCurrent()) return { requestId, superseded: true };
-    step();
+    steps[i]();
+    if (i === FIRST_WAVE_STEPS - 1 && onPartial && isCurrent()) onPartial({ requestId, success: true, partial: true, ...out });
     await pause();
   }
   if (!isCurrent()) return { requestId, superseded: true };
@@ -100,7 +116,7 @@ if (typeof self !== 'undefined' && typeof self.postMessage === 'function' && typ
     const { requestId } = e.data;
     latestRequestId = requestId;
     try {
-      const result = await runHeavyAnalyses(e.data, { isCurrent: () => latestRequestId === requestId });
+      const result = await runHeavyAnalyses(e.data, { isCurrent: () => latestRequestId === requestId, onPartial: (p) => self.postMessage(p) });
       // A superseded job posts nothing: its reply would be discarded anyway.
       if (!result.superseded) self.postMessage(result);
     } catch (error) {

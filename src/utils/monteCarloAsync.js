@@ -27,12 +27,16 @@ function createWorker() {
   }
 }
 
-// Posts one plan to the worker and resolves with its results. Only ever
+// Posts one plan to the worker and resolves with its results, skipping the
+// progress messages that come first. Only ever
 // one message is outstanding at a time, so the reply needs no correlation
 // id -- the worker processes messages serially and this awaits each one.
 function simulateInWorker(worker, inputs) {
   return new Promise((resolve, reject) => {
     const onMessage = (e) => {
+      // The worker reports how far along it is ({ progress: 0-1 }) before
+      // the result. Those are not the answer; keep waiting for it.
+      if (e.data && typeof e.data.progress === 'number' && !('success' in e.data)) return;
       cleanup();
       if (e.data && e.data.success) resolve(e.data.results);
       else reject(new Error(e.data?.error || 'Monte Carlo worker reported failure'));

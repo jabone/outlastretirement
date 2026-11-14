@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef, useId } from 'react';
+import { setMcProgress } from './utils/mcProgressStore';
 import { claimAgeLabel } from './utils/ssClaimLabel';
 import { flushSync } from 'react-dom';
 import { PLAN_ANSWERS_KEY, ANSWER_FIELDS, readPlanAnswers, sanitizeAnswers, sanitizeAnswersForEditing, answersSummary } from './utils/planAnswers';
@@ -910,7 +911,12 @@ export default function App() {
 
 
   // Monte Carlo simulation state
-  const [monteCarlo, setMonteCarlo] = useState(null);
+  // The stored run is read on the first render, not in an effect, so the
+  // auto-run below can see it is already there and not start a new one.
+  const [monteCarlo, setMonteCarlo] = useState(() => {
+    const cached = readMonteCarloCache();
+    return cached && cached.results ? cached.results : null;
+  });
   // The plan the current Monte Carlo result was run against (changelog
   // 254), as a plan key (changelog 268: a string of every sanitized input,
   // so the run survives a reload and an edit-and-undo, and goes stale only
@@ -919,10 +925,6 @@ export default function App() {
     const cached = readMonteCarloCache();
     return cached ? cached.key : null;
   });
-  useEffect(() => {
-    const cached = readMonteCarloCache();
-    if (cached && cached.results) setMonteCarlo(cached.results);
-  }, []);
   const currentPlanKey = useMemo(() => planKey(inputs), [inputs]);
   useEffect(() => {
     if (monteCarlo && mcKey) writeMonteCarloCache(mcKey, monteCarlo);
@@ -940,7 +942,8 @@ export default function App() {
   const [mcLoading, setMcLoading] = useState(false);
   // Share of the Monte Carlo's trials done, 0-1, while it runs (the worker's
   // progress messages); null when nothing is running.
-  const [mcProgress, setMcProgress] = useState(null);
+  // Monte Carlo progress lives in utils/mcProgressStore.js, not App state,
+  // so a progress report re-renders only the small working card.
   const mcWorkerRef = useRef(null);
 
   // Terminate background worker on unmount
@@ -958,6 +961,10 @@ export default function App() {
   // persistent Web Worker (see heavyComputeWorker.js) instead of blocking the
   // main thread on every debounced input change. Posting effect lives further
   // down, after debouncedInputs is declared.
+  // The two history tables only Premium shows are worked out only for a
+  // Premium key or in demo mode (which previews Premium); see
+  // heavyComputeWorker.js.
+  const premiumTables = premiumJwtStatus.valid || demoActive;
   const [heavyResults, setHeavyResults] = useState({
     stressComparisonData: [],
     ssClaimingHeatmapData: [],
@@ -1478,7 +1485,13 @@ export default function App() {
       rows: projection.years.length,
       comparisonData,
     };
-  }, [debouncedInputs, projection, useRealDollars], { immediate: activeTab === 'readiness' || maximizedComponent === 'dieWithZero' });
+  }, [debouncedInputs, projection, useRealDollars], {
+    immediate: activeTab === 'readiness' || maximizedComponent === 'dieWithZero',
+    // Not at all while neither is open: 42 projections on the main thread
+    // after every edit, for a figure nothing on screen shows (performance
+    // audit 2026-11-13). Opening Readiness computes it at once.
+    skip: activeTab !== 'readiness' && maximizedComponent !== 'dieWithZero',
+  });
 
   // A search over many projections that only the Retirement Readiness tab
   // reads, so it runs when that tab is open rather than on every start
@@ -1549,7 +1562,9 @@ export default function App() {
   // own). Keyed on the debounced inputs and computed when the browser is
   // idle, so it never runs inside a keystroke (review 2026-09-30, H11).
   // null until the first result.
-  const minimumRequiredReturn = useIdleMemo(() => getMinimumRequiredReturn(debouncedInputs), [debouncedInputs]);
+  // Worked out in the heavy worker's first wave (performance audit
+  // 2026-11-13), off the main thread; it is read only by the printed report.
+  const minimumRequiredReturn = heavyResults.minimumRequiredReturn || null;
 
   const estateChartData = useMemo(() => {
     if (!projection?.years || projection.years.length === 0) return [];
@@ -1756,9 +1771,12 @@ export default function App() {
           rothLadderScheduleHeatmapData: getRothLadderScheduleHeatmap(debouncedInputs, useRealDollars),
           guardrailsComparisonData: guardrailsComparisonForDisplay(debouncedInputs, useRealDollars),
           dieWithZeroLongevityData: dieWithZeroByLongevity(debouncedInputs),
+          minimumRequiredReturn: getMinimumRequiredReturn(debouncedInputs),
           historicalStartsData: (() => {
             const h = runHistoricalStarts(debouncedInputs);
-            return h ? { ...h, safeMax: findHistoricalSafeMax(debouncedInputs), byStockShare: historicalByStockShare(debouncedInputs), byRiskTarget: historicalByRiskTarget(debouncedInputs) } : h;
+            if (!h) return h;
+            const extra = premiumTables ? { byStockShare: historicalByStockShare(debouncedInputs), byRiskTarget: historicalByRiskTarget(debouncedInputs) } : {};
+            return { ...h, safeMax: findHistoricalSafeMax(debouncedInputs), ...extra };
           })(),
           feeComparisonData: computeFeeComparison(debouncedInputs, { historical: true }),
         };
@@ -1792,6 +1810,24 @@ export default function App() {
         const data = e.data || {};
         if (data.requestId !== heavyRequestIdRef.current) return; // superseded by a newer request
         heavyWorkerFailuresRef.current = 0;
+        if (data.success && data.partial) {
+          // The first wave: the Dashboard and Tax analyses. The history
+          // replays and fee comparison stay as they were until the second.
+          setHeavyResults((prev) => ({
+            ...(prev || {}),
+            stressComparisonData: data.stressComparisonData,
+            ssClaimingHeatmapData: data.ssClaimingHeatmapData,
+            optimizerResults: data.optimizerResults,
+            ageFinderResults: data.ageFinderResults,
+            sensitivityResults: data.sensitivityResults,
+            rothBracketHeatmapData: data.rothBracketHeatmapData,
+            rothLadderScheduleHeatmapData: data.rothLadderScheduleHeatmapData,
+            guardrailsComparisonData: data.guardrailsComparisonData,
+            dieWithZeroLongevityData: data.dieWithZeroLongevityData || null,
+            minimumRequiredReturn: data.minimumRequiredReturn || null,
+          }));
+          return;
+        }
         if (data.success) {
           setHeavyResults({
             stressComparisonData: data.stressComparisonData,
@@ -1803,6 +1839,7 @@ export default function App() {
             rothLadderScheduleHeatmapData: data.rothLadderScheduleHeatmapData,
             guardrailsComparisonData: data.guardrailsComparisonData,
             dieWithZeroLongevityData: data.dieWithZeroLongevityData || null,
+            minimumRequiredReturn: data.minimumRequiredReturn || null,
             historicalStartsData: data.historicalStartsData || null,
             feeComparisonData: data.feeComparisonData || null,
           });
@@ -1821,11 +1858,11 @@ export default function App() {
         if (requestId === heavyRequestIdRef.current) post();
       };
 
-      worker.postMessage({ requestId, inputs: debouncedInputs, useRealDollars });
+      worker.postMessage({ requestId, inputs: debouncedInputs, useRealDollars, premiumTables });
     };
     post();
     return () => { if (cancelFallback) cancelFallback(); };
-  }, [debouncedInputs, useRealDollars]);
+  }, [debouncedInputs, useRealDollars, premiumTables]);
 
   // Save current active inputs and metrics as a scenario.
   // `options.tag` is an optional machine-readable marker (e.g.
@@ -1972,12 +2009,20 @@ export default function App() {
   // a few seconds after the last edit (changelog 269). The persisted result
   // and its key (changelog 268) mean this never runs twice for one plan --
   // a reload, or an edit undone, finds the run already there.
+  //
+  // The wait is there so a run does not start in the middle of an edit. The
+  // first run after the page opens, before anything has been edited, has no
+  // edit to wait for, so it starts at once (performance audit 2026-11-13:
+  // the odds came about two seconds sooner on a first visit).
+  const firstAutoRunRef = useRef(true);
+  const openingInputsRef = useRef(inputs);
   useEffect(() => {
     if (!mcAutoRun || mcLoading) return undefined;
     if (mcKey === currentPlanKey && monteCarlo) return undefined;
-    const handle = setTimeout(() => { handleRunMonteCarlo(); }, MC_AUTO_RUN_DELAY_MS);
+    const delay = firstAutoRunRef.current && inputs === openingInputsRef.current ? 0 : MC_AUTO_RUN_DELAY_MS;
+    const handle = setTimeout(() => { firstAutoRunRef.current = false; handleRunMonteCarlo(); }, delay);
     return () => clearTimeout(handle);
-  }, [mcAutoRun, mcLoading, mcKey, currentPlanKey, monteCarlo, handleRunMonteCarlo]);
+  }, [mcAutoRun, mcLoading, mcKey, currentPlanKey, monteCarlo, handleRunMonteCarlo, inputs]);
 
   // Note: autoCalibratePlan used to be defined here too, but it was dead
   // code -- never wired to any button, never called anywhere in this file.
@@ -2586,7 +2631,6 @@ export default function App() {
         {!showDisclaimer && (
           <BackgroundWorkIndicator
             mcLoading={mcLoading}
-            mcProgress={mcProgress}
             trials={Number(inputs.monteCarloTrials) || 1000}
             heavyLoading={!!heavyResultsLoading}
             raised={!statusBarHidden}

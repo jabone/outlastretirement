@@ -15,7 +15,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as jsxRuntime from 'react/jsx-runtime';
-import * as lucide from 'lucide-react';
+import * as lucide from './hostIcons';
 
 import * as portfolioHoldings from '../utils/portfolioHoldings';
 import * as holdingsCore from '../utils/holdingsCore';

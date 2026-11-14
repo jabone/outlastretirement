@@ -35,6 +35,33 @@ const cspMeta = {
   },
 }
 
+// The landing page fetches the app's startup files at low priority once it
+// has loaded (performance audit 2026-11-13), so a visitor who clicks
+// through to /app/ finds them already in the browser cache instead of
+// waiting about two seconds on a slow phone connection. Same site only:
+// these are the app's own files, nothing third-party. The list is read
+// from the built app page, so it always names the current hashed files.
+export function appPrefetchLinks(appHtml) {
+  const hrefs = []
+  for (const m of appHtml.matchAll(/<script type="module" crossorigin src="(\/assets\/[^"]+\.js)"><\/script>/g)) hrefs.push([m[1], 'script'])
+  for (const m of appHtml.matchAll(/<link rel="modulepreload" crossorigin href="(\/assets\/[^"]+\.js)">/g)) hrefs.push([m[1], 'script'])
+  for (const m of appHtml.matchAll(/<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/g)) hrefs.push([m[1], 'style'])
+  return hrefs.map(([href, as]) => `<link rel="prefetch" href="${href}" as="${as}" crossorigin>`).join('\n    ')
+}
+const landingPrefetch = {
+  name: 'outlast-landing-prefetch',
+  apply: 'build',
+  enforce: 'post',
+  generateBundle(_options, bundle) {
+    const app = Object.values(bundle).find((f) => f.type === 'asset' && f.fileName === 'app/index.html')
+    const landing = Object.values(bundle).find((f) => f.type === 'asset' && f.fileName === 'index.html')
+    if (!app || !landing) return
+    const links = appPrefetchLinks(String(app.source))
+    if (!links) return
+    landing.source = String(landing.source).replace('</head>', `    <!-- The app's startup files, fetched at low priority for the click through to /app/. -->\n    ${links}\n  </head>`)
+  },
+}
+
 // The landing page's three small stylesheets (tokens, theme, fonts: about
 // 7 KB together) each cost a render-blocking request (PageSpeed, 2026-10-07).
 // The built page carries them inline instead. index.html keeps the <link>
@@ -126,6 +153,7 @@ export default defineConfig({
     react(),
     cspMeta,
     landingCss,
+    landingPrefetch,
     // PWA / offline support (changelog 115). The whole point is the
     // privacy demonstration: after one visit, every asset the free app uses
     // -- including the lazy tab and chart chunks that used to 404 offline --

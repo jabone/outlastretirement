@@ -154,6 +154,8 @@ const StrategyTab = () => {
       ssMcPreviewWorkerRef.current = worker;
 
       worker.onmessage = (e) => {
+        // Progress messages come before the result; wait for the result.
+        if (e.data && typeof e.data.progress === 'number' && !('success' in e.data)) return;
         if (e.data && e.data.success) {
           finish(e.data.results.successProbability);
         } else {

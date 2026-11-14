@@ -27,6 +27,26 @@ describe('useIdleMemo', () => {
     }
   });
 
+  it('skip holds off until something reads it, keeping the last result', async () => {
+    vi.useFakeTimers();
+    try {
+      const compute = vi.fn((x) => x * 10);
+      const { result, rerender } = renderHook(({ x, skip }) => useIdleMemo(() => compute(x), [x], { skip }), { initialProps: { x: 1, skip: true } });
+      await act(async () => { vi.advanceTimersByTime(50); });
+      expect(compute).not.toHaveBeenCalled();
+      expect(result.current).toBe(null);
+      rerender({ x: 1, skip: false });
+      await act(async () => { vi.advanceTimersByTime(50); });
+      expect(result.current).toBe(10);
+      rerender({ x: 2, skip: true });
+      await act(async () => { vi.advanceTimersByTime(50); });
+      expect(result.current).toBe(10);
+      expect(compute).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('immediate computes without waiting for idle', async () => {
     const { result } = renderHook(() => useIdleMemo(() => 'now', [1], { immediate: true }));
     expect(result.current).toBe('now');

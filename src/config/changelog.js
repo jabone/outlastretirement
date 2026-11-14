@@ -29,6 +29,19 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 509,
+    date: '2026-11-14',
+    title: 'A faster app',
+    summary: 'The app opens and settles faster: a smaller first download, no more freezes while simulated markets run, and the Dashboard\'s background figures arrive in a few seconds instead of over ten.',
+    items: [
+      "**Fixed: freezes while simulated markets ran.** Showing the odds for Three changes, saving a scenario and opening a demo ran their simulations in the background as intended, but read the first progress report as a failure and ran them again on the page itself, which could freeze it for several seconds. They now stay in the background.",
+      "**A smaller first download.** The app now starts with only the icons it uses, about a third less to download before the Dashboard appears.",
+      "**Background figures sooner.** The Action Plan, Tax Optimizer Hub, Roth grids and claiming grid now fill in as soon as their analyses are done, a second or two in, instead of waiting another ten seconds for the history replays. Two history tables that only Premium shows are no longer worked out for everyone.",
+      "**Less work while you edit.** The Monte Carlo progress no longer redraws the whole page, and two searches that only Retirement Readiness and the printed report show no longer run after every change on other pages.",
+      "**A quicker start.** The home page fetches the app's files quietly in the background, so the click through to the planner is faster, and the first simulated-markets run after opening starts at once instead of after a short pause. All of this is the app's own files from this site; nothing new is sent anywhere.",
+    ],
+  },
+  {
     id: 508,
     date: '2026-11-12',
     title: 'Worth a closer look, on the Dashboard',

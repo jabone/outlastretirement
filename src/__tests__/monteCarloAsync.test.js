@@ -72,6 +72,21 @@ describe('runMonteCarloBatch', () => {
     expect(StubWorker.instances[0].terminated).toBe(true);
   });
 
+  it('waits past the worker\'s progress messages for its result', async () => {
+    // The real worker posts { progress } several times before the result.
+    // Taking the first message as the answer sent every batch run back to
+    // the main thread, freezing the page for seconds.
+    withWorker((w) => {
+      w.emit('message', { data: { progress: 0.25 } });
+      w.emit('message', { data: { progress: 0.75 } });
+      w.emit('message', { data: { success: true, results: { successProbability: 61 } } });
+    });
+    const warn = vi.spyOn(console, 'warn');
+    const results = await runMonteCarloBatch([quickPlan(), quickPlan()]);
+    expect(results.map((r) => r.successProbability)).toEqual([61, 61]);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
   it('falls back to the main thread when the worker reports failure', async () => {
     withWorker((w) => w.emit('message', { data: { success: false, error: 'nope' } }));
     const results = await runMonteCarloBatch([quickPlan()]);

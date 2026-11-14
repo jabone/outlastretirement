@@ -123,7 +123,10 @@ rest (2.8). Anything not on either list, a module ships itself.
 A module names the host code it uses with the `@host/<path>` specifier,
 never a relative path. The allowlist is `src/premium/hostLib.js` in the host:
 React itself (so a separately built chunk never carries a second copy),
-`lucide-react`, the open data-layer utilities (`utils/portfolioHoldings`,
+the icons listed in `src/premium/hostIcons.js` (published as `lucide-react`;
+since 2026-11-14 the host publishes that named list, not the whole library,
+which had put every icon in the startup download; a module needing another
+icon has it added there first, or bundles it itself), the open data-layer utilities (`utils/portfolioHoldings`,
 `utils/holdingsCore`, `utils/pricingSource`, …), the engine entry
 (`calculator`, published whole since 1.2 so a module computes with the same
 functions the host does) and a handful of shared components. Inside the host repo `@host/` is a build alias onto `src/`; in

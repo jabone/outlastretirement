@@ -7,10 +7,14 @@
 // quick update does not flash it.
 import React, { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useMcProgress } from '../utils/mcProgressStore';
 
 const SHOW_AFTER_MS = 250;
 
-export default function BackgroundWorkIndicator({ mcLoading, mcProgress, trials = 1000, heavyLoading, raised = true }) {
+export default function BackgroundWorkIndicator({ mcLoading, mcProgress: mcProgressProp, trials = 1000, heavyLoading, raised = true }) {
+  // Progress comes from the store; a prop still wins (tests pass one).
+  const stored = useMcProgress();
+  const mcProgress = mcProgressProp !== undefined ? mcProgressProp : stored;
   const busy = !!(mcLoading || heavyLoading);
   const [shown, setShown] = useState(false);
   // Folded to a small spinner by its own button, until the work is done.
