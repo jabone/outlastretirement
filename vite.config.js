@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
@@ -85,6 +85,29 @@ const landingCss = {
   },
 }
 
+// The other static pages (Learn, privacy, terms and the rest) are copied
+// from public/ as they are, so the same inlining runs on the built copies
+// (performance audit 2026-11-13: each lesson page waited on three small
+// stylesheets before it could draw). The sources keep their <link>s.
+export function staticPageFiles(outDir) {
+  const pages = readdirSync(outDir).filter((n) => n.endsWith('.html') && n !== 'index.html').map((n) => resolve(outDir, n))
+  const learn = resolve(outDir, 'learn')
+  try { pages.push(...readdirSync(learn).filter((n) => n.endsWith('.html')).map((n) => resolve(learn, n))) } catch { /* no Learn pages */ }
+  return pages
+}
+const staticPagesCss = {
+  name: 'outlast-static-pages-css',
+  apply: 'build',
+  writeBundle(options) {
+    const outDir = options.dir || resolve(__dirname, 'dist')
+    for (const file of staticPageFiles(outDir)) {
+      const html = readFileSync(file, 'utf8')
+      const out = inlineLandingCss(html)
+      if (out !== html) writeFileSync(file, out)
+    }
+  },
+}
+
 // The brand marks the app itself shows (utils/brandMarkProps.js), precached
 // on their own because the rest of public/brand is the marketing page's.
 const BRAND_MARKS = ['outlast-full-dark', 'outlast-full-light', 'or-short-dark', 'or-short-light']
@@ -162,6 +185,7 @@ export default defineConfig({
     cspMeta,
     landingCss,
     landingPrefetch,
+    staticPagesCss,
     // PWA / offline support (changelog 115). The whole point is the
     // privacy demonstration: after one visit, every asset the free app uses
     // -- including the lazy tab and chart chunks that used to 404 offline --

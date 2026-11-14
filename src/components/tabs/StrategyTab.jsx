@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { takeEngineWorker, giveEngineWorker } from '../../utils/engineWorkerPool';
 import { gridCompactDollars } from '../../utils/compactDollars';
 import { heatCellBg } from '../../utils/heatCell';
 import { strategyMeasure } from '../../utils/strategyMeasure';
@@ -150,7 +151,8 @@ const StrategyTab = () => {
     };
 
     try {
-      const worker = new Worker(new URL('../../engineWorker.js', import.meta.url), { type: 'module' });
+      const worker = takeEngineWorker();
+      if (!worker) throw new Error('Web Workers are not available');
       ssMcPreviewWorkerRef.current = worker;
 
       worker.onmessage = (e) => {
@@ -158,12 +160,13 @@ const StrategyTab = () => {
         if (e.data && typeof e.data.progress === 'number' && !('success' in e.data)) return;
         if (e.data && e.data.success) {
           finish(e.data.results.successProbability);
+          giveEngineWorker(worker);
         } else {
           console.warn('SS claiming Monte Carlo preview worker failed, running fallback simulation synchronously', e.data?.error);
           const res = runMonteCarlo(testInputs);
           finish(res.successProbability);
+          worker.terminate();
         }
-        worker.terminate();
       };
 
       worker.onerror = (err) => {

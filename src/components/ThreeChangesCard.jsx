@@ -13,7 +13,11 @@ import { verdictPctText, verdictBand, VERDICT_THRESHOLDS } from '../utils/planVe
 // request (three Monte Carlo runs, off the main thread), and a Try it that
 // changes the plan with an Undo beside it. Nothing changes until Try it.
 export default function ThreeChangesCard() {
-  const { inputs, setInputs, verdict, mcRange } = useSimulation();
+  const { inputs, debouncedInputs, setInputs, verdict, mcRange } = useSimulation();
+  // The changes and their quick checks (four projections) follow the
+  // debounced plan, so typing in a field does not re-run them on every key
+  // (performance audit 2026-11-13). Try it and Undo act on the live plan.
+  const plan = debouncedInputs || inputs;
   const [undo, setUndo] = useState(null);
   const [odds, setOdds] = useState(null); // { key, pcts: [..] }
   const [running, setRunning] = useState(false);
@@ -22,7 +26,7 @@ export default function ThreeChangesCard() {
   // Often no one change is enough on its own, so the last row is all of
   // them at once.
   const changes = useMemo(() => {
-    const list = threeChanges(inputs);
+    const list = threeChanges(plan);
     if (list.length < 2) return list;
     const words = ['', '', 'Both', 'All three'];
     return [...list, {
@@ -36,11 +40,11 @@ export default function ThreeChangesCard() {
       tryable: list.every((c) => c.tryable),
       note: null,
     }];
-  }, [inputs]);
-  const key = useMemo(() => JSON.stringify(inputs), [inputs]);
+  }, [plan]);
+  const key = useMemo(() => JSON.stringify(plan), [plan]);
   const averages = useMemo(() => changes.map((c) => {
-    try { return runProjection(sanitizeForProjection({ ...inputs, ...c.patch })).isSuccessful; } catch { return null; }
-  }), [changes, inputs]);
+    try { return runProjection(sanitizeForProjection({ ...plan, ...c.patch })).isSuccessful; } catch { return null; }
+  }), [changes, plan]);
 
   // Odds belong to the plan they were run for; an edit clears them.
   useEffect(() => { if (odds && odds.key !== key) setOdds(null); }, [key, odds]);
@@ -54,7 +58,7 @@ export default function ThreeChangesCard() {
     const id = ++runId.current;
     setRunning(true);
     try {
-      const results = await runMonteCarloBatch(changes.map((c) => ({ ...inputs, ...c.patch })));
+      const results = await runMonteCarloBatch(changes.map((c) => ({ ...plan, ...c.patch })));
       if (id === runId.current) setOdds({ key, pcts: results.map((r) => r?.successProbability) });
     } finally {
       if (id === runId.current) setRunning(false);

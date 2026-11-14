@@ -14,13 +14,14 @@
 // right answer is to run the simulation synchronously and be slow rather
 // than to show the user an error about something they cannot act on.
 import { runMonteCarlo } from '../calculator';
+import { takeEngineWorker, giveEngineWorker } from './engineWorkerPool';
 
-// One worker, reused across a batch. Created lazily so a caller that ends
-// up on the synchronous path never pays for a Worker it cannot use.
+// One worker, reused across a batch and kept warm afterwards
+// (engineWorkerPool.js). Taken lazily so a caller that ends up on the
+// synchronous path never pays for a Worker it cannot use.
 function createWorker() {
-  if (typeof Worker === 'undefined') return null;
   try {
-    return new Worker(new URL('../engineWorker.js', import.meta.url), { type: 'module' });
+    return takeEngineWorker();
   } catch (err) {
     console.warn('Monte Carlo worker unavailable; simulating on the main thread instead.', err);
     return null;
@@ -91,8 +92,7 @@ export async function runMonteCarloBatch(plans, { onProgress } = {}) {
     // presenting one long freeze.
     await new Promise((r) => setTimeout(r, 0));
   }
-  if (worker) {
-    try { worker.terminate(); } catch { /* already gone */ }
-  }
+  // Finished cleanly: keep it warm for the next run.
+  if (worker) giveEngineWorker(worker);
   return results;
 }

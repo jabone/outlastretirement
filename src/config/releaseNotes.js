@@ -38,6 +38,8 @@ export const RELEASE_WEEKS = [
         text: 'A smaller first download, no more freezes while simulated markets run, and the Dashboard\'s background figures in a few seconds instead of over ten. The home page also fetches the app\'s own files quietly, so the click through is quicker.' },
       { title: 'Instant Undo, and smaller updates', ids: [510],
         text: 'Undo and switching back to a scenario now show results the app worked out a moment ago instead of running everything again, and each update downloads less.' },
+      { title: 'Smoother typing, and faster lesson pages', ids: [511],
+        text: 'The Dashboard waits until you stop typing before re-checking the plan, simulated-markets runs start sooner, and lesson pages draw faster.' },
     ],
   },
   {

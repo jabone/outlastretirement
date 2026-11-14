@@ -34,17 +34,23 @@ describe('engine worker', () => {
   it('is the only worker file, and every caller uses it with a job name', () => {
     expect(existsSync(join(SRC, 'monteCarloWorker.js'))).toBe(false);
     expect(existsSync(join(SRC, 'rothScheduleWorker.js'))).toBe(false);
-    const callers = {
-      'App.jsx': ["job: 'heavy'", "job: 'monteCarlo'"],
-      'components/tabs/StrategyTab.jsx': ["job: 'monteCarlo'"],
-      'utils/monteCarloAsync.js': ["job: 'monteCarlo'"],
-      'utils/rothScheduleAsync.js': ["job: 'rothSchedule'"],
-    };
-    for (const [file, jobs] of Object.entries(callers)) {
+    // Every Worker the app starts is engineWorker.js...
+    for (const file of ['App.jsx', 'utils/engineWorkerPool.js', 'utils/rothScheduleAsync.js']) {
       const src = readFileSync(join(SRC, file), 'utf8');
       const urls = [...src.matchAll(/new Worker\(new URL\('([^']+)'/g)].map((m) => m[1]);
       expect(urls.length, file).toBeGreaterThan(0);
       for (const u of urls) expect(u.endsWith('engineWorker.js'), `${file}: ${u}`).toBe(true);
+    }
+    // ...and every caller names its job. The Monte Carlo callers take the
+    // warm worker from the pool rather than starting their own.
+    const callers = {
+      'App.jsx': ["job: 'heavy'", "job: 'monteCarlo'", 'takeEngineWorker()'],
+      'components/tabs/StrategyTab.jsx': ["job: 'monteCarlo'", 'takeEngineWorker()'],
+      'utils/monteCarloAsync.js': ["job: 'monteCarlo'", 'takeEngineWorker()'],
+      'utils/rothScheduleAsync.js': ["job: 'rothSchedule'"],
+    };
+    for (const [file, jobs] of Object.entries(callers)) {
+      const src = readFileSync(join(SRC, file), 'utf8');
       for (const j of jobs) expect(src, file).toContain(j);
     }
   });

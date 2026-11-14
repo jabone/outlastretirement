@@ -4,6 +4,7 @@
 // fallback by default; the worker paths are exercised with a stub.
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { runMonteCarloBatch } from '../utils/monteCarloAsync';
+import { _resetEngineWorkerPool, takeEngineWorker } from '../utils/engineWorkerPool';
 import { DEFAULT_INPUTS } from '../calculator';
 
 // Two cheap plans: a one-year horizon keeps the real simulation fast while
@@ -39,6 +40,7 @@ const withWorker = (impl) => {
 };
 
 afterEach(() => {
+  _resetEngineWorkerPool();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -63,13 +65,16 @@ describe('runMonteCarloBatch', () => {
     expect(seen).toEqual([[1, 3], [2, 3], [3, 3]]);
   }, 30000);
 
-  it('uses the worker when there is one, and shuts it down afterwards', async () => {
+  it('uses one worker for the batch, and keeps it warm for the next run', async () => {
     withWorker((w) => w.emit('message', { data: { success: true, results: { successProbability: 42 } } }));
     const results = await runMonteCarloBatch([quickPlan(), quickPlan()]);
     expect(results.map((r) => r.successProbability)).toEqual([42, 42]);
-    // One worker for the whole batch, terminated at the end.
+    // One worker for the whole batch, not ended: the next run reuses it.
     expect(StubWorker.instances).toHaveLength(1);
-    expect(StubWorker.instances[0].terminated).toBe(true);
+    expect(StubWorker.instances[0].terminated).toBe(false);
+    await runMonteCarloBatch([quickPlan()]);
+    expect(StubWorker.instances).toHaveLength(1);
+    expect(takeEngineWorker()).toBe(StubWorker.instances[0]);
   });
 
   it('waits past the worker\'s progress messages for its result', async () => {

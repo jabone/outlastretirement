@@ -38,7 +38,7 @@ const DashboardTab = () => {
   // right top-level tab. Previously only riskSubTab was lifted, so the
   // other four targets were silently dropped -- see the navigation
   // handler further down and App.jsx's sub-tab state block.
-  const { inputs, updateInput, formatCurrency, projection, setActiveTab, getRMDAge, maximizedComponent, setMaximizedComponent, mcRange, monteCarlo, setCalibrationResults, calibrationUndo, undoCalibration, rothBracketHeatmapData, guardrailsComparisonData, setRiskSubTab, setSettingsSubTab, setStrategySubTab, setTaxestateSubTab, setYearledgerSubTab } = useSimulation();
+  const { inputs, debouncedInputs, updateInput, formatCurrency, projection, setActiveTab, getRMDAge, maximizedComponent, setMaximizedComponent, mcRange, monteCarlo, setCalibrationResults, calibrationUndo, undoCalibration, rothBracketHeatmapData, guardrailsComparisonData, setRiskSubTab, setSettingsSubTab, setStrategySubTab, setTaxestateSubTab, setYearledgerSubTab } = useSimulation();
 
   // Changelog 363: the Monte Carlo range behind the average path.
   const growthBand = useMemo(() => growthRange(monteCarlo, mcRange, inputs), [monteCarlo, mcRange, inputs]);
@@ -54,7 +54,8 @@ const DashboardTab = () => {
   // Up to 25 projections, so it is worked out just after the Dashboard's
   // first paint rather than before it (useDeferredValue's initial null):
   // the card shows "Working it out" for that moment (mobile speed pass).
-  const deferredInputs = React.useDeferredValue(inputs, null);
+  // It follows the debounced plan, so typing does not re-run it per key.
+  const deferredInputs = React.useDeferredValue(debouncedInputs || inputs, null);
   const firstSafe = useMemo(() => (deferredInputs ? firstSafeRetirementYear(deferredInputs) : null), [deferredInputs]);
 
   // Maps a recommendation's `action.tab` onto that tab's sub-tab setter,

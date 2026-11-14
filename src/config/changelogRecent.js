@@ -7,6 +7,17 @@
 // oldest entries, unchanged, to the top of the older list in changelog.js.
 export const CHANGELOG_RECENT = [
   {
+    id: 511,
+    date: '2026-11-14',
+    title: 'Smoother typing, and faster lesson pages',
+    summary: 'Typing in the plan is smoother, the next simulated-markets run starts sooner, and the lesson pages draw faster.',
+    items: [
+      "**Smoother typing.** The Dashboard's Three changes card and its first-year-that-lasts figure now wait until you stop typing before they work anything out, instead of re-checking the plan after every key.",
+      "**Simulated markets start sooner.** The background worker that runs them now stays ready between runs, so a new run no longer waits for the engine to load again.",
+      "**Faster lesson pages.** The lesson and information pages now carry their small style sheets inside the page, so they draw without waiting on extra files, and each lesson's first picture loads ahead of the rest.",
+    ],
+  },
+  {
     id: 510,
     date: '2026-11-14',
     title: 'Instant Undo, and smaller updates',

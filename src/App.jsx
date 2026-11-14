@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef, useId } from 'react';
 import { setMcProgress } from './utils/mcProgressStore';
 import { recentResults } from './utils/recentResults';
+import { takeEngineWorker, giveEngineWorker } from './utils/engineWorkerPool';
 import { claimAgeLabel } from './utils/ssClaimLabel';
 import { flushSync } from 'react-dom';
 import { PLAN_ANSWERS_KEY, ANSWER_FIELDS, readPlanAnswers, sanitizeAnswers, sanitizeAnswersForEditing, answersSummary } from './utils/planAnswers';
@@ -1983,8 +1984,9 @@ export default function App() {
     }
     
     try {
-      // Instantiate background Web Worker
-      const worker = new Worker(new URL('./engineWorker.js', import.meta.url), { type: 'module' });
+      // The warm engine worker if one is waiting (engineWorkerPool.js).
+      const worker = takeEngineWorker();
+      if (!worker) throw new Error('Web Workers are not available');
       mcWorkerRef.current = worker;
       
       setMcProgress(0);
@@ -2001,8 +2003,9 @@ export default function App() {
           mcMemoryRef.current.set(runKey, res);
         }
         setMcLoading(false);
-        worker.terminate();
         mcWorkerRef.current = null;
+        // Finished cleanly: keep it warm for the next run.
+        if (e.data && e.data.success) giveEngineWorker(worker); else worker.terminate();
       };
       
       worker.onerror = (err) => {

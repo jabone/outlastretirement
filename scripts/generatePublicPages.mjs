@@ -436,7 +436,7 @@ ${t.paras.map((para) => `        <p>${esc(para)}</p>`).join('\n')}${t.list ? `\n
       </section>`).join('\n\n');
   const slides = lesson.slides ? lesson.slides.map((s, k) => `      <section class="slide" id="slide-${k + 1}">
         <h2><span class="num">${k + 1}.</span>${esc(s.title)}</h2>
-        <img src="${img(k + 1)}.webp" srcset="${img(k + 1)}-800.webp 800w, ${img(k + 1)}.webp 1600w" sizes="(max-width: 908px) 100vw, 860px" width="1600" height="900" ${k === 0 ? 'loading="eager"' : 'loading="lazy"'} decoding="async" alt="${esc(s.alt)}" />
+        <img src="${img(k + 1)}.webp" srcset="${img(k + 1)}-800.webp 800w, ${img(k + 1)}.webp 1600w" sizes="(max-width: 908px) 100vw, 860px" width="1600" height="900" ${k === 0 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" alt="${esc(s.alt)}" />
         <p>${esc(s.say)}</p>
       </section>`).join('\n\n') : parts;
   const body = `      <p class="lead">${esc(lesson.summary)}</p>

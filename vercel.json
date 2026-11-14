@@ -95,6 +95,15 @@
       ]
     },
     {
+      "source": "/(favicon.ico|favicon.png|apple-touch-icon.png|pwa-192x192.png|pwa-512x512.png|pwa-maskable-512x512.png)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
       "source": "/learn/img/(.*)",
       "headers": [
         {
