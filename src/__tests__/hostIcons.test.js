@@ -2,7 +2,7 @@
 // lucide-react (which put every icon in the startup download). These pin
 // the list to what the built Premium modules actually use.
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import * as lucide from 'lucide-react';
@@ -20,7 +20,9 @@ describe('icons published to Premium modules', () => {
     expect(HOST_PACKAGES['lucide-react']).toBe(hostIcons);
   });
 
-  it('covers every icon the built Premium modules use', () => {
+  // The built Premium modules are fixtures of the private repo only.
+  const hasFixtures = existsSync(FIXTURES) && readdirSync(FIXTURES).some((n) => n.endsWith('.built.js'));
+  it.skipIf(!hasFixtures)('covers every icon the built Premium modules use', () => {
     const used = new Set();
     for (const f of readdirSync(FIXTURES).filter((n) => n.endsWith('.built.js'))) {
       const src = readFileSync(join(FIXTURES, f), 'utf8');

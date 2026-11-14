@@ -32,7 +32,7 @@ export const CHANGELOG = [
     id: 509,
     date: '2026-11-14',
     title: 'A faster app',
-    summary: 'The app opens and settles faster: a smaller first download, no more freezes while simulated markets run, and the Dashboard\'s background figures arrive in a few seconds instead of over ten.',
+    summary: 'The app opens and settles faster: a smaller first download, no more pauses during the market simulations, and the Dashboard\'s background figures arrive in a few seconds instead of over ten.',
     items: [
       "**Fixed: freezes while simulated markets ran.** Showing the odds for Three changes, saving a scenario and opening a demo ran their simulations in the background as intended, but read the first progress report as a failure and ran them again on the page itself, which could freeze it for several seconds. They now stay in the background.",
       "**A smaller first download.** The app now starts with only the icons it uses, about a third less to download before the Dashboard appears.",
