@@ -14,6 +14,7 @@ import MaximizeButton from '../MaximizeButton';
 import { runProjection } from '../../calculator';
 import ActionPlanCard from '../ActionPlanCard';
 import ThreeChangesCard from '../ThreeChangesCard';
+import ThingsToLookAtCard from '../ThingsToLookAtCard';
 import { getPlanFeedback } from '../../utils/planFeedback';
 import { firstSafeRetirementYear } from '../../utils/retirementReadiness';
 
@@ -37,7 +38,7 @@ const DashboardTab = () => {
   // right top-level tab. Previously only riskSubTab was lifted, so the
   // other four targets were silently dropped -- see the navigation
   // handler further down and App.jsx's sub-tab state block.
-  const { inputs, updateInput, formatCurrency, projection, setActiveTab, getRMDAge, maximizedComponent, setMaximizedComponent, mcRange, monteCarlo, setCalibrationResults, calibrationUndo, undoCalibration, rothBracketHeatmapData, guardrailsComparisonData, setRiskSubTab, setSettingsSubTab, setStrategySubTab, setTaxestateSubTab, setLedgerSubTab } = useSimulation();
+  const { inputs, updateInput, formatCurrency, projection, setActiveTab, getRMDAge, maximizedComponent, setMaximizedComponent, mcRange, monteCarlo, setCalibrationResults, calibrationUndo, undoCalibration, rothBracketHeatmapData, guardrailsComparisonData, setRiskSubTab, setSettingsSubTab, setStrategySubTab, setTaxestateSubTab, setYearledgerSubTab } = useSimulation();
 
   // Changelog 363: the Monte Carlo range behind the average path.
   const growthBand = useMemo(() => growthRange(monteCarlo, mcRange, inputs), [monteCarlo, mcRange, inputs]);
@@ -65,8 +66,8 @@ const DashboardTab = () => {
     settings: setSettingsSubTab,
     strategy: setStrategySubTab,
     taxestate: setTaxestateSubTab,
-    ledger: setLedgerSubTab,
-  }), [setRiskSubTab, setSettingsSubTab, setStrategySubTab, setTaxestateSubTab, setLedgerSubTab]);
+    yearledger: setYearledgerSubTab,
+  }), [setRiskSubTab, setSettingsSubTab, setStrategySubTab, setTaxestateSubTab, setYearledgerSubTab]);
 
   // Remembered across reloads, and shared with the full-screen zoom
   // (changelog 202).
@@ -394,6 +395,10 @@ const DashboardTab = () => {
                 </div>
               )}
             </div>
+
+            {/* The plan's own years and amounts where a small change could
+                matter, each linked to the page that tests it. */}
+            <ThingsToLookAtCard />
 
             {/* Plan Feedback: deterministic rule-based checks over the projection */}
             <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>

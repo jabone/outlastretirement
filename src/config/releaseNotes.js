@@ -32,6 +32,8 @@ export const RELEASE_WEEKS = [
         text: 'The optional usage analytics are gone: the app no longer counts visits or tabs at all. An independent check also found places where the privacy page, the Verify page and the app said less than the code does; they now say exactly what Premium sends, what Live Pricing sends, what works offline and what a backup holds, and our pages send no referring address to other sites.' },
       { title: 'Live Pricing sends only tickers, and a Medicare fix in simulations', ids: [507],
         text: 'Refresh sends a Symbol only if it looks like a ticker, so a name, account number or note typed there stays on your device and that holding shows Not refreshed. The top Medicare surcharge tier now grows only from 2028 in market simulations and history replays, as the law says.' },
+      { title: 'Worth a closer look, on the Dashboard', ids: [508],
+        text: 'A new Dashboard card names the years and amounts in your own plan where a small change could matter (a Medicare or marketplace line, room in the 12% bracket, a better withdrawal order or Social Security age, gifts to charity from an IRA), each linked to the page that tests it.' },
     ],
   },
   {

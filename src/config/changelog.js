@@ -29,6 +29,17 @@
 // popup but are kept out of this permanent release-notes history on purpose.
 export const CHANGELOG = [
   {
+    id: 508,
+    date: '2026-11-12',
+    title: 'Worth a closer look, on the Dashboard',
+    summary: 'New on the Dashboard: Worth a closer look names the years and amounts in your own plan where a small change could matter, each with a link to the page that tests it.',
+    items: [
+      "**Worth a closer look.** A new card between the answers row and Plan Feedback. It reads your own year-by-year projection and names the years and amounts where a small change could matter: income just over or just under a Medicare surcharge (IRMAA) line or the marketplace (ACA) premium-credit line, room left in the 12% bracket in retired years, a withdrawal order or Social Security starting age that does better on your plan's own numbers, and gifts to charity that could come from an IRA. Each one links to the page that tests it. Amounts are in today's dollars, with average returns every year and the plan's set lifespans; How these are picked, at the bottom of the card, lists the thresholds.",
+      "**Your plan's own figures.** The 12% bracket room, the withdrawal orders and the starting ages come from running your plan again with that one setting changed, so the tax on extra income (which can run above 12% once more of Social Security becomes taxable), the Medicare premiums and what is left after tax are the engine's own. A plan that runs short is named first, and ideas for paying less tax wait until it lasts. The card changes nothing in your plan.",
+      "**Fixed.** A Plan Feedback link meant for a Year by Year sub-tab now opens that sub-tab instead of the first one.",
+    ],
+  },
+  {
     id: 507,
     date: '2026-11-11',
     title: 'Live Pricing sends only tickers, and a Medicare fix in simulations',

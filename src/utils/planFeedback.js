@@ -349,7 +349,7 @@ export function getPlanFeedback(inputs, projection, mcResults, getRMDAge) {
     findings.push({
       type: 'info',
       title: 'Roth Conversion Arbitrage Opportunity',
-      desc: 'You are currently not performing any Roth conversions. Converting Pre-Tax IRA/401(k) assets to Roth in years when your ordinary tax bracket is low (such as right after retirement but before Social Security starts) is one widely used approach, and the Optimizer Hub shows what it does on this plan. A conversion means paying income tax now; whether it helps depends on your brackets now and later, your state, and what you want left for heirs.',
+      desc: 'You are currently not performing any Roth conversions. Converting Pre-Tax IRA/401(k) assets to Roth in years when your ordinary tax bracket is low (such as right after retirement but before Social Security starts) is one widely used approach, and the Optimizer Hub shows what it does on this plan. A conversion means paying income tax now; whether it helps depends on your brackets now and later, your state, and what you want left for heirs. When this plan has retired years with room in the 12% bracket, Worth a closer look names them and what converting them would do.',
       action: { tab: 'strategy', subTab: 'optimizer', label: 'Compare Strategies in Optimizer Hub →' },
       quickApply: {
         label: 'Try conversions to the 22% bracket',
