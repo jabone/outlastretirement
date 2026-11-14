@@ -8,7 +8,7 @@ import { optimizeRothSchedule } from '../calculator';
 function createWorker() {
   if (typeof Worker === 'undefined') return null;
   try {
-    return new Worker(new URL('../rothScheduleWorker.js', import.meta.url), { type: 'module' });
+    return new Worker(new URL('../engineWorker.js', import.meta.url), { type: 'module' });
   } catch (err) {
     console.warn('Roth schedule worker unavailable; searching on the main thread instead.', err);
     return null;
@@ -37,7 +37,7 @@ export function startRothScheduleSearch(inputs, { objective, onProgress } = {}) 
         // A worker that dies mid-search: finish on the main thread.
         try { resolve(optimizeRothSchedule(inputs, { objective, onProgress, isCurrent: () => !canceled })); } catch (e) { reject(e instanceof Error ? e : new Error(String(err))); }
       };
-      worker.postMessage({ inputs, objective });
+      worker.postMessage({ job: 'rothSchedule', data: { inputs, objective } });
     });
     return {
       promise,

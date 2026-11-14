@@ -10,11 +10,13 @@
     <meta name="theme-color" content="#FFFAF4" media="(prefers-color-scheme: light)" />
     <meta name="description" content="Local-first retirement education. Your numbers never leave your device. See if your current path outlasts you, with no user accounts and no advisor funnel. Education, not advice." />
     <title>OutlastRetirement</title>
-    <!-- The two faces used on first paint, fetched alongside the app bundle
-         rather than after the stylesheet names them (changelog 323). Vite
-         rewrites these paths to the same hashed files the CSS refers to. -->
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2" />
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2" />
+    <!-- The typefaces: the same self-hosted copy the static pages use, so a
+         visitor coming from the home page already has them. The two faces
+         used on first paint are fetched alongside the app bundle rather than
+         after the stylesheet names them (changelog 323). -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/brand/fonts/outfit-latin-wght-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/brand/fonts/plus-jakarta-sans-latin-wght-normal.woff2" />
+    <link rel="stylesheet" href="/brand/fonts.css" />
     <!-- The light-theme brand marks, which every printout uses whatever
          theme the screen is in (changelog 262). In dark mode they sit in
          display:none <img>s, and a browser does not fetch an image it is not

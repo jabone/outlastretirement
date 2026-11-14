@@ -561,7 +561,7 @@ grandfather and the cap is a localStorage check anyone can clear. It also
 throttles scenario comparison, which is the free tier's own best sales pitch.
 
 If a free limit is ever wanted, gate something that costs real compute (Monte
-Carlo iterations: `monteCarloWorker.js`, `monteCarloAsync.js`). Saves stay
+Carlo iterations: `engineWorker.js`, `monteCarloAsync.js`). Saves stay
 unlimited.
 
 ---

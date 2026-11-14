@@ -1,9 +1,9 @@
 /* OutlastRetirement UI typefaces, self-hosted.
-   The app gets these through @fontsource in its bundle (main.jsx); the
-   static pages at / and /privacy.html are not part of that bundle, so they
-   need the same faces declared here or they silently fall back to the
-   system UI face -- which is exactly why the landing page used to read as a
-   different product from the app it links to.
+   The app (app/index.html) and the static pages all use this one copy, so
+   a visitor downloads each face once (performance audit 2026-11-13; the app
+   used to bundle its own second copy). Without these faces the pages fall
+   back to the system UI face -- which is exactly why the landing page used
+   to read as a different product from the app it links to.
 
    Files are copied from node_modules/@fontsource-variable/* and the
    @font-face blocks (family names, weight ranges, unicode-ranges) are that

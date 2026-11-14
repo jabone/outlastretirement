@@ -111,16 +111,4 @@ export async function runHeavyAnalyses({ requestId, inputs, useRealDollars, prem
   return { requestId, success: true, ...out };
 }
 
-if (typeof self !== 'undefined' && typeof self.postMessage === 'function' && typeof window === 'undefined') {
-  self.onmessage = async (e) => {
-    const { requestId } = e.data;
-    latestRequestId = requestId;
-    try {
-      const result = await runHeavyAnalyses(e.data, { isCurrent: () => latestRequestId === requestId, onPartial: (p) => self.postMessage(p) });
-      // A superseded job posts nothing: its reply would be discarded anyway.
-      if (!result.superseded) self.postMessage(result);
-    } catch (error) {
-      self.postMessage({ requestId, success: false, error: error.message });
-    }
-  };
-}
+// The worker entry point is engineWorker.js (job 'heavy').

@@ -101,7 +101,7 @@ describe('WhatsNewPopup', () => {
 // A mocked announcements + changelog config keeps these deterministic.
 describe('WhatsNewPopup announcements (changelog 150)', () => {
   beforeEach(() => { localStorage.clear(); vi.resetModules(); });
-  afterEach(() => { vi.doUnmock('../../config/announcements'); vi.doUnmock('../../config/changelog'); });
+  afterEach(() => { vi.doUnmock('../../config/announcements'); vi.doUnmock('../../config/changelogRecent'); vi.doUnmock('../../config/changelogLatest'); });
 
   const A = (over) => ({ id: 'a1', title: 'Heads up', summary: 'Everyone should see this.', ...over });
 
@@ -115,7 +115,8 @@ describe('WhatsNewPopup announcements (changelog 150)', () => {
     vi.doMock('../../config/announcements', () => ({ ANNOUNCEMENTS: announcements, activeAnnouncements: active }));
     if (changelog) {
       const latest = Math.max(...changelog.map((e) => e.id));
-      vi.doMock('../../config/changelog', () => ({ CHANGELOG: [...changelog].sort((a, b) => b.id - a.id), LATEST_CHANGELOG_ID: latest }));
+      vi.doMock('../../config/changelogRecent', () => ({ CHANGELOG_RECENT: [...changelog].sort((a, b) => b.id - a.id) }));
+      vi.doMock('../../config/changelogLatest', () => ({ LATEST_CHANGELOG_ID: latest }));
     }
     const { default: Popup } = await import('../../components/WhatsNewPopup');
     render(<Popup />);

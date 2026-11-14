@@ -32,8 +32,9 @@ describe('secondary tabs are code-split', () => {
     const walk = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const f = path.join(d, e.name); if (e.isDirectory()) { if (e.name !== '__tests__') walk(f); } else if (/\.jsx?$/.test(e.name) && /from '[./]*config\/changelog'|from '\.\/changelog'/.test(fs.readFileSync(f, 'utf8'))) offenders.push(path.relative(SRC, f)); } };
     walk(SRC);
     // The Help tab's history lives in WhatsNewHistory, which only the lazy
-    // GuideTab imports.
-    expect(offenders.sort()).toEqual(['components/WhatsNewHistory.jsx', 'components/WhatsNewPopup.jsx']);
+    // GuideTab imports. The popup reads only the newest entries
+    // (changelogRecent.js, performance audit 2026-11-13).
+    expect(offenders.sort()).toEqual(['components/WhatsNewHistory.jsx']);
   });
   // Review 2026-09-30 (H3): the Plan tabs, the Quick Setup sections, the
   // print packet, the field index and jose left the startup chunk.

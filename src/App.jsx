@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef, useId } from 'react';
 import { setMcProgress } from './utils/mcProgressStore';
+import { recentResults } from './utils/recentResults';
 import { claimAgeLabel } from './utils/ssClaimLabel';
 import { flushSync } from 'react-dom';
 import { PLAN_ANSWERS_KEY, ANSWER_FIELDS, readPlanAnswers, sanitizeAnswers, sanitizeAnswersForEditing, answersSummary } from './utils/planAnswers';
@@ -965,6 +966,10 @@ export default function App() {
   // Premium key or in demo mode (which previews Premium); see
   // heavyComputeWorker.js.
   const premiumTables = premiumJwtStatus.valid || demoActive;
+  // The last few results of the heavy analyses and of the Monte Carlo, by
+  // plan, so returning to one is instant (utils/recentResults.js).
+  const heavyMemoryRef = useRef(recentResults(4));
+  const mcMemoryRef = useRef(recentResults(6));
   const [heavyResults, setHeavyResults] = useState({
     stressComparisonData: [],
     ssClaimingHeatmapData: [],
@@ -1750,6 +1755,15 @@ export default function App() {
   // 2026-09-30, H11b).
   useEffect(() => {
     const requestId = ++heavyRequestIdRef.current;
+    // A plan seen a moment ago (Undo, a scenario switch, a setting toggled
+    // back) gets its remembered results at once (utils/recentResults.js).
+    const memoKey = `${planKey(debouncedInputs)}|${useRealDollars}|${premiumTables}`;
+    const remembered = heavyMemoryRef.current.get(memoKey);
+    if (remembered) {
+      setHeavyResults(remembered);
+      setHeavyResultsLoading(false);
+      return undefined;
+    }
     setHeavyResultsLoading(true);
     let cancelFallback = null;
 
@@ -1781,6 +1795,7 @@ export default function App() {
           feeComparisonData: computeFeeComparison(debouncedInputs, { historical: true }),
         };
         if (requestId === heavyRequestIdRef.current) setHeavyResults(result);
+        heavyMemoryRef.current.set(memoKey, result);
       } catch (err) {
         console.warn('Heavy-compute synchronous fallback failed', err);
       } finally {
@@ -1796,7 +1811,7 @@ export default function App() {
       if (heavyWorkerFailuresRef.current >= 3) { scheduleFallback(); return; }
       try {
         if (!heavyWorkerRef.current) {
-          heavyWorkerRef.current = new Worker(new URL('./heavyComputeWorker.js', import.meta.url), { type: 'module' });
+          heavyWorkerRef.current = new Worker(new URL('./engineWorker.js', import.meta.url), { type: 'module' });
         }
       } catch (workerErr) {
         console.warn('Heavy-compute Web Worker unavailable; computing on the main thread when idle', workerErr);
@@ -1829,7 +1844,7 @@ export default function App() {
           return;
         }
         if (data.success) {
-          setHeavyResults({
+          const full = {
             stressComparisonData: data.stressComparisonData,
             ssClaimingHeatmapData: data.ssClaimingHeatmapData,
             optimizerResults: data.optimizerResults,
@@ -1842,7 +1857,9 @@ export default function App() {
             minimumRequiredReturn: data.minimumRequiredReturn || null,
             historicalStartsData: data.historicalStartsData || null,
             feeComparisonData: data.feeComparisonData || null,
-          });
+          };
+          setHeavyResults(full);
+          heavyMemoryRef.current.set(memoKey, full);
         } else {
           // The calculation itself threw; the same code would throw on the
           // main thread too. Keep the last results.
@@ -1858,7 +1875,7 @@ export default function App() {
         if (requestId === heavyRequestIdRef.current) post();
       };
 
-      worker.postMessage({ requestId, inputs: debouncedInputs, useRealDollars, premiumTables });
+      worker.postMessage({ job: 'heavy', data: { requestId, inputs: debouncedInputs, useRealDollars, premiumTables } });
     };
     post();
     return () => { if (cancelFallback) cancelFallback(); };
@@ -1957,7 +1974,8 @@ export default function App() {
   // Run Monte Carlo Simulation
   const handleRunMonteCarlo = useCallback(() => {
     setMcLoading(true);
-    setMcKey(planKey(inputs));
+    const runKey = planKey(inputs);
+    setMcKey(runKey);
     
     // Terminate any active worker
     if (mcWorkerRef.current) {
@@ -1966,7 +1984,7 @@ export default function App() {
     
     try {
       // Instantiate background Web Worker
-      const worker = new Worker(new URL('./monteCarloWorker.js', import.meta.url), { type: 'module' });
+      const worker = new Worker(new URL('./engineWorker.js', import.meta.url), { type: 'module' });
       mcWorkerRef.current = worker;
       
       setMcProgress(0);
@@ -1975,10 +1993,12 @@ export default function App() {
         setMcProgress(null);
         if (e.data && e.data.success) {
           setMonteCarlo(e.data.results);
+          mcMemoryRef.current.set(runKey, e.data.results);
         } else {
           console.warn("Monte Carlo worker failed, running fallback simulation synchronous", e.data?.error);
           const res = runMonteCarlo(inputs);
           setMonteCarlo(res);
+          mcMemoryRef.current.set(runKey, res);
         }
         setMcLoading(false);
         worker.terminate();
@@ -1995,7 +2015,7 @@ export default function App() {
         mcWorkerRef.current = null;
       };
       
-      worker.postMessage(inputs);
+      worker.postMessage({ job: 'monteCarlo', data: inputs });
     } catch (workerErr) {
       console.warn("Failed to initialize Monte Carlo Web Worker, running fallback simulation synchronous", workerErr);
       const res = runMonteCarlo(inputs);
@@ -2019,6 +2039,13 @@ export default function App() {
   useEffect(() => {
     if (!mcAutoRun || mcLoading) return undefined;
     if (mcKey === currentPlanKey && monteCarlo) return undefined;
+    // A plan run a moment ago (Undo, a scenario switch) needs no new run.
+    const remembered = mcMemoryRef.current.get(currentPlanKey);
+    if (remembered) {
+      setMonteCarlo(remembered);
+      setMcKey(currentPlanKey);
+      return undefined;
+    }
     const delay = firstAutoRunRef.current && inputs === openingInputsRef.current ? 0 : MC_AUTO_RUN_DELAY_MS;
     const handle = setTimeout(() => { firstAutoRunRef.current = false; handleRunMonteCarlo(); }, delay);
     return () => clearTimeout(handle);

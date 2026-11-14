@@ -63,7 +63,7 @@ describe('two waves (performance audit 2026-11-13)', () => {
     const app = fs.readFileSync(path.resolve(__dirname, '../App.jsx'), 'utf8');
     expect(app).toMatch(/if \(data\.success && data\.partial\) \{\s*\/\/[^\n]*\n[^\n]*\n\s*setHeavyResults\(\(prev\) => \(\{\s*\.\.\.\(prev \|\| \{\}\)/);
     expect(app).toMatch(/const premiumTables = premiumJwtStatus\.valid \|\| demoActive;/);
-    expect(app).toMatch(/worker\.postMessage\(\{ requestId, inputs: debouncedInputs, useRealDollars, premiumTables \}\)/);
+    expect(app).toMatch(/worker\.postMessage\(\{ job: 'heavy', data: \{ requestId, inputs: debouncedInputs, useRealDollars, premiumTables \} \}\)/);
   });
 });
 

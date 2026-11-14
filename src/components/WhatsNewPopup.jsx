@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Sparkles, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { CHANGELOG, LATEST_CHANGELOG_ID } from '../config/changelog';
+// Only the newest entries (changelogRecent.js), not the whole history: the
+// popup shows at most DIGEST_SIZE of them, and the full list was a large
+// download after every release (performance audit 2026-11-13).
+import { CHANGELOG_RECENT } from '../config/changelogRecent';
+import { LATEST_CHANGELOG_ID } from '../config/changelogLatest';
 import { activeAnnouncements } from '../config/announcements';
 import ChangelogEntry from './ChangelogEntry';
 import {
@@ -59,9 +63,13 @@ const WhatsNewPopup = () => {
     } else {
       const lastSeenId = parseInt(storedSeenId, 10) || 0;
       if (lastSeenId < LATEST_CHANGELOG_ID) {
-        releaseNotes = CHANGELOG.filter((e) => e.id > lastSeenId).sort((a, b) => b.id - a.id);
-        if (releaseNotes.length > DIGEST_SIZE) {
-          releaseNotes = [{ id: 'digest', digest: true, count: releaseNotes.length, newest: releaseNotes.slice(0, DIGEST_SIZE) }];
+        releaseNotes = CHANGELOG_RECENT.filter((e) => e.id > lastSeenId).sort((a, b) => b.id - a.id);
+        // Ids go up by one per entry, so a visitor who last looked before the
+        // oldest recent entry has missed every id since.
+        const oldest = Math.min(...CHANGELOG_RECENT.map((e) => e.id));
+        const count = lastSeenId < oldest ? LATEST_CHANGELOG_ID - lastSeenId : releaseNotes.length;
+        if (count > DIGEST_SIZE) {
+          releaseNotes = [{ id: 'digest', digest: true, count, newest: releaseNotes.slice(0, DIGEST_SIZE) }];
         }
       }
     }

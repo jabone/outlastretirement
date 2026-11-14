@@ -20,11 +20,15 @@ describe('first load', () => {
 
   it('preloads the two first-paint fonts from the files the stylesheet uses', () => {
     const html = read('app/index.html');
-    const preloads = [...html.matchAll(/<link rel="preload" as="font" type="font\/woff2" crossorigin href="\/(node_modules\/[^"]+\.woff2)" \/>/g)].map((m) => m[1]);
+    const preloads = [...html.matchAll(/<link rel="preload" as="font" type="font\/woff2" crossorigin href="\/(brand\/fonts\/[^"]+\.woff2)" \/>/g)].map((m) => m[1]);
     expect(preloads).toEqual([
-      'node_modules/@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2',
-      'node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2',
+      'brand/fonts/outfit-latin-wght-normal.woff2',
+      'brand/fonts/plus-jakarta-sans-latin-wght-normal.woff2',
     ]);
-    for (const p of preloads) expect(existsSync(join(ROOT, p)), p).toBe(true);
+    const faces = read('public/brand/fonts.css');
+    for (const p of preloads) {
+      expect(existsSync(join(ROOT, 'public', p)), p).toBe(true);
+      expect(faces, p).toContain(`url(/${p})`);
+    }
   });
 });

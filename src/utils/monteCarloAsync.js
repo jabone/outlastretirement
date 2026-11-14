@@ -1,7 +1,7 @@
 // Running Monte Carlo off the main thread.
 //
 // runMonteCarlo simulates 1,000 lifetimes and takes seconds on a real
-// plan. App.jsx and StrategyTab already push it into monteCarloWorker.js
+// plan. App.jsx and StrategyTab already push it into engineWorker.js
 // for exactly that reason, each with the same hand-rolled
 // worker-with-synchronous-fallback dance. This is that dance, once, so a
 // third caller doesn't have to write a fourth copy -- and so the callers
@@ -20,7 +20,7 @@ import { runMonteCarlo } from '../calculator';
 function createWorker() {
   if (typeof Worker === 'undefined') return null;
   try {
-    return new Worker(new URL('../monteCarloWorker.js', import.meta.url), { type: 'module' });
+    return new Worker(new URL('../engineWorker.js', import.meta.url), { type: 'module' });
   } catch (err) {
     console.warn('Monte Carlo worker unavailable; simulating on the main thread instead.', err);
     return null;
@@ -51,7 +51,7 @@ function simulateInWorker(worker, inputs) {
     }
     worker.addEventListener('message', onMessage);
     worker.addEventListener('error', onError);
-    worker.postMessage(inputs);
+    worker.postMessage({ job: 'monteCarlo', data: inputs });
   });
 }
 

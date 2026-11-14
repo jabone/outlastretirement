@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
@@ -94,6 +94,14 @@ const BRAND_MARKS = ['outlast-full-dark', 'outlast-full-light', 'or-short-dark',
 const BRAND_MARK_REVISION = createHash('md5')
   .update(BRAND_MARKS.map((u) => readFileSync(resolve(__dirname, 'public' + u))).reduce((a, b) => Buffer.concat([a, b]), Buffer.alloc(0)))
   .digest('hex').slice(0, 12)
+
+// The typefaces: the app and the static pages share one copy under
+// /brand (performance audit 2026-11-13: the app used to bundle the same
+// files again under hashed names, so a visitor downloaded them twice).
+// Precached for offline use like the brand marks, each revisioned by its
+// own content.
+const BRAND_FONTS = ['/brand/fonts.css', ...readdirSync(resolve(__dirname, 'public/brand/fonts')).filter((n) => n.endsWith('.woff2')).map((n) => `/brand/fonts/${n}`)]
+const BRAND_FONT_ENTRIES = BRAND_FONTS.map((url) => ({ url, revision: createHash('md5').update(readFileSync(resolve(__dirname, 'public' + url))).digest('hex').slice(0, 12) }))
 
 const BUILD_DATE = new Date().toISOString().slice(0, 10)
 const BUILD_ID = (() => {
@@ -210,7 +218,7 @@ export default defineConfig({
           'brand/**',
           'icons.svg', 'icon-1024.jpg',
         ],
-        additionalManifestEntries: BRAND_MARKS.map((url) => ({ url, revision: BRAND_MARK_REVISION })),
+        additionalManifestEntries: [...BRAND_MARKS.map((url) => ({ url, revision: BRAND_MARK_REVISION })), ...BRAND_FONT_ENTRIES],
         // Headroom over the largest chunk; a silently skipped chunk would
         // break offline for that tab.
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,

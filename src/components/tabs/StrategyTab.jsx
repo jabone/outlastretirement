@@ -150,7 +150,7 @@ const StrategyTab = () => {
     };
 
     try {
-      const worker = new Worker(new URL('../../monteCarloWorker.js', import.meta.url), { type: 'module' });
+      const worker = new Worker(new URL('../../engineWorker.js', import.meta.url), { type: 'module' });
       ssMcPreviewWorkerRef.current = worker;
 
       worker.onmessage = (e) => {
@@ -173,7 +173,7 @@ const StrategyTab = () => {
         worker.terminate();
       };
 
-      worker.postMessage(testInputs);
+      worker.postMessage({ job: 'monteCarlo', data: testInputs });
     } catch (workerErr) {
       console.warn('Failed to initialize Monte Carlo preview worker, running fallback simulation synchronously', workerErr);
       const res = runMonteCarlo(testInputs);

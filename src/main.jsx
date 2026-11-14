@@ -1,13 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-// Self-hosted app fonts (changelog 148). Previously index.css pulled these
-// two families from fonts.googleapis.com on every load -- a request that
-// ignored Local-Only Mode (leaking the visitor's IP to Google despite the
-// "zero network requests" promise) and left the app on system fonts when
-// offline. Bundled as woff2 now, precached by the service worker's woff2
-// glob, so the app renders in its real type with nothing leaving the device.
-import '@fontsource-variable/outfit';
-import '@fontsource-variable/plus-jakarta-sans';
+// Self-hosted app fonts (changelog 148): never from a font service, so
+// nothing leaves the device and the app keeps its type offline. Since
+// 2026-11-14 the app uses the same copy as the static pages,
+// /brand/fonts.css (linked from app/index.html, precached by the service
+// worker), instead of bundling the files a second time.
 import './index.css'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'

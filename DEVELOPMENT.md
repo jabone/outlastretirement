@@ -21,9 +21,14 @@ see, etc.), also update these three places in the same change. They are easy
 to forget because they live outside the feature's own files, but users rely
 on them to know what changed and what a field does:
 
-1. **`src/config/changelog.js`** — add a new entry at the TOP of the
-   `CHANGELOG` array (id = previous max + 1, never reuse/skip). This feeds
-   both the "What's New" popup and the "What's New" sub-tab in the Guide.
+1. **`src/config/changelogRecent.js`** — add a new entry at the TOP of the
+   `CHANGELOG_RECENT` array (id = previous max + 1, never reuse/skip), and
+   bump `LATEST_CHANGELOG_ID` in `changelogLatest.js`. `changelog.js` holds
+   the full history and includes the recent list; the popup loads only the
+   recent file. When `changelogRecent.test.js` says it holds more than 30,
+   move the oldest entries, unchanged, to the top of `changelog.js`'s list.
+   This feeds both the "What's New" popup and the "What's New" sub-tab in
+   the Guide.
    Every entry needs a `summary`: ONE plain-English sentence of the
    user-visible outcome, no statute numbers or function names — it's the
    headline most users will ever read (the detailed `items` sit behind a
