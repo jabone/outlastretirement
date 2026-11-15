@@ -2479,20 +2479,79 @@ export const ROTH_IRA_PHASEOUT_SINGLE = [153000, 168000];
 // range instead.
 export const ROTH_IRA_PHASEOUT_MFS_TOGETHER = [0, 10000];
 
+// Contribution limits by tax year (changelog 512). Each published year is
+// kept exactly as the IRS announced it: 2026 from Notice 2025-67, 2027 from
+// Notice 2026-66 (IR-2026-136). A projection year uses the newest table at
+// or before it (contributionLimitTableYear); a year after that table is the
+// table carried by the plan's statutory inflation since the table's year,
+// so the published year itself is exact in every path. The 2026 constants
+// above stay as the current-year figures the Settings screens show.
+export const CONTRIBUTION_LIMIT_TABLES = {
+  2026: {
+    deferral: ELECTIVE_DEFERRAL_LIMIT_2026,
+    catchup50: CATCHUP_50_2026,
+    catchup60to63: CATCHUP_60_63_2026,
+    annualAdditions: ANNUAL_ADDITIONS_LIMIT_2026,
+    ira: IRA_LIMIT_2026,
+    iraCatchup50: IRA_CATCHUP_50_2026,
+    rothCatchupWage: MANDATORY_ROTH_CATCHUP_WAGE_THRESHOLD_2026,
+    rothIraMFJ: ROTH_IRA_PHASEOUT_MFJ,
+    rothIraSingle: ROTH_IRA_PHASEOUT_SINGLE,
+    qcd: 111000,
+    hsaSelf: 4400,
+    hsaFamily: 8750,
+  },
+  2027: {
+    deferral: 25500,
+    catchup50: 8500,
+    catchup60to63: 11750,
+    annualAdditions: 75000,
+    ira: 7500,
+    iraCatchup50: 1100,
+    rothCatchupWage: 155000,
+    rothIraMFJ: [250000, 260000],
+    rothIraSingle: [158000, 173000],
+    qcd: 114000,
+    // HSA: Rev. Proc. 2026-24.
+    hsaSelf: 4500,
+    hsaFamily: 9000,
+  },
+};
+const CONTRIBUTION_LIMIT_YEARS = Object.keys(CONTRIBUTION_LIMIT_TABLES).map(Number).sort((a, b) => a - b);
+
+// The table a projection year uses: the newest published year at or before
+// it; a year before the first table uses the first one.
+export function contributionLimitTableYear(year) {
+  let pick = CONTRIBUTION_LIMIT_YEARS[0];
+  for (const y of CONTRIBUTION_LIMIT_YEARS) if (y <= year) pick = y;
+  return pick;
+}
+
+// The table for the current tax year (what the Settings screens and the
+// contribution checks read).
+const currentLimits = () => CONTRIBUTION_LIMIT_TABLES[contributionLimitTableYear(TAX_YEAR)];
+
+// The published limits a given year reads, unscaled: the Settings screens
+// and the contribution checks use the plan's first year.
+export function contributionLimitsForYear(year) {
+  return CONTRIBUTION_LIMIT_TABLES[contributionLimitTableYear(year)];
+}
+
 // Returns the applicable combined Pre-Tax + Roth 401(k)-style elective
-// deferral limit for a given age this tax year. Used to warn users whose
-// "Annual Savings Contribution" inputs exceed what's actually legal.
-export function getElectiveDeferralLimit(age) {
-  if (age >= 60 && age <= 63) return ELECTIVE_DEFERRAL_LIMIT_2026 + CATCHUP_60_63_2026;
-  if (age >= 50) return ELECTIVE_DEFERRAL_LIMIT_2026 + CATCHUP_50_2026;
-  return ELECTIVE_DEFERRAL_LIMIT_2026;
+// deferral limit for a given age, in the given table's dollars (this tax
+// year's by default). Used to warn users whose "Annual Savings
+// Contribution" inputs exceed what's actually legal.
+export function getElectiveDeferralLimit(age, limits = currentLimits()) {
+  if (age >= 60 && age <= 63) return limits.deferral + limits.catchup60to63;
+  if (age >= 50) return limits.deferral + limits.catchup50;
+  return limits.deferral;
 }
 
 // Returns the applicable combined Traditional + Roth IRA contribution limit
-// for a given age this tax year.
-export function getIRAContributionLimit(age) {
-  if (age >= 50) return IRA_LIMIT_2026 + IRA_CATCHUP_50_2026;
-  return IRA_LIMIT_2026;
+// for a given age, in the given table's dollars (this tax year's by default).
+export function getIRAContributionLimit(age, limits = currentLimits()) {
+  if (age >= 50) return limits.ira + limits.iraCatchup50;
+  return limits.ira;
 }
 
 // "Contribute the Max" (autoMaxContribution mode 'max'): splits one
@@ -2511,12 +2570,12 @@ export function getIRAContributionLimit(age) {
 // Pure and exported so the Settings UI can show the exact same split it
 // will project (with inflFactor 1 for the current year) and tests can hit
 // the boundary cases directly.
-export function getMaxContributionSplit(age, wages, inflFactor = 1) {
-  const baseLimit = ELECTIVE_DEFERRAL_LIMIT_2026 * inflFactor;
-  const fullLimit = getElectiveDeferralLimit(age) * inflFactor;
+export function getMaxContributionSplit(age, wages, inflFactor = 1, limits = currentLimits()) {
+  const baseLimit = limits.deferral * inflFactor;
+  const fullLimit = getElectiveDeferralLimit(age, limits) * inflFactor;
   const catchup = fullLimit - baseLimit;
   const mandatoryRothCatchup = age >= 50 && catchup > 0
-    && (wages || 0) > MANDATORY_ROTH_CATCHUP_WAGE_THRESHOLD_2026 * inflFactor;
+    && (wages || 0) > limits.rothCatchupWage * inflFactor;
   return mandatoryRothCatchup
     ? { preTax: baseLimit, roth: catchup, mandatoryRothCatchup: true }
     : { preTax: fullLimit, roth: 0, mandatoryRothCatchup: false };
@@ -2665,6 +2724,8 @@ export function getRSUVestingIncomeForYear(inputs, spouseNum, year, startYear) {
 export function getContributionAdvisory(rawInputs) {
   const inputs = sanitizeInputs(rawInputs);
   const currentYear = inputs.planYear;
+  // The plan's first year reads that year's published limits (changelog 512).
+  const L = contributionLimitsForYear(currentYear);
 
   function forSpouse(num) {
     const birthYear = num === 1 ? inputs.birthYear1 : inputs.birthYear2;
@@ -2681,12 +2742,12 @@ export function getContributionAdvisory(rawInputs) {
     // manual-field reading here -- only Pre-Tax is overridden for those,
     // and their disabled field still shows its own inline note.
     const autoMaxMode = num === 1 ? inputs.autoMaxContribution1 : inputs.autoMaxContribution2;
-    const maxSplit = autoMaxMode === 'max' ? getMaxContributionSplit(age, salary) : null;
+    const maxSplit = autoMaxMode === 'max' ? getMaxContributionSplit(age, salary, 1, L) : null;
     const preTax = maxSplit ? maxSplit.preTax : Math.max(0, (num === 1 ? inputs.preTaxContribution1 : inputs.preTaxContribution2) || 0);
     const roth = maxSplit ? maxSplit.roth : Math.max(0, (num === 1 ? inputs.rothContribution1 : inputs.rothContribution2) || 0);
     const totalDeferral = preTax + roth;
-    const catchupLimit = (age >= 60 && age <= 63) ? CATCHUP_60_63_2026 : (age >= 50 ? CATCHUP_50_2026 : 0);
-    const deferralLimit = ELECTIVE_DEFERRAL_LIMIT_2026 + catchupLimit;
+    const catchupLimit = (age >= 60 && age <= 63) ? L.catchup60to63 : (age >= 50 ? L.catchup50 : 0);
+    const deferralLimit = L.deferral + catchupLimit;
 
     // Only the amount ABOVE the base limit (up to the age-based catch-up
     // cap) counts as catch-up -- mirrors the real-world mechanic where a
@@ -2694,25 +2755,25 @@ export function getContributionAdvisory(rawInputs) {
     // the base limit is hit, not something split by the participant's own
     // designation.
     const cappedDeferral = Math.min(totalDeferral, deferralLimit);
-    const catchupUsed = Math.max(0, cappedDeferral - ELECTIVE_DEFERRAL_LIMIT_2026);
+    const catchupUsed = Math.max(0, cappedDeferral - L.deferral);
     const catchupRemaining = Math.max(0, catchupLimit - catchupUsed);
 
     // Mandatory Roth catch-up (SECURE 2.0): approximated using this
     // year's salary as a stand-in for prior-year FICA wages -- see the
     // MANDATORY_ROTH_CATCHUP_WAGE_THRESHOLD_2026 comment above.
-    const mandatoryRothCatchup = age >= 50 && salary > MANDATORY_ROTH_CATCHUP_WAGE_THRESHOLD_2026;
+    const mandatoryRothCatchup = age >= 50 && salary > L.rothCatchupWage;
     // Compliance check: if this spouse is subject to the mandate, any
     // Traditional dollars above the base limit are catch-up money sitting
     // in the wrong (non-Roth) bucket. Uses preTax alone (not the combined
     // total) since Roth catch-up dollars are already compliant regardless
     // of how much Roth they've contributed.
-    const catchupMisallocatedToTraditional = mandatoryRothCatchup ? Math.max(0, Math.min(preTax, deferralLimit) - ELECTIVE_DEFERRAL_LIMIT_2026) : 0;
+    const catchupMisallocatedToTraditional = mandatoryRothCatchup ? Math.max(0, Math.min(preTax, deferralLimit) - L.deferral) : 0;
 
     // Mega Backdoor Roth room: the gap between the overall 415(c) limit
     // and (this spouse's BASE deferral + their employer's contribution).
     // Catch-up is excluded from both sides of this calculation -- it sits
     // outside the 415(c) limit entirely (see ANNUAL_ADDITIONS_LIMIT_2026).
-    const baseDeferral = Math.min(totalDeferral, ELECTIVE_DEFERRAL_LIMIT_2026);
+    const baseDeferral = Math.min(totalDeferral, L.deferral);
     const employerMatchConfig = {
       mode: matchMode,
       flatAmount: num === 1 ? inputs.employerMatch1 : inputs.employerMatch2,
@@ -2725,8 +2786,8 @@ export function getContributionAdvisory(rawInputs) {
       capB: num === 1 ? inputs.employerMatchCapB1 : inputs.employerMatchCapB2,
       combine: num === 1 ? inputs.employerMatchCombine1 : inputs.employerMatchCombine2,
     };
-    const employerMatch = calculateEmployerMatch(baseDeferral, ELECTIVE_DEFERRAL_LIMIT_2026, 1, employerMatchConfig);
-    const megaBackdoorRoom = Math.max(0, ANNUAL_ADDITIONS_LIMIT_2026 - baseDeferral - employerMatch);
+    const employerMatch = calculateEmployerMatch(baseDeferral, L.deferral, 1, employerMatchConfig);
+    const megaBackdoorRoom = Math.max(0, L.annualAdditions - baseDeferral - employerMatch);
 
     // § 415(c) annual-additions check (the owner's "are there legal limits on
     // employer matches?" question, 2026-08-31): there is NO separate cap
@@ -2736,7 +2797,7 @@ export function getContributionAdvisory(rawInputs) {
     // sits outside it entirely). This is warn-only by design: the
     // projection never silently clips anyone's inputs.
     const annualAdditionsUsed = baseDeferral + employerMatch;
-    const annualAdditionsBreached = annualAdditionsUsed > ANNUAL_ADDITIONS_LIMIT_2026;
+    const annualAdditionsBreached = annualAdditionsUsed > L.annualAdditions;
 
     return {
       age, salary, preTax, roth, totalDeferral,
@@ -2758,7 +2819,7 @@ export function getContributionAdvisory(rawInputs) {
   const mfsTogetherRoth = inputs.filingStatus === 'MFS' && inputs.mfsLivedWithSpouse;
   const [phaseFloor, phaseCeiling] = mfsTogetherRoth
     ? ROTH_IRA_PHASEOUT_MFS_TOGETHER
-    : isMFJ ? ROTH_IRA_PHASEOUT_MFJ : ROTH_IRA_PHASEOUT_SINGLE;
+    : isMFJ ? L.rothIraMFJ : L.rothIraSingle;
   let rothIraEligibility = 'full';
   if (magiProxy >= phaseCeiling) rothIraEligibility = 'none';
   else if (magiProxy > phaseFloor) rothIraEligibility = 'partial';
@@ -2767,6 +2828,9 @@ export function getContributionAdvisory(rawInputs) {
     spouse1: forSpouse(1),
     spouse2: inputs.spouse2Enabled ? forSpouse(2) : null,
     rothIra: { eligibility: rothIraEligibility, magiProxy, phaseFloor, phaseCeiling, isMFJ },
+    // The year these limits are for, and its 415(c) limit, for the screen.
+    year: currentYear,
+    annualAdditionsLimit: L.annualAdditions,
   };
 }
 
@@ -2788,8 +2852,8 @@ export const HSA_CATCHUP_55_2026 = 1000; // age 55+, and not yet enrolled in Med
 // Employee HSA Savings" input exceeds what's actually legal.
 // inflFactor indexes the base limit only; the $1,000 catch-up is fixed in
 // dollars by statute, so it is added unindexed.
-export function getHSAContributionLimit(age, isFamilyCoverage, inflFactor = 1) {
-  const base = (isFamilyCoverage ? HSA_LIMIT_FAMILY_2026 : HSA_LIMIT_SELF_2026) * inflFactor;
+export function getHSAContributionLimit(age, isFamilyCoverage, inflFactor = 1, limits = currentLimits()) {
+  const base = (isFamilyCoverage ? limits.hsaFamily : limits.hsaSelf) * inflFactor;
   return age >= 55 ? base + HSA_CATCHUP_55_2026 : base;
 }
 
@@ -9151,6 +9215,24 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     const statutoryInflFactor = mcSampled
       ? granularFactor('statutoryInflFactor', inputs.inflationRate, vintageShift(inputs.inflationRate))
       : inflFactor * vintageShift(inputs.inflationRate);
+    // This year's contribution and QCD limits (CONTRIBUTION_LIMIT_TABLES):
+    // the newest published table at or before this year, carried by this
+    // path's statutory inflation since that table's year. The TAX_YEAR
+    // table is carried by statutoryInflFactor itself, as before; a later
+    // table is this path's factor now over its factor in the table's year,
+    // so a published year is exact in every path. Before the plan's first
+    // year the planned rate stands in.
+    const limitTableYear = contributionLimitTableYear(year);
+    const limitTable = CONTRIBUTION_LIMIT_TABLES[limitTableYear];
+    const limitFactor = (() => {
+      if (limitTableYear === TAX_YEAR) return statutoryInflFactor;
+      if (limitTableYear === year) return 1;
+      const fromRow = limitTableYear >= startYear && limitTableYear < year ? years[limitTableYear - startYear] : null;
+      const atFrom = fromRow && fromRow.statutoryInflFactor !== undefined
+        ? fromRow.statutoryInflFactor
+        : Math.pow(1 + (inputs.inflationRate || 0) / 100, limitTableYear - TAX_YEAR);
+      return statutoryInflFactor / atFrom;
+    })();
     // Benefit growth: the plan's COLA assumption -- except that, on a plan
     // still using the default assumption, a year SSA has already announced
     // a COLA for (SS_ANNOUNCED: 2027 at 3.6%) uses the announced figure
@@ -10649,14 +10731,14 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (inputs.autoMaxContribution1 === '401k') {
         // SECURE 2.0: above the wage threshold the age-50+ catch-up must go
         // in as Roth, in this mode exactly as in 'max'.
-        const split1k = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, statutoryInflFactor);
+        const split1k = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, limitFactor, limitTable);
         pretax1 = split1k.preTax;
         roth1 += split1k.roth;
-      } else if (inputs.autoMaxContribution1 === 'ira') pretax1 = getIRAContributionLimit(age1) * statutoryInflFactor;
+      } else if (inputs.autoMaxContribution1 === 'ira') pretax1 = getIRAContributionLimit(age1, limitTable) * limitFactor;
       else if (inputs.autoMaxContribution1 === 'max') {
         // 'max' overrides BOTH manual fields -- wages include this year's
         // RSU vests since they're FICA wages for the SECURE 2.0 test.
-        const split1 = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, statutoryInflFactor);
+        const split1 = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, limitFactor, limitTable);
         pretax1 = split1.preTax;
         roth1 = split1.roth;
       }
@@ -10672,12 +10754,12 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (inputs.autoMaxContribution2 === '401k') {
         // SECURE 2.0: above the wage threshold the age-50+ catch-up must go
         // in as Roth, in this mode exactly as in 'max'.
-        const split2k = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, statutoryInflFactor);
+        const split2k = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, limitFactor, limitTable);
         pretax2 = split2k.preTax;
         roth2 += split2k.roth;
-      } else if (inputs.autoMaxContribution2 === 'ira') pretax2 = getIRAContributionLimit(age2) * statutoryInflFactor;
+      } else if (inputs.autoMaxContribution2 === 'ira') pretax2 = getIRAContributionLimit(age2, limitTable) * limitFactor;
       else if (inputs.autoMaxContribution2 === 'max') {
-        const split2 = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, statutoryInflFactor);
+        const split2 = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, limitFactor, limitTable);
         pretax2 = split2.preTax;
         roth2 = split2.roth;
       }
@@ -10712,7 +10794,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       if (hsaOk1 && inputs.autoMaxContribution1 === 'max') hsaMaxAges.push(age1);
       if (hsaOk2 && inputs.autoMaxContribution2 === 'max') hsaMaxAges.push(age2);
       if (hsaMaxAges.length > 0) {
-        hsaContribution += getHSAContributionLimit(Math.max(...hsaMaxAges), !!inputs.hsaFamilyCoverage, statutoryInflFactor);
+        hsaContribution += getHSAContributionLimit(Math.max(...hsaMaxAges), !!inputs.hsaFamilyCoverage, limitFactor, limitTable);
       } else if (hsaOk1 || hsaOk2) {
         hsaContribution += (inputs.hsaContribution || 0);
       }
@@ -10753,7 +10835,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // for the flat-vs-percent formula logic.
     let employerMatchAmount = 0;
     if (spouse1Alive && age1 < inputs.retireAge1) {
-      const deferralLimit1 = getElectiveDeferralLimit(age1) * statutoryInflFactor;
+      const deferralLimit1 = getElectiveDeferralLimit(age1, limitTable) * limitFactor;
       employerMatchAmount += calculateEmployerMatch(spouse1Deferral, deferralLimit1, statutoryInflFactor, {
         mode: inputs.employerMatchMode1, flatAmount: inputs.employerMatch1,
         rateA: inputs.employerMatchRateA1, capAPct: inputs.employerMatchCapAPct1,
@@ -10763,7 +10845,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       });
     }
     if (inputs.spouse2Enabled && spouse2Alive && age2 < inputs.retireAge2) {
-      const deferralLimit2 = getElectiveDeferralLimit(age2) * statutoryInflFactor;
+      const deferralLimit2 = getElectiveDeferralLimit(age2, limitTable) * limitFactor;
       employerMatchAmount += calculateEmployerMatch(spouse2Deferral, deferralLimit2, statutoryInflFactor, {
         mode: inputs.employerMatchMode2, flatAmount: inputs.employerMatch2,
         rateA: inputs.employerMatchRateA2, capAPct: inputs.employerMatchCapAPct2,
@@ -10870,11 +10952,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // manual backdoor amounts.
     let backdoorRothContribution = 0;
     if (spouse1Alive && age1 < inputs.retireAge1) {
-      if (inputs.autoMaxContribution1 === 'max') backdoorRothContribution += getIRAContributionLimit(age1) * statutoryInflFactor;
+      if (inputs.autoMaxContribution1 === 'max') backdoorRothContribution += getIRAContributionLimit(age1, limitTable) * limitFactor;
       else if (inputs.backdoorRothEnabled) backdoorRothContribution += (inputs.backdoorRothAnnualAmount1 || 0);
     }
     if (inputs.spouse2Enabled && spouse2Alive && age2 < inputs.retireAge2) {
-      if (inputs.autoMaxContribution2 === 'max') backdoorRothContribution += getIRAContributionLimit(age2) * statutoryInflFactor;
+      if (inputs.autoMaxContribution2 === 'max') backdoorRothContribution += getIRAContributionLimit(age2, limitTable) * limitFactor;
       else if (inputs.backdoorRothEnabled) backdoorRothContribution += (inputs.backdoorRothAnnualAmount2 || 0);
     }
 
@@ -10919,7 +11001,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     // simply a further tax-free distribution), and before RMDs begin
     // there is nothing to cap it at. Until 418 a QCD needed an RMD to
     // ride on and could not exceed it.
-    const qcdLimit = QCD_LIMIT_2026 * statutoryInflFactor;
+    const qcdLimit = limitTable.qcd * limitFactor;
     const qcdTaxableRoom = Math.max(0, preTax - Math.max(0, preTaxBasis));
     const qcdEligible = rmdOwnerAge !== null && rmdOwnerAge >= QCD_START_AGE;
     // Capped at what will still be in the account after this year's

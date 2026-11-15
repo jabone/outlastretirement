@@ -27,7 +27,7 @@ export const RELEASE_WEEKS = [
     headline: 'The IRS\u2019s 2027 tax figures, and no more analytics',
     bullets: [
       { title: 'The IRS\u2019s 2027 tax figures, used from 2027 on', ids: [506],
-        text: 'From 2027 your plan uses the brackets, standard deduction, capital-gains bands, AMT amounts and estate exclusion the IRS published for 2027, instead of 2026 figures grown by inflation; later years grow from those. Most plans pay slightly less federal tax. Medicare and retirement-account limits for 2027 follow when they are published.' },
+        text: 'From 2027 your plan uses the brackets, standard deduction, capital-gains bands, AMT amounts and estate exclusion the IRS published for 2027, instead of 2026 figures grown by inflation; later years grow from those. Most plans pay slightly less federal tax. Medicare figures for 2027 follow when they are published.' },
       { title: 'No more analytics, and privacy wording that matches the code', ids: [505],
         text: 'The optional usage analytics are gone: the app no longer counts visits or tabs at all. An independent check also found places where the privacy page, the Verify page and the app said less than the code does; they now say exactly what Premium sends, what Live Pricing sends, what works offline and what a backup holds, and our pages send no referring address to other sites.' },
       { title: 'Live Pricing sends only tickers, and a Medicare fix in simulations', ids: [507],
@@ -40,6 +40,8 @@ export const RELEASE_WEEKS = [
         text: 'Undo and switching back to a scenario now show results the app worked out a moment ago instead of running everything again, and each update downloads less.' },
       { title: 'Smoother typing, and faster lesson pages', ids: [511],
         text: 'The Dashboard waits until you stop typing before re-checking the plan, simulated-markets runs start sooner, and lesson pages draw faster.' },
+      { title: 'The IRS\u2019s 2027 account limits, used from 2027 on', ids: [512],
+        text: 'From 2027 a plan set to contribute the most allowed uses the 2027 limits: $25,500 to a 401(k), larger catch-ups, $7,500 to an IRA and $4,500 to an HSA ($9,000 family). The law lets each person give up to $114,000 to charity straight from an IRA; the app applies one limit to the household.' },
     ],
   },
   {

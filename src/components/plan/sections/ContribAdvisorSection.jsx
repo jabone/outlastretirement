@@ -35,7 +35,7 @@ export default function ContribAdvisorSection() {
                           </div>
 
                           <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                            Elective deferral (Pre-Tax + Roth): ${data.totalDeferral.toLocaleString(undefined, { maximumFractionDigits: 0 })} of ${data.deferralLimit.toLocaleString()} 2026 limit
+                            Elective deferral (Pre-Tax + Roth): ${data.totalDeferral.toLocaleString(undefined, { maximumFractionDigits: 0 })} of ${data.deferralLimit.toLocaleString()} {advisory.year} limit
                             {data.catchupLimit > 0 && ` (includes a $${data.catchupLimit.toLocaleString()} age 50+ catch-up)`}.
                           </div>
 
@@ -70,8 +70,8 @@ export default function ContribAdvisorSection() {
 
                           {data.annualAdditionsBreached && (
                             <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--warning)', marginBottom: '10px', lineHeight: '1.5' }}>
-                              <AlertTriangle size={14} style={{ verticalAlign: '-2px', color: 'var(--warning)' }} /> <Tooltip text="IRC 415(c) caps your deferral plus all employer contributions plus after-tax dollars at $72,000 (2026), catch-up aside. A warning only; the projection uses your numbers." more="415(c)">
-                                Deferral + employer match (${data.annualAdditionsUsed.toLocaleString(undefined, { maximumFractionDigits: 0 })}) exceeds the $72,000 overall §415(c) annual-additions limit
+                              <AlertTriangle size={14} style={{ verticalAlign: '-2px', color: 'var(--warning)' }} /> <Tooltip text={`IRC 415(c) caps your deferral plus all employer contributions plus after-tax dollars at $${advisory.annualAdditionsLimit.toLocaleString()} (${advisory.year}), catch-up aside. A warning only; the projection uses your numbers.`} more="415(c)">
+                                Deferral + employer match (${data.annualAdditionsUsed.toLocaleString(undefined, { maximumFractionDigits: 0 })}) exceeds the ${advisory.annualAdditionsLimit.toLocaleString()} overall §415(c) annual-additions limit
                               </Tooltip>
                               {' '}— a real plan would cap contributions before this point; check the match formula entered above.
                             </div>
@@ -90,7 +90,7 @@ export default function ContribAdvisorSection() {
                           </div>
                           <div style={{ fontSize: 'var(--fs-xs)', color: data.afterTaxAllowed ? 'var(--success)' : 'var(--text-muted)' }}>
                             {data.afterTaxAllowed
-                              ? `Up to $${data.megaBackdoorRoom.toLocaleString(undefined, { maximumFractionDigits: 0 })} in Mega Backdoor Roth room this year (the gap between the $72,000 overall IRS limit and your deferral + employer match).`
+                              ? `Up to $${data.megaBackdoorRoom.toLocaleString(undefined, { maximumFractionDigits: 0 })} in Mega Backdoor Roth room this year (the gap between the $${advisory.annualAdditionsLimit.toLocaleString()} overall IRS limit and your deferral + employer match).`
                               : `If your plan supports it, there'd be up to $${data.megaBackdoorRoom.toLocaleString(undefined, { maximumFractionDigits: 0 })} in Mega Backdoor Roth room this year — toggle on once you've confirmed it with your plan.`}
                           </div>
                         </div>

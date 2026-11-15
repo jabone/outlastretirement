@@ -3,7 +3,7 @@
 // the owner turns 71 (70 1/2 in the law) with or without an RMD, and is
 // no longer capped at the RMD.
 import { describe, it, expect } from 'vitest';
-import { runProjection, DEFAULT_INPUTS, ACA_NON_EXPANSION_STATES, QCD_START_AGE, QCD_LIMIT_2026 } from '../calculator';
+import { runProjection, DEFAULT_INPUTS, ACA_NON_EXPANSION_STATES, QCD_START_AGE, QCD_LIMIT_2026, CONTRIBUTION_LIMIT_TABLES, contributionLimitTableYear } from '../calculator';
 
 const START = DEFAULT_INPUTS.planYear;
 
@@ -76,7 +76,12 @@ describe('QCDs from 70 1/2', () => {
 
   it('is still capped at the IRS limit, the balance, and the taxable part of the account', () => {
     const y = runProjection({ ...giver, qcdAnnualAmount: 500000 }).years.find((x) => x.age1 === 71);
-    expect(y.qcdAmount).toBeCloseTo(QCD_LIMIT_2026 * Math.pow(1 + DEFAULT_INPUTS.inflationRate / 100, y.year - START), 0);
+    // The limit is the newest published year's, grown by inflation after it
+    // (changelog 512: 2027 is the IRS's own figure).
+    const tableYear = contributionLimitTableYear(y.year);
+    const limit = tableYear === START ? QCD_LIMIT_2026 * Math.pow(1 + DEFAULT_INPUTS.inflationRate / 100, y.year - START)
+      : CONTRIBUTION_LIMIT_TABLES[tableYear].qcd * Math.pow(1 + DEFAULT_INPUTS.inflationRate / 100, y.year - tableYear);
+    expect(y.qcdAmount).toBeCloseTo(limit, 0);
     const small = runProjection({ ...giver, preTaxInit: 5000, qcdAnnualAmount: 20000 }).years.find((x) => x.age1 === 71);
     expect(small.qcdAmount).toBeLessThanOrEqual(5000 * 1.5);
     const basis = runProjection({ ...giver, preTaxInit: 30000, preTaxBasisInit: 30000, qcdAnnualAmount: 20000 }).years.find((x) => x.age1 === 71);

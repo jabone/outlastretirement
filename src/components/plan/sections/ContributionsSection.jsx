@@ -7,7 +7,7 @@ import { useSimulation } from '../../../context/useSimulation';
 import { getPossessive } from '../getPossessive';
 import CommaNumberInput from '../../CommaNumberInput';
 import Tooltip from '../../Tooltip';
-import { getElectiveDeferralLimit, getHSAContributionLimit, getIRAContributionLimit, getMaxContributionSplit } from '../../../calculator';
+import { TAX_YEAR, contributionLimitsForYear, getElectiveDeferralLimit, getHSAContributionLimit, getIRAContributionLimit, getMaxContributionSplit } from '../../../calculator';
 import NumberInput from '../../NumberInput';
 
 export default function ContributionsSection() {
@@ -28,18 +28,18 @@ export default function ContributionsSection() {
                   // and shows the actual current-year $ figure it's computing
                   // instead of the manual amount, rather than a vague "this
                   // is locked" note with no number attached.
-                  const currentYear = inputs.planYear;
+                  const currentYear = inputs.planYear || TAX_YEAR;
                   const noteStyle = { fontSize: 'var(--fs-xs)', opacity: 0.75, display: 'block', marginTop: '4px', lineHeight: '1.5' };
                   // 'max' mode splits the deferral via the same exported
                   // engine helper the projection uses, so the numbers shown
                   // here are exactly what gets projected (current-year
                   // dollars; RSU vests are approximated out of the wage
                   // test here, matching the Contribution Advisor).
-                  const maxSplitFor = (birthYear, salary) => getMaxContributionSplit(currentYear - (Number(birthYear) || 1980), Math.max(0, salary || 0));
+                  const maxSplitFor = (birthYear, salary) => getMaxContributionSplit(currentYear - (Number(birthYear) || 1980), Math.max(0, salary || 0), 1, contributionLimitsForYear(currentYear));
                   const autoMaxLimit = (mode, birthYear) => {
                     if (mode === 'off' || !mode) return null;
                     const age = currentYear - (Number(birthYear) || 1980);
-                    return mode === '401k' || mode === 'max' ? getElectiveDeferralLimit(age) : getIRAContributionLimit(age);
+                    return mode === '401k' || mode === 'max' ? getElectiveDeferralLimit(age, contributionLimitsForYear(currentYear)) : getIRAContributionLimit(age, contributionLimitsForYear(currentYear));
                   };
                   const autoMaxNote = (mode, birthYear, salary) => {
                     if (mode === 'max') {
@@ -277,14 +277,14 @@ export default function ContributionsSection() {
                     // engine's rule exactly -- any working 'max'-mode spouse
                     // under 65 maxes the single household HSA field; the
                     // 55+ catch-up keys off the oldest qualifying spouse.
-                    const currentYear = inputs.planYear;
+                    const currentYear = inputs.planYear || TAX_YEAR;
                     const qualifyingAges = [];
                     const age1Now = currentYear - (Number(inputs.birthYear1) || 1980);
                     const age2Now = currentYear - (Number(inputs.birthYear2) || 1982);
                     if (inputs.autoMaxContribution1 === 'max' && age1Now < inputs.retireAge1 && age1Now < 65) qualifyingAges.push(age1Now);
                     if (inputs.spouse2Enabled && inputs.autoMaxContribution2 === 'max' && age2Now < inputs.retireAge2 && age2Now < 65) qualifyingAges.push(age2Now);
                     const hsaMaxed = qualifyingAges.length > 0;
-                    const hsaMaxAmount = hsaMaxed ? getHSAContributionLimit(Math.max(...qualifyingAges), !!inputs.hsaFamilyCoverage) : 0;
+                    const hsaMaxAmount = hsaMaxed ? getHSAContributionLimit(Math.max(...qualifyingAges), !!inputs.hsaFamilyCoverage, 1, contributionLimitsForYear(currentYear)) : 0;
                     return (
                       <>
                         <CommaNumberInput id="field-hsaContribution" value={inputs.hsaContribution} onChange={(val) => updateInput('hsaContribution', val)} disabled={hsaMaxed} />
@@ -310,14 +310,14 @@ export default function ContributionsSection() {
                   // an over-limit warning about the ignored figure would
                   // only confuse.
                   if (inputs.autoMaxContribution1 === 'max' || (inputs.spouse2Enabled && inputs.autoMaxContribution2 === 'max')) return null;
-                  const currentYear = inputs.planYear;
+                  const currentYear = inputs.planYear || TAX_YEAR;
                   const age1Now = currentYear - (Number(inputs.birthYear1) || 1980);
-                  const hsaLimit = getHSAContributionLimit(age1Now, inputs.hsaFamilyCoverage);
+                  const hsaLimit = getHSAContributionLimit(age1Now, inputs.hsaFamilyCoverage, 1, contributionLimitsForYear(currentYear));
                   const hsaOver = (Number(inputs.hsaContribution) || 0) - hsaLimit;
                   if (hsaOver <= 0) return null;
                   return (
                     <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--danger)', margin: '-8px 0 16px', lineHeight: '1.6' }}>
-                      <AlertTriangle size={14} style={{ verticalAlign: '-2px', color: 'var(--warning)' }} /> HSA Savings (${(Number(inputs.hsaContribution) || 0).toLocaleString()}/yr) exceeds the 2026 IRS HSA contribution limit of ${hsaLimit.toLocaleString()} ({inputs.hsaFamilyCoverage ? 'family' : 'self-only'} coverage{age1Now >= 55 ? ', including the age 55+ catch-up' : ''}) by ${hsaOver.toLocaleString()}.
+                      <AlertTriangle size={14} style={{ verticalAlign: '-2px', color: 'var(--warning)' }} /> {`HSA Savings ($${(Number(inputs.hsaContribution) || 0).toLocaleString()}/yr) exceeds the ${currentYear} IRS HSA contribution limit of $${hsaLimit.toLocaleString()} (${inputs.hsaFamilyCoverage ? 'family' : 'self-only'} coverage${age1Now >= 55 ? ', including the age 55+ catch-up' : ''}) by $${hsaOver.toLocaleString()}.`}
                     </div>
                   );
                 })()}
@@ -327,10 +327,10 @@ export default function ContributionsSection() {
                   // contributions and OWN age-based limit now that each
                   // spouse has their own preTaxContribution1/2 and
                   // rothContribution1/2 fields.
-                  const currentYear = inputs.planYear;
+                  const currentYear = inputs.planYear || TAX_YEAR;
                   const combined1 = (Number(inputs.preTaxContribution1) || 0) + (Number(inputs.rothContribution1) || 0);
                   const age1Now = currentYear - (Number(inputs.birthYear1) || 1980);
-                  const limit1 = getElectiveDeferralLimit(age1Now);
+                  const limit1 = getElectiveDeferralLimit(age1Now, contributionLimitsForYear(currentYear));
                   // 'max' mode overrides BOTH of that spouse's manual fields
                   // with an exactly-at-the-limit split, so warning about the
                   // ignored manual figures would only confuse.
@@ -340,16 +340,16 @@ export default function ContributionsSection() {
                   if (inputs.spouse2Enabled) {
                     combined2 = (Number(inputs.preTaxContribution2) || 0) + (Number(inputs.rothContribution2) || 0);
                     age2Now = currentYear - (Number(inputs.birthYear2) || 1982);
-                    limit2 = getElectiveDeferralLimit(age2Now);
+                    limit2 = getElectiveDeferralLimit(age2Now, contributionLimitsForYear(currentYear));
                     over2 = inputs.autoMaxContribution2 === 'max' ? 0 : combined2 - limit2;
                   }
 
                   const warnings = [];
                   if (over1 > 0) {
-                    warnings.push(`${getPossessive(inputs.spouse1Name || 'Primary')} combined Pre-Tax + Roth savings ($${combined1.toLocaleString()}/yr) exceeds the 2026 IRS elective deferral limit of $${limit1.toLocaleString()} for age ${age1Now} by $${over1.toLocaleString()}.`);
+                    warnings.push(`${getPossessive(inputs.spouse1Name || 'Primary')} combined Pre-Tax + Roth savings ($${combined1.toLocaleString()}/yr) exceeds the ${currentYear} IRS elective deferral limit of $${limit1.toLocaleString()} for age ${age1Now} by $${over1.toLocaleString()}.`);
                   }
                   if (over2 !== null && over2 > 0) {
-                    warnings.push(`${getPossessive(inputs.spouse2Name || 'Spouse')} combined Pre-Tax + Roth savings ($${combined2.toLocaleString()}/yr) exceeds the 2026 IRS elective deferral limit of $${limit2.toLocaleString()} for age ${age2Now} by $${over2.toLocaleString()}.`);
+                    warnings.push(`${getPossessive(inputs.spouse2Name || 'Spouse')} combined Pre-Tax + Roth savings ($${combined2.toLocaleString()}/yr) exceeds the ${currentYear} IRS elective deferral limit of $${limit2.toLocaleString()} for age ${age2Now} by $${over2.toLocaleString()}.`);
                   }
 
                   if (warnings.length === 0) return null;
@@ -357,7 +357,7 @@ export default function ContributionsSection() {
                     <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--danger)', margin: '-8px 0 16px', lineHeight: '1.6' }}>
                       {warnings.map((w, i) => <div key={i}><AlertTriangle size={14} style={{ verticalAlign: '-2px', color: 'var(--warning)' }} /> {w}</div>)}
                       <div style={{ color: 'var(--text-muted)', marginTop: '2px' }}>
-                        This is the 401(k)/403(b)/457-style limit (the most generous account type available); a Traditional or Roth IRA limit for 2026 is much lower, ${getIRAContributionLimit(50).toLocaleString()} max even with the 50+ catch-up.
+                        This is the 401(k)/403(b)/457-style limit (the most generous account type available); {`a Traditional or Roth IRA limit for ${currentYear} is much lower, $${getIRAContributionLimit(50, contributionLimitsForYear(currentYear)).toLocaleString()} max even with the 50+ catch-up.`}
                       </div>
                     </div>
                   );

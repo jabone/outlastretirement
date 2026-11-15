@@ -7,6 +7,18 @@
 // oldest entries, unchanged, to the top of the older list in changelog.js.
 export const CHANGELOG_RECENT = [
   {
+    id: 512,
+    date: '2026-11-14',
+    title: 'The IRS\'s 2027 account limits, used from 2027 on',
+    summary: 'From 2027 your plan uses the 401(k), catch-up, IRA, HSA and charity-gift (QCD) limits the IRS published for 2027, instead of 2026 limits grown by inflation.',
+    items: [
+      "**2027 limits from the IRS.** In 2027 a plan set to contribute the most allowed now puts in the IRS's 2027 amounts: $25,500 to a workplace plan such as a 401(k), 403(b), 457 or the federal Thrift Savings Plan; $7,500 to an IRA; and $4,500 to an HSA ($9,000 for family coverage). An employer match figured as a share of the IRS limit moves up with it.",
+      "**Catch-ups.** A catch-up is the extra amount the law lets older workers add. In 2027 it is $8,500 more to a workplace plan at age 50 or over, or $11,750 more at ages 60 to 63, and $1,100 more to an IRA. A worker 50 or over who earned more than $155,000 (up from $150,000) must put the workplace catch-up in as Roth. The law looks at the year before's wages from that employer; the app uses the same year's.",
+      "**Gifts to charity from an IRA.** The law's yearly limit on a qualified charitable distribution (QCD) is $114,000 per person in 2027, up from $111,000. The app applies one limit to the household.",
+      "**Later years, and the screens.** Years after 2027 start from the 2027 limits and grow with your plan's inflation rate. The limits and warnings on the Settings screens are for your plan's first year: the 2027 ones if your plan starts in 2027.",
+    ],
+  },
+  {
     id: 511,
     date: '2026-11-14',
     title: 'Smoother typing, and faster lesson pages',

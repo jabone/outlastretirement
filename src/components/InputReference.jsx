@@ -9,7 +9,7 @@ import {
   AMT_EXEMPTION_MFS_2026, AMT_EXEMPTION_SINGLE_2026, SS_EARNINGS_TEST_EXEMPT_UNDER_FRA, SS_EARNINGS_TEST_EXEMPT_FRA_YEAR,
   ADDITIONAL_DEDUCTION_AGED_SINGLE_2026, ADDITIONAL_DEDUCTION_AGED_MARRIED_2026, SENIOR_BONUS_DEDUCTION,
   SENIOR_BONUS_FIRST_YEAR, SENIOR_BONUS_LAST_YEAR, SENIOR_BONUS_PHASEOUT_SINGLE, SENIOR_BONUS_PHASEOUT_MFJ,
-  ANNUAL_GIFT_EXCLUSION_2026, QCD_LIMIT_2026, FEDERAL_ESTATE_EXEMPTION_2026, NY_RECAPTURE_AGI_FLOOR,
+  ANNUAL_GIFT_EXCLUSION_2026, QCD_LIMIT_2026, CONTRIBUTION_LIMIT_TABLES, FEDERAL_ESTATE_EXEMPTION_2026, NY_RECAPTURE_AGI_FLOOR,
 } from '../utils/copyFigures';
 
 const sectionStyles = {
@@ -1698,7 +1698,7 @@ const InputReference = () => {
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Text Input</span><br/><strong>Qualified Charitable Distribution ($/yr)</strong></td>
               <td style={sectionStyles.td}>From the year the account owner turns 71 (the law allows it from 70&frac12;), routes this amount straight from your Pre-Tax account to charity instead of to you. It satisfies any required minimum distribution due that year, and any amount beyond the RMD is a further distribution; all of it is excluded from taxable income entirely, unlike a normal withdrawal.</td>
-              <td style={sectionStyles.td}>Currency value ($0 = disabled). Capped by the Pre-Tax balance and by the annual IRS QCD limit ({usd(QCD_LIMIT_2026)} for {TAX_YEAR}, indexed after), applied once per household.</td>
+              <td style={sectionStyles.td}>Currency value ($0 = disabled). Capped by the Pre-Tax balance and by the annual IRS QCD limit ({usd(QCD_LIMIT_2026)} for {TAX_YEAR}, {usd(CONTRIBUTION_LIMIT_TABLES[2027].qcd)} for 2027, indexed after), applied once per household.</td>
             </tr>
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Toggle</span><br/><strong>Spouse is the sole beneficiary of the Pre-Tax accounts</strong><br/><em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Plan &rarr; Taxes &amp; Roth; two-spouse plans only</em></td>

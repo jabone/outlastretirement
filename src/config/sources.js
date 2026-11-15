@@ -82,6 +82,16 @@ export const SOURCES = [
     expect: ['24,500', '7,500', '111,000', '242,000', '153,000'],
   },
   {
+    id: 'contribution-limits-2027',
+    label: '401(k), IRA, catch-up and QCD limits for 2027',
+    drives: 'Auto-Max Contribution, the catch-ups, the Roth catch-up wage test, an employer match figured as a share of the IRS limit, and the QCD cap, in 2027 and later years (later years grow from these).',
+    publisher: 'IRS (Notice 2026-66, IR-2026-136)',
+    url: 'https://www.irs.gov/pub/irs-drop/n-26-66.pdf',
+    verified: '2026-11-14',
+    note: 'Fetched and confirmed 2026-11-14 for 2027: elective deferrals $25,500, catch-up $8,500 (ages 60 to 63: $11,750), annual additions $75,000, IRA $7,500 (catch-up $1,100), Roth catch-up wage threshold $155,000, qualified charitable distributions $114,000; Roth IRA phase-outs $250,000 to $260,000 joint and $158,000 to $173,000 single.',
+    expect: ['25,500', '11,750', '75,000', '155,000', '114,000'],
+  },
+  {
     id: 'estate-tax',
     label: 'Federal estate tax exemption',
     drives: 'The federal estate tax layered on top of state estate/inheritance tax in the Estate Legacy Planner.',
@@ -100,6 +110,16 @@ export const SOURCES = [
     verified: '2026-09-30',
     note: 'Tax year 2026: $4,400 self-only, $8,750 family coverage.',
     expect: ['4,400', '8,750'],
+  },
+  {
+    id: 'hsa-limits-2027',
+    label: 'HSA contribution limits for 2027',
+    drives: 'The HSA amount a plan set to contribute the most allowed puts in, in 2027 and later years (later years grow from these).',
+    publisher: 'IRS (Rev. Proc. 2026-24)',
+    url: 'https://www.irs.gov/pub/irs-drop/rp-26-24.pdf',
+    verified: '2026-11-14',
+    note: 'Fetched and confirmed 2026-11-14 for 2027: $4,500 self-only, $9,000 family coverage.',
+    expect: ['4,500', '9,000'],
   },
   {
     id: 'ssa-2027',
