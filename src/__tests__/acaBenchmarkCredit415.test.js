@@ -96,7 +96,9 @@ describe('the computed credit in a plan', () => {
     const years = runProjection(couple).years;
     const y1 = years[1];
     expect(y1.acaBenchmarkPremium).toBeGreaterThan(30000);
-    expect(y1.acaApplicablePct).toBeCloseTo(2.1, 9); // MAGI under 133% of FPL
+    // MAGI under 133% of FPL; the second year is 2027, whose table starts
+    // at 2.15% (changelog 514).
+    expect(y1.acaApplicablePct).toBeCloseTo(y1.year >= 2027 ? 2.15 : 2.1, 9);
     // The credit is capped at the premium share of the bridge: 70% of two
     // $12,000 costs, medically inflated one year.
     const premium = 24000 * 0.7 * (1 + DEFAULT_INPUTS.medicalInflationRate / 100);
@@ -111,7 +113,9 @@ describe('the computed credit in a plan', () => {
   it('the first marketplace year, with nothing to project from and income under the floor, is settled at filing as a refund', () => {
     const y0 = runProjection(couple).years[0];
     expect(y0.acaSubsidyApplied).toBe(0);
-    expect(y0.acaApplicablePct).toBeNull();
+    // The ledger shows the settled year's percentage (changelog 514); the
+    // estimate going in had none.
+    expect(y0.acaApplicablePct).toBeCloseTo(2.1, 9);
     expect(y0.acaMagi).toBeGreaterThan(getFederalPovertyLevel(2, START));
     expect(y0.acaCreditSettled).toBeGreaterThan(0);
     expect(y0.acaSubsidyRefund).toBeCloseTo(y0.acaCreditSettled, 6);

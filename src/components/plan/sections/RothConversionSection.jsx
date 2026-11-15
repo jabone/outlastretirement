@@ -203,7 +203,7 @@ export default function RothConversionSection({ forceOpen = false }) {
                 </div>
                 <div className="form-group">
                   <label htmlFor="field-acaCreditSource">
-                    <Tooltip text="The marketplace credit on the pre-65 Healthcare Bridge while retired, under 65 and between 100% and 400% of the poverty line. Computed: the benchmark silver premium for your state and ages less 2.1% to 9.96% of income, settled on the return. Typed: your own figure." more="Premium Tax Credit">
+                    <Tooltip text="The marketplace credit on the pre-65 Healthcare Bridge while retired and between 100% and 400% of the poverty line. Computed: your state's benchmark premium at your ages less 2.1% to 9.96% of income (10.22% from 2027), settled on the return. Typed: your own figure." more="Premium Tax Credit">
                       ACA Premium Tax Credit
                     </Tooltip>
                   </label>

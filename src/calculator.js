@@ -3095,8 +3095,9 @@ export function getFederalPovertyLevel(householdSize, coverageYear = TAX_YEAR, i
 // Within a band the percentage moves linearly from `initial` at the
 // band's floor to `final` at its ceiling (36B(b)(3)(A)(i)). Nothing below
 // 100% of FPL (Medicaid or the coverage gap) and nothing above 400%.
-// Later years keep the 2026 schedule: its indexing moves a few hundredths
-// of a point a year and no table is published more than a year ahead.
+// Kept by coverage year (changelog 514): 2026 from Rev. Proc. 2025-25,
+// 2027 from Rev. Proc. 2026-26. A year after the newest table keeps that
+// table's schedule; no table is published more than a year ahead.
 export const ACA_APPLICABLE_PCT_2026 = [
   // [from x FPL, to x FPL, initial %, final %]
   [1.00, 1.33, 2.10, 2.10],
@@ -3106,9 +3107,28 @@ export const ACA_APPLICABLE_PCT_2026 = [
   [2.50, 3.00, 8.44, 9.96],
   [3.00, 4.00, 9.96, 9.96],
 ];
-export function acaApplicablePercent(fplRatio) {
+export const ACA_APPLICABLE_PCT_TABLES = {
+  2026: ACA_APPLICABLE_PCT_2026,
+  2027: [
+    [1.00, 1.33, 2.15, 2.15],
+    [1.33, 1.50, 3.23, 4.30],
+    [1.50, 2.00, 4.30, 6.78],
+    [2.00, 2.50, 6.78, 8.66],
+    [2.50, 3.00, 8.66, 10.22],
+    [3.00, 4.00, 10.22, 10.22],
+  ],
+};
+const ACA_PCT_YEARS = Object.keys(ACA_APPLICABLE_PCT_TABLES).map(Number).sort((a, b) => a - b);
+// The schedule a coverage year uses: the newest at or before it (the
+// first for an earlier year; TAX_YEAR's when no year is given).
+export function acaApplicablePctTable(coverageYear = TAX_YEAR) {
+  let pick = ACA_PCT_YEARS[0];
+  for (const y of ACA_PCT_YEARS) if (y <= coverageYear) pick = y;
+  return ACA_APPLICABLE_PCT_TABLES[pick];
+}
+export function acaApplicablePercent(fplRatio, coverageYear = TAX_YEAR) {
   if (!(fplRatio >= 1) || fplRatio > ACA_SUBSIDY_CLIFF_FPL_MULTIPLE) return null;
-  for (const [from, to, initial, final] of ACA_APPLICABLE_PCT_2026) {
+  for (const [from, to, initial, final] of acaApplicablePctTable(coverageYear)) {
     if (fplRatio >= from && (fplRatio < to || to === ACA_SUBSIDY_CLIFF_FPL_MULTIPLE)) {
       return initial + (final - initial) * ((fplRatio - from) / (to - from));
     }
@@ -3159,9 +3179,9 @@ export function acaBenchmarkPremiumAnnual(state, ages, medicalInflFactor = 1) {
 }
 // The credit for a year: benchmark less the contribution, capped at the
 // premium paid. `fplRatio` and `applicablePct` come back for the ledger.
-export function acaPremiumTaxCredit({ benchmark, magi, fpl, premiumPaid }) {
+export function acaPremiumTaxCredit({ benchmark, magi, fpl, premiumPaid, year = TAX_YEAR }) {
   const fplRatio = fpl > 0 ? Math.max(0, magi) / fpl : 0;
-  const applicablePct = acaApplicablePercent(fplRatio);
+  const applicablePct = acaApplicablePercent(fplRatio, year);
   if (applicablePct === null) return { credit: 0, fplRatio, applicablePct: null, contribution: 0 };
   const contribution = Math.max(0, magi) * applicablePct / 100;
   const credit = Math.max(0, Math.min(premiumPaid, benchmark - contribution));
@@ -5018,10 +5038,8 @@ export function californiaMilitaryExclusion(militaryPension, federalAGI, status,
 // SAME for every filing status -- $17,000 is where the 5.75% top rate
 // starts whether Single, MFJ, or MFS, which makes Virginia nearly flat in
 // practice. What the old flat-5.75% approximation missed is everything
-// below the brackets: the standard deduction ($8,750 / $17,500 -- the
-// 2025-2026 amounts; scheduled to sunset after 2026 but routinely
-// extended, so they're held constant like the other states' figures and
-// flagged in TAX_UPDATE_PROCESS.md), the $930-per-person exemption plus
+// below the brackets: the standard deduction (a year schedule,
+// VA_STD_DEDUCTION_SCHEDULE below, from the 2026 Appropriation Act), the $930-per-person exemption plus
 // $800 more for each filer 65+, and the age deduction below.
 //
 // Known simplification: the Spouse Tax Adjustment (a two-earner MFJ
@@ -5072,6 +5090,28 @@ export function illinoisExemptionAllowance(federalAGI, status, age1 = 65, age2 =
 
 export const VA_STD_DEDUCTION_SINGLE = 8750;
 export const VA_STD_DEDUCTION_MFJ = 17500;
+// The standard deduction by taxable year (changelog 514): the 2026
+// Appropriation Act (HB 30, Special Session I, Chapter 1, third enactment
+// clause; Virginia Tax 2026 Legislative Summary) sets $9,200 / $18,400 for
+// 2027 and $9,300 / $18,600 for 2028 and 2029. Current law then drops it to
+// $3,000 / $6,000 from 2030; like the earlier sunsets, which were extended
+// each time, the app holds the last scheduled amounts instead (said in How
+// the math works). Married filing separately takes the single amount.
+export const VA_STD_DEDUCTION_SCHEDULE = [
+  // [first taxable year, single, married filing jointly]
+  [2027, 9200, 18400],
+  [2028, 9300, 18600],
+];
+// What current law would drop it to from 2030 (not applied; see above).
+export const VA_STD_DEDUCTION_AFTER_SUNSET = { single: 3000, joint: 6000 };
+export function vaStandardDeduction(isMFJ, calendarYear = TAX_YEAR) {
+  let single = VA_STD_DEDUCTION_SINGLE;
+  let joint = VA_STD_DEDUCTION_MFJ;
+  for (const [from, s1, j1] of VA_STD_DEDUCTION_SCHEDULE) {
+    if (calendarYear >= from) { single = s1; joint = j1; }
+  }
+  return isMFJ ? joint : single;
+}
 export const VA_PERSONAL_EXEMPTION = 930;
 export const VA_AGE_EXEMPTION = 800; // extra personal exemption at 65+
 export const VA_AGE_DEDUCTION = 12000;
@@ -5599,7 +5639,7 @@ export function calculateStateTaxes(income, pension, ss, stateType, taxSS, taxPe
     // married phase-out threshold, per the statute's "married taxpayers"
     // language. Spouse ages only count on a joint return.
     const isMFJ = status === 'MFJ';
-    const vaStd = isMFJ ? VA_STD_DEDUCTION_MFJ : VA_STD_DEDUCTION_SINGLE;
+    const vaStd = vaStandardDeduction(isMFJ, calendarYear);
     let vaExemptions = VA_PERSONAL_EXEMPTION * (isMFJ ? 2 : 1);
     if (age1 >= 65) vaExemptions += VA_AGE_EXEMPTION;
     if (isMFJ && age2 >= 65) vaExemptions += VA_AGE_EXEMPTION;
@@ -12159,7 +12199,7 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       }
       const magiEstimate = Math.max(prevAcaMagi ?? 0, otherOrdinaryAgi + ssIncome + taxableDividends + convertAmountTaxable);
       const fplForCredit = getFederalPovertyLevel(acaHouseholdSize, year, inputs.taxBracketInflationRate);
-      const est = acaPremiumTaxCredit({ benchmark: acaBenchmarkPremium, magi: magiEstimate, fpl: fplForCredit, premiumPaid: acaPremiumPaid });
+      const est = acaPremiumTaxCredit({ benchmark: acaBenchmarkPremium, magi: magiEstimate, fpl: fplForCredit, premiumPaid: acaPremiumPaid, year });
       acaSubsidyApplied = est.credit;
       acaApplicablePct = est.applicablePct;
       healthcareBridge -= acaSubsidyApplied;
@@ -12867,9 +12907,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
         // return: a shortfall repaid as tax (funded like the boost tax), an
         // excess refunded into the taxable account.
         const fplForCredit = getFederalPovertyLevel(householdSize, year, inputs.taxBracketInflationRate);
-        acaCreditSettled = (acaCliffBreached || inAcaCoverageGap || acaPremiumPaid <= 0)
-          ? 0
-          : acaPremiumTaxCredit({ benchmark: acaBenchmarkPremium, magi: acaMagi, fpl: fplForCredit, premiumPaid: acaPremiumPaid }).credit;
+        const settled = (acaCliffBreached || inAcaCoverageGap || acaPremiumPaid <= 0)
+          ? null
+          : acaPremiumTaxCredit({ benchmark: acaBenchmarkPremium, magi: acaMagi, fpl: fplForCredit, premiumPaid: acaPremiumPaid, year });
+        acaCreditSettled = settled ? settled.credit : 0;
+        // The ledger shows the percentage the settled year's income earns
+        // (changelog 514; it used to keep the estimate's).
+        acaApplicablePct = settled ? settled.applicablePct : null;
         const difference = acaSubsidyApplied - acaCreditSettled;
         if (difference > 0.005) {
           acaSubsidyClawback = difference;
@@ -13622,8 +13666,8 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       acaSubsidyClawback,
       // Changelog 415: the computed credit's parts. acaBenchmarkPremium is
       // the household's benchmark this year (0 in manual mode or off the
-      // marketplace); acaApplicablePct the income share it was estimated
-      // with (null when ineligible); acaCreditSettled the credit the
+      // marketplace); acaApplicablePct the income share the settled year
+      // earns (null when it earns no credit); acaCreditSettled the credit the
       // settled year earned; acaSubsidyRefund the excess returned at filing.
       acaBenchmarkPremium,
       acaApplicablePct,

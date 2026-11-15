@@ -332,6 +332,17 @@ export const SOURCES = [
     expect: ['8,750', '17,500', '12,000'],
   },
   {
+    id: 'va-std-deduction-2027',
+    label: 'Virginia standard deduction for 2027 to 2029',
+    drives: 'The Virginia standard deduction in 2027 and later years.',
+    publisher: 'Virginia Department of Taxation (2026 Legislative Summary; HB 30, Special Session I, Chapter 1)',
+    url: 'https://www.tax.virginia.gov/sites/default/files/inline-files/2026-legislative-summary.pdf',
+    verified: '2026-11-15',
+    note: 'Fetched and confirmed 2026-11-15: $9,200 single and $18,400 married filing jointly for 2027; $9,300 and $18,600 for 2028 and 2029; then $3,000 and $6,000 from 2030 under current law.',
+    expect: ['9,200', '18,400', '9,300', '18,600'],
+  },
+
+  {
     id: 'il-retirement-income',
     label: 'Illinois retirement income subtraction',
     drives: "The Illinois jurisdiction's full exemption of pensions, IRA and 401(k) distributions (early ones included) and Roth conversions.",
@@ -632,6 +643,16 @@ export const SOURCES = [
     verified: '2026-10-23',
     note: 'Fetched and confirmed 2026-10-23: "For taxable years beginning in calendar year 2026", 2.10% below 133% of the poverty line, 3.14% to 4.19%, 4.19% to 6.60%, 6.60% to 8.44%, 8.44% to 9.96% across the middle bands, and 9.96% from 300% to 400%. The 2021-2025 enhancement expired, so the 400% ceiling is back.',
     expect: ['2.10', '9.96'],
+  },
+  {
+    id: 'aca-applicable-pct-2027',
+    label: 'ACA premium tax credit applicable percentages for 2027',
+    drives: 'The share of income a marketplace household pays toward the benchmark plan in 2027 and later coverage years.',
+    publisher: 'IRS (Rev. Proc. 2026-26, §36B applicable percentage table for 2027)',
+    url: 'https://www.irs.gov/pub/irs-drop/rp-26-26.pdf',
+    verified: '2026-11-15',
+    note: 'Fetched and confirmed 2026-11-15: for taxable years beginning in 2027, 2.15% below 133% of the poverty line, 3.23% to 4.3%, 4.3% to 6.78%, 6.78% to 8.66%, 8.66% to 10.22% across the middle bands, and 10.22% from 300% to 400%.',
+    expect: ['2.15', '10.22'],
   },
   {
     id: 'early-distributions',

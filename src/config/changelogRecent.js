@@ -7,6 +7,17 @@
 // oldest entries, unchanged, to the top of the older list in changelog.js.
 export const CHANGELOG_RECENT = [
   {
+    id: 514,
+    date: '2026-11-15',
+    title: '2027 marketplace credit table, and Virginia\'s larger deduction',
+    summary: 'From 2027 the marketplace health credit uses the IRS\'s 2027 table of what share of income a household pays, and Virginia\'s standard deduction rises as its 2026 budget law sets.',
+    items: [
+      "**Marketplace coverage before Medicare.** The premium tax credit expects a household to pay a share of its income toward the benchmark plan. For 2027 the IRS set that share at 2.15% to 10.22% of income, up from 2.1% to 9.96% in 2026, so a household pays a slightly larger share of its income than the 2026 table would ask, and its credit is a little smaller than it would otherwise be. Rising benchmark premiums usually still make the dollar credit larger than in 2026. Later years keep the 2027 table until the IRS publishes the next one.",
+      "**The ledger's marketplace percentage.** The year-by-year ledger now shows the share of income that matches the year's settled income. It used to show the share from the estimate made going into the year; the credit itself was already figured on the settled income.",
+      "**Virginia's standard deduction.** Virginia's 2026 budget law raises it to $9,200 ($18,400 joint) for 2027 and $9,300 ($18,600 joint) for 2028 and 2029, from $8,750 ($17,500 joint). Current law then drops it to $3,000 ($6,000 joint) from 2030; the app keeps the 2029 amounts, since earlier drops like this were put off each time.",
+    ],
+  },
+  {
     id: 513,
     date: '2026-11-15',
     title: 'Auto-Max for a 401(k) stays within the limit',

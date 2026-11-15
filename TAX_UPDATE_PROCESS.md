@@ -15,7 +15,9 @@ The federal income-tax figures are kept **one table per tax year**, the way `SS_
 - **A new year's figures are ADDED as a new key. The previous year's entry is never edited.** A plan still sitting in the earlier year keeps pricing that year on its own published figures (a 2026 plan after the January switch still sees the real 2026 brackets for 2026, not 2027's carried back).
 - Every federal helper (`calculateTaxes`, `calculateCapitalGainsTaxes`, `calculateNetInvestmentIncomeTax`, `calculateAMT`, `getTaxBracketLimit`, `getBracketFilling`, `additionalStandardDeductionAged`, `calculateFederalEstateTax`) takes a *federal tax context* (`federalTaxContext(year, factor, factorSince, carryEveryTable)`) where it used to take a bare factor, and still takes the bare factor, which means "the `TAX_YEAR` table times this factor"; `bracketsFor(status)` without a table is the `TAX_YEAR` table too. Projection rows carry `federalTaxYear` and `federalTaxFactor`; anything that re-prices a row through the helpers passes `federalTaxContextOfRow(row)`, never the row's `taxBracketInflationFactor` alone (that factor is from `TAX_YEAR`, so it would price a 2028 row on the 2026 table).
 
-Figures **not yet keyed by year** are still single `_2026` constants: the IRMAA thresholds and premiums, the Part D base premium and surcharges, the 401(k)/IRA/Roth/HSA/QCD limits, the annual gift exclusion, the ACA applicable-percentage and benchmark-premium tables. These are the `TAX_YEAR`'s figures, carried to other years by a factor measured from `TAX_YEAR`; they change only at the January switch below. When one of them is next touched, prefer moving it into a year-keyed table rather than renaming the constant.
+Also keyed by year: `CONTRIBUTION_LIMIT_TABLES` (401(k), catch-ups, §415(c), IRA, Roth catch-up wage test, Roth IRA phase-outs, QCD, HSA; changelog 512), `ACA_APPLICABLE_PCT_TABLES` (changelog 514) and Virginia's `VA_STD_DEDUCTION_SCHEDULE` (changelog 514).
+
+Figures **not yet keyed by year** are still single `_2026` constants: the IRMAA thresholds and premiums, the Part D base premium and surcharges, the annual gift exclusion, the ACA benchmark-premium table. These are the `TAX_YEAR`'s figures, carried to other years by a factor measured from `TAX_YEAR`; they change only at the January switch below. When one of them is next touched, prefer moving it into a year-keyed table rather than renaming the constant.
 
 Unindexed statutory figures are in no table and never move: the NIIT thresholds, the Social Security provisional-income thresholds, the Additional Medicare Tax thresholds, the $6,000 senior deduction and its phase-out (2025–2028, `SENIOR_BONUS_LAST_YEAR`), the $1,000 HSA catch-up, the $3,000 capital-loss offset.
 
@@ -26,8 +28,11 @@ Unindexed statutory figures are in no table and never move: the NIIT thresholds,
 | Late July | CMS Part D national average bid (base beneficiary premium) | Note it for the January switch (`PART_D_BASE_PREMIUM`). |
 | October | SSA COLA, wage base, earnings-test amounts | Add `SS_ANNOUNCED[next year]` (#4). Live at once. |
 | October/November | IRS inflation-adjustment Revenue Procedure | Add `FEDERAL_TAX_TABLES[next year]` (#1). Live at once. |
-| November | IRS retirement-plan limits notice; CMS Part B and IRMAA | Note them for the January switch (#5, #6). |
-| Autumn | Rev. Proc. for ACA applicable percentages; KFF benchmark premiums | Note them for the January switch (#7). |
+| November | IRS retirement-plan limits notice | Add `CONTRIBUTION_LIMIT_TABLES[next year]` (#6). Live at once. |
+| November | CMS Part B and IRMAA | Note them for the January switch (#5). |
+| May | HSA Rev. Proc. for the next year | Put `hsaSelf` / `hsaFamily` in `CONTRIBUTION_LIMIT_TABLES[next year]` (#6). |
+| Summer | Rev. Proc. for ACA applicable percentages | Add `ACA_APPLICABLE_PCT_TABLES[next year]` (#7). Live at once. |
+| Autumn | KFF benchmark premiums | Note them for the January switch (#7). |
 | **December** | — | The year-end source review (below), and prepare the January switch on a branch. |
 | **January 1** | — | The `TAX_YEAR` switch (#0). |
 | January | HHS poverty guidelines; California FTB schedules (late December) | Add `FPL_TABLES[this year]` (#8); refresh CA (#9). |
@@ -42,7 +47,7 @@ Unindexed statutory figures are in no table and never move: the NIIT thresholds,
 The switch, in one commit:
 
 1. `TAX_YEAR = <new year>`. `FEDERAL_TAX_TABLES[TAX_YEAR]` must already exist (the test in `federalTaxTables.test.js` fails otherwise); nothing in the federal income-tax tables changes.
-2. Replace the non-keyed `_2026` figures with the new year's, renaming the suffix: IRMAA (#5), Part D (#5), contribution limits (#6), HSA (#6), QCD (#6), the annual gift exclusion (#3), the ACA tables (#7). Only figures that are **published** go in; one that is not yet out keeps the old figure and is carried by the factor, and is listed in the commit message.
+2. Replace the non-keyed `_2026` figures with the new year's, renaming the suffix: IRMAA (#5), Part D (#5), the annual gift exclusion (#3), the ACA benchmark table (#7). The year-keyed tables need nothing at the switch except that the new year's entry exists. Only figures that are **published** go in; one that is not yet out keeps the old figure and is carried by the factor, and is listed in the commit message.
 3. **The copy.** The help text already says later published years are used as published and grow from the newest. But the Guide, the Input Dictionary, `src/config/howFigured.js`, `src/utils/copyFigures.js` and `LifeEventsSection.jsx` print the named 2026 constants (`DEDUCTION_MFJ`, `BRACKETS_*`, `AMT_EXEMPTION_*_2026`, `ADDITIONAL_DEDUCTION_AGED_*_2026`, `FEDERAL_ESTATE_EXEMPTION_2026`, `GST_EXEMPTION_2026`, `ANNUAL_GIFT_EXCLUSION_2026`, the capital-gains figures pinned in `copyFigures.test.js` / `howFigured.test.js`) next to the label `{TAX_YEAR}`. After the switch the label says the new year, so every such site must read the new year's figure: either point it at `FEDERAL_TAX_TABLES[TAX_YEAR]` or update the constant it reads. Search for `_2026` and `{TAX_YEAR}` together.
 4. Expect goldens to move (every plan's first year now reads the new year's non-keyed figures exactly). Explain each one in the commit message, as for any figure change.
 5. Add the release note (`src/config/changelog.js`).
@@ -84,18 +89,21 @@ The Tax & Estate bracket chart (`src/utils/taxVisualizerData.js`) and the Filing
 - **What to do:** the standard premium, the five surcharge tiers, the five MAGI thresholds for both statuses, the MFS-together line, Part D. The top tier ($500,000 / $750,000) is frozen in statute through 2027 and indexes from 2028 on an August 2026 base. `irmaaTopTierFactor` measures that from the threshold table's own year (`TAX_YEAR`); once `TAX_YEAR` is 2028 or later the table's top figure is CMS's indexed figure and moves with the other tiers, so from the 2028 switch take the top figures from CMS. `IRMAA_THRESHOLDS_MFS_TOGETHER` carries the lower MFS-together line and the top; the engine derives the top as $500,000 (indexed) less the lower line, so check CMS's printed MFS figures equal that identity.
 - **Downstream:** the bracket chart's IRMAA lines derive from these.
 
-## 6. Contribution, HSA and QCD limits (IRS, November and May; at the January switch)
+## 6. Contribution, HSA and QCD limits: `CONTRIBUTION_LIMIT_TABLES` (IRS, November and May)
 
-These index at the plan's **general inflation rate** (`statutoryInflFactor`), not the bracket rate. Not year-keyed.
+Keyed by year since changelog 512, like the federal tables. A projection year reads the newest table at or before it (`contributionLimitTableYear`); a published year is exact, and a later year is that table carried by the plan's **general inflation rate** (`statutoryInflFactor`, not the bracket rate) since the table's year. The Settings notes, warnings and Contribution Advisor read the plan's first year (`contributionLimitsForYear(planYear)`).
 
-- **401(k)/IRA:** `ELECTIVE_DEFERRAL_LIMIT_2026`, `CATCHUP_50_2026`, `CATCHUP_60_63_2026`, `IRA_LIMIT_2026`, `IRA_CATCHUP_50_2026`, `ANNUAL_ADDITIONS_LIMIT_2026` (§415(c)), `MANDATORY_ROTH_CATCHUP_WAGE_THRESHOLD_2026`, `ROTH_IRA_PHASEOUT_MFJ` / `ROTH_IRA_PHASEOUT_SINGLE` (`ROTH_IRA_PHASEOUT_MFS_TOGETHER` is the statutory $0–$10,000). Source: the IRS retirement-plan limits notice (irs.gov/newsroom, "401(k) limit increases ... `<year>`"). The age 60–63 catch-up *replaces* the 50+ one (`getElectiveDeferralLimit`).
-- **HSA:** `HSA_LIMIT_SELF_2026`, `HSA_LIMIT_FAMILY_2026` (HSA Rev. Proc., usually May). `HSA_CATCHUP_55_2026` ($1,000) is statutory.
-- **QCD:** `QCD_LIMIT_2026`, from the retirement-plan limits notice (not the main Rev. Proc.). Per person.
+- **What to do:** add `CONTRIBUTION_LIMIT_TABLES[<year>]` with every field, and the citation in a comment. Do not edit an existing year.
+  - From the IRS retirement-plan limits notice (irs.gov/newsroom, "401(k) limit increases ... `<year>`", and the Notice itself): `deferral` (§402(g)), `catchup50`, `catchup60to63` (it *replaces* the 50+ one), `annualAdditions` (§415(c)), `ira`, `iraCatchup50`, `rothCatchupWage` (§414(v)(7); tested on the prior year's wages), `rothIraMFJ` / `rothIraSingle` (the MFS-lived-together $0–$10,000 is statutory and stays `ROTH_IRA_PHASEOUT_MFS_TOGETHER`), `qcd` (§408(d)(8), per person; the app applies one household cap).
+  - From the HSA Rev. Proc. (usually May, for the next year): `hsaSelf`, `hsaFamily`. `HSA_CATCHUP_55_2026` ($1,000) is statutory.
+  - If the HSA figures come out before the notice, add the year with the HSA fields and carry the other fields from the previous year's table until the notice is out; say so in the comment.
+- **At the January switch:** the `_2026` constants that the help text quotes (`ELECTIVE_DEFERRAL_LIMIT_2026` and the rest) are this tax year's; point that copy at `CONTRIBUTION_LIMIT_TABLES[TAX_YEAR]` or update the constants.
 - Projections circulating before the notice (Milliman and the like) are not figures; wait for the IRS.
+- Add a `sources.js` entry for each new year's notice with `expect` figures.
 
 ## 7. ACA tables (at the January switch, except the poverty line)
 
-- **`ACA_APPLICABLE_PCT_2026`:** the §36B applicable-percentage bands (Rev. Proc. for the coverage year, e.g. Rev. Proc. 2026-26 for 2027). Later years currently reuse it (audit P2: the 2027 top band moved from 9.96% to 10.22%); a year-keyed table is the better shape.
+- **`ACA_APPLICABLE_PCT_TABLES`:** the §36B applicable-percentage bands by coverage year (2026 from Rev. Proc. 2025-25, 2027 from Rev. Proc. 2026-26, usually published in summer). Add the next year's table when the Rev. Proc. is out; never edit a published year. A year after the newest table keeps that table's schedule.
 - **`ACA_BENCHMARK_40_MONTHLY_2026`:** the state benchmark (second-lowest silver) premium at age 40 (KFF, autumn). Carried by the medical inflation factor.
 - **`ACA_NON_EXPANSION_STATES`:** healthinsurance.org or KFF's Medicaid expansion tracker. **This can change at any time of year** (a legislature or ballot measure); check whenever expansion news appears.
 
@@ -135,7 +143,7 @@ These index at the plan's **general inflation rate** (`statutoryInflFactor`), no
 
 - **Source:** Va. Code § 58.1-320 (rates/brackets), § 58.1-322.03 (standard deduction, age deduction, exemptions) at law.lis.virginia.gov, and tax.virginia.gov's Deductions page and Military Benefits Subtraction FAQ. Verified 2026-08-31.
 - **Why NOT annually:** nothing in Virginia's schedule is CPI-indexed — the $3k/$5k/$17k bracket thresholds have been unchanged since 1990, and the exemptions ($930 / $800), age deduction ($12,000, $50k/$75k thresholds), and $40,000 military cap are fixed statutory dollars. **Never apply a CPI factor.** Only legislation moves any of them.
-- **The standard deduction now steps up by law:** `VA_STD_DEDUCTION_*` are $8,750 single / $17,500 MFJ, which the engine applies to every year. The 2026 General Assembly raised them to $9,200 / $18,400 from tax year 2027, with further steps in 2028 and 2029 (tax.virginia.gov, "New Virginia Tax Laws"; audit C4, 2026-11-09). **Open item:** the constant needs a year schedule, and the 2028 and 2029 amounts need reading from the statute (Va. Code § 58.1-322.03) before it can be written. Until then a Virginia couple's taxable income is overstated by $900 in 2027 (about $52 of tax). Each January, confirm the current amounts on tax.virginia.gov's Deductions page.
+- **The standard deduction is a year schedule:** `VA_STD_DEDUCTION_SCHEDULE` (changelog 514) follows the 2026 Appropriation Act (HB 30, Special Session I, Chapter 1; Virginia Tax 2026 Legislative Summary): $8,750 / $17,500 through 2026 (`VA_STD_DEDUCTION_SINGLE` / `_MFJ`), $9,200 / $18,400 for 2027, $9,300 / $18,600 for 2028 and 2029. Current law then drops it to $3,000 / $6,000 from 2030 (`VA_STD_DEDUCTION_AFTER_SUNSET`); the app holds the 2029 amounts instead, as it held earlier sunsets that were extended, and says so in How the math works. Each January, and after each General Assembly session, check tax.virginia.gov for an extension or new amounts and add a row; if 2030 approaches with no extension, decide whether to apply the drop.
 - **Also check:** rate-reform bills. Virginia's legislature debates lowering the 5.75% top rate or raising the $17,000 threshold most sessions; none had passed as of the 2026-08-31 verification.
 
 ## 10. Illinois, Pennsylvania and Colorado
@@ -387,9 +395,9 @@ tick once its source has been read.
 **January 1: the `TAX_YEAR` switch (#0)**
 - [ ] `TAX_YEAR` bumped; `FEDERAL_TAX_TABLES[TAX_YEAR]` present
 - [ ] Part B premium, IRMAA tiers MFJ / Single / MFS-together, Part D base premium and surcharges, top-tier freeze (#5)
-- [ ] 401(k)/IRA limits, catch-ups, §415(c), Roth catch-up wage threshold, Roth IRA phase-outs; HSA limits; QCD limit (#6)
+- [ ] `CONTRIBUTION_LIMIT_TABLES[TAX_YEAR]` present (added in November, HSA fields in May); copy quoting the `_2026` limit constants reads the new year (#6)
 - [ ] Annual gift exclusion (#3)
-- [ ] ACA applicable percentages and benchmark premiums; Medicaid non-expansion list (#7)
+- [ ] `ACA_APPLICABLE_PCT_TABLES[TAX_YEAR]` present; ACA benchmark premiums; Medicaid non-expansion list (#7)
 - [ ] Copy that prints a 2026 constant beside `{TAX_YEAR}` reads the new year's figure (#0 step 3)
 - [ ] Anything not yet published listed in the commit message as carried by the factor
 

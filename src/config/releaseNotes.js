@@ -40,8 +40,8 @@ export const RELEASE_WEEKS = [
         text: 'Undo and switching back to a scenario now show results the app worked out a moment ago instead of running everything again, and each update downloads less.' },
       { title: 'Smoother typing, and faster lesson pages', ids: [511],
         text: 'The Dashboard waits until you stop typing before re-checking the plan, simulated-markets runs start sooner, and lesson pages draw faster.' },
-      { title: 'The IRS\u2019s 2027 account limits, used from 2027 on', ids: [512, 513],
-        text: 'From 2027 a plan set to contribute the most allowed uses the 2027 limits: $25,500 to a 401(k), larger catch-ups, $7,500 to an IRA and $4,500 to an HSA ($9,000 family). The law lets each person give up to $114,000 to charity straight from an IRA; the app applies one limit to the household. Auto-Max for a 401(k) now keeps the Roth you enter inside the limit.' },
+      { title: 'The IRS\u2019s 2027 account limits and credit table, used from 2027 on', ids: [512, 513, 514],
+        text: 'From 2027 a plan set to contribute the most allowed uses the 2027 limits: $25,500 to a 401(k), larger catch-ups, $7,500 to an IRA and $4,500 to an HSA ($9,000 family). The law lets each person give up to $114,000 to charity straight from an IRA; the app applies one limit to the household. Auto-Max for a 401(k) now keeps the Roth you enter inside the limit. Marketplace health coverage uses the 2027 credit table, and Virginia\u2019s standard deduction rises from 2027.' },
     ],
   },
   {
