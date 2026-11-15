@@ -7,7 +7,7 @@ import { useSimulation } from '../../../context/useSimulation';
 import { getPossessive } from '../getPossessive';
 import CommaNumberInput from '../../CommaNumberInput';
 import Tooltip from '../../Tooltip';
-import { TAX_YEAR, contributionLimitsForYear, getElectiveDeferralLimit, getHSAContributionLimit, getIRAContributionLimit, getMaxContributionSplit } from '../../../calculator';
+import { TAX_YEAR, contributionLimitsForYear, fillLimitKeepingRoth, getElectiveDeferralLimit, getHSAContributionLimit, getIRAContributionLimit, getMaxContributionSplit } from '../../../calculator';
 import NumberInput from '../../NumberInput';
 
 export default function ContributionsSection() {
@@ -41,7 +41,7 @@ export default function ContributionsSection() {
                     const age = currentYear - (Number(birthYear) || 1980);
                     return mode === '401k' || mode === 'max' ? getElectiveDeferralLimit(age, contributionLimitsForYear(currentYear)) : getIRAContributionLimit(age, contributionLimitsForYear(currentYear));
                   };
-                  const autoMaxNote = (mode, birthYear, salary) => {
+                  const autoMaxNote = (mode, birthYear, salary, rothEntered) => {
                     if (mode === 'max') {
                       const split = maxSplitFor(birthYear, salary);
                       return (
@@ -51,15 +51,17 @@ export default function ContributionsSection() {
                       );
                     }
                     if (mode === '401k') {
-                      // Same split the engine uses in this mode: above the
-                      // SECURE 2.0 wage threshold the age-50+ catch-up goes
-                      // in as Roth, on top of the Roth amount below.
+                      // Same split the engine uses in this mode
+                      // (fillLimitKeepingRoth): the whole limit, with the
+                      // Roth amount below kept as Roth inside it, and at
+                      // least the catch-up as Roth when SECURE 2.0 requires it.
                       const split = maxSplitFor(birthYear, salary);
+                      const fill = fillLimitKeepingRoth(split, rothEntered);
                       return (
                         <span style={noteStyle} data-testid="automax-401k-note">
-                          Auto-Max is currently computing ${split.preTax.toLocaleString()}/yr Pre-Tax ({currentYear} limit) instead of the amount above
-                          {split.mandatoryRothCatchup
-                            ? `; the $${split.roth.toLocaleString()} age-based catch-up is added to the Roth amount below because SECURE 2.0 requires it as Roth at this income.`
+                          {`Auto-Max is currently computing $${fill.preTax.toLocaleString()}/yr Pre-Tax instead of the amount above, so that with $${fill.roth.toLocaleString()}/yr Roth this person puts in the whole $${(fill.preTax + fill.roth).toLocaleString()} ${currentYear} limit`}
+                          {split.mandatoryRothCatchup && fill.roth <= split.roth
+                            ? ` (the age-based catch-up goes in as Roth because SECURE 2.0 requires it at this income).`
                             : '.'}
                           {' '}This grows with inflation and this person&rsquo;s own age-based catch-up eligibility in future years.
                         </span>
@@ -73,13 +75,16 @@ export default function ContributionsSection() {
                       </span>
                     );
                   };
-                  const maxRothNote = (mode, birthYear, salary) => {
+                  const maxRothNote = (mode, birthYear, salary, rothEntered) => {
                     if (mode === '401k') {
                       const split = maxSplitFor(birthYear, salary);
-                      if (!split.mandatoryRothCatchup) return null;
+                      const fill = fillLimitKeepingRoth(split, rothEntered);
+                      if (fill.roth === (Number(rothEntered) || 0)) return null;
                       return (
                         <span style={noteStyle}>
-                          {`Auto-Max adds this person’s $${split.roth.toLocaleString()} catch-up to the amount above as Roth (SECURE 2.0 mandatory Roth catch-up at this income).`}
+                          {fill.roth > (Number(rothEntered) || 0)
+                            ? `Auto-Max puts in $${fill.roth.toLocaleString()}/yr Roth instead of the amount above: SECURE 2.0 requires this person’s catch-up as Roth at this income.`
+                            : `Auto-Max puts in $${fill.roth.toLocaleString()}/yr Roth instead of the amount above: that is this person’s whole ${currentYear} limit.`}
                         </span>
                       );
                     }
@@ -98,11 +103,11 @@ export default function ContributionsSection() {
                       <div className="form-group">
                         <label htmlFor="field-preTaxContribution1">Pre-Tax Savings{inputs.spouse2Enabled ? ` (${inputs.spouse1Name || 'Primary'})` : ''} ($/yr)</label>
                         <CommaNumberInput id="field-preTaxContribution1" value={inputs.preTaxContribution1} onChange={(val) => updateInput('preTaxContribution1', val)} disabled={inputs.autoMaxContribution1 !== 'off'} />
-                        {autoMaxNote(inputs.autoMaxContribution1, inputs.birthYear1, inputs.salary1)}
+                        {autoMaxNote(inputs.autoMaxContribution1, inputs.birthYear1, inputs.salary1, inputs.rothContribution1)}
                       </div>
                       <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <label htmlFor="field-autoMaxContribution1" style={{ fontSize: '14px', flex: 1 }}>
-                          <Tooltip text="Sets this spouse's Pre-Tax saving to the IRS limit for the chosen account type each year, catch-ups included, growing with inflation. Contribute the Max adds a backdoor Roth IRA and the HSA maximum." more="Auto-Max">
+                          <Tooltip text="Saves to the IRS limit for the chosen account each year, catch-ups included. For a 401(k), Roth Savings entered stays Roth inside the limit. Contribute the Max adds a backdoor Roth IRA and the HSA maximum." more="Auto-Max">
                             Auto-Max Contribution{inputs.spouse2Enabled ? ` (${inputs.spouse1Name || 'Primary'})` : ''}
                           </Tooltip>
                         </label>
@@ -118,7 +123,7 @@ export default function ContributionsSection() {
                           <div className="form-group" style={{ borderLeft: '2.5px solid var(--series-3)', paddingLeft: '12px', marginTop: '16px' }}>
                             <label htmlFor="field-preTaxContribution2">Pre-Tax Savings ({inputs.spouse2Name || 'Spouse'}) ($/yr)</label>
                             <CommaNumberInput id="field-preTaxContribution2" value={inputs.preTaxContribution2} onChange={(val) => updateInput('preTaxContribution2', val)} disabled={inputs.autoMaxContribution2 !== 'off'} />
-                            {autoMaxNote(inputs.autoMaxContribution2, inputs.birthYear2, inputs.salary2)}
+                            {autoMaxNote(inputs.autoMaxContribution2, inputs.birthYear2, inputs.salary2, inputs.rothContribution2)}
                           </div>
                           <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <label htmlFor="field-autoMaxContribution2" style={{ fontSize: '14px', flex: 1 }}>Auto-Max Contribution ({inputs.spouse2Name || 'Spouse'})</label>
@@ -134,13 +139,13 @@ export default function ContributionsSection() {
                       <div className="form-group" style={{ marginTop: '16px' }}>
                         <label htmlFor="field-rothContribution1">Roth Savings{inputs.spouse2Enabled ? ` (${inputs.spouse1Name || 'Primary'})` : ''} ($/yr)</label>
                         <CommaNumberInput id="field-rothContribution1" value={inputs.rothContribution1} onChange={(val) => updateInput('rothContribution1', val)} disabled={inputs.autoMaxContribution1 === 'max'} />
-                        {maxRothNote(inputs.autoMaxContribution1, inputs.birthYear1, inputs.salary1)}
+                        {maxRothNote(inputs.autoMaxContribution1, inputs.birthYear1, inputs.salary1, inputs.rothContribution1)}
                       </div>
                       {inputs.spouse2Enabled && (
                         <div className="form-group" style={{ borderLeft: '2.5px solid var(--series-3)', paddingLeft: '12px' }}>
                           <label htmlFor="field-rothContribution2">Roth Savings ({inputs.spouse2Name || 'Spouse'}) ($/yr)</label>
                           <CommaNumberInput id="field-rothContribution2" value={inputs.rothContribution2} onChange={(val) => updateInput('rothContribution2', val)} disabled={inputs.autoMaxContribution2 === 'max'} />
-                          {maxRothNote(inputs.autoMaxContribution2, inputs.birthYear2, inputs.salary2)}
+                          {maxRothNote(inputs.autoMaxContribution2, inputs.birthYear2, inputs.salary2, inputs.rothContribution2)}
                         </div>
                       )}
                     </>
@@ -334,14 +339,14 @@ export default function ContributionsSection() {
                   // 'max' mode overrides BOTH of that spouse's manual fields
                   // with an exactly-at-the-limit split, so warning about the
                   // ignored manual figures would only confuse.
-                  const over1 = inputs.autoMaxContribution1 === 'max' ? 0 : combined1 - limit1;
+                  const over1 = inputs.autoMaxContribution1 === 'max' || inputs.autoMaxContribution1 === '401k' ? 0 : combined1 - limit1;
 
                   let over2 = null, limit2 = null, combined2 = null, age2Now = null;
                   if (inputs.spouse2Enabled) {
                     combined2 = (Number(inputs.preTaxContribution2) || 0) + (Number(inputs.rothContribution2) || 0);
                     age2Now = currentYear - (Number(inputs.birthYear2) || 1982);
                     limit2 = getElectiveDeferralLimit(age2Now, contributionLimitsForYear(currentYear));
-                    over2 = inputs.autoMaxContribution2 === 'max' ? 0 : combined2 - limit2;
+                    over2 = inputs.autoMaxContribution2 === 'max' || inputs.autoMaxContribution2 === '401k' ? 0 : combined2 - limit2;
                   }
 
                   const warnings = [];

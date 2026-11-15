@@ -2581,6 +2581,16 @@ export function getMaxContributionSplit(age, wages, inflFactor = 1, limits = cur
     : { preTax: fullLimit, roth: 0, mandatoryRothCatchup: false };
 }
 
+// Auto-Max 401(k) mode (changelog 513): the whole elective-deferral limit,
+// keeping the Roth amount the person entered as Roth inside it, up to the
+// limit, and at least the catch-up when SECURE 2.0 requires it as Roth.
+// Pre-Tax fills the rest, so the two never add up past the limit.
+export function fillLimitKeepingRoth(split, rothEntered) {
+  const full = split.preTax + split.roth;
+  const roth = Math.min(full, Math.max(split.roth, Number(rothEntered) || 0));
+  return { preTax: full - roth, roth };
+}
+
 // Computes one spouse's employer match for the year. `deferralAmount` is
 // that spouse's own elective deferral (Pre-Tax + Roth contributions) for
 // the year; `deferralLimitThisYear` is their age-based IRS elective
@@ -8666,6 +8676,11 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
   let ftcPools = { general: [], passive: [] };
   let partBGapYears1 = 0;
   let partBGapYears2 = 0;
+  // Each spouse's wages the year before, for the SECURE 2.0 Roth catch-up
+  // test, which looks at the prior year's wages (changelog 513). The plan's
+  // first year has no year before it, so it uses that year's own wages.
+  let priorWages1 = null;
+  let priorWages2 = null;
 
   for (let year = startYear; year <= horizonYear; year++) {
     const age1 = age1Init + (year - startYear);
@@ -10724,21 +10739,25 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
 
     const spouse1Working = spouse1Alive && age1 < inputs.retireAge1;
     const spouse2Working = inputs.spouse2Enabled && spouse2Alive && age2 < inputs.retireAge2;
+    const wagesThisYear1 = spouse1Working ? inputs.salary1 * inflFactor + rsuIncome1 : 0;
+    const wagesThisYear2 = spouse2Working ? inputs.salary2 * inflFactor + rsuIncome2 : 0;
 
     if (spouse1Working) {
       let pretax1 = inputs.preTaxContribution1;
       let roth1 = inputs.rothContribution1;
+      // Wages for the SECURE 2.0 test: last year's, including RSU vests
+      // since they are FICA wages (the first year uses its own).
+      const testWages1 = priorWages1 !== null ? priorWages1 : wagesThisYear1;
       if (inputs.autoMaxContribution1 === '401k') {
-        // SECURE 2.0: above the wage threshold the age-50+ catch-up must go
-        // in as Roth, in this mode exactly as in 'max'.
-        const split1k = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, limitFactor, limitTable);
-        pretax1 = split1k.preTax;
-        roth1 += split1k.roth;
+        // The whole limit, with the Roth amount entered kept as Roth inside
+        // it (changelog 513: it used to be added on top, past the limit).
+        // Above the wage threshold the age-50+ catch-up must go in as Roth.
+        const split1k = getMaxContributionSplit(age1, testWages1, limitFactor, limitTable);
+        ({ preTax: pretax1, roth: roth1 } = fillLimitKeepingRoth(split1k, roth1));
       } else if (inputs.autoMaxContribution1 === 'ira') pretax1 = getIRAContributionLimit(age1, limitTable) * limitFactor;
       else if (inputs.autoMaxContribution1 === 'max') {
-        // 'max' overrides BOTH manual fields -- wages include this year's
-        // RSU vests since they're FICA wages for the SECURE 2.0 test.
-        const split1 = getMaxContributionSplit(age1, inputs.salary1 * inflFactor + rsuIncome1, limitFactor, limitTable);
+        // 'max' overrides BOTH manual fields.
+        const split1 = getMaxContributionSplit(age1, testWages1, limitFactor, limitTable);
         pretax1 = split1.preTax;
         roth1 = split1.roth;
       }
@@ -10751,15 +10770,13 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
     if (spouse2Working) {
       let pretax2 = inputs.preTaxContribution2;
       let roth2 = inputs.rothContribution2;
+      const testWages2 = priorWages2 !== null ? priorWages2 : wagesThisYear2;
       if (inputs.autoMaxContribution2 === '401k') {
-        // SECURE 2.0: above the wage threshold the age-50+ catch-up must go
-        // in as Roth, in this mode exactly as in 'max'.
-        const split2k = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, limitFactor, limitTable);
-        pretax2 = split2k.preTax;
-        roth2 += split2k.roth;
+        const split2k = getMaxContributionSplit(age2, testWages2, limitFactor, limitTable);
+        ({ preTax: pretax2, roth: roth2 } = fillLimitKeepingRoth(split2k, roth2));
       } else if (inputs.autoMaxContribution2 === 'ira') pretax2 = getIRAContributionLimit(age2, limitTable) * limitFactor;
       else if (inputs.autoMaxContribution2 === 'max') {
-        const split2 = getMaxContributionSplit(age2, inputs.salary2 * inflFactor + rsuIncome2, limitFactor, limitTable);
+        const split2 = getMaxContributionSplit(age2, testWages2, limitFactor, limitTable);
         pretax2 = split2.preTax;
         roth2 = split2.roth;
       }
@@ -10769,6 +10786,9 @@ function runProjectionCore(inputs, monteCarloReturnOverride, monteCarloInflation
       rothContribution2 = roth2;
       spouse2Deferral = pretax2 + roth2;
     }
+    // Next year's SECURE 2.0 test reads this year's wages.
+    priorWages1 = wagesThisYear1;
+    priorWages2 = wagesThisYear2;
     if (spouse1Working || spouse2Working) {
       taxableContribution += inputs.taxableContribution;
       // 'max' mode's HSA piece: while any 'max'-mode spouse is working and

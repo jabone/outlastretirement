@@ -23,6 +23,9 @@ const worker = (birthYear, extra = {}) => ({
   birthYear1: birthYear,
   retireAge1: 67,
   salary1: 90000,
+  // No Roth entered, so 401(k) mode is all Pre-Tax (changelog 513 keeps an
+  // entered Roth amount inside the limit).
+  rothContribution1: 0,
   ...extra,
 });
 const rowFor = (proj, year) => proj.years.find((y) => y.year === year);

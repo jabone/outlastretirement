@@ -81,17 +81,21 @@ describe('401(k) Auto-Max inline figure', () => {
     settingsSubTab: 'savings',
     inputs: { ...DEFAULT_INPUTS, birthYear1: START - 55, retireAge1: 65, salary1, autoMaxContribution1: '401k' },
   });
-  it('above the threshold: base limit Pre-Tax, catch-up to Roth', () => {
+  // Changelog 513: the Roth entered (the sample plan's $4,000) stays Roth
+  // inside the limit; at least the catch-up is Roth above the threshold.
+  it('above the threshold: the catch-up goes in as Roth, all within the limit', () => {
     show(200000);
     const note = document.querySelector('[data-testid="automax-401k-note"]');
     expect(note.textContent).toContain('$24,500/yr Pre-Tax');
-    expect(note.textContent).toContain('the $8,000 age-based catch-up is added to the Roth amount below');
-    expect(document.body.textContent).toContain('Auto-Max adds this person’s $8,000 catch-up to the amount above as Roth');
+    expect(note.textContent).toContain('with $8,000/yr Roth this person puts in the whole $32,500');
+    expect(note.textContent).toContain('the age-based catch-up goes in as Roth because SECURE 2.0 requires it');
+    expect(document.body.textContent).toContain('Auto-Max puts in $8,000/yr Roth instead of the amount above');
   });
-  it('below the threshold: the whole limit Pre-Tax', () => {
+  it('below the threshold: the Roth entered stays, Pre-Tax fills the rest', () => {
     show(120000);
     const note = document.querySelector('[data-testid="automax-401k-note"]');
-    expect(note.textContent).toContain('$32,500/yr Pre-Tax');
-    expect(note.textContent).not.toContain('Roth');
+    expect(note.textContent).toContain('$28,500/yr Pre-Tax');
+    expect(note.textContent).toContain('with $4,000/yr Roth this person puts in the whole $32,500');
+    expect(note.textContent).not.toContain('SECURE 2.0');
   });
 });
