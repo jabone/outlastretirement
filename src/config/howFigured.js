@@ -301,7 +301,7 @@ export const HOW_FIGURED_RULES = [
     group: 'Retirement accounts',
     summary: 'An heir other than a spouse must empty an inherited IRA by the end of the tenth year after the death. If the owner had already reached their required-distribution age, the heir must also take a yearly minimum in years one to nine, based on the heir\'s life expectancy; the app uses that schedule by default and taxes each withdrawal at the heir\'s own brackets and other income. Inherited Roth money is tax-free, and a taxable account passes with its cost basis stepped up.',
     figuresYear: 'Set in law and regulation',
-    simplifies: 'Heirs who may stretch withdrawals over their lifetime (a minor child, a disabled or chronically ill heir, or one close in age) are not singled out, and there is no deduction for estate tax paid on the same dollars.',
+    simplifies: 'Heirs who may stretch withdrawals over their lifetime (a minor child, a disabled or chronically ill heir, or one close in age) are not singled out, and there is no deduction for estate tax paid on the same dollars. An heir\'s state income tax uses that state\'s brackets and deductions grown with inflation to the year of the inheritance, while the plan\'s own years keep most states\' figures at today\'s amounts.',
     sources: ['inherited-ira', 'inherited-ira-rmd-regs'],
   },
 

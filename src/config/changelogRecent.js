@@ -7,6 +7,16 @@
 // oldest entries, unchanged, to the top of the older list in changelog.js.
 export const CHANGELOG_RECENT = [
   {
+    id: 515,
+    date: '2026-11-16',
+    title: 'The Virginia deduction note, and how heirs\' state tax is figured',
+    summary: 'Choosing Virginia now shows its standard deduction by year and that the plan keeps the 2029 amount after current law\'s 2030 drop. How the math works says how heirs\' state tax is figured.',
+    items: [
+      "**Virginia.** When Virginia is the state chosen in Plan Settings, a note now gives its standard deduction for 2027 and for 2028 and 2029, and says the plan keeps the 2029 amount after 2029 even though current law drops it to $6,000 for a married couple from 2030. Earlier drops like this were put off each time. Nothing in the projection changes.",
+      "**Heirs' state income tax.** How the math works now says that an heir's state income tax uses that state's brackets and deductions grown with inflation to the year of the inheritance, while the plan's own years keep most states' figures at today's amounts. Nothing in the projection changes.",
+    ],
+  },
+  {
     id: 514,
     date: '2026-11-15',
     title: '2027 marketplace credit table, and Virginia\'s larger deduction',
@@ -332,16 +342,6 @@ export const CHANGELOG_RECENT = [
       "**The textbook test.** Under Every retirement since 1928 on Risk & Stress, Compare with the textbook test runs your balance and lifestyle spending when you retire through the same real starts with nothing else: no taxes, Social Security, pensions, Medicare or fees. Spending is taken at the start of each year and raised by the previous year\u2019s inflation, as FI Calc and FIRECalc do, so the same inputs there should land close. It shows how many starts last, the years that run out and the most you could spend in every one. The gap with your plan\u2019s own count is what taxes, benefits and costs do to it.",
       "**Which years the bootstrap uses.** The Monte Carlo\u2019s historical bootstrap samples real years from 1928 on, even when your history checks reach back to 1871; it now says so.",
       "**Using your plan on another device.** Preferences \u2192 Your Data now explains how: there is no account and no sync on purpose, so an Encrypted Backup restored on the other device is how a plan moves.",
-    ],
-  },
-  {
-    id: 485,
-    date: '2026-11-03',
-    title: 'Where should my bonds go? now starts from your plan as it is',
-    summary: 'The bond placement comparison now puts your plan, exactly as it is, beside the same plan with its bonds in Pre-Tax first, following your mix year by year. Holdings can be filtered by tax type.',
-    items: [
-      "**Your plan as it is.** The comparison used to hold your mix today for the whole plan, so a plan that moves toward bonds at retirement showed a different ending balance from its own. Its first column is now your plan exactly, and Bonds in Pre-Tax first follows the same overall mix every year (your working mix, then your retired mix and any yearly move toward bonds), placing each year\u2019s bonds in Pre-Tax first, then Taxable, then HSA, then Roth. A plan that sets its own mix for each account still sees its placement beside an even mix and Bonds in Pre-Tax first. Premium.",
-      "**Filter holdings by tax type.** The account filter on Detailed Holdings now also offers All Pre-Tax, All Roth, All Taxable and All HSA, so every 401(k) and IRA can be seen together. Premium.",
     ],
   },
 ];

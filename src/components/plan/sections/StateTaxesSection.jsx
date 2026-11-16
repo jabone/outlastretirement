@@ -7,6 +7,7 @@ import { useSimulation } from '../../../context/useSimulation';
 import NumberInput from '../../NumberInput';
 import { hasStateRules, stateRulesYear, stateRulesName, stateRulesRate, stateRulesSummary } from '../../../utils/stateRulesSummary';
 import { STATE_TAX_RULE_SOURCES } from '../../../config/stateTaxRuleSources';
+import { vaStandardDeduction, VA_STD_DEDUCTION_AFTER_SUNSET } from '../../../calculator';
 
 export default function StateTaxesSection() {
   const { inputs, updateInput } = useSimulation();
@@ -150,6 +151,15 @@ export default function StateTaxesSection() {
                   <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--accent-text)', padding: '6px 0', marginBottom: '12px', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
                     <BookOpen size={14} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} />
                     <span>This state&rsquo;s own rules for Social Security and pension income are applied automatically.</span>
+                  </div>
+                )}
+                {/* Changelog 515: the Virginia standard deduction after its
+                    scheduled 2030 drop is held at the 2029 amounts; said here,
+                    where the state is chosen, as well as in How the math works. */}
+                {inputs.stateTaxState === 'va' && (
+                  <div data-testid="va-deduction-note" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', padding: '0 0 12px', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                    <BookOpen size={14} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span>{`Virginia's standard deduction is $${vaStandardDeduction(true, 2027).toLocaleString('en-US')} for a married couple in 2027 and $${vaStandardDeduction(true, 2029).toLocaleString('en-US')} in 2028 and 2029. Current law then drops it to $${VA_STD_DEDUCTION_AFTER_SUNSET.joint.toLocaleString('en-US')} from 2030; this plan keeps the 2029 amount, since earlier drops like this were put off.`}</span>
                   </div>
                 )}
 

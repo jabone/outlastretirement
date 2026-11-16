@@ -84,3 +84,4 @@ describe('Virginia standard deduction by year', () => {
     expect(tax(2027) - tax(2028)).toBeCloseTo(200 * 0.0575, 6);
   });
 });
+

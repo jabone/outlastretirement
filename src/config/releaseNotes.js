@@ -23,6 +23,14 @@ export const RELEASE_NOTES_WEEKS = 6;
 
 export const RELEASE_WEEKS = [
   {
+    weekOf: '2026-11-16',
+    headline: 'A note on Virginia\u2019s deduction',
+    bullets: [
+      { title: 'Virginia\u2019s deduction, said where you choose the state', ids: [515],
+        text: 'Choosing Virginia now shows its standard deduction by year and that the plan keeps the 2029 amount after current law\u2019s 2030 drop. How the math works also says how heirs\u2019 state income tax is figured.' },
+    ],
+  },
+  {
     weekOf: '2026-11-09',
     headline: 'The IRS\u2019s 2027 tax figures, and no more analytics',
     bullets: [
@@ -132,28 +140,6 @@ export const RELEASE_WEEKS = [
         text: 'The buttons that email us for a Premium key open your own email app. On a computer with no email app set up, nothing happened and it looked as if the request had gone. Now, if no email app opens, the page says so, shows the address and subject to use, and offers to copy the address. Nothing is sent from the page itself, as before.' },
     ],
   },
-  {
-    weekOf: '2026-10-05',
-    headline: 'Reconcile with your statements, and preferred shares price properly',
-    bullets: [
-      { title: 'Retirement target from a typed budget', ids: [387], premium: true,
-        text: 'If you type your own current budget and have a mortgage or debt payment, the steps that suggest a retirement target were subtracting those payments a second time. They no longer do, so the suggested target is higher by a year of payments. If you applied the old suggestion, your numbers will change when you apply the new one.' },
-      { title: 'Chart scales that add up', ids: [386],
-        text: 'The dollar scale on the savings charts rounded to one decimal of a million, so a line at $450,000 was labeled $0.5M and the steps looked uneven. The scale now shows the exact figures. The Dashboard chart also opens without the taxes line; the switch is still there, and a choice you already made is kept.' },
-      { title: 'Could distributions alone fund retirement?', ids: [385], premium: true,
-        text: 'The what-if at the bottom of Retirement Income asked about dividends alone and mixed yearly and monthly figures, so its first card could disagree with the percentage beside it. It now asks about distributions, which include fund payouts and interest, states every figure per month with the yearly amount beneath, and builds all of it from the income basis you chose at the top of the sub-tab. Nothing in your plan changes.' },
-      { title: 'Learn, and a second demo household', ids: [384, 388, 389, 390, 391],
-        text: 'The website has a new Learn section: a two-minute tour and six Start Here lessons, from Will my money last? to what to do when a plan runs short. Each lesson is pictures with the words written out beneath them; they are read online and are not stored by an installed copy of the app. The lessons follow Ray and Angie Parker, an ordinary fictional couple with two paychecks, a mortgage and no pension, whose plan runs short as it stands. Their plan opens from a lesson or from the home page; Try the Demo Plan still opens the Carters. Every page of the website now shares the home page’s header, with a larger logo, and the Premium page says plainly that you are invited to ask for access.' },
-      { title: 'Mortgages and debt payments', ids: [383],
-        text: 'A plan with a mortgage or other debt payment that works out today’s spending automatically was counting the payment twice, and cutting your retirement contributions and employer match to cover it. The payment now comes out of what is left of your pay, as it does in life. If this applies to you, your numbers will change: more saved by retirement and a plan that lasts longer.' },
-      { title: 'Website', ids: [382],
-        text: 'In dark mode the website’s header showed the logo twice, the second copy nearly invisible. It now shows one.' },
-      { title: 'Reconcile with your statements', ids: [377, 380, 381], premium: true,
-        text: 'A new Reconcile button in Detailed Holdings shows each account’s activity for a month, quarter or year: opening position, purchases, distributions, sales and closing position. Print it with a column to write in what your statement says, correct differences in the holding’s ledger, then mark the account reconciled yourself. A purchase or reinvestment that appears twice is pointed out on the report. An account whose statements only arrive quarterly or annually can be set that way, so a monthly review does not ask you to check it.' },
-      { title: 'Detailed Holdings', ids: [374, 375, 376, 378, 379], premium: true,
-        text: 'Statement import now reads Charles Schwab statements. A holding’s ledger lets you edit or remove a tax lot on the spot and flags lots that look entered twice; removing a duplicate lowers that holding’s shares and dividends to what your statement shows. The research link beside a holding now updates when the ticker it is priced by changes, instead of opening a search page for the old ticker. Links you typed yourself are never changed. A holding whose price came through is no longer marked Not found, and an updated pricing Sheet script (version 4, which you paste into your own Sheet) fills in dividends for preferred shares and other securities Yahoo Finance only partly covers. The notice that your script is out of date now has a Copy button and links to a page that shows the script.' },
-    ],
-  },
 ];
 
 // Older history, a quarter at a time. `through` is the last day the summary
@@ -161,16 +147,19 @@ export const RELEASE_WEEKS = [
 export const RELEASE_QUARTERS = [
   {
     quarter: '2026-Q4',
-    label: 'October 2026, first week',
+    label: 'October 2026, first two weeks',
     from: '2026-10-01',
-    through: '2026-10-04',
-    headline: 'Every retirement since 1928, and privacy you can check',
+    through: '2026-10-11',
+    headline: 'Every retirement since 1928, privacy you can check, and the Learn lessons',
     ids: [
       352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373,
+      374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391,
     ],
     bullets: [
       { title: 'Every retirement since 1928, and privacy you can check',
         text: 'Risk & Stress runs your plan through every real retirement start since 1928, guardrails show what they cost in spending, and every state uses its own 2026 rules. The site tells your browser to block connections anywhere but this site, a Verify it yourself page shows how to check, and analytics sends only the tab name.' },
+      { title: 'The Learn lessons, and statements to reconcile against',
+        text: 'The website gained a Learn section: a short tour and the Start Here lessons, following Ray and Angie Parker. Mortgages and debt payments are no longer counted twice. Premium gained a Reconcile report to check Detailed Holdings against your statements, and Schwab statement import.' },
     ],
   },
   {
