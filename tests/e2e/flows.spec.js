@@ -142,7 +142,7 @@ test.describe('Premium Access Key', () => {
     await openFresh(page);
     await clickNav(page, 'Preferences');
 
-    const status = page.getByText(/^(Not set|Invalid or expired|Active until)/).first();
+    const status = page.getByText(/^(Not set|Invalid key|Expired on|Couldn\u2019t check|Active until)/).first();
     await expect(status).toHaveText(/Not set/);
 
     // A JWT whose payload says premium: true but whose signature is not
@@ -156,7 +156,10 @@ test.describe('Premium Access Key', () => {
     const input = dialog(page).locator('input[type="text"]');
     await input.fill(forged);
     await dialog(page).getByRole('button', { name: /^(Confirm|OK|Save)$/ }).click();
-    await expect(status).toHaveText(/Invalid or expired/, { timeout: 10_000 });
+    // Changelog 516: once checked, a notice says the key didn't work.
+    await expect(dialog(page)).toContainText(/That key didn\u2019t work/, { timeout: 10_000 });
+    await dialog(page).getByRole('button', { name: 'OK' }).click();
+    await expect(status).toHaveText(/Invalid key/, { timeout: 10_000 });
     expect(await page.evaluate(() => localStorage.getItem('cfe_premium_jwt'))).toBe(forged);
     // No Premium part unlocked: the Premium tab shows the locked card, not
     // a loaded module.
@@ -168,6 +171,8 @@ test.describe('Premium Access Key', () => {
     await page.getByRole('button', { name: /^Premium Access Key/ }).click();
     await dialog(page).locator('input[type="text"]').fill('');
     await dialog(page).getByRole('button', { name: /^(Confirm|OK|Save)$/ }).click();
+    await expect(dialog(page)).toContainText('Premium key removed.');
+    await dialog(page).getByRole('button', { name: 'OK' }).click();
     await expect(status).toHaveText(/Not set/);
     expect(await page.evaluate(() => localStorage.getItem('cfe_premium_jwt'))).toBeNull();
   });
