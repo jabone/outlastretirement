@@ -7,6 +7,16 @@
 // oldest entries, unchanged, to the top of the older list in changelog.js.
 export const CHANGELOG_RECENT = [
   {
+    id: 516,
+    date: '2026-11-17',
+    title: 'Saving a Premium key now says whether it worked',
+    summary: 'Pasting a Premium key now shows a notice saying whether it worked. A key that has run out now says when it expired, and the Premium-ended notice appears, instead of "invalid".',
+    items: [
+      "**A notice when you save a key.** After you paste a key in Preferences, a notice says Premium is on and until when, or that the key didn't work and what to check, or that it has expired. Clearing the key says it was removed. If the app can't check the key just then, it says so instead of calling the key invalid.",
+      "**Expired, not invalid.** A key that is genuine but has run out used to show as \"Invalid or expired\", so a typo and a lapsed key looked the same, and the notice at the top of the page that says Premium ended never appeared. The status now says \"Expired on <date>\" with where to write for a new key, and that notice now appears. A key that has run out still unlocks nothing.",
+    ],
+  },
+  {
     id: 515,
     date: '2026-11-16',
     title: 'The Virginia deduction note, and how heirs\' state tax is figured',
@@ -331,17 +341,6 @@ export const CHANGELOG_RECENT = [
       "**Where it shows.** The section says what the rule means for your plan when you retire, in dollars, and whether it cuts on your plan\u2019s own projection. Year by Year shows the chance each year and the size of any cut or raise, in the table and the spreadsheet. Will It Last? says when guardrails are cutting spending and how often the simulated markets needed a cut, and the printed report names the rule. Every retirement since 1928 compares it with fixed spending and the other guardrails; the side-by-side of every rule, and each raise-to setting, are part of Premium.",
       "**Your plan.** Nothing changes unless you turn it on.",
       "**When the app is working.** A small card now says when the simulated markets, the history checks or the optimizers are running, with how far the simulated markets have got, so a pause never looks like something broken.",
-    ],
-  },
-  {
-    id: 486,
-    date: '2026-11-03',
-    title: 'Compare with the textbook test',
-    summary: 'Every retirement since 1928 now has a one-click textbook test: your balance and spending with no taxes, Social Security or fees, the way FI Calc and the 4% rule run it.',
-    items: [
-      "**The textbook test.** Under Every retirement since 1928 on Risk & Stress, Compare with the textbook test runs your balance and lifestyle spending when you retire through the same real starts with nothing else: no taxes, Social Security, pensions, Medicare or fees. Spending is taken at the start of each year and raised by the previous year\u2019s inflation, as FI Calc and FIRECalc do, so the same inputs there should land close. It shows how many starts last, the years that run out and the most you could spend in every one. The gap with your plan\u2019s own count is what taxes, benefits and costs do to it.",
-      "**Which years the bootstrap uses.** The Monte Carlo\u2019s historical bootstrap samples real years from 1928 on, even when your history checks reach back to 1871; it now says so.",
-      "**Using your plan on another device.** Preferences \u2192 Your Data now explains how: there is no account and no sync on purpose, so an Encrypted Backup restored on the other device is how a plan moves.",
     ],
   },
 ];

@@ -49,7 +49,7 @@ export function useHostApi() {
   const entitlement = useMemo(() => ({
     isPremium: !!ent.isPremium,
     licensedTo: ent.licensedTo || null,
-    expiresAt: ent.premiumJwtExpiresAt || null,
+    expiresAt: ent.isPremium ? (ent.premiumJwtExpiresAt || null) : null,
     preview: !!ent.portfolioPreview,
   }), [ent.isPremium, ent.licensedTo, ent.premiumJwtExpiresAt, ent.portfolioPreview]);
 

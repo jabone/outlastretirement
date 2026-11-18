@@ -472,7 +472,7 @@ const InputReference = () => {
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Text Input</span><br/><strong>Premium Access Key</strong></td>
               <td style={sectionStyles.td}>The signed access key that unlocks Premium. Live Pricing does not depend on it &mdash; each user connects their own Sheet for that.</td>
-              <td style={sectionStyles.td}>Paste a key to activate it; submit an empty field to remove it. The status (Not set / Active until &lt;date&gt; / Invalid or expired) shows beside it. A key lasts 30 days and is renewed by email; every key carries an expiry date, and one without it, or whose expiry is more than 400 days away, shows as invalid. A notice appears at the top of the page seven days before it expires, and again if it lapses, with a pre-filled renewal email. <strong>Nothing is deleted at expiry:</strong> your holdings and every other figure stay in this browser and come back when a new key is entered. Hiding the notice hides it for that key only, so next month&rsquo;s warning still arrives.</td>
+              <td style={sectionStyles.td}>Paste a key to activate it; submit an empty field to remove it. A notice then says whether the key worked, and the status (Not set / Active until &lt;date&gt; / Expired on &lt;date&gt; / Invalid key) shows beside it. A key lasts 30 days and is renewed by email; every key carries an expiry date, and one without it, or whose expiry is more than 400 days away, shows as invalid. A notice appears at the top of the page seven days before it expires, and again if it lapses, with a pre-filled renewal email. <strong>Nothing is deleted at expiry:</strong> your holdings and every other figure stay in this browser and come back when a new key is entered. Hiding the notice hides it for that key only, so next month&rsquo;s warning still arrives.</td>
             </tr>
             <tr>
               <td style={sectionStyles.td}><span style={sectionStyles.badge}>Action</span><br/><strong>Backup Everything / Restore Backup</strong></td>
@@ -889,7 +889,7 @@ const InputReference = () => {
                 <em style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Preferences</em>
               </td>
               <td style={sectionStyles.td}>Unlocks Premium: Detailed Holdings, Retirement Spending, Readiness in Full, and Relocation &amp; Residency. It is a signed key, not an account or a login, and it carries no name or email. Live Pricing does not depend on it.</td>
-              <td style={sectionStyles.td}>Sent to you by email when Premium is enabled; paste it into Preferences &rarr; Premium Access Key. Submitting an empty field removes it. A key lasts 30 days and is renewed by email; Preferences shows its status (not set / active until a date / invalid or expired).</td>
+              <td style={sectionStyles.td}>Sent to you by email when Premium is enabled; paste it into Preferences &rarr; Premium Access Key. Submitting an empty field removes it. A key lasts 30 days and is renewed by email; Preferences shows its status (not set / active until a date / expired on a date / invalid key).</td>
             </tr>
             <tr>
               <td style={sectionStyles.td}>

@@ -39,6 +39,7 @@ vi.mock('../config/premiumPublicKey', () => ({
 }));
 
 const { verifyPremiumJwt, ringEntryFor } = await import('../utils/premiumJwt.js');
+const { premiumExpiryStatus } = await import('../utils/premiumExpiry.js');
 
 async function signToken(privateKey, { premium = true, expiresIn = '1h', licensedTo } = {}) {
   return new SignJWT(licensedTo ? { premium, licensedTo } : { premium })
@@ -75,9 +76,41 @@ describe('verifyPremiumJwt', () => {
     expect(result.licensedTo).toBe('someone@example.com');
   });
 
-  it('rejects an expired token even if correctly signed', async () => {
+  // Changelog 516: a genuine key that has run out is told apart from a bad
+  // one, so the app can say when it ended and show the Premium-ended
+  // banner. It still unlocks nothing: `valid` stays false.
+  it('says when a correctly signed key expired, and still does not accept it', async () => {
+    const exp = Math.floor(Date.now() / 1000) - 3600;
+    const token = await new SignJWT({ premium: true, licensedTo: 'someone@example.com', jti: 'abc123def456' })
+      .setProtectedHeader({ alg: 'RS256' }).setExpirationTime(exp).sign(testPrivateKey);
+    const result = await verifyPremiumJwt(token);
+    expect(result).toEqual({
+      valid: false, expired: true, expiresAt: new Date(exp * 1000),
+      licensedTo: 'someone@example.com', serial: 'abc123def456',
+    });
+    // The banner's own rule reads that expiry as ended.
+    expect(premiumExpiryStatus(result.expiresAt).state).toBe('expired');
+  });
+
+  it('an expired key with no address or serial still says when it ended', async () => {
+    const result = await verifyPremiumJwt(await signToken(testPrivateKey, { expiresIn: '-2d' }));
+    expect(result.valid).toBe(false);
+    expect(result.expired).toBe(true);
+    expect(result.expiresAt).toBeInstanceOf(Date);
+    expect(result.licensedTo).toBeNull();
+    expect(result.serial).toBeNull();
+  });
+
+  it('an expired token that is forged, or not a Premium key, is plain invalid', async () => {
+    const plain = { valid: false, expiresAt: null, licensedTo: null };
+    // Signed by a key outside the ring: the signature fails before expiry is looked at.
+    expect(await verifyPremiumJwt(await signToken(otherPrivateKey, { expiresIn: '-1h' }))).toEqual(plain);
+    // Genuinely signed but with no premium flag (the demo delivery key, run out).
+    const demo = await new SignJWT({ demo: true }).setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setExpirationTime('-1h').sign(testPrivateKey);
+    expect(await verifyPremiumJwt(demo)).toEqual(plain);
+    // A garbled copy of an expired key.
     const token = await signToken(testPrivateKey, { expiresIn: '-1h' });
-    expect(await verifyPremiumJwt(token)).toEqual({ valid: false, expiresAt: null, licensedTo: null });
+    expect(await verifyPremiumJwt(token.slice(0, -6))).toEqual(plain);
   });
 
   // The demo delivery key (config/demoDeliveryKey.js) is signed by the same

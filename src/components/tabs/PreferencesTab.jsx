@@ -40,6 +40,8 @@ import { useEntitlement } from '../../context/useEntitlement';
 import { COPYRIGHT_NOTICE, PRIVACY_PROMISE, TERMS_URL, PRIVACY_URL, ACCESSIBILITY_URL } from '../../config/branding';
 import { versionLabel, BUILD_DATE } from '../../config/buildInfo';
 import { CONTACT_EMAIL } from '../../config/premiumOffering';
+import { verifyPremiumJwt } from '../../utils/premiumJwt';
+import { premiumKeyResultMessage, premiumKeyExpiredMessage } from '../../utils/premiumKeyMessages';
 import { useFullBackupActions } from '../../context/useFullBackupActions';
 import { eraseEverythingOnDevice } from '../../utils/eraseDevice';
 import { getFreshnessState, setPortfolioReminderCadence, computeFreshnessStatus, formatAgeDays } from '../../utils/dataFreshness';
@@ -136,13 +138,14 @@ const PreferencesTab = () => {
     mcAutoRun, setMcAutoRun,
     roundFarDollars, setRoundFarDollars,
     useRealDollars, setUseRealDollars,
-    handleReset, showPrompt, showConfirm,
+    handleReset, showPrompt, showConfirm, showAlert,
     setActiveTab, setShowOnboarding, setOnboardingStep,
     setShowDisclaimerReview,
   } = useSimulation();
   const {
     isPremium,
-    premiumJwtToken, setPremiumJwtToken, premiumJwtExpiresAt, licensedTo, premiumKeySerial,
+    premiumJwtToken, setPremiumJwtToken, premiumJwtExpiresAt, premiumJwtExpired, premiumJwtUnavailable,
+    licensedTo, premiumKeySerial,
   } = useEntitlement();
 
   const restoreFileInputRef = useRef(null);
@@ -280,19 +283,38 @@ const PreferencesTab = () => {
       { title: 'Premium Access Key', defaultValue: premiumJwtToken }
     );
     if (pasted === null || pasted === undefined) return;
-    setPremiumJwtToken(pasted.trim());
+    const key = pasted.trim();
+    const hadKey = Boolean(premiumJwtToken);
+    // Changelog 516: say whether the key worked, in the app's usual notice,
+    // once it has been checked -- the status line below was the only sign.
+    if (!key) {
+      setPremiumJwtToken('');
+      if (hadKey) await showAlert('Premium key removed.', 'Premium Access Key');
+      return;
+    }
+    const result = await verifyPremiumJwt(key);
+    setPremiumJwtToken(key);
+    await showAlert(premiumKeyResultMessage(result), 'Premium Access Key');
   };
 
+  // The line under Premium Access Key. Only `isPremium` (the verified key)
+  // reads as active; an expiry alone can belong to a key that has run out.
   const premiumKeyStatusLabel = !premiumJwtToken
     ? 'Not set'
-    : premiumJwtExpiresAt
+    : isPremium && premiumJwtExpiresAt
       ? `Active until ${premiumJwtExpiresAt.toLocaleDateString()}${licensedTo ? ` \u00b7 licensed to ${licensedTo}` : ''}${premiumKeySerial ? ` \u00b7 key ${premiumKeySerial.slice(0, 8)}` : ''}`
-      : 'Invalid or expired';
+      : premiumJwtExpired && premiumJwtExpiresAt
+        ? premiumKeyExpiredMessage(premiumJwtExpiresAt)
+        : premiumJwtUnavailable
+          ? 'Couldn\u2019t check the key just now'
+          : 'Invalid key';
   const premiumKeyStatusColor = !premiumJwtToken
     ? 'var(--text-secondary)'
-    : premiumJwtExpiresAt
+    : isPremium
       ? 'var(--accent-primary)'
-      : 'var(--danger)';
+      : premiumJwtUnavailable
+        ? 'var(--text-secondary)'
+        : 'var(--danger)';
 
 
   return (

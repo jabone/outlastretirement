@@ -36,10 +36,19 @@ vi.mock('../../utils/cloudFileSync', () => ({
 }));
 // A backup's Premium key is restored (and unlocks its holdings) only when
 // its signature verifies; 'good.jwt.token' stands in for one that does.
+// Changelog 516 adds three more stand-ins for the save notice: a genuine key
+// that has run out, a key the verifier could not check, and a good key with
+// an address and expiry.
 vi.mock('../../utils/premiumJwt', () => ({
-  verifyPremiumJwt: async (token) => ({ valid: token === 'good.jwt.token', expiresAt: null }),
+  verifyPremiumJwt: async (token) => {
+    if (token === 'eyJgood.with.address') return { valid: true, expiresAt: new Date(2027, 8, 30), licensedTo: 'someone@example.com' };
+    if (token === 'eyJexpired.jwt.token') return { valid: false, expired: true, expiresAt: new Date(2026, 9, 1), licensedTo: 'someone@example.com' };
+    if (token === 'eyJcannot.check.now') return { valid: false, expiresAt: null, licensedTo: null, unavailable: true };
+    return { valid: token === 'good.jwt.token', expiresAt: null };
+  },
 }));
 import { renderWithSimulation } from '../testUtils';
+import { CONTACT_EMAIL } from '../../config/premiumOffering';
 import { installBuiltHoldingsModule, premiumIt, hasBuiltChunk } from '../premiumTestHelpers.jsx';
 import { releaseWrites, isWriteHeld } from '../../utils/safeStorage';
 import { PLAN_KEYS } from '../../utils/storageKeys';
@@ -80,6 +89,65 @@ describe('PreferencesTab — Premium Access status', () => {
   it('shows only the expiry for a key minted before keys carried an address', () => {
     renderWithSimulation(<PreferencesTab />, {}, { isPremium: true, premiumJwtToken: 'eyJx.y.z', premiumJwtExpiresAt: until, licensedTo: null });
     expect(screen.getByText(/^Active until [^·]*$/)).toBeInTheDocument();
+  });
+  // Changelog 516: an expiry alone is not "active"; only isPremium is.
+  it('says when a genuine key expired, and does not call it active', () => {
+    const ended = new Date(2026, 9, 1);
+    renderWithSimulation(<PreferencesTab />, {}, { isPremium: false, premiumJwtToken: 'eyJx.y.z', premiumJwtExpiresAt: ended, premiumJwtExpired: true });
+    expect(screen.getByText(`Expired on ${ended.toLocaleDateString()}. Email ${CONTACT_EMAIL} for a new key.`)).toBeInTheDocument();
+    expect(screen.queryByText(/Active until/)).toBeNull();
+  });
+  it('calls a key that does not verify invalid, not expired', () => {
+    renderWithSimulation(<PreferencesTab />, {}, { isPremium: false, premiumJwtToken: 'eyJx.y.z', premiumJwtExpiresAt: null });
+    expect(screen.getByText('Invalid key')).toBeInTheDocument();
+  });
+  it('does not call a key invalid when it could not be checked', () => {
+    renderWithSimulation(<PreferencesTab />, {}, { isPremium: false, premiumJwtToken: 'eyJx.y.z', premiumJwtUnavailable: true });
+    expect(screen.getByText('Couldn\u2019t check the key just now')).toBeInTheDocument();
+    expect(screen.queryByText('Invalid key')).toBeNull();
+  });
+  it('an expiry date without a verified key never reads as active', () => {
+    renderWithSimulation(<PreferencesTab />, {}, { isPremium: false, premiumJwtToken: 'eyJx.y.z', premiumJwtExpiresAt: until });
+    expect(screen.queryByText(/Active until/)).toBeNull();
+  });
+});
+
+describe('PreferencesTab — Premium Access save notice (changelog 516)', () => {
+  const save = async (pasted, entitlement = {}) => {
+    const user = userEvent.setup({ delay: null });
+    const showPrompt = vi.fn(async () => pasted);
+    const showAlert = vi.fn(async () => {});
+    const setPremiumJwtToken = vi.fn();
+    renderWithSimulation(<PreferencesTab />, { showPrompt, showAlert }, { setPremiumJwtToken, ...entitlement });
+    await user.click(screen.getByRole('button', { name: /Premium Access Key/ }));
+    return { showAlert, setPremiumJwtToken };
+  };
+  it('a good key: Premium is on, until when, and for whom', async () => {
+    const { showAlert, setPremiumJwtToken } = await save('  eyJgood.with.address ');
+    expect(setPremiumJwtToken).toHaveBeenCalledWith('eyJgood.with.address');
+    expect(showAlert).toHaveBeenCalledWith(`Premium is on. Active until ${new Date(2027, 8, 30).toLocaleDateString()}, licensed to someone@example.com.`, 'Premium Access Key');
+  });
+  it('a rejected key: what to check, and where to write', async () => {
+    const { showAlert } = await save('eyJnot.a.key');
+    expect(showAlert).toHaveBeenCalledWith(`That key didn\u2019t work. Make sure you copied the whole thing (it starts with eyJ), or email ${CONTACT_EMAIL} for a new one.`, 'Premium Access Key');
+  });
+  it('an expired key: the expired message', async () => {
+    const { showAlert } = await save('eyJexpired.jwt.token');
+    expect(showAlert).toHaveBeenCalledWith(`Expired on ${new Date(2026, 9, 1).toLocaleDateString()}. Email ${CONTACT_EMAIL} for a new key.`, 'Premium Access Key');
+  });
+  it('a key that could not be checked is not called invalid', async () => {
+    const { showAlert } = await save('eyJcannot.check.now');
+    expect(showAlert).toHaveBeenCalledWith('Couldn\u2019t check the key just now. Try again in a moment.', 'Premium Access Key');
+  });
+  it('clearing a saved key says it was removed', async () => {
+    const { showAlert, setPremiumJwtToken } = await save('', { premiumJwtToken: 'eyJold.key.here' });
+    expect(setPremiumJwtToken).toHaveBeenCalledWith('');
+    expect(showAlert).toHaveBeenCalledWith('Premium key removed.', 'Premium Access Key');
+  });
+  it('canceling the prompt changes nothing and says nothing', async () => {
+    const { showAlert, setPremiumJwtToken } = await save(null);
+    expect(setPremiumJwtToken).not.toHaveBeenCalled();
+    expect(showAlert).not.toHaveBeenCalled();
   });
 });
 

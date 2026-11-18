@@ -85,14 +85,23 @@ function importRingKey(entry) {
 // Returns { valid: boolean, expiresAt: Date | null, licensedTo: string | null, serial: string | null }
 // -- licensedTo is the address the key was issued to, when the key carries
 // one (keys minted before 2026-10-16 do not). Never throws -- any
-// verification failure (missing key, bad signature, expired, malformed
-// input, wrong claim, unknown kid) just resolves to `valid: false`.
+// verification failure (missing key, bad signature, malformed input, wrong
+// claim, unknown kid) just resolves to `valid: false`.
+//
+// One failure is told apart (changelog 516): a genuine Premium key that
+// has run out. jose throws JWTExpired only after the signature has
+// verified, and the error carries the payload, so the app can say "expired
+// on <date>" and show the Premium-ended banner instead of "invalid".
+// That result is { valid: false, expired: true, expiresAt, licensedTo,
+// serial }: still not Premium -- every unlock reads `valid`, never
+// `expiresAt`.
 export async function verifyPremiumJwt(token) {
   if (!token || typeof token !== 'string') return INVALID;
   if (ring().length === 0) return INVALID;
   let jwtVerify;
+  let joseErrors;
   try {
-    ({ jwtVerify } = await loadJose());
+    ({ jwtVerify, errors: joseErrors } = await loadJose());
   } catch {
     return UNAVAILABLE;
   }
@@ -117,11 +126,23 @@ export async function verifyPremiumJwt(token) {
       // revoked on the module server without retiring its signing key.
       serial: typeof payload.jti === 'string' && payload.jti ? payload.jti : null,
     };
-  } catch {
-    // Covers expired tokens, bad signatures, unknown kids, malformed tokens,
-    // and anything else jose's jwtVerify rejects -- all treated identically
-    // as "not premium" rather than surfaced as distinct error states, since
-    // the UI only needs to show valid/invalid/expired, not why.
+  } catch (err) {
+    // A correctly signed Premium key past its expiry: jose raises JWTExpired
+    // only once the signature and the other claims have checked out.
+    if (joseErrors && err instanceof joseErrors.JWTExpired) {
+      const payload = err.payload || {};
+      if (payload.premium === true && Number.isFinite(payload.exp)) {
+        return {
+          valid: false,
+          expired: true,
+          expiresAt: new Date(payload.exp * 1000),
+          licensedTo: typeof payload.licensedTo === 'string' && payload.licensedTo ? payload.licensedTo : null,
+          serial: typeof payload.jti === 'string' && payload.jti ? payload.jti : null,
+        };
+      }
+    }
+    // Bad signatures, unknown kids, malformed tokens and anything else
+    // jose's jwtVerify rejects: not Premium, with nothing more to say.
     return INVALID;
   }
 }

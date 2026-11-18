@@ -359,7 +359,13 @@ export default function App() {
     // source for the time being.
     premiumJwtToken,
     setPremiumJwtToken,
+    // The key's expiry: set for an active key and, since changelog 516, for
+    // a genuine key that has run out (premiumJwtExpired), so the banner can
+    // say Premium ended. Never a stand-in for "active" -- that is isPremium.
     premiumJwtExpiresAt: premiumJwtStatus.expiresAt,
+    premiumJwtExpired: Boolean(premiumJwtStatus.expired),
+    // The verifier could not be loaded, so nothing is known about the key.
+    premiumJwtUnavailable: Boolean(premiumJwtStatus.unavailable),
     // The address the key was issued to, shown in Preferences; null for a
     // key minted before keys carried one.
     licensedTo: premiumJwtStatus.valid ? premiumJwtStatus.licensedTo : null,

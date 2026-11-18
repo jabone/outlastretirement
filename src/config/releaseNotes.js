@@ -24,8 +24,10 @@ export const RELEASE_NOTES_WEEKS = 6;
 export const RELEASE_WEEKS = [
   {
     weekOf: '2026-11-16',
-    headline: 'A note on Virginia\u2019s deduction',
+    headline: 'Clearer Premium keys, and a note on Virginia\u2019s deduction',
     bullets: [
+      { title: 'Saving a Premium key says whether it worked', ids: [516],
+        text: 'After you paste a Premium key, a notice says whether it worked and until when. A key that has run out now says when it expired, and the notice that Premium ended appears, instead of calling the key invalid.' },
       { title: 'Virginia\u2019s deduction, said where you choose the state', ids: [515],
         text: 'Choosing Virginia now shows its standard deduction by year and that the plan keeps the 2029 amount after current law\u2019s 2030 drop. How the math works also says how heirs\u2019 state income tax is figured.' },
     ],
