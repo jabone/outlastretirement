@@ -23,7 +23,7 @@ const SRC = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ROOT = join(SRC, '..');
 const read = (...p) => readFileSync(join(ROOT, ...p), 'utf8');
 
-const ENTITY = 'OutlastRetirement LLC';
+const ENTITY = 'Outlast Retirement, LLC';
 
 // Two states, one test file. The working repository is proprietary; the
 // public repository scripts/export-public.mjs builds from it carries the
@@ -150,13 +150,13 @@ describe('the copyright notice names one owner everywhere', () => {
   ]) {
     it(`${name} names ${ENTITY}`, () => {
       const source = read(file);
-      expect(source, `${name} has no copyright line`).toMatch(/©\s*2026\s*OutlastRetirement LLC/);
+      expect(source, `${name} has no copyright line`).toMatch(/©\s*2026\s*Outlast Retirement, LLC/);
     });
   }
 
   it('gives the app its own notice, from the shared constant', () => {
     const branding = read('src', 'config', 'branding.js');
-    expect(branding).toMatch(/export const LEGAL_ENTITY = 'OutlastRetirement LLC';/);
+    expect(branding).toMatch(/export const LEGAL_ENTITY = 'Outlast Retirement, LLC';/);
     // A clock-read year is the VISITOR's year, not a publication fact.
     // Comments stripped first: this file EXPLAINS why it does not read the
     // clock, and matching the word rather than the call failed on the

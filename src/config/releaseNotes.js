@@ -26,6 +26,8 @@ export const RELEASE_WEEKS = [
     weekOf: '2026-11-16',
     headline: 'Clearer Premium keys, and a note on Virginia\u2019s deduction',
     bullets: [
+      { title: 'The company\u2019s legal name on the notices', ids: [517],
+        text: 'The copyright lines, Terms of Use, privacy policy and license now give the company\u2019s registered Texas name, Outlast Retirement, LLC. The app is still called OutlastRetirement, and nothing about how it works changes.' },
       { title: 'Saving a Premium key says whether it worked', ids: [516],
         text: 'After you paste a Premium key, a notice says whether it worked and until when. A key that has run out now says when it expired, and the notice that Premium ended appears, instead of calling the key invalid.' },
       { title: 'Virginia\u2019s deduction, said where you choose the state', ids: [515],

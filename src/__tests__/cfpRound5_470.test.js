@@ -39,7 +39,7 @@ describe('the pages and the Guide (changelog 470)', () => {
   it('the privacy policy has the EU and UK section and a moved effective date', () => {
     const p = read('public/privacy.html');
     expect(p).toMatch(/<h2 id="eu-uk">If You Are in the EU, the UK or Switzerland<\/h2>/);
-    expect(p).toMatch(/OutlastRetirement LLC, a company in Texas, United States, is the controller/);
+    expect(p).toMatch(/Outlast Retirement, LLC, a company in Texas, United States, is the controller/);
     expect(p).toMatch(/Effective Date: November 11, 2026/);
     expect(p).toMatch(/Update, October 31, 2026: Added "If You Are in the EU, the UK or Switzerland"/);
   });

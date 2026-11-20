@@ -144,4 +144,4 @@ See `LICENSE` (the GNU Affero General Public License, version 3) and
 open core of OutlastRetirement is published under the AGPL v3. The Premium modules are a separate
 work under a separate license and are not covered by it. "OutlastRetirement"
 and the brand marks in `public/brand/` identify the product as published by
-OutlastRetirement LLC; a fork should carry its own name.
+Outlast Retirement, LLC; a fork should carry its own name.

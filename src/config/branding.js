@@ -33,7 +33,7 @@ export const BRAND_DOMAIN = NEW_HOST;
 // BRAND_NAME is what the product is called; this is who holds the
 // copyright, and the two are not interchangeable -- a copyright notice
 // naming a product rather than a person or company identifies nobody.
-export const LEGAL_ENTITY = 'OutlastRetirement LLC';
+export const LEGAL_ENTITY = 'Outlast Retirement, LLC';
 
 // One copyright line, for the app footer, Preferences, and anywhere else
 // the notice appears. The year is FIXED, not `new Date().getFullYear()`:
